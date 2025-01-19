@@ -1,0 +1,58 @@
+import 'package:pokefinder/models/pokemon.dart';
+import 'package:dartz/dartz.dart';
+
+
+Either<Failure,String> _validatePokemonName(String input) {
+    return right(input);
+}
+
+class PokemonName {
+  final Either<Failure, String> value;
+
+  PokemonName(String input)
+      : value = _validatePokemonName(input);
+
+  String rightOrCrash() {
+    return value.fold((l) => throw ArgumentError(l.message), id);
+  }
+
+  bool isValid() {
+    return value.isRight();
+  }
+}
+
+// Interfaccia per il servizio Pokemon, in questo modo non ha bisogno di sapere se i dati vengono recuperati da un'API reale o se vengono generati localmente (mockati).
+abstract class IPokemonService {
+  Future<Either<Failure, Pokemon>> getData(PokemonName name);
+}
+
+// Serve per ritornare un messaggio di errore in caso di fallimento
+sealed class Failure {
+  final String message;
+
+  Failure(this.message);
+
+  T map<T>({
+    required T Function(UnauthorizedFailure failure) onFailure,
+    required T Function(BadRequestFailure failure) onBadRequest,
+    required T Function(Failure failure) onOther,
+  }) {
+    switch (this) {
+      case UnauthorizedFailure unauthorizedFailure:
+        return onFailure(unauthorizedFailure);
+      case BadRequestFailure badRequest:
+        return onBadRequest(badRequest);
+      default:
+        return onOther(this);
+    }
+  }
+}
+
+final class UnauthorizedFailure extends Failure {
+  UnauthorizedFailure() : super('Unauthorized');
+}
+
+final class BadRequestFailure extends Failure {
+  BadRequestFailure() : super('Bad Request');
+}
+

@@ -1,0 +1,37 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:pokefinder/widgets/home/poke_text_field.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+void main() {
+  group('HomePage', () {
+    testWidgets('renders a TextField and accepts input', (tester) async {
+      final controller = TextEditingController();
+      String inputValue = '';
+
+      // Costruisci il widget da testare
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: PokeTextField(
+              controller: controller,
+              onChanged: (value) {
+                inputValue = value;
+              },
+            ),
+          ),
+        ),
+      );
+
+      // L'operazione da testare: inserire un testo nel TextField
+      await tester.enterText(find.byType(TextField), 'Pikachu');
+
+      // Verifica che il testo sia stato inserito correttamente
+      expect(controller.text, 'Pikachu');
+      expect(inputValue, 'Pikachu');
+    });
+  });
+}

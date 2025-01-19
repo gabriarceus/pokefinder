@@ -1,0 +1,17 @@
+{
+  "cSpell.language": "en,it-IT",
+  "cmake.sourceDirectory": "/Users/gabrielegortani/Documents/Progetti in Flutter/pokefinder-feature-22010-testing/linux",
+  "cmake.ignoreCMakeListsMissing": true,
+  "[dart]": {
+    "editor.codeActionsOnSave": {
+      "quickFix.add.required": "explicit",
+      "quickFix.add.required.multi": "explicit",
+      "quickFix.create.constructorForFinalFields": "explicit",
+      "source.fixAll": "explicit"
+    },
+    "files.autoSave": "off",
+    "debug.toolBarLocatoin": "commandCenter",
+    "editor.suggest.showWords": false,
+    "editor.formatOnSave": true
+  }
+}
