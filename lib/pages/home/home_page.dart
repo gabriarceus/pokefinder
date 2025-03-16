@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pokefinder/bloc_home/home_bloc_bloc.dart';
+import 'package:pokefinder/business_logic/bloc/home_bloc/home_bloc.dart';
 import 'package:pokefinder/pages/home/_app_bar.dart';
 import 'package:pokefinder/pages/home/_bloc.dart';
 import 'package:pokefinder/widgets/home/poke_text_field.dart';
@@ -47,8 +47,8 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       resizeToAvoidBottomInset: false, // altrimenti mi mostra un errore
       appBar: const HomeAppBar(),
-      drawer: HomeDrawer(),
-      body: BlocListener<HomeBlocBloc, HomeBlocState>(
+      drawer: const HomeDrawer(),
+      body: BlocListener<HomeBloc, HomeBlocState>(
         listener: _onListen,
         // Quando viene premuto il pulsante di ricerca con !previous.pokemonFound && current.pokemonFound non posso effettuare una nuova ricerca
         child: HomeBlocBuilder(
@@ -65,9 +65,7 @@ class _HomePageState extends State<HomePage> {
                         child: PokeTextField(
                           controller: _controller,
                           onChanged: (input) {
-                            context
-                                .read<HomeBlocBloc>()
-                                .add(UserInputEvent(input));
+                            context.read<HomeBloc>().add(UserInputEvent(input));
                           },
                         ),
                       ),
@@ -79,9 +77,7 @@ class _HomePageState extends State<HomePage> {
                   children: <Widget>[
                     ElevatedButton(
                       onPressed: () {
-                        context
-                            .read<HomeBlocBloc>()
-                            .add(IsButtonPressedEvent());
+                        context.read<HomeBloc>().add(IsButtonPressedEvent());
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor:

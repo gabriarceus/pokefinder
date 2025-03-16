@@ -5,17 +5,16 @@ import 'package:pokefinder/services/pokemon_service.dart';
 import 'package:pokefinder/services/mock_pokemon_service.dart';
 import 'package:pokefinder/locator.config.dart';
 
-import 'bloc_detail/detail_bloc_bloc.dart';
+import 'business_logic/bloc/detail_bloc/detail_bloc.dart';
 
 final GetIt getIt = GetIt.instance;
 
 @InjectableInit(
-  initializerName: 'init', // default  
-  preferRelativeImports: true, // default  
-  asExtension: true, // default  
+  initializerName: 'init', // default
+  preferRelativeImports: true, // default
+  asExtension: true, // default
 )
-
-void configureDependencies() => getIt.init();  
+void configureDependencies() => getIt.init();
 
 //flag useMock per utilizzare i dati mockati
 //i lazy singleton vengono creati solo quando vengono richiesti
@@ -26,8 +25,8 @@ void setup({bool useMock = false}) {
     getIt.registerLazySingleton<IPokemonService>(() => PokemonService());
   }
 
-  getIt.registerFactory<PokemonBlocBloc>(
-    () => PokemonBlocBloc(
+  getIt.registerFactory<PokemonBloc>(
+    () => PokemonBloc(
       getIt<IPokemonService>(),
     ),
   );
