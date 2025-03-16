@@ -1,10 +1,10 @@
 name: pokefinder
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
-  sdk: '>=3.4.1 <4.0.0'
+  sdk: ">=3.4.1 <4.0.0"
 
 dependencies:
   bloc: ^8.1.4
@@ -27,6 +27,10 @@ dependencies:
   intl: any
   dartz: ^0.10.1
   just_audio: ^0.9.38
+  hydrated_bloc: ^9.1.5
+  hive_ce: ^2.10.1
+  path_provider: ^2.1.5
+  en_logger: ^1.2.0
 
 dev_dependencies:
   flutter_test:
@@ -43,4 +47,4 @@ flutter:
   uses-material-design: true
   generate: true
   assets:
-  - assets/images/sad_azurill.png
+    - assets/images/sad_azurill.png

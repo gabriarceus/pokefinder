@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:pokefinder/language_state.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pokefinder/widgets/home/widgets.dart';
+import 'package:pokefinder/language.dart';
+import 'package:pokefinder/business_logic/hydrated_bloc/language_storage.dart';
 
 class HomeDrawer extends StatelessWidget {
   const HomeDrawer({super.key});
@@ -35,24 +38,21 @@ class HomeDrawer extends StatelessWidget {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      LanguageState.languageNotifier.value = false;
+                      context
+                          .read<LanguageCubit>()
+                          .setLanguage(Language.italian.id);
                       Navigator.pop(context);
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                    ),
-                    child: const Text(('ITA'),
-                        style: TextStyle(color: Colors.white)),
+                    /* style: ElevatedButton.styleFrom(
+                      backgroundColor: LanguageState.languageNotifier.value
+                          ? Colors.grey
+                          : Colors.red,
+                    ), */
+                    child: Text((Language.italian.description),
+                        style: const TextStyle(color: Colors.black)),
                   ),
                   const SizedBox(width: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      LanguageState.languageNotifier.value = true;
-                      Navigator.pop(context);
-                    },
-                    child: const Text(('ENG'),
-                        style: TextStyle(color: Colors.black)),
-                  ),
+                  const LanguageSelectionButton(language: Language.english),
                 ],
               ),
             ],

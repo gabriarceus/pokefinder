@@ -1,4 +1,4 @@
-part of 'home_bloc_bloc.dart';
+part of 'home_bloc.dart';
 
 @immutable
 sealed class HomeBlocEvent {}

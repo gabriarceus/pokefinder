@@ -1,4 +1,4 @@
-part of 'detail_bloc_bloc.dart';
+part of 'detail_bloc.dart';
 
 @immutable
 abstract class PokemonBlocEvent {}
