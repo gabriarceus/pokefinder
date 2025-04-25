@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-/// Pokémon del dominio (dati puliti)
+/// Domain model for a Pokemon
 class Pokemon extends Equatable {
   const Pokemon({
     required this.id,
@@ -28,10 +28,10 @@ class Pokemon extends Equatable {
   final String ability3;
   final String cry;
 
-  /// in ettogrammi
+  /// [weight] is the weight of the Pokemon in hectograms
   final double weight;
 
-  /// in decimetri
+  /// [height] is the height of the Pokemon in decimetres
   final double height;
 
   @override

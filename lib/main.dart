@@ -14,29 +14,27 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
-/// True = English, False = Italian
-bool language = true;
 void main() {
   bootstrap(then: () => const MyApp());
 }
 
-// Bootstrap viene eseguito all'avvio dell'applicazione (può essere async)
+// Bootstrap gets executed at the start of the application (it can be async)
 void bootstrap({required Widget Function() then}) async {
   setup(useMock: false);
   configureDependencies();
-  // Inizializza lo storage per HydratedBloc
+  // HydratedBlocStorage configuration
   WidgetsFlutterBinding.ensureInitialized();
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: await getApplicationDocumentsDirectory(),
   );
 
-  // Inizializza il printer
+  // Printer configuration
   final printer = PrinterHandler()
     ..configure({
       Severity.notice: const PrinterColor.green(),
     });
 
-  // Inizializza il logger
+  // Logger configuration
   final logger = EnLogger(
       defaultPrefixFormat: const PrefixFormat(
     startFormat: '[]',
@@ -76,11 +74,11 @@ void bootstrap({required Widget Function() then}) async {
 }
 
 /// The route configuration. [MyApp]
-// Il builder di GoRoute è un widget che viene costruito quando la route viene raggiunta.
-// Accetta due parametri: il contesto e lo stato del router.
-// Il BuildContext è un oggetto che contiene informazioni su dove si trova il widget nel widget tree.
-// Il GoRouterState contiene informazioni sulla route corrente, come il percorso, i parametri e i parametri extra.
-// Il builder di GoRoute deve restituire un widget (una pagina).
+// The GoRoute builder is a widget that is built when the route is reached.
+// It accepts two parameters: the context and the router state.
+// BuildContext contains information about where the widget is located in the widget tree.
+// GoRouterState contains information about the current route, such as the path, parameters, and extra parameters.
+// The GoRoute builder must return a widget (a page).
 final GoRouter _router = GoRouter(
   routes: <RouteBase>[
     GoRoute(
@@ -95,7 +93,8 @@ final GoRouter _router = GoRouter(
         GoRoute(
           path: 'detail',
           builder: (BuildContext context, GoRouterState state) {
-            // Viene estratto il nome del Pokémon dalla "map extra" e viene passato al Detail widget tramite il BlocProvider
+            // The extra parameter is a map that contains the data passed to the route.
+            // In this case, it contains the name of the Pokémon.
             final String pokemonName =
                 (state.extra as Map<String, dynamic>)['pokemonName'] as String;
             return PokemonBlocProvider(
@@ -114,10 +113,10 @@ class MyApp extends StatelessWidget {
   /// Constructs a [MyApp]
   const MyApp({super.key});
 
-//Ritorna un MaterialApp con il router configurato
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
+//FIXME: controllare che sia apposto
       create: (_) => LanguageCubit(),
       child: BlocBuilder<LanguageCubit, int>(builder: (context, state) {
         return MaterialApp.router(

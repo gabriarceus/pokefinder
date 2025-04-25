@@ -8,7 +8,7 @@ import 'package:dartz/dartz.dart';
 part 'detail_event.dart';
 part 'detail_state.dart';
 
-//La business logic: si occupa di gestire lo stato dell'applicazione
+//Here we use the bloc pattern to manage the state of the application
 class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
   final IPokemonService _pokemonService;
 
@@ -25,7 +25,8 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
     emit(PokemonBlocLoading());
     final Either<Failure, Pokemon> result = await _pokemonService.getData(name);
 
-    // Fold è un metodo della libreria di dartz che permette di gestire i due casi di successo e fallimento
+    // Fold is a method of the dartz library that allows you to handle the two cases of success and failure
+    // in a functional way. It takes two functions as arguments, one for the success case and one for the failure case.
     result.fold(
       (failure) => emit(PokemonBlocFailure(failure.message)),
       (pokemon) => emit(PokemonBlocSuccess(pokemon)),

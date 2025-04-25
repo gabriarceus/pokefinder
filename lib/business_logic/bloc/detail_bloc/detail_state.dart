@@ -11,6 +11,7 @@ sealed class PokemonBlocState {
     switch (this) {
       case PokemonBlocInitial initial:
         return onInitial(initial);
+
       case PokemonBlocLoading loading:
         return onLoading(loading);
 
@@ -23,7 +24,6 @@ sealed class PokemonBlocState {
   }
 }
 
-//Gli stati possibili della business logic
 final class PokemonBlocInitial extends PokemonBlocState {}
 
 final class PokemonBlocLoading extends PokemonBlocState {}

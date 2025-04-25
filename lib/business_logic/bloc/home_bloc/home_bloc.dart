@@ -13,7 +13,7 @@ class HomeBloc extends Bloc<HomeBlocEvent, HomeBlocState> {
       emit(state.copyWith(userInput: event.userInput));
     });
     on<IsButtonPressedEvent>((event, emit) {
-      // Quando il pulsante viene premuto verrà inviato alla schermata di dettaglio l'input dell'utente
+      // When the search button is pressed, the user input will be sent to the detail screen
       emit(state.copyWith(optionFailureOrPokemonFound: some(right(unit))));
     });
   }

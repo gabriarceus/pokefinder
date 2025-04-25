@@ -16,8 +16,8 @@ final GetIt getIt = GetIt.instance;
 )
 void configureDependencies() => getIt.init();
 
-//flag useMock per utilizzare i dati mockati
-//i lazy singleton vengono creati solo quando vengono richiesti
+// `useMock` is a flag to use mock data
+// lazy singletons are created only when requested
 void setup({bool useMock = false}) {
   if (useMock) {
     getIt.registerLazySingleton<IPokemonService>(() => MockPokemonService());
