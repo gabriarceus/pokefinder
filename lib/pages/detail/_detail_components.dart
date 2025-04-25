@@ -37,27 +37,23 @@ class DetailComponents extends StatelessWidget {
                         color: textColor),
                   ),
                 ),
-                // Inserisco dei SizedBox vuoti quando la stringa è vuota perché tanto non verranno visualizzati
-                // Le immagini di tipo sono 144x32
+                // Typing images are 144x32
                 const Gap(5),
                 TypeImage(type: pokemon.typeImage1),
                 const Gap(5),
-                // Non tutti i pokemon hanno 2 tipi
+                // Not all pokemons have a second type
                 TypeImage(type: pokemon.typeImage2),
                 const Gap(10),
-                // Abilità 1
                 DetailFormatterBold(
                   label: 'Ability 1',
                   value: pokemon.ability1,
                   textColor: textColor,
                 ),
-                // Abilità 2
                 DetailFormatterBold(
                   label: 'Ability 2',
                   value: pokemon.ability2,
                   textColor: textColor,
                 ),
-                // Abilità 3
                 DetailFormatterBold(
                   label: 'Ability 3',
                   value: pokemon.ability3,
@@ -76,7 +72,7 @@ class DetailComponents extends StatelessWidget {
               ],
             ),
           ),
-          // Le immagini pokemon sono 96x96
+          // Images are 96x96
           SpriteBoxImage(sprite: pokemon.sprite),
         ],
       ),

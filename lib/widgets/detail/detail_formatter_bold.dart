@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class DetailFormatterBold extends StatelessWidget {
-  /// Serve per formattare il testo con la prima parte in grassetto e la seconda parte con la prima lettera in maiuscolo
+  /// Used to format the text with the first part in bold and the second part with the first letter in uppercase
   const DetailFormatterBold({
     super.key,
     required this.label,

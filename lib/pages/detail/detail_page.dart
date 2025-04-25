@@ -23,7 +23,6 @@ class Detail extends StatelessWidget {
 // Il widget Detail è uno stato che dipende dallo stato del bloc PokemonBlocBloc
   Detail({super.key, required this.pokemonName});
 
-// La prima parte viene caricata prima di controllare lo stato del bloc
   @override
   Widget build(BuildContext context) {
     return Scaffold(

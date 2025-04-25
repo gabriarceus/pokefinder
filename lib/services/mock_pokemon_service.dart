@@ -5,9 +5,8 @@ import 'package:dartz/dartz.dart';
 class MockPokemonService implements IPokemonService {
   @override
   Future<Either<Failure, Pokemon>> getData(PokemonName pokemonName) async {
-    // Simula un ritardo di rete
+    // Mocks a network delay
     await Future.delayed(const Duration(seconds: 1));
-    // Dati mockati
     return const Right(Pokemon(
       id: 1,
       name: 'bulbasaur',

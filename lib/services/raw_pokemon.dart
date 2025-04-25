@@ -6,7 +6,9 @@ import 'package:pokefinder/services/raw_pokemon_attributes/types/type_container.
 
 part 'raw_pokemon.g.dart';
 
-/// Pokémon repository (dati sporchi)
+/// Pokémon repository (raw data)
+/// This class is used to parse the JSON data from the API
+/// into a [RawPokemon] object.
 @JsonSerializable(explicitToJson: true)
 class RawPokemon {
   const RawPokemon({
@@ -27,10 +29,10 @@ class RawPokemon {
   final List<AbilityContainer> abilities;
   final Cries cries;
 
-  /// in ettogrammi
+  /// In hectograms
   final double weight;
 
-  /// in decimetri
+  /// In decimetres
   final double height;
 
   factory RawPokemon.fromJson(Map<String, dynamic> json) =>

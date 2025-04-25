@@ -45,12 +45,13 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false, // altrimenti mi mostra un errore
+      resizeToAvoidBottomInset: false, // or else it shows an error
       appBar: const HomeAppBar(),
       drawer: const HomeDrawer(),
       body: BlocListener<HomeBloc, HomeBlocState>(
         listener: _onListen,
-        // Quando viene premuto il pulsante di ricerca con !previous.pokemonFound && current.pokemonFound non posso effettuare una nuova ricerca
+
+        // When the search button is pressed with !previous.pokemonFound && current.pokemonFound I can't perform a new search
         child: HomeBlocBuilder(
           builder: (context, state) {
             return Column(
@@ -92,7 +93,7 @@ class _HomePageState extends State<HomePage> {
                 const PokeBallWidget(
                   color: Color.fromARGB(255, 223, 112, 104),
                   opacity: 1.0,
-                  size: Size(200, 200), // Dimensione della Pokéball
+                  size: Size(200, 200),
                 ),
               ],
             );
