@@ -13,5 +13,6 @@
     "debug.toolBarLocatoin": "commandCenter",
     "editor.suggest.showWords": false,
     "editor.formatOnSave": true
-  }
+  },
+  "java.configuration.updateBuildConfiguration": "interactive"
 }
