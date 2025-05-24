@@ -31,6 +31,7 @@ dependencies:
   hive_ce: ^2.10.1
   path_provider: ^2.1.5
   en_logger: ^1.2.0
+  flutter_gen: ^5.10.0
 
 dev_dependencies:
   flutter_test:
