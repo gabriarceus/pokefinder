@@ -32,32 +32,45 @@ class Detail extends StatelessWidget {
         onFailure: (_, failure) => DetailFailure(state: failure),
         onSuccess: (context, success) {
           final pokemon = success.pokemon;
+
+          final backgroundHelper = DetailBackgroundColor(
+            type1: pokemon.type1,
+            type2: pokemon.type2,
+          );
+
           setupAudioPlayer(_player, pokemon.cry);
-          Color? typeColor =
-              DetailBackgroundColor(type: pokemon.type1).colorFromType();
+          Color typeColor = backgroundHelper.colorFromType();
           Color textColor = itemColorExtractor(typeColor);
+
           return Scaffold(
-            appBar: DetailAppBar(backgroundColor: typeColor),
-            backgroundColor: typeColor,
-            body: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                DetailComponents(pokemon: pokemon, textColor: textColor),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: hGap),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: <Widget>[
-                      Text("Pokémon cry:",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
-                          )),
-                      PlaybackButton(player: _player),
-                    ],
-                  ),
+            extendBodyBehindAppBar: true,
+            appBar: const DetailAppBar(
+              backgroundColor: Colors.transparent,
+            ),
+            body: Container(
+              decoration: backgroundHelper.getBackgroundDecoration(),
+              child: SafeArea(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    DetailComponents(pokemon: pokemon, textColor: textColor),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: hGap),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: <Widget>[
+                          Text("Pokémon cry:",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
+                              )),
+                          PlaybackButton(player: _player),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           );
         },
