@@ -1,16 +1,13 @@
-import 'dart:convert';
-
-import 'package:en_logger/en_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/business_logic/hydrated_bloc/language_storage.dart';
+import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/locator.dart';
 import 'package:pokefinder/pages/detail/_bloc.dart';
 import 'package:pokefinder/pages/home/_bloc.dart';
 import 'package:pokefinder/pages/home/home_page.dart';
 import 'package:pokefinder/pages/detail/detail_page.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -25,51 +22,9 @@ void bootstrap({required Widget Function() then}) async {
   // HydratedBlocStorage configuration
   WidgetsFlutterBinding.ensureInitialized();
   HydratedBloc.storage = await HydratedStorage.build(
-    storageDirectory: await getApplicationDocumentsDirectory(),
+    storageDirectory:
+        HydratedStorageDirectory((await getTemporaryDirectory()).path),
   );
-
-  // Printer configuration
-  final printer = PrinterHandler()
-    ..configure({
-      Severity.notice: const PrinterColor.green(),
-    });
-
-  // Logger configuration
-  final logger = EnLogger(
-      defaultPrefixFormat: const PrefixFormat(
-    startFormat: '[]',
-    endFormat: ']',
-  ))
-    ..addHandler(
-      printer,
-    )
-
-    // debug log
-    ..debug('a debug message')
-
-    // error with data
-    ..error(
-      'error',
-      data: [
-        EnLoggerData(
-          name: 'response',
-          content: jsonEncode('BE data'),
-          description: 'serialized BE response',
-        ),
-      ],
-    );
-
-  // logger instance with prefix
-  logger.getConfiguredInstance(prefix: 'API Repository')
-
-    // [API Repository] a debug message
-    ..debug('a debug message')
-
-    // [Custom prefix] a debug message
-    ..error(
-      'error',
-      prefix: 'Custom prefix',
-    );
   runApp(then());
 }
 

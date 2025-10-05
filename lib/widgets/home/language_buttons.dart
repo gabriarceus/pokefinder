@@ -4,24 +4,32 @@ import 'package:pokefinder/business_logic/hydrated_bloc/language_storage.dart';
 import 'package:pokefinder/language.dart';
 
 class LanguageSelectionButton extends StatelessWidget {
-  const LanguageSelectionButton({super.key, required this.language});
+  const LanguageSelectionButton({
+    super.key,
+    required this.language,
+    required this.languageId,
+  });
 
   final Language language;
+  final int languageId;
 
   @override
   Widget build(BuildContext context) {
+    final buttonBackgroundColor =
+        context.watch<LanguageCubit>().state == language.id
+            ? Colors.red
+            : Colors.grey;
+
     return ElevatedButton(
       onPressed: () {
         context.read<LanguageCubit>().setLanguage(language.id);
         Navigator.pop(context);
       },
-      /* style: ElevatedButton.styleFrom(
-        backgroundColor:
-            LanguageState ? Colors.red : Colors.grey,
-      ), */
+      style: ElevatedButton.styleFrom(
+        backgroundColor: buttonBackgroundColor,
+      ),
       child: Text((language.description),
           style: const TextStyle(color: Colors.black)),
     );
   }
 }
-//TODO: aggiungere la logica per cambiare il colore dei pulsanti in modo dinamico in base alla lingua selezionata

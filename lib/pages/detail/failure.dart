@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/business_logic/bloc/detail_bloc/detail_bloc.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:pokefinder/l10n/app_localizations.dart';
 
 class DetailFailure extends StatelessWidget {
   const DetailFailure({
@@ -27,7 +27,7 @@ class DetailFailure extends StatelessWidget {
               ElevatedButton(
                 onPressed: () => context.go('/'),
                 child: Text(
-                  AppLocalizations.of(context)!.backButton,
+                  AppLocalizations.of(context).backButton,
                 ),
               ),
             ],

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/business_logic/bloc/home_bloc/home_bloc.dart';
+import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/pages/home/_app_bar.dart';
 import 'package:pokefinder/pages/home/_bloc.dart';
 import 'package:pokefinder/widgets/home/poke_text_field.dart';
 import 'package:pokefinder/widgets/home/pokeball_widget.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '_drawer.dart';
 
@@ -84,7 +84,7 @@ class _HomePageState extends State<HomePage> {
                         backgroundColor:
                             Colors.red, // Set the background color to red
                       ),
-                      child: Text(AppLocalizations.of(context)!.searchButton,
+                      child: Text(AppLocalizations.of(context).searchButton,
                           style: const TextStyle(color: Colors.white)),
                     ),
                   ],

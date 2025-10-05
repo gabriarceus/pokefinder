@@ -1,8 +1,9 @@
 {
-    "@@locale": "en",
-    "searchTextField": "Search Pokémon",
-    "searchButton": "Search",
-    "loading": "Loading...",
-    "details": "Details",
-    "backButton": "Back"
+  "@@locale": "en",
+  "searchTextField": "Search Pokémon",
+  "searchButton": "Search",
+  "loading": "Loading...",
+  "details": "Details",
+  "backButton": "Back",
+  "settings": "Settings"
 }
