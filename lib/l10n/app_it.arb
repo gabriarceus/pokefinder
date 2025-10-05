@@ -1,8 +1,9 @@
 {
-    "@@locale": "it",
-    "searchTextField": "Cerca Pokémon",
-    "searchButton": "Cerca",
-    "loading": "Caricamento...",
-    "details": "Dettagli",
-    "backButton": "Indietro"
+  "@@locale": "it",
+  "searchTextField": "Cerca Pokémon",
+  "searchButton": "Cerca",
+  "loading": "Caricamento...",
+  "details": "Dettagli",
+  "backButton": "Indietro",
+  "settings": "Impostazioni"
 }

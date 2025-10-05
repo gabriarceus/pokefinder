@@ -1,3 +1,4 @@
+import 'package:en_logger/en_logger.dart';
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:pokefinder/services/i_pokemon_service.dart';
@@ -19,6 +20,21 @@ void configureDependencies() => getIt.init();
 // `useMock` is a flag to use mock data
 // lazy singletons are created only when requested
 void setup({bool useMock = false}) {
+  // Registra EnLogger come singleton
+  getIt.registerLazySingleton<EnLogger>(() {
+    final printer = PrinterHandler()
+      ..configure({
+        Severity.notice: const PrinterColor.green(),
+      });
+
+    return EnLogger(
+      defaultPrefixFormat: const PrefixFormat(
+        startFormat: '[',
+        endFormat: ']',
+      ),
+    )..addHandler(printer);
+  });
+
   if (useMock) {
     getIt.registerLazySingleton<IPokemonService>(() => MockPokemonService());
   } else {

@@ -1,4 +1,6 @@
+import 'package:en_logger/en_logger.dart';
 import 'package:http/http.dart';
+import 'package:pokefinder/locator.dart';
 import 'dart:convert';
 import 'package:pokefinder/models/pokemon.dart';
 import 'package:pokefinder/services/i_pokemon_service.dart';
@@ -9,6 +11,7 @@ const _kBasePath =
     'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/';
 
 class PokemonService implements IPokemonService {
+  final logger = getIt<EnLogger>();
   // Using Either to handle success and failure. Failure is a class that contains an error message
   @override
   Future<Either<Failure, Pokemon>> getData(PokemonName pokemonName) async {
@@ -17,6 +20,7 @@ class PokemonService implements IPokemonService {
           'https://pokeapi.co/api/v2/pokemon/${pokemonName.rightOrCrash()}'));
       if (response.statusCode == 200) {
         Map<String, dynamic> data = jsonDecode(response.body);
+        logger.info(data);
         return right(_pokemonFromJson(data));
       } else {
         return left(BadRequestFailure());

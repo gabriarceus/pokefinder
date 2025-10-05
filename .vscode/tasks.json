@@ -1,0 +1,56 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Tests",
+      "type": "shell",
+      "command": "fvm flutter test",
+      "detail": "Run project tests",
+      "problemMatcher": []
+    },
+    {
+      "label": "Translations",
+      "type": "shell",
+      "command": "fvm flutter gen-l10n",
+      "detail": "Generate project translations",
+      "problemMatcher": []
+    },
+    {
+      "label": "Codegen",
+      "type": "shell",
+      "command": "fvm dart run build_runner watch --delete-conflicting-outputs",
+      "detail": "Run project codegen",
+      "problemMatcher": []
+    },
+    {
+      "label": "Pub get",
+      "type": "shell",
+      "command": "fvm flutter pub get",
+      "detail": "Run pub get",
+      "problemMatcher": []
+    },
+    {
+      "label": "(Release mode, Prod) Build",
+      "type": "shell",
+      "command": "fvm flutter build appbundle --release --flavor prod",
+      "detail": "Build app in release mode for Prod",
+      "problemMatcher": [],
+      "hide": true
+    },
+    {
+      "label": "Post build",
+      "type": "shell",
+      "command": "dart run ${workspaceFolder}/scripts/post_build.dart",
+      "detail": "Run post build script",
+      "problemMatcher": [],
+      "hide": true
+    },
+    {
+      "label": "(Release mode, Prod) Build + Post build",
+      "dependsOn": ["(Release mode, Prod) Build", "Post build"],
+      "dependsOrder": "sequence",
+      "detail": "Build app in release mode for Prod and run post build",
+      "problemMatcher": []
+    }
+  ]
+}
