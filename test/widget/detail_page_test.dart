@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:network_image_mock/network_image_mock.dart';
-import 'package:pokefinder/widgets/detail/sprite_box_image.dart';
-import 'package:pokefinder/widgets/detail/type_image.dart';
-import 'package:pokefinder/widgets/detail/detail_formatter_bold.dart';
+import 'package:pokefinder/src/1_presentation/widgets/detail/sprite_box_image.dart';
+import 'package:pokefinder/src/1_presentation/widgets/detail/type_image.dart';
+import 'package:pokefinder/src/1_presentation/widgets/detail/detail_formatter_bold.dart';
 
 void main() {
   group('DetailPage', () {
@@ -67,7 +67,11 @@ void main() {
 
       // Costruisci il widget da testare
       await tester.pumpWidget(
-        DetailFormatterBold(label: label, value: ability, textColor: Colors.black,),
+        DetailFormatterBold(
+          label: label,
+          value: ability,
+          textColor: Colors.black,
+        ),
       );
 
       // L'operazione da testare: verificare che il secondo o terzo tipo  non venga visualizzato se non è presente

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pokefinder/business_logic/hydrated_bloc/language_storage.dart';
+import 'package:pokefinder/src/2_application/hydrated_bloc/language_storage.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
-import 'package:pokefinder/locator.dart';
-import 'package:pokefinder/pages/detail/_bloc.dart';
-import 'package:pokefinder/pages/home/_bloc.dart';
-import 'package:pokefinder/pages/home/home_page.dart';
-import 'package:pokefinder/pages/detail/detail_page.dart';
+import 'package:pokefinder/bootstrap.dart';
+import 'package:pokefinder/src/1_presentation/pages/detail/_bloc.dart';
+import 'package:pokefinder/src/1_presentation/pages/home/_bloc.dart';
+import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
