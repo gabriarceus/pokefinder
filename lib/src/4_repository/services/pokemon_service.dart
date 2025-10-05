@@ -10,6 +10,8 @@ import 'package:dartz/dartz.dart';
 const _kBasePath =
     'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/';
 
+const _prefix = 'PokemonService';
+
 class PokemonService implements IPokemonService {
   final logger = getIt<EnLogger>();
   // Using Either to handle success and failure. Failure is a class that contains an error message
@@ -20,7 +22,7 @@ class PokemonService implements IPokemonService {
           'https://pokeapi.co/api/v2/pokemon/${pokemonName.rightOrCrash()}'));
       if (response.statusCode == 200) {
         Map<String, dynamic> data = jsonDecode(response.body);
-        logger.info(data);
+        //logger.info(data, prefix: _prefix);
         return right(_pokemonFromJson(data));
       } else {
         return left(BadRequestFailure());
@@ -75,6 +77,7 @@ class PokemonService implements IPokemonService {
       typeImage1: typeImage1,
       typeImage2: typeImage2,
       type1: type1,
+      type2: type2,
       cry: cry,
     );
   }

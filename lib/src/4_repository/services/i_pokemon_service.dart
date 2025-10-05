@@ -40,8 +40,6 @@ sealed class Failure {
         return onFailure(unauthorizedFailure);
       case BadRequestFailure badRequest:
         return onBadRequest(badRequest);
-      default:
-        return onOther(this);
     }
   }
 }

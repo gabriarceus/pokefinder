@@ -14,6 +14,7 @@ class Pokemon extends Equatable {
     required this.typeImage1,
     required this.typeImage2,
     required this.type1,
+    required this.type2,
     required this.cry,
   });
 
@@ -22,6 +23,7 @@ class Pokemon extends Equatable {
   final String typeImage1;
   final String typeImage2;
   final String type1;
+  final String? type2;
   final String sprite;
   final String ability1;
   final String ability2;
@@ -47,6 +49,7 @@ class Pokemon extends Equatable {
         typeImage1,
         typeImage2,
         type1,
+        type2,
         cry,
       ];
 }

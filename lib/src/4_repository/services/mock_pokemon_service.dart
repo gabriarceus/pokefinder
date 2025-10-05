@@ -22,6 +22,7 @@ class MockPokemonService implements IPokemonService {
       typeImage2:
           "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/4.png",
       type1: '16',
+      type2: null,
       cry:
           'https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/1.ogg',
     ));
