@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
-import 'package:pokefinder/widgets/home/poke_text_field.dart';
+import 'package:pokefinder/src/1_presentation/widgets/home/poke_text_field.dart';
 
 void main() {
   group('HomePage', () {
