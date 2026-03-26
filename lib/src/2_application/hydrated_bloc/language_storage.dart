@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:pokefinder/src/3_domain/models/language.dart';
+import 'package:pokefinder/src/3_domain/entities/language.dart';
 
 class LanguageCubit extends HydratedCubit<int> {
   LanguageCubit() : super(Language.english.id);

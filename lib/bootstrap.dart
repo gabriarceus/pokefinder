@@ -1,12 +1,10 @@
 import 'package:en_logger/en_logger.dart';
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
-import 'package:pokefinder/src/4_repository/services/i_pokemon_service.dart';
-import 'package:pokefinder/src/4_repository/services/pokemon_service.dart';
-import 'package:pokefinder/src/4_repository/services/mock_pokemon_service.dart';
 import 'package:pokefinder/bootstrap.config.dart';
-
-import 'src/2_application/bloc/detail_bloc/detail_bloc.dart';
+import 'package:pokefinder/src/2_application/application.dart';
+import 'package:pokefinder/src/3_domain/domain.dart';
+import 'package:pokefinder/src/4_repository/repository.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -36,14 +34,23 @@ void setup({bool useMock = false}) {
   });
 
   if (useMock) {
-    getIt.registerLazySingleton<IPokemonService>(() => MockPokemonService());
+    getIt.registerLazySingleton<IPokemonRepository>(
+        () => MockPokemonRepository());
   } else {
-    getIt.registerLazySingleton<IPokemonService>(() => PokemonService());
+    getIt.registerLazySingleton<IPokemonRemoteDataSource>(
+        () => PokemonRemoteDataSource());
+    getIt.registerLazySingleton<IPokemonRepository>(
+      () => PokemonRepositoryImpl(getIt<IPokemonRemoteDataSource>()),
+    );
   }
+
+  getIt.registerLazySingleton<GetPokemonUseCase>(
+    () => GetPokemonUseCase(getIt<IPokemonRepository>()),
+  );
 
   getIt.registerFactory<PokemonBloc>(
     () => PokemonBloc(
-      getIt<IPokemonService>(),
+      getIt<GetPokemonUseCase>(),
       getIt<EnLogger>(),
     ),
   );

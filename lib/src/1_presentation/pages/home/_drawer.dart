@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
-import 'package:pokefinder/src/1_presentation/widgets/home/widgets.dart';
-import 'package:pokefinder/src/3_domain/models/language.dart';
+import 'package:pokefinder/src/1_presentation/widgets/home/home_widgets.dart';
+import 'package:pokefinder/src/3_domain/entities/language.dart';
 
 class HomeDrawer extends StatelessWidget {
   const HomeDrawer({super.key});

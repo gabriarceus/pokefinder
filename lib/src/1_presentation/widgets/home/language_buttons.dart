@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokefinder/src/2_application/hydrated_bloc/language_storage.dart';
-import 'package:pokefinder/src/3_domain/models/language.dart';
+import 'package:pokefinder/src/3_domain/entities/language.dart';
 
 class LanguageSelectionButton extends StatelessWidget {
   const LanguageSelectionButton({

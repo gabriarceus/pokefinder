@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:pokefinder/src/1_presentation/pages/detail/_app_bar.dart';
-import 'package:pokefinder/src/1_presentation/pages/detail/_bloc.dart';
-import 'package:pokefinder/src/1_presentation/pages/detail/_detail_components.dart';
-import 'package:pokefinder/src/1_presentation/pages/detail/_loading.dart';
-import 'package:pokefinder/src/1_presentation/pages/detail/failure.dart';
-import 'package:pokefinder/src/4_repository/services/audio_player.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
+import 'package:pokefinder/src/4_repository/repository.dart';
+
+import '_app_bar.dart';
+import '_bloc.dart';
+import '_detail_components.dart';
+import '_loading.dart';
+import 'failure.dart';
 
 //Domanda:
 // Per evitare che la UI crashi quando un immagine non viene caricata correttamente o i dati richiesti sono in un formato errato

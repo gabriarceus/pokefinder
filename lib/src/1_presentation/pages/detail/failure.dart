@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
+import 'package:pokefinder/src/1_presentation/presentation.dart';
+import 'package:pokefinder/src/2_application/application.dart';
 
 class DetailFailure extends StatelessWidget {
   const DetailFailure({
