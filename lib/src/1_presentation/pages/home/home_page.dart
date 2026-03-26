@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:pokefinder/src/2_application/bloc/home_bloc/home_bloc.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
-import 'package:pokefinder/src/1_presentation/pages/home/_app_bar.dart';
-import 'package:pokefinder/src/1_presentation/pages/home/_bloc.dart';
-import 'package:pokefinder/src/1_presentation/widgets/home/poke_text_field.dart';
-import 'package:pokefinder/src/1_presentation/widgets/home/pokeball_widget.dart';
+import 'package:pokefinder/src/1_presentation/presentation.dart';
+import 'package:pokefinder/src/1_presentation/widgets/home/home_widgets.dart';
+import 'package:pokefinder/src/2_application/application.dart';
 
+import '_app_bar.dart';
+import '_bloc.dart';
 import '_drawer.dart';
 
 class HomePage extends StatefulWidget {

@@ -1,8 +1,8 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pokefinder/src/4_repository/services/raw_pokemon_attributes/abilities/ability_container.dart';
-import 'package:pokefinder/src/4_repository/services/raw_pokemon_attributes/cries.dart';
-import 'package:pokefinder/src/4_repository/services/raw_pokemon_attributes/sprites.dart';
-import 'package:pokefinder/src/4_repository/services/raw_pokemon_attributes/types/type_container.dart';
+import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/abilities/ability_container.dart';
+import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/cries.dart';
+import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/sprites.dart';
+import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/types/type_container.dart';
 
 part 'raw_pokemon.g.dart';
 

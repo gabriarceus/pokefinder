@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:pokefinder/src/3_domain/models/pokemon.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 
 class DetailComponents extends StatelessWidget {

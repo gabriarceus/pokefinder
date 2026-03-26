@@ -3,7 +3,7 @@ part of 'home_bloc.dart';
 @immutable
 final class HomeBlocState {
   final String userInput;
-  final Option<Either<Failure, void>> optionFailureOrPokemonFound;
+  final Option<Either<PokemonFailure, Unit>> optionFailureOrPokemonFound;
 
   const HomeBlocState({
     required this.userInput,
@@ -16,7 +16,7 @@ final class HomeBlocState {
 
   HomeBlocState copyWith({
     String? userInput,
-    Option<Either<Failure, Unit>>? optionFailureOrPokemonFound,
+    Option<Either<PokemonFailure, Unit>>? optionFailureOrPokemonFound,
   }) {
     return HomeBlocState(
       optionFailureOrPokemonFound: optionFailureOrPokemonFound ?? none(),

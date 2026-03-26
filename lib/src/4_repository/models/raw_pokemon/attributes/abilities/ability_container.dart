@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pokefinder/src/4_repository/services/raw_pokemon_attributes/abilities/ability.dart';
+import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/abilities/ability.dart';
 
 part 'ability_container.g.dart';
 

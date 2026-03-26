@@ -2,7 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
-import 'package:pokefinder/src/4_repository/services/i_pokemon_service.dart';
+import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 
 part 'home_event.dart';
 part 'home_state.dart';
