@@ -5,5 +5,7 @@
   "loading": "Caricamento...",
   "details": "Dettagli",
   "backButton": "Indietro",
-  "settings": "Impostazioni"
+  "settings": "Impostazioni",
+  "useDeviceLanguage": "Usa la lingua del dispositivo",
+  "useDeviceLanguageInfo": "Se attivato, l'app userà la stessa lingua del tuo dispositivo."
 }

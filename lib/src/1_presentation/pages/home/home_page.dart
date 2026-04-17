@@ -7,6 +7,8 @@ import '_app_bar.dart';
 import '_bloc.dart';
 import '_drawer.dart';
 
+export '_bloc.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
