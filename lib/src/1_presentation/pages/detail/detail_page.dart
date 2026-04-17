@@ -5,6 +5,8 @@ import 'package:pokefinder/src/4_repository/repository.dart';
 import '_app_bar.dart';
 import '_bloc.dart';
 import '_detail_components.dart';
+
+export '_bloc.dart';
 import '_loading.dart';
 import 'failure.dart';
 

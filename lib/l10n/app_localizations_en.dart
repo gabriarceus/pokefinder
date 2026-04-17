@@ -25,4 +25,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings => 'Settings';
+
+  @override
+  String get useDeviceLanguage => 'Use device language';
+
+  @override
+  String get useDeviceLanguageInfo =>
+      'If enabled, the app will use your device\'s language.';
 }

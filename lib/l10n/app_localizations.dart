@@ -133,6 +133,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get settings;
+
+  /// No description provided for @useDeviceLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Use device language'**
+  String get useDeviceLanguage;
+
+  /// No description provided for @useDeviceLanguageInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'If enabled, the app will use your device\'s language.'**
+  String get useDeviceLanguageInfo;
 }
 
 class _AppLocalizationsDelegate

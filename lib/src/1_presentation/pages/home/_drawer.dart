@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
-import 'package:pokefinder/src/1_presentation/widgets/home/home_widgets.dart';
+import 'package:pokefinder/src/2_application/hydrated_bloc/language_storage.dart';
 import 'package:pokefinder/src/3_domain/entities/language.dart';
 
 class HomeDrawer extends StatelessWidget {
   const HomeDrawer({super.key});
 
-//cose da fare
-// aggiungere la logica per cambiare il colore dei pulsanti in modo dinamico in base alla lingua selezionata
-// creare factory per la creazione di pulsanti
   @override
   Widget build(BuildContext context) {
+    final currentLanguageId = context.watch<LanguageCubit>().state;
+    final isSystemLanguage = currentLanguageId == Language.system.id;
+
     return Drawer(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           // Header
           Container(
@@ -23,7 +23,7 @@ class HomeDrawer extends StatelessWidget {
                 MediaQuery.of(context).size.width * 0.05,
                 MediaQuery.of(context).padding.top,
                 0,
-                20), //questo è da fare dinamico
+                20),
             child: Text(
               context.t().settings,
               style: const TextStyle(
@@ -32,24 +32,43 @@ class HomeDrawer extends StatelessWidget {
               ),
             ),
           ),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                LanguageSelectionButton(
-                  language: Language.italian,
-                  languageId: Language.italian.id,
-                ),
-                const SizedBox(width: 20),
-                LanguageSelectionButton(
-                  language: Language.english,
-                  languageId: Language.english.id,
-                ),
-              ],
+          // "Use device language" toggle
+          SwitchListTile(
+            title: Text(context.t().useDeviceLanguage),
+            subtitle: Text(
+              context.t().useDeviceLanguageInfo,
+              style: Theme.of(context).textTheme.bodySmall,
             ),
+            value: isSystemLanguage,
+            activeTrackColor: Colors.red,
+            onChanged: (bool value) {
+              if (value) {
+                context.read<LanguageCubit>().enableSystemLanguage();
+              } else {
+                context.read<LanguageCubit>().disableSystemLanguage();
+              }
+            },
           ),
+          const Divider(height: 1),
+          // Language list – shown only when system language is off
+          if (!isSystemLanguage)
+            RadioGroup<int>(
+              groupValue: currentLanguageId,
+              onChanged: (int? value) {
+                if (value != null) {
+                  context.read<LanguageCubit>().setLanguage(value);
+                }
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: Language.selectable.map((language) {
+                  return RadioListTile<int>(
+                    title: Text(language.nativeName),
+                    value: language.id,
+                  );
+                }).toList(),
+              ),
+            ),
         ],
       ),
     );
