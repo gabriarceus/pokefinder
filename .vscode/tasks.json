@@ -30,12 +30,18 @@
       "problemMatcher": []
     },
     {
-      "label": "(Release mode, Prod) Build",
+      "label": "(Release mode, Prod) Build Appbundle",
       "type": "shell",
       "command": "fvm flutter build appbundle --release --flavor prod",
       "detail": "Build app in release mode for Prod",
-      "problemMatcher": [],
-      "hide": true
+      "problemMatcher": []
+    },
+    {
+      "label": "(Release mode, Prod) Build APK",
+      "type": "shell",
+      "command": "fvm flutter build apk --release --flavor prod",
+      "detail": "Build app in release mode for Prod",
+      "problemMatcher": []
     },
     {
       "label": "Post build",
@@ -46,7 +52,7 @@
       "hide": true
     },
     {
-      "label": "(Release mode, Prod) Build + Post build",
+      "label": "(Release mode, Prod) Build Appbundle + Post build",
       "dependsOn": ["(Release mode, Prod) Build", "Post build"],
       "dependsOrder": "sequence",
       "detail": "Build app in release mode for Prod and run post build",
