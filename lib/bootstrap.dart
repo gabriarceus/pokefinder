@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:en_logger/en_logger.dart';
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
@@ -17,7 +18,7 @@ void configureDependencies() => getIt.init();
 
 // `useMock` is a flag to use mock data
 // lazy singletons are created only when requested
-void setup({bool useMock = false}) {
+void setup({bool useMock = false, bool verboseHttp = false}) {
   // Registra EnLogger come singleton
   getIt.registerLazySingleton<EnLogger>(() {
     final printer = PrinterHandler()
@@ -37,8 +38,16 @@ void setup({bool useMock = false}) {
     getIt.registerLazySingleton<IPokemonRepository>(
         () => MockPokemonRepository());
   } else {
+    getIt.registerLazySingleton<Dio>(() {
+      final dio = Dio();
+      dio.interceptors.add(LoggingInterceptor(
+        logger: getIt<EnLogger>(),
+        verbose: verboseHttp,
+      ));
+      return dio;
+    });
     getIt.registerLazySingleton<IPokemonRemoteDataSource>(
-        () => PokemonRemoteDataSource());
+        () => PokemonRemoteDataSource(dio: getIt<Dio>()));
     getIt.registerLazySingleton<IPokemonRepository>(
       () => PokemonRepositoryImpl(getIt<IPokemonRemoteDataSource>()),
     );

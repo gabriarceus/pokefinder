@@ -50,7 +50,7 @@ class PokeBallPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final minSize = min<double>(size.width, size.height);
     final centerOffset = Offset(size.width / 2, size.height / 2);
-    final mainPaint = Paint()..color = color.withOpacity(opacity ?? 0.5);
+    final mainPaint = Paint()..color = color.withValues(alpha: opacity ?? 0.5);
     final padding = minSize / 20;
     final strokeWidth = minSize / 13;
     final linePaintToRemove = Paint()
