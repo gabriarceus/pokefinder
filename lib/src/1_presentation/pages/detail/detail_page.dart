@@ -14,16 +14,36 @@ import 'failure.dart';
 // Per evitare che la UI crashi quando un immagine non viene caricata correttamente o i dati richiesti sono in un formato errato
 // si potrebbe usare un try catch per gestire l'eccezione e mostrare un messaggio di errore all'utente?
 // Anche se... c'è già un blocco try catch nel bloc che gestisce l'eccezione e mostra un messaggio di errore all'utente
-// Quindi perché ogni tanto la UI crasha quando non carica correttamente i dati?
+// Quindi perché ogni volta la UI crasha quando non carica correttamente i dati?
 
-class Detail extends StatelessWidget {
+class Detail extends StatefulWidget {
   final String pokemonName;
-  final _player = AudioPlayer();
   final hGap = 16.0;
 
 // Viene passato il nome del Pokémon da visualizzare come parametro al costruttore del widget Detail
 // Il widget Detail è uno stato che dipende dallo stato del bloc PokemonBlocBloc
-  Detail({super.key, required this.pokemonName});
+  const Detail({super.key, required this.pokemonName});
+
+  @override
+  State<Detail> createState() => _DetailState();
+}
+
+class _DetailState extends State<Detail> {
+  final _player = AudioPlayer();
+  String? _loadedCry;
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
+
+  void _setupAudioIfNeeded(String cry) {
+    if (_loadedCry != cry) {
+      _loadedCry = cry;
+      setupAudioPlayer(_player, cry);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +60,8 @@ class Detail extends StatelessWidget {
             type2: pokemon.type2,
           );
 
-          setupAudioPlayer(_player, pokemon.cry);
+          // Carica l'audio solo se il cry è cambiato
+          _setupAudioIfNeeded(pokemon.cry);
           Color typeColor = backgroundHelper.colorFromType();
           Color textColor = itemColorExtractor(typeColor);
 
@@ -57,7 +78,7 @@ class Detail extends StatelessWidget {
                   children: <Widget>[
                     DetailComponents(pokemon: pokemon, textColor: textColor),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: hGap),
+                      padding: EdgeInsets.symmetric(horizontal: widget.hGap),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: <Widget>[
@@ -80,3 +101,4 @@ class Detail extends StatelessWidget {
     );
   }
 }
+

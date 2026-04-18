@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
@@ -17,6 +18,12 @@ void bootstrap({required Widget Function() then}) async {
   configureDependencies();
   // HydratedBlocStorage configuration
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inizializza media_kit come backend audio per supportare OGG su iOS
+  JustAudioMediaKit.ensureInitialized(
+    iOS: true,
+    macOS: true,
+  );
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory:
         HydratedStorageDirectory((await getTemporaryDirectory()).path),
