@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
+import 'package:dartz/dartz.dart';
 import 'package:en_logger/en_logger.dart';
+import 'package:injectable/injectable.dart';
 import 'package:meta/meta.dart';
-import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
+import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/usecases/get_pokemon_usecase.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
-import 'package:dartz/dartz.dart';
 
 part 'detail_event.dart';
 part 'detail_state.dart';
@@ -14,6 +15,7 @@ part 'detail_state.dart';
 const _prefix = 'DetailBloc';
 
 //Here we use the bloc pattern to manage the state of the application
+@injectable
 class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
   final GetPokemonUseCase _getPokemonUseCase;
   final EnLogger _logger;
