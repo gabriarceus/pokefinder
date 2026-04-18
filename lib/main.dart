@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:injectable/injectable.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
 import 'package:pokefinder/src/1_presentation/presentation.dart';
 import 'package:pokefinder/src/2_application/application.dart';
-import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:path_provider/path_provider.dart';
 
 void main() {
   bootstrap(then: () => const MyApp());
@@ -14,8 +15,7 @@ void main() {
 
 // Bootstrap gets executed at the start of the application (it can be async)
 void bootstrap({required Widget Function() then}) async {
-  setup(useMock: false);
-  configureDependencies();
+  configureDependencies(Environment.prod);
   // HydratedBlocStorage configuration
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -74,8 +74,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-//FIXME: controllare che sia apposto
-      create: (_) => LanguageCubit(),
+      create: (_) => getIt<LanguageCubit>(),
       child: BlocBuilder<LanguageCubit, int>(builder: (context, state) {
         return MaterialApp.router(
           routerConfig: _router,
