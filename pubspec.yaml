@@ -1,7 +1,7 @@
 name: pokefinder
 description: The best app to find information about Pokémon.
 publish_to: "none"
-version: 1.0.0+1
+version: 1.0.0-rc1+2
 
 environment:
   sdk: ">=3.4.1 <4.0.0"

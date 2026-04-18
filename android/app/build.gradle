@@ -48,6 +48,21 @@ android {
         versionName = flutterVersionName
     }
 
+    flavorDimensions "default"
+
+    productFlavors {
+        prod {
+            dimension "default"
+            applicationIdSuffix ""
+            resValue "string", "app_name", "Pokefinder"
+        }
+        dev {
+            dimension "default"
+            applicationIdSuffix ".dev"
+            resValue "string", "app_name", "Pokefinder Dev"
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
