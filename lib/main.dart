@@ -20,10 +20,7 @@ void bootstrap({required Widget Function() then}) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Inizializza media_kit come backend audio per supportare OGG su iOS
-  JustAudioMediaKit.ensureInitialized(
-    iOS: true,
-    macOS: true,
-  );
+  JustAudioMediaKit.ensureInitialized(iOS: true);
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory:
         HydratedStorageDirectory((await getTemporaryDirectory()).path),
