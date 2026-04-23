@@ -1,11 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
-import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
-import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
-import 'package:pokefinder/src/3_domain/repositories/i_pokemon_repository.dart';
-import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
-import 'package:pokefinder/src/4_repository/datasources/abstract/i_pokemon_remote_datasource.dart';
-import 'package:pokefinder/src/4_repository/models/raw_pokemon/raw_pokemon.dart';
+import 'package:pokefinder/src/3_domain/domain.dart';
+import 'package:pokefinder/src/4_repository/repository.dart';
 
 const _kBasePath =
     'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/';
@@ -52,6 +48,8 @@ class PokemonRepositoryImpl implements IPokemonRepository {
         ? rawPokemon.abilities[2].ability.name
         : '';
 
+    final stats = rawPokemon.stats.map((s) => s.baseStat).toList();
+
     return Pokemon(
       id: rawPokemon.id,
       name: rawPokemon.name,
@@ -66,6 +64,7 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       type1: type1,
       type2: type2,
       cry: rawPokemon.cries.latest,
+      stats: stats,
     );
   }
 }

@@ -16,6 +16,7 @@ class Pokemon extends Equatable {
     required this.type1,
     required this.type2,
     required this.cry,
+    required this.stats,
   });
 
   final int id;
@@ -36,6 +37,9 @@ class Pokemon extends Equatable {
   /// [height] is the height of the Pokemon in decimetres
   final double height;
 
+  /// [stats] is a list of base stats in the order: HP, Attack, Defense, Special Attack, Special Defense, Speed
+  final List<int> stats;
+
   @override
   List<Object?> get props => [
         id,
@@ -51,5 +55,6 @@ class Pokemon extends Equatable {
         type1,
         type2,
         cry,
+        stats,
       ];
 }

@@ -1,8 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/abilities/ability_container.dart';
-import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/cries.dart';
-import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/sprites.dart';
-import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/types/type_container.dart';
+import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/attributes.dart';
 
 part 'raw_pokemon.g.dart';
 
@@ -17,6 +14,7 @@ class RawPokemon {
     required this.types,
     required this.sprites,
     required this.abilities,
+    required this.stats,
     required this.weight,
     required this.height,
     required this.cries,
@@ -27,6 +25,7 @@ class RawPokemon {
   final List<TypeContainer> types;
   final Sprites sprites;
   final List<AbilityContainer> abilities;
+  final List<StatContainer> stats;
   final Cries cries;
 
   /// In hectograms
