@@ -145,6 +145,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'If enabled, the app will use your device\'s language.'**
   String get useDeviceLanguageInfo;
+
+  /// No description provided for @about.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get about;
+
+  /// No description provided for @weight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get weight;
+
+  /// No description provided for @height.
+  ///
+  /// In en, this message translates to:
+  /// **'Height'**
+  String get height;
+
+  /// No description provided for @pokemonCry.
+  ///
+  /// In en, this message translates to:
+  /// **'Pokemon Cry'**
+  String get pokemonCry;
+
+  /// No description provided for @baseStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Base Stats'**
+  String get baseStats;
+
+  /// No description provided for @statHp.
+  ///
+  /// In en, this message translates to:
+  /// **'HP'**
+  String get statHp;
+
+  /// No description provided for @statAttack.
+  ///
+  /// In en, this message translates to:
+  /// **'Attack'**
+  String get statAttack;
+
+  /// No description provided for @statDefense.
+  ///
+  /// In en, this message translates to:
+  /// **'Defense'**
+  String get statDefense;
+
+  /// No description provided for @statSpAtk.
+  ///
+  /// In en, this message translates to:
+  /// **'Sp. Atk'**
+  String get statSpAtk;
+
+  /// No description provided for @statSpDef.
+  ///
+  /// In en, this message translates to:
+  /// **'Sp. Def'**
+  String get statSpDef;
+
+  /// No description provided for @statSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get statSpeed;
+
+  /// No description provided for @statsNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Stats not available'**
+  String get statsNotAvailable;
+
+  /// No description provided for @clearCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear cache'**
+  String get clearCache;
+
+  /// No description provided for @cacheClearedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache cleared successfully'**
+  String get cacheClearedSuccessfully;
 }
 
 class _AppLocalizationsDelegate
