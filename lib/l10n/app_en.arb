@@ -7,5 +7,19 @@
   "backButton": "Back",
   "settings": "Settings",
   "useDeviceLanguage": "Use device language",
-  "useDeviceLanguageInfo": "If enabled, the app will use your device's language."
+  "useDeviceLanguageInfo": "If enabled, the app will use your device's language.",
+  "about": "About",
+  "weight": "Weight",
+  "height": "Height",
+  "pokemonCry": "Pokemon Cry",
+  "baseStats": "Base Stats",
+  "statHp": "HP",
+  "statAttack": "Attack",
+  "statDefense": "Defense",
+  "statSpAtk": "Sp. Atk",
+  "statSpDef": "Sp. Def",
+  "statSpeed": "Speed",
+  "statsNotAvailable": "Stats not available",
+  "clearCache": "Clear cache",
+  "cacheClearedSuccessfully": "Cache cleared successfully"
 }

@@ -7,5 +7,19 @@
   "backButton": "Indietro",
   "settings": "Impostazioni",
   "useDeviceLanguage": "Usa la lingua del dispositivo",
-  "useDeviceLanguageInfo": "Se attivato, l'app userà la stessa lingua del tuo dispositivo."
+  "useDeviceLanguageInfo": "Se attivato, l'app userà la stessa lingua del tuo dispositivo.",
+  "about": "Informazioni",
+  "weight": "Peso",
+  "height": "Altezza",
+  "pokemonCry": "Verso del Pokemon",
+  "baseStats": "Statistiche Base",
+  "statHp": "PS",
+  "statAttack": "Attacco",
+  "statDefense": "Difesa",
+  "statSpAtk": "Att. Sp.",
+  "statSpDef": "Dif. Sp.",
+  "statSpeed": "Velocità",
+  "statsNotAvailable": "Statistiche non disponibili",
+  "clearCache": "Svuota cache",
+  "cacheClearedSuccessfully": "Cache svuotata con successo"
 }

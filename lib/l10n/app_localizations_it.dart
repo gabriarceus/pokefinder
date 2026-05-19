@@ -32,4 +32,46 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get useDeviceLanguageInfo =>
       'Se attivato, l\'app userà la stessa lingua del tuo dispositivo.';
+
+  @override
+  String get about => 'Informazioni';
+
+  @override
+  String get weight => 'Peso';
+
+  @override
+  String get height => 'Altezza';
+
+  @override
+  String get pokemonCry => 'Verso del Pokemon';
+
+  @override
+  String get baseStats => 'Statistiche Base';
+
+  @override
+  String get statHp => 'PS';
+
+  @override
+  String get statAttack => 'Attacco';
+
+  @override
+  String get statDefense => 'Difesa';
+
+  @override
+  String get statSpAtk => 'Att. Sp.';
+
+  @override
+  String get statSpDef => 'Dif. Sp.';
+
+  @override
+  String get statSpeed => 'Velocità';
+
+  @override
+  String get statsNotAvailable => 'Statistiche non disponibili';
+
+  @override
+  String get clearCache => 'Svuota cache';
+
+  @override
+  String get cacheClearedSuccessfully => 'Cache svuotata con successo';
 }
