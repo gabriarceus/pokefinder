@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/2_application/hydrated_bloc/language_storage.dart';
 import 'package:pokefinder/src/3_domain/entities/language.dart';
+import 'package:pokefinder/src/4_repository/repository.dart';
 
 class HomeDrawer extends StatelessWidget {
   const HomeDrawer({super.key});
@@ -69,6 +71,30 @@ class HomeDrawer extends StatelessWidget {
                 }).toList(),
               ),
             ),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context)
+                    .pop(); // Close drawer to show the snackbar
+
+                await getIt<DataRepository>().clearCache();
+                if (!context.mounted) return;
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(context.t().cacheClearedSuccessfully),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+              ),
+              child: Text(context.t().clearCache),
+            ),
+          ),
         ],
       ),
     );
