@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
@@ -15,9 +16,12 @@ void main() {
 
 // Bootstrap gets executed at the start of the application (it can be async)
 void bootstrap({required Widget Function() then}) async {
-  configureDependencies(Environment.prod);
-  // HydratedBlocStorage configuration
   WidgetsFlutterBinding.ensureInitialized();
+  configureDependencies(Environment.prod);
+
+  // Initialize Hive for local JSON caching
+  final appDir = await getApplicationDocumentsDirectory();
+  Hive.init(appDir.path);
 
   // Inizializza media_kit come backend audio per supportare OGG su iOS
   JustAudioMediaKit.ensureInitialized(iOS: true);
