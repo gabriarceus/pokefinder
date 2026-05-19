@@ -72,27 +72,105 @@ class _DetailState extends State<Detail> {
             ),
             body: Container(
               decoration: backgroundHelper.getBackgroundDecoration(),
-              child: SafeArea(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: <Widget>[
-                    DetailComponents(pokemon: pokemon, textColor: textColor),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: widget.hGap),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: <Widget>[
-                          Text("Pokémon cry:",
+              child: Column(
+                children: [
+                  SizedBox(
+                      height:
+                          MediaQuery.of(context).padding.top + kToolbarHeight),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${pokemon.name[0].toUpperCase()}${pokemon.name.substring(1)}',
+                                style: TextStyle(
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.w900,
+                                  color: textColor,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '#${pokemon.id.toString().padLeft(3, '0')}',
                               style: TextStyle(
-                                fontWeight: FontWeight.bold,
+                                fontSize: 36,
+                                fontWeight: FontWeight.w900,
                                 color: textColor,
-                              )),
-                          PlaybackButton(player: _player),
-                        ],
-                      ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            TypeImage(type: pokemon.typeImage1),
+                            if (pokemon.typeImage2.isNotEmpty) ...[
+                              const SizedBox(width: 8),
+                              TypeImage(type: pokemon.typeImage2),
+                            ],
+                          ],
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 24),
+                  Expanded(
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Positioned.fill(
+                          top: 40,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).cardColor,
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(32),
+                                topRight: Radius.circular(32),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, -5),
+                                ),
+                              ],
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  top: 60.0, left: 24.0, right: 24.0),
+                              child: SingleChildScrollView(
+                                child: DetailComponents(
+                                  pokemon: pokemon,
+                                  textColor: Theme.of(context)
+                                          .textTheme
+                                          .bodyLarge
+                                          ?.color ??
+                                      Colors.black,
+                                  player: _player,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: -60,
+                          right: 24,
+                          child: SizedBox(
+                            width: 160,
+                            height: 160,
+                            child: SpriteBoxImage(sprite: pokemon.sprite),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           );
@@ -101,4 +179,3 @@ class _DetailState extends State<Detail> {
     );
   }
 }
-
