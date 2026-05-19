@@ -64,12 +64,38 @@ class DetailBackgroundColor {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [color1, color2],
-          stops: const [0.0, 1.0],
+          stops: const [0.0, 0.4],
         ),
       );
     }
 
-    return BoxDecoration(color: color1);
+    // For a single type, create a subtle gradient using a lighter/darker shade
+    final isLight = color1.computeLuminance() > 0.5;
+    final color2 = isLight ? darken(color1, 0.2) : lighten(color1, 0.2);
+
+    return BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [color1, color2],
+        stops: const [0.0, 0.4],
+      ),
+    );
+  }
+
+  Color darken(Color color, [double amount = .1]) {
+    assert(amount >= 0 && amount <= 1);
+    final hsl = HSLColor.fromColor(color);
+    final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
+    return hslDark.toColor();
+  }
+
+  Color lighten(Color color, [double amount = .1]) {
+    assert(amount >= 0 && amount <= 1);
+    final hsl = HSLColor.fromColor(color);
+    final hslLight =
+        hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0));
+    return hslLight.toColor();
   }
 
   Color colorFromType() {
