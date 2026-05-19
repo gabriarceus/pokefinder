@@ -11,7 +11,8 @@ class Sprites {
   @JsonKey(name: 'front_default')
   final String frontDefault;
 
-  factory Sprites.fromJson(Map<String, dynamic> json) => _$SpritesFromJson(json);
+  factory Sprites.fromJson(Map<String, dynamic> json) =>
+      _$SpritesFromJson(json);
 
   Map<String, dynamic> toJson() => _$SpritesToJson(this);
 }
