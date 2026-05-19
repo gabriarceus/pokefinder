@@ -1,28 +1,38 @@
-import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
 import 'package:pokefinder/src/4_repository/datasources/abstract/i_pokemon_remote_datasource.dart';
 import 'package:pokefinder/src/4_repository/models/raw_pokemon/raw_pokemon.dart';
+import 'package:pokefinder/src/4_repository/repositories/data_repository.dart';
+import 'package:pokefinder/src/4_repository/repositories/fetch_strategy.dart';
+
+/// Default time-to-live for cached Pokemon data.
+///
+/// Pokemon stats and attributes rarely change, so a 24-hour window
+/// provides a good balance between freshness and performance.
+const _kDefaultMaxAge = Duration(hours: 24);
+
+/// Base URL for the PokeAPI v2 Pokemon endpoint.
+const _kBaseUrl = 'https://pokeapi.co/api/v2/pokemon/';
 
 @LazySingleton(as: IPokemonRemoteDataSource)
 class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
-  PokemonRemoteDataSource({required Dio dio}) : _dio = dio;
+  PokemonRemoteDataSource({required DataRepository dataRepository})
+      : _dataRepository = dataRepository;
 
-  final Dio _dio;
+  final DataRepository _dataRepository;
 
   @override
   Future<RawPokemon> getPokemon(PokemonName name) async {
     try {
-      final response = await _dio.get<Map<String, dynamic>>(
-          'https://pokeapi.co/api/v2/pokemon/${name.rightOrCrash()}');
+      final json = await _dataRepository.fetchData(
+        '$_kBaseUrl${name.rightOrCrash()}',
+        strategy: FetchStrategy.cacheFirst,
+        maxAge: _kDefaultMaxAge,
+      );
 
-      if (response.statusCode != 200) {
-        throw BadRequestFailure();
-      }
-
-      return RawPokemon.fromJson(response.data!);
-    } on DioException {
+      return RawPokemon.fromJson(json);
+    } on DataFetchException {
       throw BadRequestFailure();
     } on PokemonFailure {
       rethrow;
