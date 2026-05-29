@@ -110,6 +110,24 @@ abstract class AppLocalizations {
   /// **'Search'**
   String get searchButton;
 
+  /// No description provided for @errorBadRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Bad request. Please try again.'**
+  String get errorBadRequest;
+
+  /// No description provided for @errorUnauthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Unauthorized access.'**
+  String get errorUnauthorized;
+
+  /// No description provided for @errorUnexpected.
+  ///
+  /// In en, this message translates to:
+  /// **'An unexpected error occurred.'**
+  String get errorUnexpected;
+
   /// No description provided for @loading.
   ///
   /// In en, this message translates to:

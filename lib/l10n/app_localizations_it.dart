@@ -15,6 +15,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get searchButton => 'Cerca';
 
   @override
+  String get errorBadRequest => 'Richiesta errata. Riprova.';
+
+  @override
+  String get errorUnauthorized => 'Accesso non autorizzato.';
+
+  @override
+  String get errorUnexpected => 'Si è verificato un errore imprevisto.';
+
+  @override
   String get loading => 'Caricamento...';
 
   @override
