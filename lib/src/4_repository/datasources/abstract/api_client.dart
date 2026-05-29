@@ -5,9 +5,8 @@
 /// the decoded JSON body as a [Map<String, dynamic>].
 abstract class ApiClient {
   /// Performs a GET request to the given [endpoint] and returns the
-  /// response body as a decoded JSON map.
+  /// response body as a decoded JSON payload.
   ///
-  /// Throws an exception if the request fails or the response is not
-  /// a valid JSON map.
-  Future<Map<String, dynamic>> get(String endpoint);
+  /// Throws an exception if the request fails.
+  Future<dynamic> get(String endpoint);
 }

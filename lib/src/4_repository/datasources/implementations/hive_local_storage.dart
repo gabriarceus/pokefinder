@@ -41,13 +41,13 @@ class HiveLocalStorage implements LocalStorage {
   }
 
   @override
-  Future<Map<String, dynamic>?> read(String key, {Duration? maxAge}) async {
+  Future<dynamic> read(String key, {Duration? maxAge}) async {
     final box = await _getBox();
     final raw = box.get(key);
     if (raw == null) return null;
 
     final envelope = jsonDecode(raw) as Map<String, dynamic>;
-    final data = envelope[_kDataKey] as Map<String, dynamic>?;
+    final data = envelope[_kDataKey];
     final storedAt = envelope[_kStoredAtKey] as int?;
 
     if (data == null) return null;
@@ -62,7 +62,7 @@ class HiveLocalStorage implements LocalStorage {
   }
 
   @override
-  Future<void> write(String key, Map<String, dynamic> data) async {
+  Future<void> write(String key, dynamic data) async {
     final box = await _getBox();
     final envelope = {
       _kDataKey: data,

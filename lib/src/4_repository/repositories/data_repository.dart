@@ -48,7 +48,7 @@ class DataRepository {
   ///
   /// The exhaustive switch on [FetchStrategy] guarantees a compile-time
   /// error if a new variant is added without handling it here.
-  Future<Map<String, dynamic>> fetchData(
+  Future<dynamic> fetchData(
     String endpoint, {
     FetchStrategy strategy = FetchStrategy.cacheFirst,
     Duration? maxAge,
@@ -78,7 +78,7 @@ class DataRepository {
 
   /// **Cache-first**: reads from cache; on miss (or expiry), fetches from
   /// network, persists the result, and returns it.
-  Future<Map<String, dynamic>> _cacheFirst(
+  Future<dynamic> _cacheFirst(
     String endpoint, {
     Duration? maxAge,
   }) async {
@@ -104,7 +104,7 @@ class DataRepository {
   /// **Network-first**: attempts a network request and persists the result.
   /// On failure, falls back to cached data. If the cache is also empty,
   /// throws an explicit [DataFetchException].
-  Future<Map<String, dynamic>> _networkFirst(String endpoint) async {
+  Future<dynamic> _networkFirst(String endpoint) async {
     _logger.debug('Attempting network request for: $endpoint', prefix: prefix);
 
     try {
@@ -136,7 +136,7 @@ class DataRepository {
 
   /// **Network-only**: always fetches from the network and persists the
   /// result to keep the cache up to date. Returns the fresh payload.
-  Future<Map<String, dynamic>> _networkOnly(String endpoint) async {
+  Future<dynamic> _networkOnly(String endpoint) async {
     _logger.debug('Performing network-only fetch for: $endpoint',
         prefix: prefix);
 

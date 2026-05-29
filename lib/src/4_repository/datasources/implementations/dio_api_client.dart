@@ -14,8 +14,8 @@ class DioApiClient implements ApiClient {
   final Dio _dio;
 
   @override
-  Future<Map<String, dynamic>> get(String endpoint) async {
-    final response = await _dio.get<Map<String, dynamic>>(endpoint);
+  Future<dynamic> get(String endpoint) async {
+    final response = await _dio.get<dynamic>(endpoint);
     return response.data!;
   }
 }
