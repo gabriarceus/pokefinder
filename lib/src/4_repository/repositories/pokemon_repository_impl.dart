@@ -25,16 +25,9 @@ class PokemonRepositoryImpl implements IPokemonRepository {
   }
 
   Pokemon _toDomain(RawPokemon rawPokemon) {
-    String getTypeFromUrl(String typeUrl) {
-      final lastSlashIndex = typeUrl.lastIndexOf('/');
-      final trimmed = typeUrl.substring(0, lastSlashIndex);
-      final previousSlashIndex = trimmed.lastIndexOf('/');
-      return trimmed.substring(previousSlashIndex + 1);
-    }
-
-    final type1 = getTypeFromUrl(rawPokemon.types.first.type.url);
+    final type1 = _getTypeFromUrl(rawPokemon.types.first.type.url);
     final type2 = rawPokemon.types.length > 1
-        ? getTypeFromUrl(rawPokemon.types[1].type.url)
+        ? _getTypeFromUrl(rawPokemon.types[1].type.url)
         : null;
 
     final typeImage1 = '$_kBasePath$type1.png';
@@ -118,15 +111,9 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       final name = json['name'] as String;
       
       final typesJson = json['types'] as List<dynamic>;
-      String getTypeFromUrl(String typeUrl) {
-        final lastSlashIndex = typeUrl.lastIndexOf('/');
-        final trimmed = typeUrl.substring(0, lastSlashIndex);
-        final previousSlashIndex = trimmed.lastIndexOf('/');
-        return trimmed.substring(previousSlashIndex + 1);
-      }
-      final type1 = getTypeFromUrl(typesJson.first['type']['url'] as String);
+      final type1 = _getTypeFromUrl(typesJson.first['type']['url'] as String);
       final type2 = typesJson.length > 1
-          ? getTypeFromUrl(typesJson[1]['type']['url'] as String)
+          ? _getTypeFromUrl(typesJson[1]['type']['url'] as String)
           : null;
 
       final typeImage1 = '$_kBasePath$type1.png';
@@ -192,4 +179,12 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       return left(BadRequestFailure());
     }
   }
+
+  String _getTypeFromUrl(String typeUrl) {
+    final lastSlashIndex = typeUrl.lastIndexOf('/');
+    final trimmed = typeUrl.substring(0, lastSlashIndex);
+    final previousSlashIndex = trimmed.lastIndexOf('/');
+    return trimmed.substring(previousSlashIndex + 1);
+  }
 }
+
