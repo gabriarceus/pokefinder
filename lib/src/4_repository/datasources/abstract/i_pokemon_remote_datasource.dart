@@ -3,4 +3,6 @@ import 'package:pokefinder/src/4_repository/models/raw_pokemon/raw_pokemon.dart'
 
 abstract class IPokemonRemoteDataSource {
   Future<RawPokemon> getPokemon(PokemonName name);
+  Future<Map<String, dynamic>> getFormDetailsJson(String url);
+  Future<List<dynamic>> getEncountersJson(String url);
 }
