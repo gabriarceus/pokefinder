@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
+import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 
 class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
   const DetailAppBar({super.key, required this.backgroundColor});
@@ -8,7 +9,7 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color itemsColor = itemColorExtractor(backgroundColor);
+    final itemsColor = contrastingTextColor(backgroundColor);
     return AppBar(
       iconTheme: IconThemeData(color: itemsColor),
       title: Text(
@@ -21,10 +22,5 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  Color itemColorExtractor(Color? backgroundColor) {
-    return backgroundColor!.computeLuminance() > 0.5
-        ? Colors.black
-        : Colors.white;
-  }
 }
+

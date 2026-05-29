@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-class DetailFormatterBold extends StatelessWidget {
-  /// Used to format the text with the first part in bold and the second part with the first letter in uppercase
-  const DetailFormatterBold({
+class BoldLabelValue extends StatelessWidget {
+  const BoldLabelValue({
     super.key,
     required this.label,
     required this.value,

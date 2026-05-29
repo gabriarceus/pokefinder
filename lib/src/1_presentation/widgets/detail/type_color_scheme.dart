@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class DetailBackgroundColor {
-  const DetailBackgroundColor({
+class TypeColorScheme {
+  const TypeColorScheme({
     required this.type1,
     this.type2,
   });
@@ -69,7 +69,6 @@ class DetailBackgroundColor {
       );
     }
 
-    // For a single type, create a subtle gradient using a lighter/darker shade
     final isLight = color1.computeLuminance() > 0.5;
     final color2 = isLight ? darken(color1, 0.2) : lighten(color1, 0.2);
 

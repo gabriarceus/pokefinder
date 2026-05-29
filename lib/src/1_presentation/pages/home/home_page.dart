@@ -20,25 +20,24 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _controller = TextEditingController();
 
   void _onListen(BuildContext context, HomeBlocState state) {
-    state.optionFailureOrPokemonFound.fold(
-      () => null,
-      (either) => either.fold(
-        (failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                failure.map(
-                  onBadRequest: (_) => "onBadRequest",
-                  onFailure: (_) => "onFailure",
-                  onOther: (_) => "onOther",
-                ),
-              ),
-            ),
-          );
-        },
-        (_) => context.go('/detail', extra: {'pokemonName': state.userInput}),
-      ),
-    );
+    if (state.errorMessage != null) {
+      final t = AppLocalizations.of(context);
+      final String message;
+      if (state.errorMessage == 'Bad Request') {
+        message = t.errorBadRequest;
+      } else if (state.errorMessage == 'Unauthorized') {
+        message = t.errorUnauthorized;
+      } else {
+        message = state.errorMessage!;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } else if (state.navigateToDetail) {
+      context.go('/detail', extra: {'pokemonName': state.userInput});
+      context.read<HomeBloc>().add(NavigationDoneEvent());
+    }
   }
 
   @override
