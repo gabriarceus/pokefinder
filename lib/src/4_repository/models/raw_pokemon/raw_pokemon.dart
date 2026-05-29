@@ -18,6 +18,15 @@ class RawPokemon {
     required this.weight,
     required this.height,
     required this.cries,
+    required this.baseExperience,
+    required this.isDefault,
+    required this.order,
+    required this.locationAreaEncounters,
+    required this.forms,
+    required this.gameIndices,
+    required this.heldItems,
+    required this.moves,
+    required this.species,
   });
 
   final int id;
@@ -33,6 +42,29 @@ class RawPokemon {
 
   /// In decimetres
   final double height;
+
+  @JsonKey(name: 'base_experience')
+  final int? baseExperience;
+
+  @JsonKey(name: 'is_default')
+  final bool isDefault;
+
+  final int order;
+
+  @JsonKey(name: 'location_area_encounters')
+  final String locationAreaEncounters;
+
+  final List<NamedAPIResource> forms;
+
+  @JsonKey(name: 'game_indices')
+  final List<RawGameIndex> gameIndices;
+
+  @JsonKey(name: 'held_items')
+  final List<RawHeldItem> heldItems;
+
+  final List<RawMoveContainer> moves;
+
+  final NamedAPIResource species;
 
   factory RawPokemon.fromJson(Map<String, dynamic> json) =>
       _$RawPokemonFromJson(json);

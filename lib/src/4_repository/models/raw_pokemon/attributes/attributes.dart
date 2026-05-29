@@ -3,3 +3,7 @@ export 'cries.dart';
 export 'sprites.dart';
 export 'stats/stat_container.dart';
 export 'types/type_container.dart';
+export 'game_indices/raw_game_index.dart';
+export 'held_items/raw_held_item.dart';
+export 'moves/raw_move_container.dart';
+export 'named_api_resource.dart';
