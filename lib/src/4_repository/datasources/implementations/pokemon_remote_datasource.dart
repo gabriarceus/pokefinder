@@ -31,11 +31,39 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
         maxAge: _kDefaultMaxAge,
       );
 
-      return RawPokemon.fromJson(json);
+      return RawPokemon.fromJson(json as Map<String, dynamic>);
     } on DataFetchException {
       throw BadRequestFailure();
     } on PokemonFailure {
       rethrow;
+    } catch (_) {
+      throw BadRequestFailure();
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getFormDetailsJson(String url) async {
+    try {
+      final json = await _dataRepository.fetchData(
+        url,
+        strategy: FetchStrategy.cacheFirst,
+        maxAge: _kDefaultMaxAge,
+      );
+      return json as Map<String, dynamic>;
+    } catch (_) {
+      throw BadRequestFailure();
+    }
+  }
+
+  @override
+  Future<List<dynamic>> getEncountersJson(String url) async {
+    try {
+      final json = await _dataRepository.fetchData(
+        url,
+        strategy: FetchStrategy.cacheFirst,
+        maxAge: _kDefaultMaxAge,
+      );
+      return json as List<dynamic>;
     } catch (_) {
       throw BadRequestFailure();
     }
