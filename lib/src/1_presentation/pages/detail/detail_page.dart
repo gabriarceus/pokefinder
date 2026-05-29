@@ -1,28 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:pokefinder/bootstrap.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
-import 'package:pokefinder/src/3_domain/repositories/i_pokemon_repository.dart';
-import 'package:pokefinder/src/4_repository/repository.dart';
+import 'package:pokefinder/src/4_repository/services/audio_player.dart';
 
 import '_app_bar.dart';
 import '_bloc.dart';
-import '_detail_components.dart';
-
-export '_bloc.dart';
 import '_loading.dart';
 import 'failure.dart';
+import 'tabs/tabs.dart';
+import 'widgets/detail_header.dart';
+import 'widgets/form_selection_bottom_sheet.dart';
 
-//Domanda:
-// Per evitare che la UI crashi quando un immagine non viene caricata correttamente o i dati richiesti sono in un formato errato
-// si potrebbe usare un try catch per gestire l'eccezione e mostrare un messaggio di errore all'utente?
-// Anche se... c'è già un blocco try catch nel bloc che gestisce l'eccezione e mostra un messaggio di errore all'utente
-// Quindi perché ogni volta la UI crasha quando non carica correttamente i dati?
+export '_bloc.dart';
 
 class Detail extends StatefulWidget {
-  // Viene passato il nome del Pokémon da visualizzare come parametro al costruttore del widget Detail
-  // Il widget Detail è uno stato che dipende dallo stato del bloc PokemonBlocBloc
+  // The name of the Pokémon to display is passed as a parameter to the Detail widget constructor
+  // The Detail widget is a state that depends on the state of the PokemonBloc
   const Detail({super.key, required this.pokemonName});
 
   final String pokemonName;
@@ -37,18 +32,6 @@ class _DetailState extends State<Detail> {
   String? _loadedCry;
   bool _showShiny = false;
 
-  Pokemon? _lastLoadedPokemon;
-  String? _selectedFormName;
-  String? _currentType1;
-  String? _currentType2;
-  String? _currentTypeImage1;
-  String? _currentTypeImage2;
-  String? _currentArtworkDefault;
-  String? _currentArtworkShiny;
-  String? _currentSpriteDefault;
-  String? _currentSpriteShiny;
-  bool _isLoadingForm = false;
-
   @override
   void dispose() {
     _player.dispose();
@@ -62,201 +45,24 @@ class _DetailState extends State<Detail> {
     }
   }
 
-  Future<void> _onFormSelected(PokemonForm form) async {
-    if (form.name == _selectedFormName) return;
-
-    if (form.name == _lastLoadedPokemon?.name) {
-      setState(() {
-        _selectedFormName = _lastLoadedPokemon!.name;
-        _currentType1 = _lastLoadedPokemon!.type1;
-        _currentType2 = _lastLoadedPokemon!.type2;
-        _currentTypeImage1 = _lastLoadedPokemon!.typeImage1;
-        _currentTypeImage2 = _lastLoadedPokemon!.typeImage2;
-        _currentArtworkDefault = _lastLoadedPokemon!.officialArtworkDefault;
-        _currentArtworkShiny = _lastLoadedPokemon!.officialArtworkShiny;
-        _currentSpriteDefault = _lastLoadedPokemon!.sprite;
-        _currentSpriteShiny = _lastLoadedPokemon!.spriteFrontShiny;
-      });
-      return;
-    }
-
-    setState(() {
-      _isLoadingForm = true;
-    });
-
-    final repository = getIt<IPokemonRepository>();
-    final result = await repository.getFormDetails(form.url);
-
-    if (mounted) {
-      setState(() {
-        _isLoadingForm = false;
-      });
-
-      result.fold(
-        (failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to load form: ${failure.message}')),
-          );
-        },
-        (details) {
-          setState(() {
-            _selectedFormName = details.name;
-            _currentType1 = details.type1;
-            _currentType2 = details.type2;
-            _currentTypeImage1 = details.typeImage1;
-            _currentTypeImage2 = details.typeImage2;
-            _currentArtworkDefault = details.artworkDefault;
-            _currentArtworkShiny = details.artworkShiny;
-            _currentSpriteDefault = details.spriteDefault;
-            _currentSpriteShiny = details.spriteShiny;
-          });
-        },
-      );
-    }
-  }
-
-  void _showFormSelectionBottomSheet(BuildContext context, Pokemon pokemon, Color typeColor, Color textColor) {
+  void _showFormSelectionBottomSheet(
+      BuildContext context, Pokemon pokemon, Color typeColor, Color textColor) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 48,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    context.t().formSelectorTitle,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.titleLarge?.color,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SwitchListTile.adaptive(
-                    secondary: Icon(
-                      _showShiny ? Icons.star_rounded : Icons.star_border_rounded,
-                      color: Colors.amber,
-                      size: 28,
-                    ),
-                    title: Text(
-                      context.t().formSelectorShiny,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    value: _showShiny,
-                    activeThumbColor: typeColor,
-                    onChanged: (val) {
-                      setModalState(() {
-                        _showShiny = val;
-                      });
-                      setState(() {
-                        _showShiny = val;
-                      });
-                    },
-                  ),
-                  const Divider(),
-                  const SizedBox(height: 8),
-                  Text(
-                    context.t().formSelectorForms,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.titleMedium?.color,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  if (_isLoadingForm)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(24.0),
-                        child: CircularProgressIndicator(),
-                      ),
-                    )
-                  else
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxHeight: 200),
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: pokemon.forms.length,
-                        itemBuilder: (context, index) {
-                          final form = pokemon.forms[index];
-                          final isSelected = form.name == _selectedFormName;
-                          final displayFormName = form.name
-                              .replaceAll('-', ' ')
-                              .split(' ')
-                              .map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '')
-                              .join(' ');
-
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: InkWell(
-                              onTap: () async {
-                                setModalState(() {
-                                  _isLoadingForm = true;
-                                });
-                                await _onFormSelected(form);
-                                setModalState(() {
-                                  _isLoadingForm = false;
-                                });
-                              },
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? typeColor.withValues(alpha: 0.1)
-                                      : Colors.transparent,
-                                  border: Border.all(
-                                    color: isSelected ? typeColor : Colors.transparent,
-                                    width: 1.5,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      displayFormName,
-                                      style: TextStyle(
-                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                        color: isSelected ? typeColor : null,
-                                      ),
-                                    ),
-                                    if (isSelected)
-                                      Icon(
-                                        Icons.check_circle,
-                                        color: typeColor,
-                                        size: 20,
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                ],
-              ),
-            );
+      builder: (sheetContext) {
+        return FormSelectionBottomSheet(
+          pokemon: pokemon,
+          typeColor: typeColor,
+          textColor: textColor,
+          showShiny: _showShiny,
+          onShinyChanged: (val) {
+            setState(() {
+              _showShiny = val;
+            });
           },
         );
       },
@@ -272,32 +78,33 @@ class _DetailState extends State<Detail> {
         onFailure: (_, failure) => DetailFailure(state: failure),
         onSuccess: (context, success) {
           final pokemon = success.pokemon;
+          final formDetails = success.selectedFormDetails ??
+              PokemonFormDetails(
+                name: pokemon.name,
+                type1: pokemon.type1,
+                type2: pokemon.type2,
+                typeImage1: pokemon.typeImage1,
+                typeImage2: pokemon.typeImage2,
+                spriteDefault: pokemon.sprite,
+                spriteShiny: pokemon.spriteFrontShiny ?? pokemon.sprite,
+                artworkDefault: pokemon.officialArtworkDefault ?? pokemon.sprite,
+                artworkShiny: pokemon.officialArtworkShiny ??
+                    pokemon.spriteFrontShiny ??
+                    pokemon.sprite,
+              );
 
-          if (_lastLoadedPokemon != pokemon) {
-            _lastLoadedPokemon = pokemon;
-            _selectedFormName = pokemon.name;
-            _currentType1 = pokemon.type1;
-            _currentType2 = pokemon.type2;
-            _currentTypeImage1 = pokemon.typeImage1;
-            _currentTypeImage2 = pokemon.typeImage2;
-            _currentArtworkDefault = pokemon.officialArtworkDefault;
-            _currentArtworkShiny = pokemon.officialArtworkShiny;
-            _currentSpriteDefault = pokemon.sprite;
-            _currentSpriteShiny = pokemon.spriteFrontShiny;
-          }
-
-          final backgroundHelper = DetailBackgroundColor(
-            type1: _currentType1 ?? pokemon.type1,
-            type2: _currentType2 ?? pokemon.type2,
+          final backgroundHelper = TypeColorScheme(
+            type1: formDetails.type1,
+            type2: formDetails.type2,
           );
 
-          // Carica l'audio solo se il cry è cambiato
+          // Load the audio only if the cry has changed
           _setupAudioIfNeeded(pokemon.cry);
-          Color typeColor = backgroundHelper.colorFromType();
-          Color textColor = itemColorExtractor(typeColor);
+          final typeColor = backgroundHelper.colorFromType();
+          final textColor = contrastingTextColor(typeColor);
 
-          final normalImage = _currentArtworkDefault ?? _currentSpriteDefault ?? pokemon.officialArtworkDefault ?? pokemon.sprite;
-          final shinyImage = _currentArtworkShiny ?? _currentSpriteShiny ?? pokemon.officialArtworkShiny ?? pokemon.spriteFrontShiny ?? pokemon.sprite;
+          final normalImage = formDetails.artworkDefault;
+          final shinyImage = formDetails.artworkShiny;
 
           return DefaultTabController(
             length: 4,
@@ -313,49 +120,12 @@ class _DetailState extends State<Detail> {
                     SizedBox(
                         height:
                             MediaQuery.of(context).padding.top + kToolbarHeight),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  _selectedFormName == null
-                                      ? ''
-                                      : '${_selectedFormName![0].toUpperCase()}${_selectedFormName!.substring(1)}',
-                                  style: TextStyle(
-                                    fontSize: 36,
-                                    fontWeight: FontWeight.w900,
-                                    color: textColor,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                '#${pokemon.id.toString().padLeft(3, '0')}',
-                                style: TextStyle(
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.w900,
-                                  color: textColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              TypeImage(type: _currentTypeImage1 ?? pokemon.typeImage1),
-                              if ((_currentTypeImage2 ?? pokemon.typeImage2).isNotEmpty) ...[
-                                const SizedBox(width: 8),
-                                TypeImage(type: _currentTypeImage2 ?? pokemon.typeImage2),
-                              ],
-                            ],
-                          ),
-                        ],
-                      ),
+                    DetailHeader(
+                      selectedFormName: formDetails.name,
+                      pokemonId: pokemon.id,
+                      typeImage1: formDetails.typeImage1,
+                      typeImage2: formDetails.typeImage2,
+                      textColor: textColor,
                     ),
                     const SizedBox(height: 24),
                     Expanded(
@@ -476,7 +246,8 @@ class _DetailState extends State<Detail> {
                             top: -95,
                             right: 24,
                             child: GestureDetector(
-                              onTap: () => _showFormSelectionBottomSheet(context, pokemon, typeColor, textColor),
+                              onTap: () => _showFormSelectionBottomSheet(
+                                  context, pokemon, typeColor, textColor),
                               child: Tooltip(
                                 message: context.t().formSelectorTitle,
                                 child: SizedBox(

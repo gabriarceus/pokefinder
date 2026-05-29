@@ -76,7 +76,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => getIt<LanguageCubit>(),
-      child: BlocBuilder<LanguageCubit, int>(builder: (context, state) {
+      child: BlocBuilder<LanguageCubit, LanguageState>(builder: (context, state) {
         return MaterialApp.router(
           routerConfig: _router,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
