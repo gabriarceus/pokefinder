@@ -35,7 +35,42 @@ final class PokemonBlocFailure extends PokemonBlocState {
 }
 
 final class PokemonBlocSuccess extends PokemonBlocState {
-  final Pokemon pokemon;
+  PokemonBlocSuccess({
+    required this.pokemon,
+    this.selectedFormDetails,
+    this.encounters,
+    this.isLoadingForm = false,
+    this.isLoadingEncounters = false,
+    this.formError,
+    this.encountersError,
+  });
 
-  PokemonBlocSuccess(this.pokemon);
+  final Pokemon pokemon;
+  final PokemonFormDetails? selectedFormDetails;
+  final List<PokemonEncounter>? encounters;
+  final bool isLoadingForm;
+  final bool isLoadingEncounters;
+  final String? formError;
+  final String? encountersError;
+
+  PokemonBlocSuccess copyWith({
+    Pokemon? pokemon,
+    PokemonFormDetails? selectedFormDetails,
+    List<PokemonEncounter>? encounters,
+    bool? isLoadingForm,
+    bool? isLoadingEncounters,
+    String? formError,
+    String? encountersError,
+  }) {
+    return PokemonBlocSuccess(
+      pokemon: pokemon ?? this.pokemon,
+      selectedFormDetails: selectedFormDetails ?? this.selectedFormDetails,
+      encounters: encounters ?? this.encounters,
+      isLoadingForm: isLoadingForm ?? this.isLoadingForm,
+      isLoadingEncounters: isLoadingEncounters ?? this.isLoadingEncounters,
+      formError: formError ?? this.formError,
+      encountersError: encountersError ?? this.encountersError,
+    );
+  }
 }
+

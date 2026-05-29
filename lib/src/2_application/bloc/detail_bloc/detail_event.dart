@@ -4,9 +4,16 @@ part of 'detail_bloc.dart';
 abstract class PokemonBlocEvent {}
 
 class FetchPokemonEvent extends PokemonBlocEvent {
-  final String pokemonName;
-
   FetchPokemonEvent(this.pokemonName);
+
+  final String pokemonName;
+}
+
+class SelectPokemonFormEvent extends PokemonBlocEvent {
+  SelectPokemonFormEvent(this.form);
+
+  final PokemonForm form;
 }
 
 class ClearPokemonEvent extends PokemonBlocEvent {}
+

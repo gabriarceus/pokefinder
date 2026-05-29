@@ -7,23 +7,35 @@ import 'package:meta/meta.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/usecases/get_pokemon_usecase.dart';
+import 'package:pokefinder/src/3_domain/usecases/get_pokemon_encounters_usecase.dart';
+import 'package:pokefinder/src/3_domain/usecases/get_pokemon_form_details_usecase.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
+
+export 'detail_moves_cubit.dart';
 
 part 'detail_event.dart';
 part 'detail_state.dart';
+
 
 const _prefix = 'DetailBloc';
 
 //Here we use the bloc pattern to manage the state of the application
 @injectable
 class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
-  final GetPokemonUseCase _getPokemonUseCase;
-  final EnLogger _logger;
-
-  PokemonBloc(this._getPokemonUseCase, this._logger)
-      : super(PokemonBlocInitial()) {
+  PokemonBloc(
+    this._getPokemonUseCase,
+    this._getPokemonEncountersUseCase,
+    this._getPokemonFormDetailsUseCase,
+    this._logger,
+  ) : super(PokemonBlocInitial()) {
     on<FetchPokemonEvent>(onFetchPokemon);
+    on<SelectPokemonFormEvent>(onSelectPokemonForm);
   }
+
+  final GetPokemonUseCase _getPokemonUseCase;
+  final GetPokemonEncountersUseCase _getPokemonEncountersUseCase;
+  final GetPokemonFormDetailsUseCase _getPokemonFormDetailsUseCase;
+  final EnLogger _logger;
 
   FutureOr<void> onFetchPokemon(
       FetchPokemonEvent event, Emitter<PokemonBlocState> emit) async {
@@ -37,19 +49,105 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
     final Either<PokemonFailure, Pokemon> result =
         await _getPokemonUseCase(name);
 
-    // Fold is a method of the dartz library that allows you to handle the two cases of success and failure
-    // in a functional way. It takes two functions as arguments, one for the success case and one for the failure case.
-    result.fold(
-      (failure) {
+    await result.fold(
+      (failure) async {
         _logger.error('Failed to fetch Pokemon: ${failure.message}',
             prefix: _prefix);
         emit(PokemonBlocFailure(failure.message));
       },
-      (pokemon) {
+      (pokemon) async {
         _logger.info('Successfully fetched Pokemon: ${pokemon.name}',
             prefix: _prefix);
-        emit(PokemonBlocSuccess(pokemon));
+        
+        final defaultFormDetails = PokemonFormDetails(
+          name: pokemon.name,
+          type1: pokemon.type1,
+          type2: pokemon.type2,
+          typeImage1: pokemon.typeImage1,
+          typeImage2: pokemon.typeImage2,
+          spriteDefault: pokemon.sprite,
+          spriteShiny: pokemon.spriteFrontShiny ?? pokemon.sprite,
+          artworkDefault: pokemon.officialArtworkDefault ?? pokemon.sprite,
+          artworkShiny: pokemon.officialArtworkShiny ?? pokemon.spriteFrontShiny ?? pokemon.sprite,
+        );
+
+        emit(PokemonBlocSuccess(
+          pokemon: pokemon,
+          selectedFormDetails: defaultFormDetails,
+          isLoadingEncounters: true,
+        ));
+
+        // Fetch location area encounters in the background
+        final encountersResult = await _getPokemonEncountersUseCase(pokemon.locationAreaEncounters);
+        
+        final currentState = state;
+        if (currentState is PokemonBlocSuccess && currentState.pokemon.id == pokemon.id) {
+          encountersResult.fold(
+            (failure) {
+              emit(currentState.copyWith(
+                isLoadingEncounters: false,
+                encountersError: failure.message,
+              ));
+            },
+            (encounters) {
+              emit(currentState.copyWith(
+                isLoadingEncounters: false,
+                encounters: encounters,
+              ));
+            },
+          );
+        }
+      },
+    );
+  }
+
+  FutureOr<void> onSelectPokemonForm(
+      SelectPokemonFormEvent event, Emitter<PokemonBlocState> emit) async {
+    final currentState = state;
+    if (currentState is! PokemonBlocSuccess) return;
+
+    if (event.form.name == currentState.pokemon.name) {
+      final defaultFormDetails = PokemonFormDetails(
+        name: currentState.pokemon.name,
+        type1: currentState.pokemon.type1,
+        type2: currentState.pokemon.type2,
+        typeImage1: currentState.pokemon.typeImage1,
+        typeImage2: currentState.pokemon.typeImage2,
+        spriteDefault: currentState.pokemon.sprite,
+        spriteShiny: currentState.pokemon.spriteFrontShiny ?? currentState.pokemon.sprite,
+        artworkDefault: currentState.pokemon.officialArtworkDefault ?? currentState.pokemon.sprite,
+        artworkShiny: currentState.pokemon.officialArtworkShiny ?? currentState.pokemon.spriteFrontShiny ?? currentState.pokemon.sprite,
+      );
+      emit(currentState.copyWith(
+        selectedFormDetails: defaultFormDetails,
+        isLoadingForm: false,
+        formError: null,
+      ));
+      return;
+    }
+
+    emit(currentState.copyWith(isLoadingForm: true, formError: null));
+
+    final result = await _getPokemonFormDetailsUseCase(event.form.url);
+    
+    final updatedState = state;
+    if (updatedState is! PokemonBlocSuccess) return;
+
+    result.fold(
+      (failure) {
+        emit(updatedState.copyWith(
+          isLoadingForm: false,
+          formError: failure.message,
+        ));
+      },
+      (details) {
+        emit(updatedState.copyWith(
+          selectedFormDetails: details,
+          isLoadingForm: false,
+          formError: null,
+        ));
       },
     );
   }
 }
+

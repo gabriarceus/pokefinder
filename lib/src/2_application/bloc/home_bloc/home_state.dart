@@ -1,26 +1,43 @@
 part of 'home_bloc.dart';
 
-@immutable
-final class HomeBlocState {
-  final String userInput;
-  final Option<Either<PokemonFailure, Unit>> optionFailureOrPokemonFound;
 
+@immutable
+final class HomeBlocState extends Equatable {
   const HomeBlocState({
     required this.userInput,
-    required this.optionFailureOrPokemonFound,
+    required this.navigateToDetail,
+    required this.cacheCleared,
+    this.errorMessage,
   });
 
   factory HomeBlocState.initial() {
-    return HomeBlocState(optionFailureOrPokemonFound: none(), userInput: '');
+    return const HomeBlocState(
+      userInput: '',
+      navigateToDetail: false,
+      cacheCleared: false,
+      errorMessage: null,
+    );
   }
+
+  final String userInput;
+  final bool navigateToDetail;
+  final bool cacheCleared;
+  final String? errorMessage;
 
   HomeBlocState copyWith({
     String? userInput,
-    Option<Either<PokemonFailure, Unit>>? optionFailureOrPokemonFound,
+    bool? navigateToDetail,
+    bool? cacheCleared,
+    String? errorMessage,
   }) {
     return HomeBlocState(
-      optionFailureOrPokemonFound: optionFailureOrPokemonFound ?? none(),
       userInput: userInput ?? this.userInput,
+      navigateToDetail: navigateToDetail ?? this.navigateToDetail,
+      cacheCleared: cacheCleared ?? this.cacheCleared,
+      errorMessage: errorMessage, // Let it be null if passed as null
     );
   }
+
+  @override
+  List<Object?> get props => [userInput, navigateToDetail, cacheCleared, errorMessage];
 }
