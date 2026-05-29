@@ -6,13 +6,13 @@ import 'package:pokefinder/bootstrap.dart';
 
 const _prefix = 'AudioPlayerSetup';
 
-/// Subscription attiva per evitare listener duplicati
+/// Active subscription to prevent duplicate listeners
 StreamSubscription<PlaybackEvent>? _activeSubscription;
 
 Future<void> setupAudioPlayer(AudioPlayer player, String cry) async {
   final logger = getIt<EnLogger>();
 
-  // Cancella eventuali listener precedenti per evitare duplicati
+  // Cancel any previous listener to prevent duplicates
   await _activeSubscription?.cancel();
 
   _activeSubscription = player.playbackEventStream.listen((event) {
@@ -22,12 +22,12 @@ Future<void> setupAudioPlayer(AudioPlayer player, String cry) async {
   });
 
   try {
-    // Assicurati che il player sia in uno stato valido
+    // Ensure the player is in a valid state
     if (player.processingState != ProcessingState.idle) {
       await player.stop();
     }
 
-    // Imposta l'audio source con timeout
+    // Set the audio source with timeout
     await player
         .setAudioSource(
           AudioSource.uri(Uri.parse(cry)),
