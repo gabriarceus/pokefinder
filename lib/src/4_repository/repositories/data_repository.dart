@@ -124,8 +124,7 @@ class DataRepository {
         return cached;
       }
 
-      _logger.debug(
-          'Cache fallback miss for: $endpoint — no data available',
+      _logger.debug('Cache fallback miss for: $endpoint — no data available',
           prefix: prefix);
       throw DataFetchException(
         'Failed to fetch data for "$endpoint". '
