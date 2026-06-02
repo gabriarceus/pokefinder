@@ -11,16 +11,19 @@ part 'home_state.dart';
 
 const _prefix = 'HomeBloc';
 
+/// Manages home screen state: user search input, navigation, and cache clearing.
 @injectable
 class HomeBloc extends Bloc<HomeBlocEvent, HomeBlocState> {
-  HomeBloc(this._dataRepository, this._logger) : super(HomeBlocState.initial()) {
+  HomeBloc(this._dataRepository, this._logger)
+      : super(HomeBlocState.initial()) {
     on<UserInputEvent>((event, emit) {
       _logger.info('User input: ${event.userInput}', prefix: _prefix);
       emit(state.copyWith(userInput: event.userInput, errorMessage: null));
     });
 
     on<IsButtonPressedEvent>((event, emit) {
-      _logger.info('Search button pressed with input: ${state.userInput}', prefix: _prefix);
+      _logger.info('Search button pressed with input: ${state.userInput}',
+          prefix: _prefix);
       final name = PokemonName(state.userInput);
       if (name.isValid()) {
         emit(state.copyWith(navigateToDetail: true, errorMessage: null));
@@ -50,4 +53,3 @@ class HomeBloc extends Bloc<HomeBlocEvent, HomeBlocState> {
   final DataRepository _dataRepository;
   final EnLogger _logger;
 }
-

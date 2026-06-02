@@ -16,4 +16,3 @@ class SelectPokemonFormEvent extends PokemonBlocEvent {
 }
 
 class ClearPokemonEvent extends PokemonBlocEvent {}
-
