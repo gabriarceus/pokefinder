@@ -21,4 +21,3 @@ class PokemonName {
     return value.isRight();
   }
 }
-

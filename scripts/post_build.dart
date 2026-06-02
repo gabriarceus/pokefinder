@@ -15,7 +15,9 @@ Future<void> main(List<String> args) async {
 
 /// return the `pubspec.yaml`
 Future<yaml.YamlMap> _readPubspec() async {
-  final yamlStr = await File(p.joinAll([Directory.current.path, 'pubspec.yaml'])).readAsString();
+  final yamlStr =
+      await File(p.joinAll([Directory.current.path, 'pubspec.yaml']))
+          .readAsString();
 
   return yaml.loadYaml(yamlStr) as yaml.YamlMap;
 }

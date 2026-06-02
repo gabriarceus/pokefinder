@@ -12,7 +12,6 @@ class GetPokemonUseCase {
   final IPokemonRepository _repository;
 
   Future<Either<PokemonFailure, Pokemon>> call(PokemonName name) {
-
     return _repository.getPokemon(name);
   }
 }

@@ -12,7 +12,7 @@ class RawGameIndex {
 
   @JsonKey(name: 'game_index')
   final int gameIndex;
-  
+
   final NamedAPIResource version;
 
   factory RawGameIndex.fromJson(Map<String, dynamic> json) =>

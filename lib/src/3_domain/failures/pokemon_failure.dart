@@ -30,4 +30,3 @@ final class BadRequestFailure extends PokemonFailure {
 final class UnexpectedFailure extends PokemonFailure {
   UnexpectedFailure(super.message);
 }
-
