@@ -1,6 +1,5 @@
 part of 'home_bloc.dart';
 
-
 @immutable
 final class HomeBlocState extends Equatable {
   const HomeBlocState({
@@ -39,5 +38,6 @@ final class HomeBlocState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [userInput, navigateToDetail, cacheCleared, errorMessage];
+  List<Object?> get props =>
+      [userInput, navigateToDetail, cacheCleared, errorMessage];
 }

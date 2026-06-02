@@ -16,10 +16,9 @@ export 'detail_moves_cubit.dart';
 part 'detail_event.dart';
 part 'detail_state.dart';
 
-
 const _prefix = 'DetailBloc';
 
-//Here we use the bloc pattern to manage the state of the application
+/// Manages the state for fetching, displaying, and switching Pokémon forms.
 @injectable
 class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
   PokemonBloc(
@@ -58,7 +57,7 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
       (pokemon) async {
         _logger.info('Successfully fetched Pokemon: ${pokemon.name}',
             prefix: _prefix);
-        
+
         final defaultFormDetails = PokemonFormDetails(
           name: pokemon.name,
           type1: pokemon.type1,
@@ -68,7 +67,9 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
           spriteDefault: pokemon.sprite,
           spriteShiny: pokemon.spriteFrontShiny ?? pokemon.sprite,
           artworkDefault: pokemon.officialArtworkDefault ?? pokemon.sprite,
-          artworkShiny: pokemon.officialArtworkShiny ?? pokemon.spriteFrontShiny ?? pokemon.sprite,
+          artworkShiny: pokemon.officialArtworkShiny ??
+              pokemon.spriteFrontShiny ??
+              pokemon.sprite,
         );
 
         emit(PokemonBlocSuccess(
@@ -78,10 +79,12 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
         ));
 
         // Fetch location area encounters in the background
-        final encountersResult = await _getPokemonEncountersUseCase(pokemon.locationAreaEncounters);
-        
+        final encountersResult =
+            await _getPokemonEncountersUseCase(pokemon.locationAreaEncounters);
+
         final currentState = state;
-        if (currentState is PokemonBlocSuccess && currentState.pokemon.id == pokemon.id) {
+        if (currentState is PokemonBlocSuccess &&
+            currentState.pokemon.id == pokemon.id) {
           encountersResult.fold(
             (failure) {
               emit(currentState.copyWith(
@@ -114,9 +117,13 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
         typeImage1: currentState.pokemon.typeImage1,
         typeImage2: currentState.pokemon.typeImage2,
         spriteDefault: currentState.pokemon.sprite,
-        spriteShiny: currentState.pokemon.spriteFrontShiny ?? currentState.pokemon.sprite,
-        artworkDefault: currentState.pokemon.officialArtworkDefault ?? currentState.pokemon.sprite,
-        artworkShiny: currentState.pokemon.officialArtworkShiny ?? currentState.pokemon.spriteFrontShiny ?? currentState.pokemon.sprite,
+        spriteShiny: currentState.pokemon.spriteFrontShiny ??
+            currentState.pokemon.sprite,
+        artworkDefault: currentState.pokemon.officialArtworkDefault ??
+            currentState.pokemon.sprite,
+        artworkShiny: currentState.pokemon.officialArtworkShiny ??
+            currentState.pokemon.spriteFrontShiny ??
+            currentState.pokemon.sprite,
       );
       emit(currentState.copyWith(
         selectedFormDetails: defaultFormDetails,
@@ -129,7 +136,7 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
     emit(currentState.copyWith(isLoadingForm: true, formError: null));
 
     final result = await _getPokemonFormDetailsUseCase(event.form.url);
-    
+
     final updatedState = state;
     if (updatedState is! PokemonBlocSuccess) return;
 
@@ -150,4 +157,3 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
     );
   }
 }
-

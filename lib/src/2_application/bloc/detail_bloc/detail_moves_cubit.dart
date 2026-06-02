@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/l10n/moves_db.dart';
 
+/// Holds the current search, filter, and move list state for the moves tab.
 class DetailMovesState extends Equatable {
   const DetailMovesState({
     required this.searchQuery,
@@ -44,6 +45,8 @@ class DetailMovesState extends Equatable {
   }
 }
 
+/// Cubit that filters and sorts a Pokémon's moves by version group,
+/// learn method, and search query.
 class DetailMovesCubit extends Cubit<DetailMovesState> {
   DetailMovesCubit({
     required List<PokemonMove> moves,
@@ -88,7 +91,8 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
         .map((m) => m.learnMethod)
         .toSet();
 
-    if (state.selectedMethod != 'all' && !availableMethods.contains(state.selectedMethod)) {
+    if (state.selectedMethod != 'all' &&
+        !availableMethods.contains(state.selectedMethod)) {
       emit(state.copyWith(selectedMethod: 'all'));
     }
 
@@ -122,10 +126,11 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
 
       final matchesSearch =
           move.name.toLowerCase().contains(state.searchQuery.toLowerCase()) ||
-          translatedName.contains(state.searchQuery.toLowerCase());
+              translatedName.contains(state.searchQuery.toLowerCase());
 
       if (!matchesSearch) continue;
-      if (state.selectedMethod != 'all' && move.learnMethod != state.selectedMethod) continue;
+      if (state.selectedMethod != 'all' &&
+          move.learnMethod != state.selectedMethod) continue;
 
       final existing = uniqueMoves[move.name];
       if (existing == null ||
