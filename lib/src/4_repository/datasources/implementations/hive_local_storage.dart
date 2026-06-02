@@ -54,7 +54,8 @@ class HiveLocalStorage implements LocalStorage {
 
     // If maxAge is specified, check whether the entry has expired.
     if (maxAge != null && storedAt != null) {
-      final age = DateTime.now().millisecondsSinceEpoch - storedAt; // could be a problem in future testing
+      final age = DateTime.now().millisecondsSinceEpoch -
+          storedAt; // could be a problem in future testing
       if (age > maxAge.inMilliseconds) return null;
     }
 
@@ -66,7 +67,8 @@ class HiveLocalStorage implements LocalStorage {
     final box = await _getBox();
     final envelope = {
       _kDataKey: data,
-      _kStoredAtKey: DateTime.now().millisecondsSinceEpoch, // could be a problem in future testing
+      _kStoredAtKey: DateTime.now()
+          .millisecondsSinceEpoch, // could be a problem in future testing
     };
     await box.put(key, jsonEncode(envelope));
   }

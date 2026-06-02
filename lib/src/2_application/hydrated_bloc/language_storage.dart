@@ -40,7 +40,8 @@ class LanguageCubit extends HydratedCubit<LanguageState> {
   /// Switches to system language, remembering the current manual choice.
   void enableSystemLanguage() {
     _logger.info('Enabling system language', prefix: _prefix);
-    final lastManual = state.languageId != -1 ? state.languageId : state.lastManualLanguageId;
+    final lastManual =
+        state.languageId != -1 ? state.languageId : state.lastManualLanguageId;
     emit(LanguageState(
       languageId: -1,
       lastManualLanguageId: lastManual,
@@ -87,4 +88,3 @@ class LanguageCubit extends HydratedCubit<LanguageState> {
         'lastManualLanguageId': state.lastManualLanguageId,
       };
 }
-

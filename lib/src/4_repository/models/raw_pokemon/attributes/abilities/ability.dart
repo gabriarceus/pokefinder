@@ -9,7 +9,8 @@ class Ability {
 
   final String name;
 
-  factory Ability.fromJson(Map<String, dynamic> json) => _$AbilityFromJson(json);
+  factory Ability.fromJson(Map<String, dynamic> json) =>
+      _$AbilityFromJson(json);
 
   Map<String, dynamic> toJson() => _$AbilityToJson(this);
 }
