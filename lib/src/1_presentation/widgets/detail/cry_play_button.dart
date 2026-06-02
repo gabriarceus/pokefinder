@@ -28,15 +28,19 @@ class _CryPlayButtonState extends State<CryPlayButton> {
       builder: (context, snapshot) {
         final playerState = snapshot.data;
         final playing = playerState?.playing ?? false;
-        final processingState = playerState?.processingState ?? ProcessingState.idle;
+        final processingState =
+            playerState?.processingState ?? ProcessingState.idle;
         final sequence = widget.player.audioSource?.sequence;
         final isThisSource = sequence != null &&
             sequence.isNotEmpty &&
             sequence.first is UriAudioSource &&
             (sequence.first as UriAudioSource).uri.toString() == widget.cryUrl;
 
-        final isCompleted = isThisSource && processingState == ProcessingState.completed;
-        final isCurrentlyPlaying = playing && isThisSource && processingState != ProcessingState.completed;
+        final isCompleted =
+            isThisSource && processingState == ProcessingState.completed;
+        final isCurrentlyPlaying = playing &&
+            isThisSource &&
+            processingState != ProcessingState.completed;
 
         return Card(
           elevation: 0,

@@ -55,8 +55,8 @@ class DetailItemsGamesTab extends StatelessWidget {
                     .colorScheme
                     .surfaceContainerHighest
                     .withValues(alpha: 0.2),
-                shape:
-                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -82,7 +82,8 @@ class DetailItemsGamesTab extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              _buildEncounters(context, encounters, isLoadingEncounters, encountersError),
+              _buildEncounters(
+                  context, encounters, isLoadingEncounters, encountersError),
               const SizedBox(height: 20),
 
               // Held items
@@ -126,8 +127,10 @@ class DetailItemsGamesTab extends StatelessWidget {
                       child: ListTile(
                         leading: const Icon(Icons.gif_box_outlined),
                         title: Text(capitalizedItem,
-                            style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('${context.t().versionLabel}: ${context.translateGameVersion(item.version)}'),
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(
+                            '${context.t().versionLabel}: ${context.translateGameVersion(item.version)}'),
                         trailing: Text(
                           '${item.rarity}%',
                           style: TextStyle(
@@ -231,8 +234,8 @@ class DetailItemsGamesTab extends StatelessWidget {
               .colorScheme
               .surfaceContainerHighest
               .withValues(alpha: 0.2),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ListTile(
             leading: const Icon(Icons.location_on_outlined),
             title: Text(
@@ -244,9 +247,11 @@ class DetailItemsGamesTab extends StatelessWidget {
               runSpacing: 4,
               children: encounter.versions.map((version) {
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                    color:
+                        Theme.of(context).primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(

@@ -43,64 +43,121 @@ extension TranslationExtension on BuildContext {
     final t = AppLocalizations.of(this);
     final key = gameName.toLowerCase().trim();
     switch (key) {
-      case 'red': return t.gameRed;
-      case 'blue': return t.gameBlue;
-      case 'yellow': return t.gameYellow;
-      case 'gold': return t.gameGold;
-      case 'silver': return t.gameSilver;
-      case 'crystal': return t.gameCrystal;
-      case 'ruby': return t.gameRuby;
-      case 'sapphire': return t.gameSapphire;
-      case 'emerald': return t.gameEmerald;
-      case 'firered': return t.gameFirered;
-      case 'leafgreen': return t.gameLeafgreen;
-      case 'diamond': return t.gameDiamond;
-      case 'pearl': return t.gamePearl;
-      case 'platinum': return t.gamePlatinum;
-      case 'heartgold': return t.gameHeartgold;
-      case 'soulsilver': return t.gameSoulsilver;
-      case 'black': return t.gameBlack;
-      case 'white': return t.gameWhite;
-      case 'black-2': return t.gameBlack2;
-      case 'white-2': return t.gameWhite2;
-      case 'x': return t.gameX;
-      case 'y': return t.gameY;
-      case 'omega-ruby': return t.gameOmegaRuby;
-      case 'alpha-sapphire': return t.gameAlphaSapphire;
-      case 'sun': return t.gameSun;
-      case 'moon': return t.gameMoon;
-      case 'ultra-sun': return t.gameUltraSun;
-      case 'ultra-moon': return t.gameUltraMoon;
-      case 'lets-go-pikachu': return t.gameLetsGoPikachu;
-      case 'lets-go-eevee': return t.gameLetsGoEevee;
-      case 'sword': return t.gameSword;
-      case 'shield': return t.gameShield;
-      case 'the-isle-of-armor': return t.gameTheIsleOfArmor;
-      case 'the-crown-tundra': return t.gameTheCrownTundra;
-      case 'legends-arceus': return t.gameLegendsArceus;
-      case 'scarlet': return t.gameScarlet;
-      case 'violet': return t.gameViolet;
-      case 'the-teal-mask': return t.gameTheTealMask;
-      case 'the-indigo-disk': return t.gameTheIndigoDisk;
-      case 'colosseum': return t.gameColosseum;
-      case 'xd': return t.gameXd;
+      case 'red':
+        return t.gameRed;
+      case 'blue':
+        return t.gameBlue;
+      case 'yellow':
+        return t.gameYellow;
+      case 'gold':
+        return t.gameGold;
+      case 'silver':
+        return t.gameSilver;
+      case 'crystal':
+        return t.gameCrystal;
+      case 'ruby':
+        return t.gameRuby;
+      case 'sapphire':
+        return t.gameSapphire;
+      case 'emerald':
+        return t.gameEmerald;
+      case 'firered':
+        return t.gameFirered;
+      case 'leafgreen':
+        return t.gameLeafgreen;
+      case 'diamond':
+        return t.gameDiamond;
+      case 'pearl':
+        return t.gamePearl;
+      case 'platinum':
+        return t.gamePlatinum;
+      case 'heartgold':
+        return t.gameHeartgold;
+      case 'soulsilver':
+        return t.gameSoulsilver;
+      case 'black':
+        return t.gameBlack;
+      case 'white':
+        return t.gameWhite;
+      case 'black-2':
+        return t.gameBlack2;
+      case 'white-2':
+        return t.gameWhite2;
+      case 'x':
+        return t.gameX;
+      case 'y':
+        return t.gameY;
+      case 'omega-ruby':
+        return t.gameOmegaRuby;
+      case 'alpha-sapphire':
+        return t.gameAlphaSapphire;
+      case 'sun':
+        return t.gameSun;
+      case 'moon':
+        return t.gameMoon;
+      case 'ultra-sun':
+        return t.gameUltraSun;
+      case 'ultra-moon':
+        return t.gameUltraMoon;
+      case 'lets-go-pikachu':
+        return t.gameLetsGoPikachu;
+      case 'lets-go-eevee':
+        return t.gameLetsGoEevee;
+      case 'sword':
+        return t.gameSword;
+      case 'shield':
+        return t.gameShield;
+      case 'the-isle-of-armor':
+        return t.gameTheIsleOfArmor;
+      case 'the-crown-tundra':
+        return t.gameTheCrownTundra;
+      case 'legends-arceus':
+        return t.gameLegendsArceus;
+      case 'scarlet':
+        return t.gameScarlet;
+      case 'violet':
+        return t.gameViolet;
+      case 'the-teal-mask':
+        return t.gameTheTealMask;
+      case 'the-indigo-disk':
+        return t.gameTheIndigoDisk;
+      case 'colosseum':
+        return t.gameColosseum;
+      case 'xd':
+        return t.gameXd;
       // Groups:
-      case 'red-blue': return t.gameGroupRedBlue;
-      case 'gold-silver': return t.gameGroupGoldSilver;
-      case 'ruby-sapphire': return t.gameGroupRubySapphire;
-      case 'firered-leafgreen': return t.gameGroupFireredLeafgreen;
-      case 'diamond-pearl': return t.gameGroupDiamondPearl;
-      case 'heartgold-soulsilver': return t.gameGroupHeartgoldSoulsilver;
-      case 'black-white': return t.gameGroupBlackWhite;
-      case 'black-2-white-2': return t.gameGroupBlack2White2;
-      case 'x-y': return t.gameGroupXY;
-      case 'omega-ruby-alpha-sapphire': return t.gameGroupOmegaRubyAlphaSapphire;
-      case 'sun-moon': return t.gameGroupSunMoon;
-      case 'ultra-sun-ultra-moon': return t.gameGroupUltraSunUltraMoon;
-      case 'lets-go-pikachu-lets-go-eevee': return t.gameGroupLetsGoPikachuLetsGoEevee;
-      case 'sword-shield': return t.gameGroupSwordShield;
-      case 'scarlet-violet': return t.gameGroupScarletViolet;
-      default: return _formatDefault(gameName);
+      case 'red-blue':
+        return t.gameGroupRedBlue;
+      case 'gold-silver':
+        return t.gameGroupGoldSilver;
+      case 'ruby-sapphire':
+        return t.gameGroupRubySapphire;
+      case 'firered-leafgreen':
+        return t.gameGroupFireredLeafgreen;
+      case 'diamond-pearl':
+        return t.gameGroupDiamondPearl;
+      case 'heartgold-soulsilver':
+        return t.gameGroupHeartgoldSoulsilver;
+      case 'black-white':
+        return t.gameGroupBlackWhite;
+      case 'black-2-white-2':
+        return t.gameGroupBlack2White2;
+      case 'x-y':
+        return t.gameGroupXY;
+      case 'omega-ruby-alpha-sapphire':
+        return t.gameGroupOmegaRubyAlphaSapphire;
+      case 'sun-moon':
+        return t.gameGroupSunMoon;
+      case 'ultra-sun-ultra-moon':
+        return t.gameGroupUltraSunUltraMoon;
+      case 'lets-go-pikachu-lets-go-eevee':
+        return t.gameGroupLetsGoPikachuLetsGoEevee;
+      case 'sword-shield':
+        return t.gameGroupSwordShield;
+      case 'scarlet-violet':
+        return t.gameGroupScarletViolet;
+      default:
+        return _formatDefault(gameName);
     }
   }
 
@@ -108,28 +165,50 @@ extension TranslationExtension on BuildContext {
     final t = AppLocalizations.of(this);
     final key = typeName.toLowerCase().trim();
     switch (key) {
-      case 'normal': return t.typeNormal;
-      case 'fire': return t.typeFire;
-      case 'water': return t.typeWater;
-      case 'grass': return t.typeGrass;
-      case 'electric': return t.typeElectric;
-      case 'ice': return t.typeIce;
-      case 'fighting': return t.typeFighting;
-      case 'poison': return t.typePoison;
-      case 'ground': return t.typeGround;
-      case 'flying': return t.typeFlying;
-      case 'psychic': return t.typePsychic;
-      case 'bug': return t.typeBug;
-      case 'rock': return t.typeRock;
-      case 'ghost': return t.typeGhost;
-      case 'dragon': return t.typeDragon;
-      case 'steel': return t.typeSteel;
-      case 'fairy': return t.typeFairy;
-      case 'dark': return t.typeDark;
-      case 'stellar': return t.typeStellar;
-      case 'shadow': return t.typeShadow;
-      case 'unknown': return t.typeUnknown;
-      default: return _capitalize(typeName);
+      case 'normal':
+        return t.typeNormal;
+      case 'fire':
+        return t.typeFire;
+      case 'water':
+        return t.typeWater;
+      case 'grass':
+        return t.typeGrass;
+      case 'electric':
+        return t.typeElectric;
+      case 'ice':
+        return t.typeIce;
+      case 'fighting':
+        return t.typeFighting;
+      case 'poison':
+        return t.typePoison;
+      case 'ground':
+        return t.typeGround;
+      case 'flying':
+        return t.typeFlying;
+      case 'psychic':
+        return t.typePsychic;
+      case 'bug':
+        return t.typeBug;
+      case 'rock':
+        return t.typeRock;
+      case 'ghost':
+        return t.typeGhost;
+      case 'dragon':
+        return t.typeDragon;
+      case 'steel':
+        return t.typeSteel;
+      case 'fairy':
+        return t.typeFairy;
+      case 'dark':
+        return t.typeDark;
+      case 'stellar':
+        return t.typeStellar;
+      case 'shadow':
+        return t.typeShadow;
+      case 'unknown':
+        return t.typeUnknown;
+      default:
+        return _capitalize(typeName);
     }
   }
 
@@ -197,7 +276,8 @@ extension TranslationExtension on BuildContext {
     return name
         .replaceAll('-', ' ')
         .split(' ')
-        .map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '')
+        .map(
+            (w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '')
         .join(' ');
   }
 
