@@ -35,7 +35,11 @@ class MockPokemonRepository implements IPokemonRepository {
             'https://pokeapi.co/api/v2/pokemon/1/encounters',
         cryLegacy:
             'https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/legacy/1.ogg',
-        forms: [PokemonForm(name: 'bulbasaur', url: 'https://pokeapi.co/api/v2/pokemon-form/1/')],
+        forms: [
+          PokemonForm(
+              name: 'bulbasaur',
+              url: 'https://pokeapi.co/api/v2/pokemon-form/1/')
+        ],
         gameIndices: ['red', 'blue'],
         speciesName: 'bulbasaur',
         speciesUrl: 'https://pokeapi.co/api/v2/pokemon-species/1/',
@@ -60,24 +64,32 @@ class MockPokemonRepository implements IPokemonRepository {
   }
 
   @override
-  Future<Either<PokemonFailure, PokemonFormDetails>> getFormDetails(String url) async {
+  Future<Either<PokemonFailure, PokemonFormDetails>> getFormDetails(
+      String url) async {
     return const Right(
       PokemonFormDetails(
         name: 'bulbasaur',
         type1: 'grass',
         type2: 'poison',
-        typeImage1: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/grass.png',
-        typeImage2: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/poison.png',
-        spriteDefault: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png',
-        spriteShiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/1.png',
-        artworkDefault: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png',
-        artworkShiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/1.png',
+        typeImage1:
+            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/grass.png',
+        typeImage2:
+            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/poison.png',
+        spriteDefault:
+            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png',
+        spriteShiny:
+            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/1.png',
+        artworkDefault:
+            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png',
+        artworkShiny:
+            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/1.png',
       ),
     );
   }
 
   @override
-  Future<Either<PokemonFailure, List<PokemonEncounter>>> getEncounters(String url) async {
+  Future<Either<PokemonFailure, List<PokemonEncounter>>> getEncounters(
+      String url) async {
     return const Right([
       PokemonEncounter(
         locationAreaName: 'Kanto Route 1 Area',

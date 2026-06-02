@@ -88,15 +88,19 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       order: rawPokemon.order,
       locationAreaEncounters: rawPokemon.locationAreaEncounters,
       cryLegacy: rawPokemon.cries.legacy,
-      forms: rawPokemon.forms.map((f) => PokemonForm(name: f.name, url: f.url)).toList(),
+      forms: rawPokemon.forms
+          .map((f) => PokemonForm(name: f.name, url: f.url))
+          .toList(),
       gameIndices: rawPokemon.gameIndices.map((gi) => gi.version.name).toList(),
       speciesName: rawPokemon.species.name,
       speciesUrl: rawPokemon.species.url,
       spriteBackDefault: rawPokemon.sprites.backDefault,
       spriteFrontShiny: rawPokemon.sprites.frontShiny,
       spriteBackShiny: rawPokemon.sprites.backShiny,
-      officialArtworkDefault: rawPokemon.sprites.other?.officialArtwork.frontDefault,
-      officialArtworkShiny: rawPokemon.sprites.other?.officialArtwork.frontShiny,
+      officialArtworkDefault:
+          rawPokemon.sprites.other?.officialArtwork.frontDefault,
+      officialArtworkShiny:
+          rawPokemon.sprites.other?.officialArtwork.frontShiny,
       abilities: abilities,
       heldItems: heldItems,
       moves: moves,
@@ -104,12 +108,13 @@ class PokemonRepositoryImpl implements IPokemonRepository {
   }
 
   @override
-  Future<Either<PokemonFailure, PokemonFormDetails>> getFormDetails(String url) async {
+  Future<Either<PokemonFailure, PokemonFormDetails>> getFormDetails(
+      String url) async {
     try {
       final json = await _remoteDataSource.getFormDetailsJson(url);
       final id = json['id'] as int;
       final name = json['name'] as String;
-      
+
       final typesJson = json['types'] as List<dynamic>;
       final type1 = _getTypeFromUrl(typesJson.first['type']['url'] as String);
       final type2 = typesJson.length > 1
@@ -145,17 +150,19 @@ class PokemonRepositoryImpl implements IPokemonRepository {
   }
 
   @override
-  Future<Either<PokemonFailure, List<PokemonEncounter>>> getEncounters(String url) async {
+  Future<Either<PokemonFailure, List<PokemonEncounter>>> getEncounters(
+      String url) async {
     try {
       final rawList = await _remoteDataSource.getEncountersJson(url);
       final encounters = rawList.map((encounterMap) {
         final map = encounterMap as Map<String, dynamic>;
         final locationArea = map['location_area'] as Map<String, dynamic>;
         final rawLocationName = locationArea['name'] as String;
-        
+
         final versionDetails = map['version_details'] as List<dynamic>;
         final versions = versionDetails
-            .map((detail) => (detail as Map<String, dynamic>)['version']['name'] as String)
+            .map((detail) =>
+                (detail as Map<String, dynamic>)['version']['name'] as String)
             .toList();
 
         String formatLocationName(String rawName) {
@@ -187,4 +194,3 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     return trimmed.substring(previousSlashIndex + 1);
   }
 }
-
