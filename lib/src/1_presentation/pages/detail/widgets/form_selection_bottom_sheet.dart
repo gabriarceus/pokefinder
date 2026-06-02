@@ -3,7 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
+import 'package:pokefinder/src/1_presentation/extensions/form_name_formatter.dart';
 
+/// Bottom sheet that lets the user toggle shiny sprites and pick an
+/// alternate Pokémon form.
 class FormSelectionBottomSheet extends StatelessWidget {
   const FormSelectionBottomSheet({
     super.key,
@@ -48,7 +51,9 @@ class FormSelectionBottomSheet extends StatelessWidget {
                       width: 48,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
+                        color: Theme.of(context)
+                            .dividerColor
+                            .withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
@@ -65,7 +70,9 @@ class FormSelectionBottomSheet extends StatelessWidget {
                   const SizedBox(height: 16),
                   SwitchListTile.adaptive(
                     secondary: Icon(
-                      showShiny ? Icons.star_rounded : Icons.star_border_rounded,
+                      showShiny
+                          ? Icons.star_rounded
+                          : Icons.star_border_rounded,
                       color: Colors.amber,
                       size: 28,
                     ),
@@ -107,40 +114,46 @@ class FormSelectionBottomSheet extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final form = pokemon.forms[index];
                           final isSelected = form.name == selectedFormName;
-                          final displayFormName = form.name
-                              .replaceAll('-', ' ')
-                              .split(' ')
-                              .map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '')
-                              .join(' ');
+                          final displayFormName =
+                              formatFormName(context, form.name);
 
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 4.0),
                             child: InkWell(
                               onTap: () {
-                                if (state is PokemonBlocSuccess && !state.isLoadingForm) {
-                                  context.read<PokemonBloc>().add(SelectPokemonFormEvent(form));
+                                if (state is PokemonBlocSuccess &&
+                                    !state.isLoadingForm) {
+                                  context
+                                      .read<PokemonBloc>()
+                                      .add(SelectPokemonFormEvent(form));
                                 }
                               },
                               borderRadius: BorderRadius.circular(12),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 12),
                                 decoration: BoxDecoration(
                                   color: isSelected
                                       ? typeColor.withValues(alpha: 0.1)
                                       : Colors.transparent,
                                   border: Border.all(
-                                    color: isSelected ? typeColor : Colors.transparent,
+                                    color: isSelected
+                                        ? typeColor
+                                        : Colors.transparent,
                                     width: 1.5,
                                   ),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       displayFormName,
                                       style: TextStyle(
-                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
                                         color: isSelected ? typeColor : null,
                                       ),
                                     ),
