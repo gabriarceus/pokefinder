@@ -22,7 +22,8 @@ class DetailMovesTab extends StatelessWidget {
       child: BlocBuilder<DetailMovesCubit, DetailMovesState>(
         builder: (context, state) {
           final cubit = context.read<DetailMovesCubit>();
-          final versionGroups = state.allMoves.map((m) => m.versionGroup).toSet().toList();
+          final versionGroups =
+              state.allMoves.map((m) => m.versionGroup).toSet().toList();
           final methods = cubit.getAvailableMethods();
           final locale = Localizations.localeOf(context).languageCode;
 
@@ -33,7 +34,8 @@ class DetailMovesTab extends StatelessWidget {
                   children: [
                     Text(
                       context.t().gameSelectorLabel,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -41,7 +43,8 @@ class DetailMovesTab extends StatelessWidget {
                         initialValue: state.selectedVersionGroup,
                         isExpanded: true,
                         decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -118,7 +121,8 @@ class DetailMovesTab extends StatelessWidget {
                         itemCount: state.filteredMoves.length,
                         itemBuilder: (context, index) {
                           final move = state.filteredMoves[index];
-                          final capitalizedName = context.translateMove(move.name);
+                          final capitalizedName =
+                              context.translateMove(move.name);
 
                           final learnDetail = switch (move.learnMethod) {
                             'level-up' => 'Lvl ${move.levelLearnedAt}',
@@ -140,7 +144,8 @@ class DetailMovesTab extends StatelessWidget {
                             child: ListTile(
                               title: Text(
                                 capitalizedName,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                               trailing: Container(
                                 padding: const EdgeInsets.symmetric(

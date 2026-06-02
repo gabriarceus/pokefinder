@@ -19,7 +19,9 @@ void main() {
       );
     }
 
-    testWidgets('Translates abilities to Italian and falls back to default formatting in English', (tester) async {
+    testWidgets(
+        'Translates abilities to Italian and falls back to default formatting in English',
+        (tester) async {
       // Italian Locale
       await tester.pumpWidget(
         buildTestWidget(
@@ -45,7 +47,9 @@ void main() {
       expect(find.text('Skill Link'), findsOneWidget);
     });
 
-    testWidgets('Translates moves to Italian and falls back to default formatting in English', (tester) async {
+    testWidgets(
+        'Translates moves to Italian and falls back to default formatting in English',
+        (tester) async {
       // Italian Locale
       await tester.pumpWidget(
         buildTestWidget(
@@ -85,7 +89,9 @@ void main() {
       expect(find.text('Percorso 1 (Kanto) area'), findsOneWidget);
     });
 
-    testWidgets('Translates non-route locations using database lookup in Italian', (tester) async {
+    testWidgets(
+        'Translates non-route locations using database lookup in Italian',
+        (tester) async {
       await tester.pumpWidget(
         buildTestWidget(
           locale: const Locale('it'),
@@ -98,13 +104,15 @@ void main() {
       expect(find.text('Vecchia Nave'), findsOneWidget);
     });
 
-    testWidgets('Translates game versions using AppLocalizations', (tester) async {
+    testWidgets('Translates game versions using AppLocalizations',
+        (tester) async {
       // Italian Locale
       await tester.pumpWidget(
         buildTestWidget(
           locale: const Locale('it'),
           builder: (context) {
-            return Text(context.translateGameVersion('omega-ruby-alpha-sapphire'));
+            return Text(
+                context.translateGameVersion('omega-ruby-alpha-sapphire'));
           },
         ),
       );
@@ -116,7 +124,8 @@ void main() {
         buildTestWidget(
           locale: const Locale('en'),
           builder: (context) {
-            return Text(context.translateGameVersion('omega-ruby-alpha-sapphire'));
+            return Text(
+                context.translateGameVersion('omega-ruby-alpha-sapphire'));
           },
         ),
       );

@@ -78,21 +78,27 @@ class DetailStatsTab extends StatelessWidget {
           const SizedBox(height: 8),
           _buildStatRow(context, context.t().statHp, 'hp', pokemon.stats[0]),
           const SizedBox(height: 12),
-          _buildStatRow(context, context.t().statAttack, 'atk', pokemon.stats[1]),
+          _buildStatRow(
+              context, context.t().statAttack, 'atk', pokemon.stats[1]),
           const SizedBox(height: 12),
-          _buildStatRow(context, context.t().statDefense, 'def', pokemon.stats[2]),
+          _buildStatRow(
+              context, context.t().statDefense, 'def', pokemon.stats[2]),
           const SizedBox(height: 12),
-          _buildStatRow(context, context.t().statSpAtk, 'spatk', pokemon.stats[3]),
+          _buildStatRow(
+              context, context.t().statSpAtk, 'spatk', pokemon.stats[3]),
           const SizedBox(height: 12),
-          _buildStatRow(context, context.t().statSpDef, 'spdef', pokemon.stats[4]),
+          _buildStatRow(
+              context, context.t().statSpDef, 'spdef', pokemon.stats[4]),
           const SizedBox(height: 12),
-          _buildStatRow(context, context.t().statSpeed, 'speed', pokemon.stats[5]),
+          _buildStatRow(
+              context, context.t().statSpeed, 'speed', pokemon.stats[5]),
         ],
       ),
     );
   }
 
-  Widget _buildStatRow(BuildContext context, String label, String statKey, int value) {
+  Widget _buildStatRow(
+      BuildContext context, String label, String statKey, int value) {
     Color statColor;
     if (value > 90) {
       statColor = Colors.green;

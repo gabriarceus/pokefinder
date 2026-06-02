@@ -15,7 +15,8 @@ class HomeDrawer extends StatelessWidget {
     final isSystemLanguage = currentLanguageId == Language.system.id;
 
     return BlocListener<HomeBloc, HomeBlocState>(
-      listenWhen: (previous, current) => current.cacheCleared && !previous.cacheCleared,
+      listenWhen: (previous, current) =>
+          current.cacheCleared && !previous.cacheCleared,
       listener: (context, state) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

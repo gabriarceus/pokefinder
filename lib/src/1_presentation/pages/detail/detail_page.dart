@@ -31,6 +31,7 @@ class _DetailState extends State<Detail> {
   final _player = AudioPlayer();
   String? _loadedCry;
   bool _showShiny = false;
+  bool _hasTappedForm = false;
 
   @override
   void dispose() {
@@ -47,6 +48,9 @@ class _DetailState extends State<Detail> {
 
   void _showFormSelectionBottomSheet(
       BuildContext context, Pokemon pokemon, Color typeColor, Color textColor) {
+    if (!_hasTappedForm) {
+      setState(() => _hasTappedForm = true);
+    }
     showModalBottomSheet(
       context: context,
       backgroundColor: Theme.of(context).cardColor,
@@ -87,7 +91,8 @@ class _DetailState extends State<Detail> {
                 typeImage2: pokemon.typeImage2,
                 spriteDefault: pokemon.sprite,
                 spriteShiny: pokemon.spriteFrontShiny ?? pokemon.sprite,
-                artworkDefault: pokemon.officialArtworkDefault ?? pokemon.sprite,
+                artworkDefault:
+                    pokemon.officialArtworkDefault ?? pokemon.sprite,
                 artworkShiny: pokemon.officialArtworkShiny ??
                     pokemon.spriteFrontShiny ??
                     pokemon.sprite,
@@ -103,8 +108,8 @@ class _DetailState extends State<Detail> {
           final typeColor = backgroundHelper.colorFromType();
           final textColor = contrastingTextColor(typeColor);
 
-          final normalImage = formDetails.artworkDefault;
-          final shinyImage = formDetails.artworkShiny;
+          final normalImage = formDetails.spriteDefault;
+          final shinyImage = formDetails.spriteShiny;
 
           return DefaultTabController(
             length: 4,
@@ -118,8 +123,9 @@ class _DetailState extends State<Detail> {
                 child: Column(
                   children: [
                     SizedBox(
-                        height:
-                            MediaQuery.of(context).padding.top + kToolbarHeight),
+                        height: MediaQuery.of(context).padding.top +
+                            kToolbarHeight +
+                            8),
                     DetailHeader(
                       selectedFormName: formDetails.name,
                       pokemonId: pokemon.id,
@@ -187,8 +193,8 @@ class _DetailState extends State<Detail> {
                                       ),
                                       Tab(
                                         text: context.t().tabItemsGames,
-                                        icon: const Icon(
-                                            Icons.backpack_outlined),
+                                        icon:
+                                            const Icon(Icons.backpack_outlined),
                                       ),
                                     ],
                                   ),
@@ -258,8 +264,10 @@ class _DetailState extends State<Detail> {
                                     crossFadeState: _showShiny
                                         ? CrossFadeState.showSecond
                                         : CrossFadeState.showFirst,
-                                    firstChild: SpriteBoxImage(sprite: normalImage),
-                                    secondChild: SpriteBoxImage(sprite: shinyImage),
+                                    firstChild:
+                                        SpriteBoxImage(sprite: normalImage),
+                                    secondChild:
+                                        SpriteBoxImage(sprite: shinyImage),
                                   ),
                                 ),
                               ),
