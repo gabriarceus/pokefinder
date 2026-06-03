@@ -3,8 +3,17 @@ import 'package:injectable/injectable.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 import 'package:pokefinder/src/4_repository/repository.dart';
 
-const _kBasePath =
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/';
+const _kSpritesRoot =
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/';
+
+/// Builds the type-icon sprite URL for the given [type] slug.
+String _typeSpriteUrl(String type) =>
+    '${_kSpritesRoot}types/generation-viii/sword-shield/$type.png';
+
+/// Builds the official-artwork URL for the Pokémon with the given [id],
+/// returning the shiny variant when [shiny] is true.
+String _officialArtworkUrl(int id, {bool shiny = false}) =>
+    '${_kSpritesRoot}pokemon/other/official-artwork/${shiny ? 'shiny/' : ''}$id.png';
 
 @LazySingleton(as: IPokemonRepository, env: [Environment.prod])
 class PokemonRepositoryImpl implements IPokemonRepository {
@@ -30,8 +39,8 @@ class PokemonRepositoryImpl implements IPokemonRepository {
         ? _getTypeFromUrl(rawPokemon.types[1].type.url)
         : null;
 
-    final typeImage1 = '$_kBasePath$type1.png';
-    final typeImage2 = type2 != null ? '$_kBasePath$type2.png' : '';
+    final typeImage1 = _typeSpriteUrl(type1);
+    final typeImage2 = type2 != null ? _typeSpriteUrl(type2) : '';
 
     final ability1 = rawPokemon.abilities.first.ability.name;
     final ability2 = rawPokemon.abilities.length > 1
@@ -117,13 +126,11 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       final type2 =
           raw.types.length > 1 ? _getTypeFromUrl(raw.types[1].type.url) : null;
 
-      final typeImage1 = '$_kBasePath$type1.png';
-      final typeImage2 = type2 != null ? '$_kBasePath$type2.png' : '';
+      final typeImage1 = _typeSpriteUrl(type1);
+      final typeImage2 = type2 != null ? _typeSpriteUrl(type2) : '';
 
-      final artworkDefault =
-          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${raw.id}.png';
-      final artworkShiny =
-          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${raw.id}.png';
+      final artworkDefault = _officialArtworkUrl(raw.id);
+      final artworkShiny = _officialArtworkUrl(raw.id, shiny: true);
 
       return right(PokemonFormDetails(
         name: raw.name,
