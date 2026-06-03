@@ -2,6 +2,7 @@ export 'entities/language.dart';
 export 'entities/pokemon.dart';
 export 'failures/pokemon_failure.dart';
 export 'repositories/i_pokemon_repository.dart';
+export 'services/cry_audio_controller.dart';
 export 'usecases/get_pokemon_usecase.dart';
 export 'usecases/get_pokemon_encounters_usecase.dart';
 export 'usecases/get_pokemon_form_details_usecase.dart';

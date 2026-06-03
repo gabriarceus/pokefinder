@@ -1,46 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:pokefinder/src/4_repository/services/audio_player.dart';
+import 'package:pokefinder/src/3_domain/services/cry_audio_controller.dart';
 
-class CryPlayButton extends StatefulWidget {
+/// Visual mode of the cry play button, derived from playback state.
+enum CryButtonMode { play, stop, replay, loading }
+
+/// Pure mapping from a playback [state] to the button mode for the cry at [url].
+CryButtonMode cryButtonModeFor(CryPlaybackState state, String url) {
+  final isCurrent = state.currentUrl == url;
+  if (isCurrent && state.loading) return CryButtonMode.loading;
+  if (isCurrent && state.completed) return CryButtonMode.replay;
+  if (isCurrent && state.playing) return CryButtonMode.stop;
+  return CryButtonMode.play;
+}
+
+class CryPlayButton extends StatelessWidget {
   const CryPlayButton({
     super.key,
-    required this.player,
+    required this.controller,
     required this.cryUrl,
     required this.label,
   });
 
-  final AudioPlayer player;
+  final CryAudioController controller;
   final String cryUrl;
   final String label;
 
   @override
-  State<CryPlayButton> createState() => _CryPlayButtonState();
-}
-
-class _CryPlayButtonState extends State<CryPlayButton> {
-  bool _isLoading = false;
-
-  @override
   Widget build(BuildContext context) {
-    return StreamBuilder<PlayerState>(
-      stream: widget.player.playerStateStream,
+    return StreamBuilder<CryPlaybackState>(
+      stream: controller.stateStream,
+      initialData: controller.state,
       builder: (context, snapshot) {
-        final playerState = snapshot.data;
-        final playing = playerState?.playing ?? false;
-        final processingState =
-            playerState?.processingState ?? ProcessingState.idle;
-        final sequence = widget.player.audioSource?.sequence;
-        final isThisSource = sequence != null &&
-            sequence.isNotEmpty &&
-            sequence.first is UriAudioSource &&
-            (sequence.first as UriAudioSource).uri.toString() == widget.cryUrl;
-
-        final isCompleted =
-            isThisSource && processingState == ProcessingState.completed;
-        final isCurrentlyPlaying = playing &&
-            isThisSource &&
-            processingState != ProcessingState.completed;
+        final mode = cryButtonModeFor(
+          snapshot.data ?? const CryPlaybackState(),
+          cryUrl,
+        );
 
         return Card(
           elevation: 0,
@@ -57,11 +51,11 @@ class _CryPlayButtonState extends State<CryPlayButton> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  widget.label,
+                  label,
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 13),
                 ),
-                if (_isLoading)
+                if (mode == CryButtonMode.loading)
                   const Padding(
                     padding: EdgeInsets.all(12.0),
                     child: SizedBox(
@@ -73,32 +67,15 @@ class _CryPlayButtonState extends State<CryPlayButton> {
                 else
                   IconButton(
                     icon: Icon(
-                      isCurrentlyPlaying
-                          ? Icons.stop_rounded
-                          : isCompleted
-                              ? Icons.replay_rounded
-                              : Icons.play_arrow_rounded,
+                      switch (mode) {
+                        CryButtonMode.stop => Icons.stop_rounded,
+                        CryButtonMode.replay => Icons.replay_rounded,
+                        CryButtonMode.play => Icons.play_arrow_rounded,
+                        CryButtonMode.loading => Icons.play_arrow_rounded,
+                      },
                       color: Theme.of(context).primaryColor,
                     ),
-                    onPressed: () async {
-                      if (isCurrentlyPlaying) {
-                        await widget.player.stop();
-                      } else if (isCompleted) {
-                        await widget.player.seek(Duration.zero);
-                        await widget.player.play();
-                      } else {
-                        setState(() {
-                          _isLoading = true;
-                        });
-                        await setupAudioPlayer(widget.player, widget.cryUrl);
-                        if (mounted) {
-                          setState(() {
-                            _isLoading = false;
-                          });
-                        }
-                        await widget.player.play();
-                      }
-                    },
+                    onPressed: () => controller.toggle(cryUrl),
                   ),
               ],
             ),

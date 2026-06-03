@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
+import 'package:pokefinder/src/3_domain/services/cry_audio_controller.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
@@ -10,12 +10,12 @@ class DetailInfoTab extends StatelessWidget {
     super.key,
     required this.pokemon,
     required this.textColor,
-    required this.player,
+    required this.audioController,
   });
 
   final Pokemon pokemon;
   final Color textColor;
-  final AudioPlayer player;
+  final CryAudioController audioController;
 
   @override
   Widget build(BuildContext context) {
@@ -169,7 +169,7 @@ class DetailInfoTab extends StatelessWidget {
             children: [
               Expanded(
                 child: CryPlayButton(
-                  player: player,
+                  controller: audioController,
                   cryUrl: pokemon.cry,
                   label: context.t().cryLatest,
                 ),
@@ -178,7 +178,7 @@ class DetailInfoTab extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: CryPlayButton(
-                    player: player,
+                    controller: audioController,
                     cryUrl: pokemon.cryLegacy!,
                     label: context.t().cryLegacy,
                   ),
