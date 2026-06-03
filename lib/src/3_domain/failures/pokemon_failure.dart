@@ -1,5 +1,7 @@
-sealed class PokemonFailure {
-  PokemonFailure(this.message);
+import 'package:equatable/equatable.dart';
+
+sealed class PokemonFailure extends Equatable {
+  const PokemonFailure(this.message);
 
   final String message;
 
@@ -17,16 +19,19 @@ sealed class PokemonFailure {
         return onUnexpected(unexpected);
     }
   }
+
+  @override
+  List<Object?> get props => [message];
 }
 
 final class UnauthorizedFailure extends PokemonFailure {
-  UnauthorizedFailure() : super('Unauthorized');
+  const UnauthorizedFailure() : super('Unauthorized');
 }
 
 final class BadRequestFailure extends PokemonFailure {
-  BadRequestFailure() : super('Bad Request');
+  const BadRequestFailure() : super('Bad Request');
 }
 
 final class UnexpectedFailure extends PokemonFailure {
-  UnexpectedFailure(super.message);
+  const UnexpectedFailure(super.message);
 }
