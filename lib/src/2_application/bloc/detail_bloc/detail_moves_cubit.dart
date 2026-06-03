@@ -12,6 +12,8 @@ class DetailMovesState extends Equatable {
     required this.selectedVersionGroup,
     required this.filteredMoves,
     required this.allMoves,
+    required this.versionGroups,
+    required this.availableMethods,
   });
 
   final String searchQuery;
@@ -20,6 +22,13 @@ class DetailMovesState extends Equatable {
   final List<PokemonMove> filteredMoves;
   final List<PokemonMove> allMoves;
 
+  /// Distinct version groups present in [allMoves] (stable for the cubit life).
+  final List<String> versionGroups;
+
+  /// Learn-method filter options for the selected version group, with the
+  /// "all" sentinel as the first entry.
+  final List<String> availableMethods;
+
   @override
   List<Object?> get props => [
         searchQuery,
@@ -27,6 +36,8 @@ class DetailMovesState extends Equatable {
         selectedVersionGroup,
         filteredMoves,
         allMoves,
+        versionGroups,
+        availableMethods,
       ];
 
   DetailMovesState copyWith({
@@ -35,6 +46,8 @@ class DetailMovesState extends Equatable {
     String? selectedVersionGroup,
     List<PokemonMove>? filteredMoves,
     List<PokemonMove>? allMoves,
+    List<String>? versionGroups,
+    List<String>? availableMethods,
   }) {
     return DetailMovesState(
       searchQuery: searchQuery ?? this.searchQuery,
@@ -42,6 +55,8 @@ class DetailMovesState extends Equatable {
       selectedVersionGroup: selectedVersionGroup ?? this.selectedVersionGroup,
       filteredMoves: filteredMoves ?? this.filteredMoves,
       allMoves: allMoves ?? this.allMoves,
+      versionGroups: versionGroups ?? this.versionGroups,
+      availableMethods: availableMethods ?? this.availableMethods,
     );
   }
 }
@@ -71,11 +86,9 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
     final versionGroups = moves.map((m) => m.versionGroup).toSet().toList();
     String? initialVersionGroup;
     if (versionGroups.isNotEmpty) {
-      if (versionGroups.contains(_preferredVersionGroup)) {
-        initialVersionGroup = _preferredVersionGroup;
-      } else {
-        initialVersionGroup = versionGroups.first;
-      }
+      initialVersionGroup = versionGroups.contains(_preferredVersionGroup)
+          ? _preferredVersionGroup
+          : versionGroups.first;
     }
     return DetailMovesState(
       searchQuery: '',
@@ -83,7 +96,20 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
       selectedVersionGroup: initialVersionGroup,
       filteredMoves: const [],
       allMoves: moves,
+      versionGroups: versionGroups,
+      availableMethods: _availableMethodsFor(moves, initialVersionGroup),
     );
+  }
+
+  /// Learn-method options for [versionGroup], with [allMethodsFilter] first.
+  static List<String> _availableMethodsFor(
+      List<PokemonMove> moves, String? versionGroup) {
+    if (versionGroup == null) return const [allMethodsFilter];
+    final methods = moves
+        .where((m) => m.versionGroup == versionGroup)
+        .map((m) => m.learnMethod)
+        .toSet();
+    return [allMethodsFilter, ...methods];
   }
 
   void updateSearchQuery(String query, String languageCode) {
@@ -97,29 +123,19 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
   }
 
   void updateSelectedVersionGroup(String versionGroup, String languageCode) {
-    emit(state.copyWith(selectedVersionGroup: versionGroup));
+    final availableMethods = _availableMethodsFor(state.allMoves, versionGroup);
+    final selectedMethod = state.selectedMethod != allMethodsFilter &&
+            !availableMethods.contains(state.selectedMethod)
+        ? allMethodsFilter
+        : state.selectedMethod;
 
-    final availableMethods = state.allMoves
-        .where((m) => m.versionGroup == versionGroup)
-        .map((m) => m.learnMethod)
-        .toSet();
-
-    if (state.selectedMethod != allMethodsFilter &&
-        !availableMethods.contains(state.selectedMethod)) {
-      emit(state.copyWith(selectedMethod: allMethodsFilter));
-    }
+    emit(state.copyWith(
+      selectedVersionGroup: versionGroup,
+      availableMethods: availableMethods,
+      selectedMethod: selectedMethod,
+    ));
 
     _filterMoves(languageCode: languageCode);
-  }
-
-  List<String> getAvailableMethods() {
-    final versionGroup = state.selectedVersionGroup;
-    if (versionGroup == null) return [allMethodsFilter];
-    final methodsSet = state.allMoves
-        .where((m) => m.versionGroup == versionGroup)
-        .map((m) => m.learnMethod)
-        .toSet();
-    return [allMethodsFilter, ...methodsSet];
   }
 
   void _filterMoves({String languageCode = _defaultLanguageCode}) {
