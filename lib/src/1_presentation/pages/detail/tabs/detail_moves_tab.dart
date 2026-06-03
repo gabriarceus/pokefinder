@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pokefinder/src/3_domain/entities/learn_method.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
@@ -88,14 +89,17 @@ class DetailMovesTab extends StatelessWidget {
                 child: Row(
                   children: methods.map((method) {
                     final isSelected = state.selectedMethod == method;
-                    final label = switch (method) {
-                      'all' => context.t().movesFilterAll,
-                      'level-up' => context.t().movesFilterLevelUp,
-                      'machine' => context.t().movesFilterMachine,
-                      'tutor' => context.t().movesFilterTutor,
-                      'egg' => context.t().movesFilterEgg,
-                      _ => method,
-                    };
+                    final label = method == DetailMovesCubit.allMethodsFilter
+                        ? context.t().movesFilterAll
+                        : switch (LearnMethod.fromApi(method)) {
+                            LearnMethod.levelUp =>
+                              context.t().movesFilterLevelUp,
+                            LearnMethod.machine =>
+                              context.t().movesFilterMachine,
+                            LearnMethod.tutor => context.t().movesFilterTutor,
+                            LearnMethod.egg => context.t().movesFilterEgg,
+                            null => method,
+                          };
 
                     return Padding(
                       padding: const EdgeInsets.only(right: 6.0),
@@ -124,14 +128,16 @@ class DetailMovesTab extends StatelessWidget {
                           final capitalizedName =
                               context.translateMove(move.name);
 
-                          final learnDetail = switch (move.learnMethod) {
-                            'level-up' => context
+                          final learnDetail =
+                              switch (LearnMethod.fromApi(move.learnMethod)) {
+                            LearnMethod.levelUp => context
                                 .t()
                                 .moveBadgeLevel(level: move.levelLearnedAt),
-                            'machine' => context.t().movesFilterMachine,
-                            'tutor' => context.t().moveBadgeTutor,
-                            'egg' => context.t().movesFilterEgg,
-                            _ => move.learnMethod,
+                            LearnMethod.machine =>
+                              context.t().movesFilterMachine,
+                            LearnMethod.tutor => context.t().moveBadgeTutor,
+                            LearnMethod.egg => context.t().movesFilterEgg,
+                            null => move.learnMethod,
                           };
 
                           return Card(

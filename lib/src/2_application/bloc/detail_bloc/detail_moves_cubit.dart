@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:pokefinder/src/3_domain/entities/learn_method.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/l10n/moves_db.dart';
 
@@ -54,19 +55,31 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
     _filterMoves();
   }
 
+  /// Filter sentinel that selects moves of any learn method.
+  static const allMethodsFilter = 'all';
+
+  /// Version group preferred as the initial selection when available.
+  static const _preferredVersionGroup = 'diamond-pearl';
+
+  /// Language code that triggers Italian move-name translation.
+  static const _italianLanguageCode = 'it';
+
+  /// Language code used when none is supplied.
+  static const _defaultLanguageCode = 'en';
+
   static DetailMovesState _initialState(List<PokemonMove> moves) {
     final versionGroups = moves.map((m) => m.versionGroup).toSet().toList();
     String? initialVersionGroup;
     if (versionGroups.isNotEmpty) {
-      if (versionGroups.contains('diamond-pearl')) {
-        initialVersionGroup = 'diamond-pearl';
+      if (versionGroups.contains(_preferredVersionGroup)) {
+        initialVersionGroup = _preferredVersionGroup;
       } else {
         initialVersionGroup = versionGroups.first;
       }
     }
     return DetailMovesState(
       searchQuery: '',
-      selectedMethod: 'all',
+      selectedMethod: allMethodsFilter,
       selectedVersionGroup: initialVersionGroup,
       filteredMoves: const [],
       allMoves: moves,
@@ -91,9 +104,9 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
         .map((m) => m.learnMethod)
         .toSet();
 
-    if (state.selectedMethod != 'all' &&
+    if (state.selectedMethod != allMethodsFilter &&
         !availableMethods.contains(state.selectedMethod)) {
-      emit(state.copyWith(selectedMethod: 'all'));
+      emit(state.copyWith(selectedMethod: allMethodsFilter));
     }
 
     _filterMoves(languageCode: languageCode);
@@ -101,21 +114,21 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
 
   List<String> getAvailableMethods() {
     final versionGroup = state.selectedVersionGroup;
-    if (versionGroup == null) return ['all'];
+    if (versionGroup == null) return [allMethodsFilter];
     final methodsSet = state.allMoves
         .where((m) => m.versionGroup == versionGroup)
         .map((m) => m.learnMethod)
         .toSet();
-    return ['all', ...methodsSet];
+    return [allMethodsFilter, ...methodsSet];
   }
 
-  void _filterMoves({String languageCode = 'en'}) {
+  void _filterMoves({String languageCode = _defaultLanguageCode}) {
     final uniqueMoves = <String, PokemonMove>{};
     for (final move in state.allMoves) {
       if (move.versionGroup != state.selectedVersionGroup) continue;
 
       String translatedName = move.name;
-      if (languageCode == 'it') {
+      if (languageCode == _italianLanguageCode) {
         final key = move.name.toLowerCase().trim();
         final trans = movesDb[key];
         if (trans != null) {
@@ -129,8 +142,10 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
               translatedName.contains(state.searchQuery.toLowerCase());
 
       if (!matchesSearch) continue;
-      if (state.selectedMethod != 'all' &&
-          move.learnMethod != state.selectedMethod) continue;
+      if (state.selectedMethod != allMethodsFilter &&
+          move.learnMethod != state.selectedMethod) {
+        continue;
+      }
 
       final existing = uniqueMoves[move.name];
       if (existing == null ||
@@ -144,7 +159,8 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
     final filteredMoves = uniqueMoves.values.toList();
 
     filteredMoves.sort((a, b) {
-      if (a.learnMethod == 'level-up' && b.learnMethod == 'level-up') {
+      if (a.learnMethod == LearnMethod.levelUp.apiValue &&
+          b.learnMethod == LearnMethod.levelUp.apiValue) {
         return a.levelLearnedAt.compareTo(b.levelLearnedAt);
       }
       return a.name.compareTo(b.name);
