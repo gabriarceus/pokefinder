@@ -1,6 +1,7 @@
 export "bold_label_value.dart";
 export "playback_button_widget.dart";
 export "sprite_box_image.dart";
+export "stat_bar_color.dart";
 export "surface_card.dart";
 export "type_image.dart";
 export "type_color_scheme.dart";

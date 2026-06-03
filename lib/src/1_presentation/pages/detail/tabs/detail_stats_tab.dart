@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/3_domain/helpers/stat_calculator.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
+import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 
 class DetailStatsTab extends StatelessWidget {
   const DetailStatsTab({
@@ -100,15 +101,7 @@ class DetailStatsTab extends StatelessWidget {
 
   Widget _buildStatRow(
       BuildContext context, String label, StatKind kind, int value) {
-    Color statColor;
-    if (value > 90) {
-      statColor = Colors.green;
-    } else if (value > 50) {
-      statColor = Colors.amber;
-    } else {
-      statColor = Colors.red;
-    }
-
+    final statColor = statBarColor(value);
     final minVal = StatCalculator.calculateMinStat(kind, value);
     final maxVal = StatCalculator.calculateMaxStat(kind, value);
 
