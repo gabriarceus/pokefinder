@@ -76,29 +76,30 @@ class DetailStatsTab extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          _buildStatRow(context, context.t().statHp, 'hp', pokemon.stats[0]),
+          _buildStatRow(
+              context, context.t().statHp, StatKind.hp, pokemon.stats[0]),
+          const SizedBox(height: 12),
+          _buildStatRow(context, context.t().statAttack, StatKind.attack,
+              pokemon.stats[1]),
+          const SizedBox(height: 12),
+          _buildStatRow(context, context.t().statDefense, StatKind.defense,
+              pokemon.stats[2]),
+          const SizedBox(height: 12),
+          _buildStatRow(context, context.t().statSpAtk, StatKind.specialAttack,
+              pokemon.stats[3]),
+          const SizedBox(height: 12),
+          _buildStatRow(context, context.t().statSpDef, StatKind.specialDefense,
+              pokemon.stats[4]),
           const SizedBox(height: 12),
           _buildStatRow(
-              context, context.t().statAttack, 'atk', pokemon.stats[1]),
-          const SizedBox(height: 12),
-          _buildStatRow(
-              context, context.t().statDefense, 'def', pokemon.stats[2]),
-          const SizedBox(height: 12),
-          _buildStatRow(
-              context, context.t().statSpAtk, 'spatk', pokemon.stats[3]),
-          const SizedBox(height: 12),
-          _buildStatRow(
-              context, context.t().statSpDef, 'spdef', pokemon.stats[4]),
-          const SizedBox(height: 12),
-          _buildStatRow(
-              context, context.t().statSpeed, 'speed', pokemon.stats[5]),
+              context, context.t().statSpeed, StatKind.speed, pokemon.stats[5]),
         ],
       ),
     );
   }
 
   Widget _buildStatRow(
-      BuildContext context, String label, String statKey, int value) {
+      BuildContext context, String label, StatKind kind, int value) {
     Color statColor;
     if (value > 90) {
       statColor = Colors.green;
@@ -108,8 +109,8 @@ class DetailStatsTab extends StatelessWidget {
       statColor = Colors.red;
     }
 
-    final minVal = StatCalculator.calculateMinStat(statKey, value);
-    final maxVal = StatCalculator.calculateMaxStat(statKey, value);
+    final minVal = StatCalculator.calculateMinStat(kind, value);
+    final maxVal = StatCalculator.calculateMaxStat(kind, value);
 
     return Row(
       children: [
