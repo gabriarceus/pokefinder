@@ -46,7 +46,15 @@ class HiveLocalStorage implements LocalStorage {
     final raw = box.get(key);
     if (raw == null) return null;
 
-    final envelope = jsonDecode(raw) as Map<String, dynamic>;
+    final Map<String, dynamic> envelope;
+    try {
+      envelope = jsonDecode(raw) as Map<String, dynamic>;
+    } catch (_) {
+      // Corrupt or unreadable entry: evict it and treat as a cache miss.
+      await box.delete(key);
+      return null;
+    }
+
     final data = envelope[_kDataKey];
     final storedAt = envelope[_kStoredAtKey] as int?;
 

@@ -89,11 +89,11 @@ class DetailMovesTab extends StatelessWidget {
                   children: methods.map((method) {
                     final isSelected = state.selectedMethod == method;
                     final label = switch (method) {
-                      'all' => 'Tutte',
-                      'level-up' => 'Livello',
-                      'machine' => 'MT',
-                      'tutor' => 'Esperto',
-                      'egg' => 'Uovo',
+                      'all' => context.t().movesFilterAll,
+                      'level-up' => context.t().movesFilterLevelUp,
+                      'machine' => context.t().movesFilterMachine,
+                      'tutor' => context.t().movesFilterTutor,
+                      'egg' => context.t().movesFilterEgg,
                       _ => method,
                     };
 
@@ -125,10 +125,12 @@ class DetailMovesTab extends StatelessWidget {
                               context.translateMove(move.name);
 
                           final learnDetail = switch (move.learnMethod) {
-                            'level-up' => 'Lvl ${move.levelLearnedAt}',
-                            'machine' => 'MT',
-                            'tutor' => 'Tutor',
-                            'egg' => 'Uovo',
+                            'level-up' => context
+                                .t()
+                                .moveBadgeLevel(level: move.levelLearnedAt),
+                            'machine' => context.t().movesFilterMachine,
+                            'tutor' => context.t().moveBadgeTutor,
+                            'egg' => context.t().movesFilterEgg,
                             _ => move.learnMethod,
                           };
 

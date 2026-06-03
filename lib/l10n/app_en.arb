@@ -41,6 +41,18 @@
   "abilityHidden": "Hidden",
   "movesSearchPlaceholder": "Search moves...",
   "movesSearchEmpty": "No moves found",
+  "movesFilterAll": "All",
+  "movesFilterLevelUp": "Level",
+  "movesFilterMachine": "TM",
+  "movesFilterTutor": "Tutor",
+  "movesFilterEgg": "Egg",
+  "moveBadgeLevel": "Lvl {level}",
+  "@moveBadgeLevel": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "moveBadgeTutor": "Tutor",
   "heldItems": "Wild Held Items",
   "heldItemsEmpty": "No wild items held",
   "rarity": "Rarity",

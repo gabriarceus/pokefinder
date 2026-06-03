@@ -26,8 +26,13 @@ class LoggingInterceptor extends Interceptor {
   /// Stores the request start time to calculate elapsed duration.
   final Map<RequestOptions, DateTime> _startTimes = {};
 
+  /// Entries older than this are pruned defensively, in case a request never
+  /// reaches onResponse/onError (e.g. cancellation), to keep the map bounded.
+  static const _staleThreshold = Duration(minutes: 5);
+
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    _pruneStaleEntries();
     _startTimes[options] = DateTime.now();
 
     _logger.info(
@@ -91,5 +96,13 @@ class LoggingInterceptor extends Interceptor {
     if (start == null) return '?ms';
     final ms = DateTime.now().difference(start).inMilliseconds;
     return '${ms}ms';
+  }
+
+  /// Drops timing entries older than [_staleThreshold] so [_startTimes] stays
+  /// bounded even when a request never completes.
+  void _pruneStaleEntries() {
+    final now = DateTime.now();
+    _startTimes
+        .removeWhere((_, start) => now.difference(start) > _staleThreshold);
   }
 }

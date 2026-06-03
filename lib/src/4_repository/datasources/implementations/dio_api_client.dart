@@ -16,6 +16,21 @@ class DioApiClient implements ApiClient {
   @override
   Future<dynamic> get(String endpoint) async {
     final response = await _dio.get<dynamic>(endpoint);
-    return response.data!;
+    final data = response.data;
+    if (data == null) {
+      throw EmptyResponseException(endpoint);
+    }
+    return data;
   }
+}
+
+/// Thrown when a successful HTTP response carries no body.
+class EmptyResponseException implements Exception {
+  EmptyResponseException(this.endpoint);
+
+  /// The endpoint whose response was empty.
+  final String endpoint;
+
+  @override
+  String toString() => 'EmptyResponseException: no body returned for $endpoint';
 }

@@ -19,6 +19,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final TextEditingController _controller = TextEditingController();
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   void _onListen(BuildContext context, HomeBlocState state) {
     if (state.errorMessage != null) {
       final t = AppLocalizations.of(context);
