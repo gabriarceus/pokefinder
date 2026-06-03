@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
 import 'package:pokefinder/src/1_presentation/presentation.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 
@@ -19,7 +20,7 @@ class DetailFailure extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Error: ${state.error}',
+                state.failure.localizedMessage(context),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),

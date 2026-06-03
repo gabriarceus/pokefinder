@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
 import 'package:pokefinder/src/1_presentation/presentation.dart';
 import 'package:pokefinder/src/1_presentation/widgets/home/home_widgets.dart';
 import 'package:pokefinder/src/2_application/application.dart';
@@ -26,19 +27,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onListen(BuildContext context, HomeBlocState state) {
-    if (state.errorMessage != null) {
-      final t = AppLocalizations.of(context);
-      final String message;
-      if (state.errorMessage == 'Bad Request') {
-        message = t.errorBadRequest;
-      } else if (state.errorMessage == 'Unauthorized') {
-        message = t.errorUnauthorized;
-      } else {
-        message = state.errorMessage!;
-      }
-
+    final failure = state.failure;
+    if (failure != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
+        SnackBar(content: Text(failure.localizedMessage(context))),
       );
     } else if (state.navigateToDetail) {
       context.go('/detail', extra: {'pokemonName': state.userInput});

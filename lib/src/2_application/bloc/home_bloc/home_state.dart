@@ -6,7 +6,7 @@ final class HomeBlocState extends Equatable {
     required this.userInput,
     required this.navigateToDetail,
     required this.cacheCleared,
-    this.errorMessage,
+    this.failure,
   });
 
   factory HomeBlocState.initial() {
@@ -14,30 +14,30 @@ final class HomeBlocState extends Equatable {
       userInput: '',
       navigateToDetail: false,
       cacheCleared: false,
-      errorMessage: null,
+      failure: null,
     );
   }
 
   final String userInput;
   final bool navigateToDetail;
   final bool cacheCleared;
-  final String? errorMessage;
+  final PokemonFailure? failure;
 
   HomeBlocState copyWith({
     String? userInput,
     bool? navigateToDetail,
     bool? cacheCleared,
-    String? errorMessage,
+    PokemonFailure? failure,
   }) {
     return HomeBlocState(
       userInput: userInput ?? this.userInput,
       navigateToDetail: navigateToDetail ?? this.navigateToDetail,
       cacheCleared: cacheCleared ?? this.cacheCleared,
-      errorMessage: errorMessage, // Let it be null if passed as null
+      failure: failure, // Let it be null if passed as null
     );
   }
 
   @override
   List<Object?> get props =>
-      [userInput, navigateToDetail, cacheCleared, errorMessage];
+      [userInput, navigateToDetail, cacheCleared, failure];
 }

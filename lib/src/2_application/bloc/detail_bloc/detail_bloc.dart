@@ -52,7 +52,7 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
       (failure) async {
         _logger.error('Failed to fetch Pokemon: ${failure.message}',
             prefix: _prefix);
-        emit(PokemonBlocFailure(failure.message));
+        emit(PokemonBlocFailure(failure));
       },
       (pokemon) async {
         _logger.info('Successfully fetched Pokemon: ${pokemon.name}',
