@@ -13,5 +13,4 @@ export 'repositories/fetch_strategy.dart';
 export 'repositories/mock_pokemon_repository.dart';
 export 'repositories/pokemon_repository_impl.dart';
 
-export 'package:just_audio/just_audio.dart';
-export 'services/audio_player.dart';
+export 'services/cry_audio_controller_impl.dart';

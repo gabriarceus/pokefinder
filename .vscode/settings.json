@@ -15,5 +15,10 @@
     "editor.formatOnSave": true
   },
   "java.configuration.updateBuildConfiguration": "interactive",
-  "dart.flutterSdkPath": ".fvm/versions/3.41.0"
+  "dart.flutterSdkPath": ".fvm/versions/3.41.0",
+  "cSpell.words": [
+    "pokefinder",
+    "usecase",
+    "usecases"
+  ]
 }

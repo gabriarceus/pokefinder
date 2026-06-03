@@ -20,6 +20,7 @@ import 'src/2_application/bloc/home_bloc/home_bloc.dart' as _i56;
 import 'src/2_application/hydrated_bloc/language_storage.dart' as _i1056;
 import 'src/3_domain/domain.dart' as _i341;
 import 'src/3_domain/repositories/i_pokemon_repository.dart' as _i768;
+import 'src/3_domain/services/cry_audio_controller.dart' as _i814;
 import 'src/3_domain/usecases/get_pokemon_encounters_usecase.dart' as _i656;
 import 'src/3_domain/usecases/get_pokemon_form_details_usecase.dart' as _i476;
 import 'src/3_domain/usecases/get_pokemon_usecase.dart' as _i694;
@@ -37,6 +38,7 @@ import 'src/4_repository/repositories/data_repository.dart' as _i95;
 import 'src/4_repository/repositories/mock_pokemon_repository.dart' as _i740;
 import 'src/4_repository/repositories/pokemon_repository_impl.dart' as _i907;
 import 'src/4_repository/repository.dart' as _i579;
+import 'src/4_repository/services/cry_audio_controller_impl.dart' as _i883;
 
 const String _mock = 'mock';
 const String _prod = 'prod';
@@ -54,6 +56,8 @@ extension GetItInjectableX on _i174.GetIt {
     );
     final registerModule = _$RegisterModule();
     gh.lazySingleton<_i463.EnLogger>(() => registerModule.logger);
+    gh.factory<_i814.CryAudioController>(
+        () => _i883.JustAudioCryController(gh<_i463.EnLogger>()));
     gh.lazySingleton<_i341.IPokemonRepository>(
       () => _i740.MockPokemonRepository(),
       registerFor: {_mock},
