@@ -29,9 +29,9 @@ final class PokemonBlocInitial extends PokemonBlocState {}
 final class PokemonBlocLoading extends PokemonBlocState {}
 
 final class PokemonBlocFailure extends PokemonBlocState {
-  PokemonBlocFailure(this.error);
+  PokemonBlocFailure(this.failure);
 
-  final String error;
+  final PokemonFailure failure;
 }
 
 final class PokemonBlocSuccess extends PokemonBlocState {
