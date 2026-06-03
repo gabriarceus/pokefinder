@@ -34,13 +34,13 @@ class PokemonRepositoryImpl implements IPokemonRepository {
   }
 
   Pokemon _toDomain(RawPokemon rawPokemon) {
-    final type1 = _getTypeFromUrl(rawPokemon.types.first.type.url);
-    final type2 = rawPokemon.types.length > 1
+    final type1Id = _getTypeFromUrl(rawPokemon.types.first.type.url);
+    final type2Id = rawPokemon.types.length > 1
         ? _getTypeFromUrl(rawPokemon.types[1].type.url)
         : null;
 
-    final typeImage1 = _typeSpriteUrl(type1);
-    final typeImage2 = type2 != null ? _typeSpriteUrl(type2) : '';
+    final typeImage1 = _typeSpriteUrl(type1Id);
+    final typeImage2 = type2Id != null ? _typeSpriteUrl(type2Id) : '';
 
     final ability1 = rawPokemon.abilities.first.ability.name;
     final ability2 = rawPokemon.abilities.length > 1
@@ -88,8 +88,8 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       height: rawPokemon.height,
       typeImage1: typeImage1,
       typeImage2: typeImage2,
-      type1: type1,
-      type2: type2,
+      type1: _typeFromId(type1Id),
+      type2: type2Id != null ? _typeFromId(type2Id) : null,
       cry: rawPokemon.cries.latest,
       stats: stats,
       baseExperience: rawPokemon.baseExperience,
@@ -122,20 +122,20 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     try {
       final raw = await _remoteDataSource.getFormDetails(url);
 
-      final type1 = _getTypeFromUrl(raw.types.first.type.url);
-      final type2 =
+      final type1Id = _getTypeFromUrl(raw.types.first.type.url);
+      final type2Id =
           raw.types.length > 1 ? _getTypeFromUrl(raw.types[1].type.url) : null;
 
-      final typeImage1 = _typeSpriteUrl(type1);
-      final typeImage2 = type2 != null ? _typeSpriteUrl(type2) : '';
+      final typeImage1 = _typeSpriteUrl(type1Id);
+      final typeImage2 = type2Id != null ? _typeSpriteUrl(type2Id) : '';
 
       final artworkDefault = _officialArtworkUrl(raw.id);
       final artworkShiny = _officialArtworkUrl(raw.id, shiny: true);
 
       return right(PokemonFormDetails(
         name: raw.name,
-        type1: type1,
-        type2: type2,
+        type1: _typeFromId(type1Id),
+        type2: type2Id != null ? _typeFromId(type2Id) : null,
         typeImage1: typeImage1,
         typeImage2: typeImage2,
         spriteDefault: raw.sprites.frontDefault,
@@ -169,6 +169,11 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       return left(BadRequestFailure());
     }
   }
+
+  /// Maps a raw numeric type id (extracted from a type URL) to its
+  /// [PokemonType], or null when the id is outside the known set.
+  PokemonType? _typeFromId(String rawId) =>
+      PokemonType.fromId(int.tryParse(rawId) ?? -1);
 
   String _getTypeFromUrl(String typeUrl) {
     final lastSlashIndex = typeUrl.lastIndexOf('/');

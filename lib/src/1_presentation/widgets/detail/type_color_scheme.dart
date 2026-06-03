@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 
 class TypeColorScheme {
   const TypeColorScheme({
@@ -6,59 +7,39 @@ class TypeColorScheme {
     this.type2,
   });
 
-  final String type1;
-  final String? type2;
+  final PokemonType? type1;
+  final PokemonType? type2;
 
-  Color _getColorFromType(String type) {
-    switch (type) {
-      case '1': // normal
-        return Colors.grey[300]!;
-      case '2': // fighting
-        return Colors.orange[600]!;
-      case '3': // flying
-        return Colors.cyan[200]!;
-      case '4': // poison
-        return Colors.deepPurpleAccent[100]!;
-      case '5': // ground
-        return Colors.orange[300]!;
-      case '6': // rock
-        return Colors.brown[300]!;
-      case '7': // bug
-        return Colors.lime[400]!;
-      case '8': // ghost
-        return Colors.indigo[300]!;
-      case '9': // steel
-        return Colors.blueGrey[200]!;
-      case '10': // fire
-        return Colors.red[500]!;
-      case '11': // water
-        return Colors.blue[300]!;
-      case '12': // grass
-        return Colors.green[400]!;
-      case '13': // electric
-        return Colors.yellow[600]!;
-      case '14': // psychic
-        return Colors.pink[300]!;
-      case '15': // ice
-        return Colors.cyanAccent[100]!;
-      case '16': // dragon
-        return Colors.deepPurple[900]!;
-      case '17': // dark
-        return Colors.black54;
-      case '18': // fairy
-        return Colors.pink[100]!;
-      case '19': // stellar
-        return Colors.deepPurple[300]!;
-      default: // unknown
-        return Colors.grey[300]!;
-    }
+  Color _getColorFromType(PokemonType? type) {
+    return switch (type) {
+      PokemonType.normal => Colors.grey[300]!,
+      PokemonType.fighting => Colors.orange[600]!,
+      PokemonType.flying => Colors.cyan[200]!,
+      PokemonType.poison => Colors.deepPurpleAccent[100]!,
+      PokemonType.ground => Colors.orange[300]!,
+      PokemonType.rock => Colors.brown[300]!,
+      PokemonType.bug => Colors.lime[400]!,
+      PokemonType.ghost => Colors.indigo[300]!,
+      PokemonType.steel => Colors.blueGrey[200]!,
+      PokemonType.fire => Colors.red[500]!,
+      PokemonType.water => Colors.blue[300]!,
+      PokemonType.grass => Colors.green[400]!,
+      PokemonType.electric => Colors.yellow[600]!,
+      PokemonType.psychic => Colors.pink[300]!,
+      PokemonType.ice => Colors.cyanAccent[100]!,
+      PokemonType.dragon => Colors.deepPurple[900]!,
+      PokemonType.dark => Colors.black54,
+      PokemonType.fairy => Colors.pink[100]!,
+      PokemonType.stellar => Colors.deepPurple[300]!,
+      null => Colors.grey[300]!,
+    };
   }
 
   BoxDecoration getBackgroundDecoration() {
     final color1 = _getColorFromType(type1);
 
-    if (type2 != null && type2!.isNotEmpty) {
-      final color2 = _getColorFromType(type2!);
+    if (type2 != null) {
+      final color2 = _getColorFromType(type2);
       return BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,

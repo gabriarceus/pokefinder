@@ -1,5 +1,6 @@
 export 'entities/language.dart';
 export 'entities/pokemon.dart';
+export 'entities/pokemon_type.dart';
 export 'failures/pokemon_failure.dart';
 export 'repositories/i_pokemon_repository.dart';
 export 'services/cry_audio_controller.dart';
