@@ -162,7 +162,9 @@ extension TranslationExtension on BuildContext {
     }
   }
 
-  String translateType(String typeName) {
+  /// Returns the localized name of the Pokémon [typeName], or null when the
+  /// value is not a recognized type.
+  String? translateTypeOrNull(String typeName) {
     final t = AppLocalizations.of(this);
     final key = typeName.toLowerCase().trim();
     switch (key) {
@@ -209,8 +211,14 @@ extension TranslationExtension on BuildContext {
       case 'unknown':
         return t.typeUnknown;
       default:
-        return typeName.capitalize();
+        return null;
     }
+  }
+
+  /// Returns the localized name of the Pokémon [typeName], falling back to a
+  /// capitalized form of the raw value when the type is not recognized.
+  String translateType(String typeName) {
+    return translateTypeOrNull(typeName) ?? typeName.capitalize();
   }
 
   String _translateLocationToItalian(String rawName) {
