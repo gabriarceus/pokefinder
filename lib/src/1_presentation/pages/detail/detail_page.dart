@@ -229,6 +229,11 @@ class _DetailState extends State<Detail> {
                                                     .bodyLarge
                                                     ?.color ??
                                                 Colors.black,
+                                            encounters: success.encounters,
+                                            isLoadingEncounters:
+                                                success.isLoadingEncounters,
+                                            encountersError:
+                                                success.encountersError,
                                           ),
                                         ],
                                       ),
