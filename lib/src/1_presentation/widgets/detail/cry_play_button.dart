@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/src/1_presentation/widgets/detail/surface_card.dart';
 import 'package:pokefinder/src/3_domain/services/cry_audio_controller.dart';
 
 /// Visual mode of the cry play button, derived from playback state.
@@ -36,14 +37,8 @@ class CryPlayButton extends StatelessWidget {
           cryUrl,
         );
 
-        return Card(
-          elevation: 0,
-          color: Theme.of(context)
-              .colorScheme
-              .surfaceContainerHighest
-              .withValues(alpha: 0.3),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        return SurfaceCard(
+          alpha: 0.3,
           child: Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
