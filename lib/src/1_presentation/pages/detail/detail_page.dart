@@ -75,20 +75,7 @@ class _DetailState extends State<Detail> {
         onSuccess: (context, success) {
           final pokemon = success.pokemon;
           final formDetails = success.selectedFormDetails ??
-              PokemonFormDetails(
-                name: pokemon.name,
-                type1: pokemon.type1,
-                type2: pokemon.type2,
-                typeImage1: pokemon.typeImage1,
-                typeImage2: pokemon.typeImage2,
-                spriteDefault: pokemon.sprite,
-                spriteShiny: pokemon.spriteFrontShiny ?? pokemon.sprite,
-                artworkDefault:
-                    pokemon.officialArtworkDefault ?? pokemon.sprite,
-                artworkShiny: pokemon.officialArtworkShiny ??
-                    pokemon.spriteFrontShiny ??
-                    pokemon.sprite,
-              );
+              PokemonFormDetails.fromPokemon(pokemon);
 
           final backgroundHelper = TypeColorScheme(
             type1: formDetails.type1,

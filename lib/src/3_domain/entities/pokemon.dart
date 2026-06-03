@@ -184,6 +184,22 @@ class PokemonFormDetails extends Equatable {
     required this.artworkShiny,
   });
 
+  /// Builds the default form details from a [Pokemon]'s own attributes,
+  /// falling back to the base sprite when shiny/artwork variants are missing.
+  factory PokemonFormDetails.fromPokemon(Pokemon pokemon) => PokemonFormDetails(
+        name: pokemon.name,
+        type1: pokemon.type1,
+        type2: pokemon.type2,
+        typeImage1: pokemon.typeImage1,
+        typeImage2: pokemon.typeImage2,
+        spriteDefault: pokemon.sprite,
+        spriteShiny: pokemon.spriteFrontShiny ?? pokemon.sprite,
+        artworkDefault: pokemon.officialArtworkDefault ?? pokemon.sprite,
+        artworkShiny: pokemon.officialArtworkShiny ??
+            pokemon.spriteFrontShiny ??
+            pokemon.sprite,
+      );
+
   final String name;
   final String type1;
   final String? type2;

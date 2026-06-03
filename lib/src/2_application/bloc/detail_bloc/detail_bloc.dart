@@ -58,19 +58,7 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
         _logger.info('Successfully fetched Pokemon: ${pokemon.name}',
             prefix: _prefix);
 
-        final defaultFormDetails = PokemonFormDetails(
-          name: pokemon.name,
-          type1: pokemon.type1,
-          type2: pokemon.type2,
-          typeImage1: pokemon.typeImage1,
-          typeImage2: pokemon.typeImage2,
-          spriteDefault: pokemon.sprite,
-          spriteShiny: pokemon.spriteFrontShiny ?? pokemon.sprite,
-          artworkDefault: pokemon.officialArtworkDefault ?? pokemon.sprite,
-          artworkShiny: pokemon.officialArtworkShiny ??
-              pokemon.spriteFrontShiny ??
-              pokemon.sprite,
-        );
+        final defaultFormDetails = PokemonFormDetails.fromPokemon(pokemon);
 
         emit(PokemonBlocSuccess(
           pokemon: pokemon,
@@ -110,21 +98,8 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
     if (currentState is! PokemonBlocSuccess) return;
 
     if (event.form.name == currentState.pokemon.name) {
-      final defaultFormDetails = PokemonFormDetails(
-        name: currentState.pokemon.name,
-        type1: currentState.pokemon.type1,
-        type2: currentState.pokemon.type2,
-        typeImage1: currentState.pokemon.typeImage1,
-        typeImage2: currentState.pokemon.typeImage2,
-        spriteDefault: currentState.pokemon.sprite,
-        spriteShiny: currentState.pokemon.spriteFrontShiny ??
-            currentState.pokemon.sprite,
-        artworkDefault: currentState.pokemon.officialArtworkDefault ??
-            currentState.pokemon.sprite,
-        artworkShiny: currentState.pokemon.officialArtworkShiny ??
-            currentState.pokemon.spriteFrontShiny ??
-            currentState.pokemon.sprite,
-      );
+      final defaultFormDetails =
+          PokemonFormDetails.fromPokemon(currentState.pokemon);
       emit(currentState.copyWith(
         selectedFormDetails: defaultFormDetails,
         isLoadingForm: false,
