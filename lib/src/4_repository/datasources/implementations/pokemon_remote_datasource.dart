@@ -2,6 +2,8 @@ import 'package:injectable/injectable.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
 import 'package:pokefinder/src/4_repository/datasources/abstract/i_pokemon_remote_datasource.dart';
+import 'package:pokefinder/src/4_repository/models/raw_encounter/raw_encounter.dart';
+import 'package:pokefinder/src/4_repository/models/raw_form_details/raw_form_details.dart';
 import 'package:pokefinder/src/4_repository/models/raw_pokemon/raw_pokemon.dart';
 import 'package:pokefinder/src/4_repository/repositories/data_repository.dart';
 import 'package:pokefinder/src/4_repository/repositories/fetch_strategy.dart';
@@ -42,28 +44,30 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
   }
 
   @override
-  Future<Map<String, dynamic>> getFormDetailsJson(String url) async {
+  Future<RawFormDetails> getFormDetails(String url) async {
     try {
       final json = await _dataRepository.fetchData(
         url,
         strategy: FetchStrategy.cacheFirst,
         maxAge: _kDefaultMaxAge,
       );
-      return json as Map<String, dynamic>;
+      return RawFormDetails.fromJson(json as Map<String, dynamic>);
     } catch (_) {
       throw BadRequestFailure();
     }
   }
 
   @override
-  Future<List<dynamic>> getEncountersJson(String url) async {
+  Future<List<RawEncounter>> getEncounters(String url) async {
     try {
       final json = await _dataRepository.fetchData(
         url,
         strategy: FetchStrategy.cacheFirst,
         maxAge: _kDefaultMaxAge,
       );
-      return json as List<dynamic>;
+      return (json as List<dynamic>)
+          .map((e) => RawEncounter.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       throw BadRequestFailure();
     }

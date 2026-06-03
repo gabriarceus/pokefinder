@@ -111,36 +111,28 @@ class PokemonRepositoryImpl implements IPokemonRepository {
   Future<Either<PokemonFailure, PokemonFormDetails>> getFormDetails(
       String url) async {
     try {
-      final json = await _remoteDataSource.getFormDetailsJson(url);
-      final id = json['id'] as int;
-      final name = json['name'] as String;
+      final raw = await _remoteDataSource.getFormDetails(url);
 
-      final typesJson = json['types'] as List<dynamic>;
-      final type1 = _getTypeFromUrl(typesJson.first['type']['url'] as String);
-      final type2 = typesJson.length > 1
-          ? _getTypeFromUrl(typesJson[1]['type']['url'] as String)
-          : null;
+      final type1 = _getTypeFromUrl(raw.types.first.type.url);
+      final type2 =
+          raw.types.length > 1 ? _getTypeFromUrl(raw.types[1].type.url) : null;
 
       final typeImage1 = '$_kBasePath$type1.png';
       final typeImage2 = type2 != null ? '$_kBasePath$type2.png' : '';
 
-      final spritesJson = json['sprites'] as Map<String, dynamic>;
-      final spriteDefault = spritesJson['front_default'] as String;
-      final spriteShiny = spritesJson['front_shiny'] as String;
-
       final artworkDefault =
-          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$id.png';
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${raw.id}.png';
       final artworkShiny =
-          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/$id.png';
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${raw.id}.png';
 
       return right(PokemonFormDetails(
-        name: name,
+        name: raw.name,
         type1: type1,
         type2: type2,
         typeImage1: typeImage1,
         typeImage2: typeImage2,
-        spriteDefault: spriteDefault,
-        spriteShiny: spriteShiny,
+        spriteDefault: raw.sprites.frontDefault,
+        spriteShiny: raw.sprites.frontShiny,
         artworkDefault: artworkDefault,
         artworkShiny: artworkShiny,
       ));
@@ -153,30 +145,14 @@ class PokemonRepositoryImpl implements IPokemonRepository {
   Future<Either<PokemonFailure, List<PokemonEncounter>>> getEncounters(
       String url) async {
     try {
-      final rawList = await _remoteDataSource.getEncountersJson(url);
-      final encounters = rawList.map((encounterMap) {
-        final map = encounterMap as Map<String, dynamic>;
-        final locationArea = map['location_area'] as Map<String, dynamic>;
-        final rawLocationName = locationArea['name'] as String;
-
-        final versionDetails = map['version_details'] as List<dynamic>;
-        final versions = versionDetails
-            .map((detail) =>
-                (detail as Map<String, dynamic>)['version']['name'] as String)
-            .toList();
-
-        String formatLocationName(String rawName) {
-          return rawName
-              .replaceAll('-', ' ')
-              .split(' ')
-              .map((word) => word.isNotEmpty
-                  ? '${word[0].toUpperCase()}${word.substring(1)}'
-                  : '')
-              .join(' ');
-        }
+      final rawList = await _remoteDataSource.getEncounters(url);
+      final encounters = rawList.map((encounter) {
+        final rawLocationName = encounter.locationArea.name;
+        final versions =
+            encounter.versionDetails.map((d) => d.version.name).toList();
 
         return PokemonEncounter(
-          locationAreaName: formatLocationName(rawLocationName),
+          locationAreaName: _formatLocationName(rawLocationName),
           rawLocationAreaName: rawLocationName,
           versions: versions,
         );
@@ -185,6 +161,17 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     } catch (_) {
       return left(BadRequestFailure());
     }
+  }
+
+  /// Title-cases a hyphenated raw location name (e.g. "kanto-route-1").
+  String _formatLocationName(String rawName) {
+    return rawName
+        .replaceAll('-', ' ')
+        .split(' ')
+        .map((word) => word.isNotEmpty
+            ? '${word[0].toUpperCase()}${word.substring(1)}'
+            : '')
+        .join(' ');
   }
 
   String _getTypeFromUrl(String typeUrl) {
