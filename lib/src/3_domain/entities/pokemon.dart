@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 
 /// Domain model for a Pokemon
 class Pokemon extends Equatable {
@@ -40,8 +41,8 @@ class Pokemon extends Equatable {
   final String name;
   final String typeImage1;
   final String typeImage2;
-  final String type1;
-  final String? type2;
+  final PokemonType? type1;
+  final PokemonType? type2;
   final String sprite;
   final String ability1;
   final String ability2;
@@ -201,8 +202,8 @@ class PokemonFormDetails extends Equatable {
       );
 
   final String name;
-  final String type1;
-  final String? type2;
+  final PokemonType? type1;
+  final PokemonType? type2;
   final String typeImage1;
   final String typeImage2;
   final String spriteDefault;

@@ -23,7 +23,7 @@ class MockPokemonRepository implements IPokemonRepository {
             'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/12.png',
         typeImage2:
             'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/4.png',
-        type1: '16',
+        type1: PokemonType.dragon,
         type2: null,
         cry:
             'https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/1.ogg',
@@ -69,8 +69,8 @@ class MockPokemonRepository implements IPokemonRepository {
     return const Right(
       PokemonFormDetails(
         name: 'bulbasaur',
-        type1: 'grass',
-        type2: 'poison',
+        type1: PokemonType.grass,
+        type2: PokemonType.poison,
         typeImage1:
             'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/grass.png',
         typeImage2:
