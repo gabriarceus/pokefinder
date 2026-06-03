@@ -23,9 +23,8 @@ class DetailMovesTab extends StatelessWidget {
       child: BlocBuilder<DetailMovesCubit, DetailMovesState>(
         builder: (context, state) {
           final cubit = context.read<DetailMovesCubit>();
-          final versionGroups =
-              state.allMoves.map((m) => m.versionGroup).toSet().toList();
-          final methods = cubit.getAvailableMethods();
+          final versionGroups = state.versionGroups;
+          final methods = state.availableMethods;
           final locale = Localizations.localeOf(context).languageCode;
 
           return Column(
