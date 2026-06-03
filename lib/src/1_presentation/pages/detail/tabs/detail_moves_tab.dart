@@ -4,6 +4,7 @@ import 'package:pokefinder/src/3_domain/entities/learn_method.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
+import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 
 class DetailMovesTab extends StatelessWidget {
@@ -139,15 +140,9 @@ class DetailMovesTab extends StatelessWidget {
                             null => move.learnMethod,
                           };
 
-                          return Card(
-                            elevation: 0,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHighest
-                                .withValues(alpha: 0.2),
+                          return SurfaceCard(
+                            borderRadius: 12,
                             margin: const EdgeInsets.symmetric(vertical: 4),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
                             child: ListTile(
                               title: Text(
                                 capitalizedName,

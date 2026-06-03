@@ -54,14 +54,7 @@ class DetailInfoTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Card(
-            elevation: 0,
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withValues(alpha: 0.2),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          SurfaceCard(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(

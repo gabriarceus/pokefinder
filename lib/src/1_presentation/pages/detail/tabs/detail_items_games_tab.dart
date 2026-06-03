@@ -37,14 +37,7 @@ class DetailItemsGamesTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Card(
-            elevation: 0,
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withValues(alpha: 0.2),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          SurfaceCard(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -104,14 +97,8 @@ class DetailItemsGamesTab extends StatelessWidget {
                 final item = pokemon.heldItems[index];
                 final capitalizedItem =
                     item.name.replaceAll('-', ' ').toUpperCase();
-                return Card(
-                  elevation: 0,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withValues(alpha: 0.2),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                return SurfaceCard(
+                  borderRadius: 12,
                   child: ListTile(
                     leading: const Icon(Icons.gif_box_outlined),
                     title: Text(capitalizedItem,
@@ -213,14 +200,8 @@ class DetailItemsGamesTab extends StatelessWidget {
       itemCount: encounters.length,
       itemBuilder: (context, index) {
         final encounter = encounters[index];
-        return Card(
-          elevation: 0,
-          color: Theme.of(context)
-              .colorScheme
-              .surfaceContainerHighest
-              .withValues(alpha: 0.2),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        return SurfaceCard(
+          borderRadius: 12,
           child: ListTile(
             leading: const Icon(Icons.location_on_outlined),
             title: Text(
