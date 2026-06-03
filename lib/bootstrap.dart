@@ -35,7 +35,12 @@ abstract class RegisterModule {
 
   @lazySingleton
   Dio dio(EnLogger logger) {
-    final dio = Dio();
+    final dio = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
+      ),
+    );
     dio.interceptors.add(LoggingInterceptor(
       logger: logger,
       verbose: kDebugMode,

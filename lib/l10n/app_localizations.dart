@@ -344,6 +344,48 @@ abstract class AppLocalizations {
   /// **'No moves found'**
   String get movesSearchEmpty;
 
+  /// No description provided for @movesFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get movesFilterAll;
+
+  /// No description provided for @movesFilterLevelUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Level'**
+  String get movesFilterLevelUp;
+
+  /// No description provided for @movesFilterMachine.
+  ///
+  /// In en, this message translates to:
+  /// **'TM'**
+  String get movesFilterMachine;
+
+  /// No description provided for @movesFilterTutor.
+  ///
+  /// In en, this message translates to:
+  /// **'Tutor'**
+  String get movesFilterTutor;
+
+  /// No description provided for @movesFilterEgg.
+  ///
+  /// In en, this message translates to:
+  /// **'Egg'**
+  String get movesFilterEgg;
+
+  /// No description provided for @moveBadgeLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lvl {level}'**
+  String moveBadgeLevel({required int level});
+
+  /// No description provided for @moveBadgeTutor.
+  ///
+  /// In en, this message translates to:
+  /// **'Tutor'**
+  String get moveBadgeTutor;
+
   /// No description provided for @heldItems.
   ///
   /// In en, this message translates to:

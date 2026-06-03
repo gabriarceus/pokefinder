@@ -21,9 +21,9 @@ class LanguageState extends Equatable {
 @injectable
 class LanguageCubit extends HydratedCubit<LanguageState> {
   LanguageCubit(this._logger)
-      : super(const LanguageState(
-          languageId: -1, // Language.system.id
-          lastManualLanguageId: 0, // Language.english.id
+      : super(LanguageState(
+          languageId: Language.system.id,
+          lastManualLanguageId: Language.english.id,
         ));
 
   final EnLogger _logger;
@@ -40,10 +40,11 @@ class LanguageCubit extends HydratedCubit<LanguageState> {
   /// Switches to system language, remembering the current manual choice.
   void enableSystemLanguage() {
     _logger.info('Enabling system language', prefix: _prefix);
-    final lastManual =
-        state.languageId != -1 ? state.languageId : state.lastManualLanguageId;
+    final lastManual = state.languageId != Language.system.id
+        ? state.languageId
+        : state.lastManualLanguageId;
     emit(LanguageState(
-      languageId: -1,
+      languageId: Language.system.id,
       lastManualLanguageId: lastManual,
     ));
   }
@@ -60,22 +61,26 @@ class LanguageCubit extends HydratedCubit<LanguageState> {
     ));
   }
 
-  // Method that returns the Locale based on the current value of the state
+  /// Returns the [Locale] for the currently selected language, or `null` to
+  /// follow the system language. Driven by the [Language] entity so a newly
+  /// added selectable language is handled automatically.
   Locale? getLanguageLocale() {
-    switch (state.languageId) {
-      case 1: // Language.italian.id
-        return Language.italian.locale;
-      case 0: // Language.english.id
-        return Language.english.locale;
-      default:
-        return Language.system.locale;
+    if (state.languageId == Language.system.id) {
+      return Language.system.locale;
     }
+    return Language.selectable
+        .firstWhere(
+          (language) => language.id == state.languageId,
+          orElse: () => Language.system,
+        )
+        .locale;
   }
 
   @override
   LanguageState fromJson(Map<String, dynamic> json) {
-    final languageId = json['language'] as int? ?? -1;
-    final lastManualLanguageId = json['lastManualLanguageId'] as int? ?? 0;
+    final languageId = json['language'] as int? ?? Language.system.id;
+    final lastManualLanguageId =
+        json['lastManualLanguageId'] as int? ?? Language.english.id;
     return LanguageState(
       languageId: languageId,
       lastManualLanguageId: lastManualLanguageId,

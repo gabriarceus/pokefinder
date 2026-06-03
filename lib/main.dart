@@ -23,7 +23,7 @@ void bootstrap({required Widget Function() then}) async {
   final appDir = await getApplicationDocumentsDirectory();
   Hive.init(appDir.path);
 
-  // Inizializza media_kit come backend audio per supportare OGG su iOS
+  // Initialize media_kit as the audio backend to support OGG on iOS
   JustAudioMediaKit.ensureInitialized(iOS: true);
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory:

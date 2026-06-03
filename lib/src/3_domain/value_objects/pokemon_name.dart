@@ -1,11 +1,18 @@
 import 'package:dartz/dartz.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 
+/// Validates and normalizes a raw name.
+///
+/// On success returns the canonical value: trimmed and lower-cased, so that
+/// equivalent inputs (different casing or surrounding whitespace) collapse to
+/// a single value used downstream as both the request path and the cache key.
+/// Returns a [BadRequestFailure] when the input is empty after trimming.
 Either<PokemonFailure, String> _validatePokemonName(String input) {
-  if (input.trim().isEmpty) {
+  final normalized = input.trim().toLowerCase();
+  if (normalized.isEmpty) {
     return left(BadRequestFailure());
   }
-  return right(input);
+  return right(normalized);
 }
 
 class PokemonName {

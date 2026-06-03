@@ -133,6 +133,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get movesSearchEmpty => 'No moves found';
 
   @override
+  String get movesFilterAll => 'All';
+
+  @override
+  String get movesFilterLevelUp => 'Level';
+
+  @override
+  String get movesFilterMachine => 'TM';
+
+  @override
+  String get movesFilterTutor => 'Tutor';
+
+  @override
+  String get movesFilterEgg => 'Egg';
+
+  @override
+  String moveBadgeLevel({required int level}) {
+    return 'Lvl $level';
+  }
+
+  @override
+  String get moveBadgeTutor => 'Tutor';
+
+  @override
   String get heldItems => 'Wild Held Items';
 
   @override

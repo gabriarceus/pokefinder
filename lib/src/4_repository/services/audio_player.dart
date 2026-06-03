@@ -6,20 +6,32 @@ import 'package:pokefinder/bootstrap.dart';
 
 const _prefix = 'AudioPlayerSetup';
 
-/// Active subscription to prevent duplicate listeners
-StreamSubscription<PlaybackEvent>? _activeSubscription;
-
-Future<void> setupAudioPlayer(AudioPlayer player, String cry) async {
+/// Subscribes a diagnostic listener to [player]'s playback events.
+///
+/// The returned subscription is owned by the caller and must be cancelled
+/// (e.g. in the owning State's `dispose`) before the player itself is
+/// disposed. Bind one listener per player for its whole lifetime instead of
+/// recreating it on every source change.
+StreamSubscription<PlaybackEvent> listenPlaybackEvents(AudioPlayer player) {
   final logger = getIt<EnLogger>();
 
-  // Cancel any previous listener to prevent duplicates
-  await _activeSubscription?.cancel();
+  return player.playbackEventStream.listen(
+    (event) {
+      logger.info("Playback event: ${event.processingState}", prefix: _prefix);
+    },
+    onError: (Object e, StackTrace stacktrace) {
+      logger.error("Playback error: $e", prefix: _prefix);
+    },
+  );
+}
 
-  _activeSubscription = player.playbackEventStream.listen((event) {
-    logger.info("Playback event: ${event.processingState}", prefix: _prefix);
-  }, onError: (Object e, StackTrace stacktrace) {
-    logger.error("Playback error: $e", prefix: _prefix);
-  });
+/// Loads [cry] as the audio source of [player].
+///
+/// Stops the player when it is not idle, then sets the source with preload and
+/// a bounded timeout. Loading failures are logged and swallowed so a broken
+/// audio URL never crashes the caller.
+Future<void> setupAudioPlayer(AudioPlayer player, String cry) async {
+  final logger = getIt<EnLogger>();
 
   try {
     // Ensure the player is in a valid state
