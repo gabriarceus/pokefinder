@@ -3,6 +3,7 @@ import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/l10n/abilities_db.dart';
 import 'package:pokefinder/l10n/moves_db.dart';
 import 'package:pokefinder/l10n/locations_db.dart';
+import 'package:pokefinder/src/3_domain/helpers/string_casing_extensions.dart';
 
 extension TranslationExtension on BuildContext {
   String translateAbility(String name) {
@@ -15,7 +16,7 @@ extension TranslationExtension on BuildContext {
         return translation;
       }
     }
-    return _formatDefault(name);
+    return name.toDisplayCase();
   }
 
   String translateMove(String name) {
@@ -28,7 +29,7 @@ extension TranslationExtension on BuildContext {
         return translation;
       }
     }
-    return _formatDefault(name);
+    return name.toDisplayCase();
   }
 
   String translateLocation(String rawName) {
@@ -36,7 +37,7 @@ extension TranslationExtension on BuildContext {
     if (locale.languageCode == 'it') {
       return _translateLocationToItalian(rawName);
     }
-    return _formatDefault(rawName);
+    return rawName.toDisplayCase();
   }
 
   String translateGameVersion(String gameName) {
@@ -157,7 +158,7 @@ extension TranslationExtension on BuildContext {
       case 'scarlet-violet':
         return t.gameGroupScarletViolet;
       default:
-        return _formatDefault(gameName);
+        return gameName.toDisplayCase();
     }
   }
 
@@ -208,7 +209,7 @@ extension TranslationExtension on BuildContext {
       case 'unknown':
         return t.typeUnknown;
       default:
-        return _capitalize(typeName);
+        return typeName.capitalize();
     }
   }
 
@@ -223,7 +224,7 @@ extension TranslationExtension on BuildContext {
       final routeNumber = match.group(2)!;
       final suffix = match.group(3) ?? '';
 
-      final translatedRegion = locationsDb[region] ?? _capitalize(region);
+      final translatedRegion = locationsDb[region] ?? region.capitalize();
       final translatedSuffix = _translateLocationSuffix(suffix);
 
       return 'Percorso $routeNumber ($translatedRegion)$translatedSuffix';
@@ -248,7 +249,7 @@ extension TranslationExtension on BuildContext {
     translated = translated.replaceAll('##', '');
 
     // 5. Clean up duplicate spaces and capitalize words
-    return _capitalizeWords(translated);
+    return translated.capitalizeWords();
   }
 
   String _translateLocationSuffix(String suffix) {
@@ -270,27 +271,5 @@ extension TranslationExtension on BuildContext {
         .replaceAll('-b3f', ' B3F')
         .replaceAll('-b4f', ' B4F')
         .replaceAll('-', ' ');
-  }
-
-  String _formatDefault(String name) {
-    return name
-        .replaceAll('-', ' ')
-        .split(' ')
-        .map(
-            (w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '')
-        .join(' ');
-  }
-
-  String _capitalize(String s) {
-    if (s.isEmpty) return s;
-    return '${s[0].toUpperCase()}${s.substring(1)}';
-  }
-
-  String _capitalizeWords(String s) {
-    return s
-        .split(' ')
-        .where((w) => w.isNotEmpty)
-        .map((w) => '${w[0].toUpperCase()}${w.substring(1)}')
-        .join(' ');
   }
 }

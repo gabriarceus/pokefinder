@@ -152,7 +152,7 @@ class PokemonRepositoryImpl implements IPokemonRepository {
             encounter.versionDetails.map((d) => d.version.name).toList();
 
         return PokemonEncounter(
-          locationAreaName: _formatLocationName(rawLocationName),
+          locationAreaName: rawLocationName.toDisplayCase(),
           rawLocationAreaName: rawLocationName,
           versions: versions,
         );
@@ -161,17 +161,6 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     } catch (_) {
       return left(BadRequestFailure());
     }
-  }
-
-  /// Title-cases a hyphenated raw location name (e.g. "kanto-route-1").
-  String _formatLocationName(String rawName) {
-    return rawName
-        .replaceAll('-', ' ')
-        .split(' ')
-        .map((word) => word.isNotEmpty
-            ? '${word[0].toUpperCase()}${word.substring(1)}'
-            : '')
-        .join(' ');
   }
 
   String _getTypeFromUrl(String typeUrl) {
