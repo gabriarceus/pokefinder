@@ -1,7 +1,9 @@
 part of 'detail_bloc.dart';
 
 @immutable
-sealed class PokemonBlocState {
+sealed class PokemonBlocState extends Equatable {
+  const PokemonBlocState();
+
   T map<T>({
     required T Function(PokemonBlocInitial state) onInitial,
     required T Function(PokemonBlocLoading state) onLoading,
@@ -24,18 +26,31 @@ sealed class PokemonBlocState {
   }
 }
 
-final class PokemonBlocInitial extends PokemonBlocState {}
+final class PokemonBlocInitial extends PokemonBlocState {
+  const PokemonBlocInitial();
 
-final class PokemonBlocLoading extends PokemonBlocState {}
+  @override
+  List<Object?> get props => [];
+}
+
+final class PokemonBlocLoading extends PokemonBlocState {
+  const PokemonBlocLoading();
+
+  @override
+  List<Object?> get props => [];
+}
 
 final class PokemonBlocFailure extends PokemonBlocState {
-  PokemonBlocFailure(this.failure);
+  const PokemonBlocFailure(this.failure);
 
   final PokemonFailure failure;
+
+  @override
+  List<Object?> get props => [failure];
 }
 
 final class PokemonBlocSuccess extends PokemonBlocState {
-  PokemonBlocSuccess({
+  const PokemonBlocSuccess({
     required this.pokemon,
     this.selectedFormDetails,
     this.encounters,
@@ -72,4 +87,15 @@ final class PokemonBlocSuccess extends PokemonBlocState {
       encountersError: encountersError ?? this.encountersError,
     );
   }
+
+  @override
+  List<Object?> get props => [
+        pokemon,
+        selectedFormDetails,
+        encounters,
+        isLoadingForm,
+        isLoadingEncounters,
+        formError,
+        encountersError,
+      ];
 }
