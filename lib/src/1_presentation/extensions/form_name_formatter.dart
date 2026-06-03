@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
+import 'package:pokefinder/src/3_domain/helpers/string_casing_extensions.dart';
 
 /// Formats a raw Pokémon form name into a user-friendly display string.
 ///
@@ -9,11 +10,11 @@ String formatFormName(BuildContext context, String rawName) {
   if (rawName.isEmpty) return '';
   final parts = rawName.split('-');
   if (parts.length == 1) {
-    return _capitalize(parts[0]);
+    return parts[0].capitalize();
   }
 
   // Capitalize base pokemon name
-  final baseName = _capitalize(parts[0]);
+  final baseName = parts[0].capitalize();
 
   final modifier = parts.skip(1).join('-');
   final t = context.t();
@@ -53,14 +54,6 @@ String formatFormName(BuildContext context, String rawName) {
     return '$baseName - $translatedModifier';
   }
 
-  final formattedModifier = parts
-      .skip(1)
-      .map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '')
-      .join(' ');
+  final formattedModifier = modifier.toDisplayCase();
   return '$baseName - $formattedModifier';
-}
-
-String _capitalize(String s) {
-  if (s.isEmpty) return s;
-  return '${s[0].toUpperCase()}${s.substring(1)}';
 }

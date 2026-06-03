@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/src/3_domain/helpers/string_casing_extensions.dart';
 
 class BoldLabelValue extends StatelessWidget {
   const BoldLabelValue({
@@ -25,7 +26,7 @@ class BoldLabelValue extends StatelessWidget {
                 ),
               ),
               Text(
-                value.substring(0, 1).toUpperCase() + value.substring(1),
+                value.capitalize(),
                 style: TextStyle(
                   color: textColor,
                 ),
