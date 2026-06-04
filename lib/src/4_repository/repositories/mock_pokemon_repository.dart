@@ -23,8 +23,8 @@ class MockPokemonRepository implements IPokemonRepository {
             'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/12.png',
         typeImage2:
             'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/4.png',
-        type1: PokemonType.dragon,
-        type2: null,
+        type1: PokemonType.grass,
+        type2: PokemonType.poison,
         cry:
             'https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/1.ogg',
         stats: [45, 49, 49, 65, 65, 45],

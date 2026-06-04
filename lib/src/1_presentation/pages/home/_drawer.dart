@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 import 'package:pokefinder/src/2_application/bloc/home_bloc/home_bloc.dart';
-import 'package:pokefinder/src/2_application/hydrated_bloc/language_storage.dart';
+import 'package:pokefinder/src/2_application/hydrated_bloc/hydrated_bloc.dart';
 import 'package:pokefinder/src/3_domain/entities/language.dart';
 
 class HomeDrawer extends StatelessWidget {
