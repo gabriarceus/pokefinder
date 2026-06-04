@@ -28,8 +28,8 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       return right(_toDomain(rawPokemon));
     } on PokemonFailure catch (failure) {
       return left(failure);
-    } catch (_) {
-      return left(BadRequestFailure());
+    } catch (e) {
+      return left(UnexpectedFailure(e.toString()));
     }
   }
 
@@ -143,8 +143,10 @@ class PokemonRepositoryImpl implements IPokemonRepository {
         artworkDefault: artworkDefault,
         artworkShiny: artworkShiny,
       ));
-    } catch (_) {
-      return left(BadRequestFailure());
+    } on PokemonFailure catch (failure) {
+      return left(failure);
+    } catch (e) {
+      return left(UnexpectedFailure(e.toString()));
     }
   }
 
@@ -165,8 +167,10 @@ class PokemonRepositoryImpl implements IPokemonRepository {
         );
       }).toList();
       return right(encounters);
-    } catch (_) {
-      return left(BadRequestFailure());
+    } on PokemonFailure catch (failure) {
+      return left(failure);
+    } catch (e) {
+      return left(UnexpectedFailure(e.toString()));
     }
   }
 

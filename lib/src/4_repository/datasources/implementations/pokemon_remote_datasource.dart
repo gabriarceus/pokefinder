@@ -1,6 +1,7 @@
 import 'package:injectable/injectable.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
+import 'package:pokefinder/src/4_repository/datasources/abstract/api_client.dart';
 import 'package:pokefinder/src/4_repository/datasources/abstract/i_pokemon_remote_datasource.dart';
 import 'package:pokefinder/src/4_repository/models/raw_encounter/raw_encounter.dart';
 import 'package:pokefinder/src/4_repository/models/raw_form_details/raw_form_details.dart';
@@ -34,12 +35,8 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
       );
 
       return RawPokemon.fromJson(json as Map<String, dynamic>);
-    } on DataFetchException {
-      throw BadRequestFailure();
-    } on PokemonFailure {
-      rethrow;
-    } catch (_) {
-      throw BadRequestFailure();
+    } catch (error) {
+      throw _mapError(error);
     }
   }
 
@@ -52,8 +49,8 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
         maxAge: _kDefaultMaxAge,
       );
       return RawFormDetails.fromJson(json as Map<String, dynamic>);
-    } catch (_) {
-      throw BadRequestFailure();
+    } catch (error) {
+      throw _mapError(error);
     }
   }
 
@@ -68,8 +65,25 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
       return (json as List<dynamic>)
           .map((e) => RawEncounter.fromJson(e as Map<String, dynamic>))
           .toList();
-    } catch (_) {
-      throw BadRequestFailure();
+    } catch (error) {
+      throw _mapError(error);
     }
+  }
+
+  /// Translates a low-level error into a typed [PokemonFailure].
+  ///
+  /// Already-typed failures pass through unchanged; an [ApiException] is mapped
+  /// by its HTTP status (401 → unauthorized, 400 → bad request); anything else
+  /// becomes an [UnexpectedFailure] preserving the original cause.
+  PokemonFailure _mapError(Object error) {
+    if (error is PokemonFailure) return error;
+    if (error is ApiException) {
+      return switch (error.statusCode) {
+        401 => UnauthorizedFailure(),
+        400 => BadRequestFailure(),
+        _ => UnexpectedFailure(error.message),
+      };
+    }
+    return UnexpectedFailure(error.toString());
   }
 }
