@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
+import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 import 'package:pokefinder/src/2_application/bloc/home_bloc/home_bloc.dart';
 import 'package:pokefinder/src/2_application/hydrated_bloc/language_storage.dart';
 import 'package:pokefinder/src/3_domain/entities/language.dart';
@@ -31,7 +32,7 @@ class HomeDrawer extends StatelessWidget {
             // Header
             Container(
               width: double.infinity,
-              color: Colors.red,
+              color: AppPalette.brandRed,
               padding: EdgeInsets.fromLTRB(
                   MediaQuery.of(context).size.width * 0.05,
                   MediaQuery.of(context).padding.top,
@@ -40,7 +41,7 @@ class HomeDrawer extends StatelessWidget {
               child: Text(
                 context.t().settings,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppPalette.onBrandRed,
                   fontSize: 24,
                 ),
               ),
@@ -53,7 +54,7 @@ class HomeDrawer extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               value: isSystemLanguage,
-              activeTrackColor: Colors.red,
+              activeTrackColor: AppPalette.brandRed,
               onChanged: (bool value) {
                 if (value) {
                   context.read<LanguageCubit>().enableSystemLanguage();

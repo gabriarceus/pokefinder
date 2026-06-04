@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
+import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 
 class PokeTextField extends StatelessWidget {
   const PokeTextField({
@@ -10,8 +11,8 @@ class PokeTextField extends StatelessWidget {
 
   final TextEditingController controller;
   final void Function(String) onChanged;
-  final Color textFieldBorderColor = Colors.red;
-  final Color textFieldTextColor = Colors.black;
+  static const Color textFieldBorderColor = AppPalette.brandRed;
+  static const Color textFieldTextColor = Colors.black;
 
   @override
   Widget build(BuildContext context) {

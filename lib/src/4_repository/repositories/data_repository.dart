@@ -95,8 +95,12 @@ class DataRepository {
     final data = await _apiClient.get(endpoint);
 
     // Persist asynchronously — do not await; the caller should not be
-    // blocked by the write operation.
-    _localStorage.write(endpoint, data);
+    // blocked by the write operation. A write failure is logged and
+    // swallowed so it never affects the returned payload.
+    _localStorage.write(endpoint, data).catchError((Object error) {
+      _logger.error('Failed to persist cache for: $endpoint — $error',
+          prefix: prefix);
+    });
 
     return data;
   }
