@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
+import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 import 'package:pokefinder/src/1_presentation/presentation.dart';
 import 'package:pokefinder/src/1_presentation/widgets/home/home_widgets.dart';
 import 'package:pokefinder/src/2_application/application.dart';
@@ -77,17 +78,16 @@ class _HomePageState extends State<HomePage> {
                         context.read<HomeBloc>().add(IsButtonPressedEvent());
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Colors.red, // Set the background color to red
+                        backgroundColor: AppPalette.brandRed,
                       ),
                       child: Text(AppLocalizations.of(context).searchButton,
-                          style: const TextStyle(color: Colors.white)),
+                          style: const TextStyle(color: AppPalette.onBrandRed)),
                     ),
                   ],
                 ),
                 const SizedBox(height: 64),
                 const PokeBallWidget(
-                  color: Color.fromARGB(255, 223, 112, 104),
+                  color: AppPalette.pokeballAccent,
                   opacity: 1.0,
                   size: Size(200, 200),
                 ),

@@ -7,8 +7,6 @@ class UserInputEvent extends HomeBlocEvent {
   UserInputEvent(this.userInput);
 
   final String userInput;
-
-  String? get input => userInput;
 }
 
 class IsButtonPressedEvent extends HomeBlocEvent {}

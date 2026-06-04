@@ -29,7 +29,6 @@ class PokeBallWidget extends StatelessWidget {
       painter: PokeBallPainter(color: color, opacity: opacity),
       foregroundPainter: foregroundPainter,
       isComplex: isComplex,
-      key: key,
       size: size,
       willChange: willChange,
       child: child,
