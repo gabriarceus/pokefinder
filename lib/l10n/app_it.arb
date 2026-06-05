@@ -64,6 +64,7 @@
   "formSelectorShiny": "Versione Shiny",
   "versionLabel": "Versione",
   "formSelectorForms": "Forme Disponibili",
+  "formTypeModifier": "Tipo {type}",
   "typeNormal": "Normale",
   "typeFire": "Fuoco",
   "typeWater": "Acqua",

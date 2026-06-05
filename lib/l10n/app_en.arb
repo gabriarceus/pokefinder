@@ -69,6 +69,12 @@
   "formSelectorShiny": "Shiny Version",
   "versionLabel": "Version",
   "formSelectorForms": "Available Forms",
+  "formTypeModifier": "{type}",
+  "@formTypeModifier": {
+    "placeholders": {
+      "type": { "type": "String" }
+    }
+  },
   "typeNormal": "Normal",
   "typeFire": "Fire",
   "typeWater": "Water",

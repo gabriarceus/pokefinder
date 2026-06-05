@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
+import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/3_domain/helpers/string_casing_extensions.dart';
 
 /// Formats a raw Pokémon form name into a user-friendly display string.
@@ -20,13 +21,9 @@ String formatFormName(BuildContext context, String rawName) {
   final translatedModifier = context.translateTypeOrNull(modifier);
 
   if (translatedModifier != null) {
-    // When the modifier is a known Pokémon type, prefix with "Tipo" in Italian
-    // to match the conventional form naming (e.g. "Arceus - Tipo Fuoco").
-    final localeName = Localizations.localeOf(context).languageCode;
-    if (localeName == 'it') {
-      return '$baseName - Tipo $translatedModifier';
-    }
-    return '$baseName - $translatedModifier';
+    // The modifier is a known Pokémon type; the connective wording (e.g. the
+    // Italian "Tipo" prefix) comes from the localized [formTypeModifier].
+    return '$baseName - ${context.t().formTypeModifier(type: translatedModifier)}';
   }
 
   final formattedModifier = modifier.toDisplayCase();

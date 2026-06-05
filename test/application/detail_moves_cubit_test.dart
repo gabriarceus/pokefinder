@@ -1,6 +1,10 @@
+import 'package:en_logger/en_logger.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_moves_cubit.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
+
+class MockEnLogger extends Mock implements EnLogger {}
 
 void main() {
   const moves = [
@@ -30,9 +34,11 @@ void main() {
     ),
   ];
 
+  final logger = MockEnLogger();
+
   group('DetailMovesCubit', () {
     test('initial state derives version groups, methods and default group', () {
-      final cubit = DetailMovesCubit(moves: moves);
+      final cubit = DetailMovesCubit(moves: moves, logger: logger);
       final state = cubit.state;
 
       expect(state.versionGroups, containsAll(['diamond-pearl', 'platinum']));
@@ -54,7 +60,7 @@ void main() {
     });
 
     test('changing version group recomputes methods and filtered moves', () {
-      final cubit = DetailMovesCubit(moves: moves);
+      final cubit = DetailMovesCubit(moves: moves, logger: logger);
 
       cubit.updateSelectedVersionGroup('platinum', 'en');
 
@@ -67,7 +73,7 @@ void main() {
     });
 
     test('selected method resets to "all" when unavailable in new group', () {
-      final cubit = DetailMovesCubit(moves: moves);
+      final cubit = DetailMovesCubit(moves: moves, logger: logger);
 
       cubit.updateSelectedMethod('machine', 'en');
       expect(cubit.state.selectedMethod, 'machine');
@@ -80,7 +86,7 @@ void main() {
     });
 
     test('search query filters by move name', () {
-      final cubit = DetailMovesCubit(moves: moves);
+      final cubit = DetailMovesCubit(moves: moves, logger: logger);
 
       cubit.updateSearchQuery('grow', 'en');
       expect(cubit.state.filteredMoves.map((m) => m.name), ['growl']);

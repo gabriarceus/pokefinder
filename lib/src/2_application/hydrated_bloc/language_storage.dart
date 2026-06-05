@@ -14,6 +14,21 @@ class LanguageState extends Equatable {
   final int languageId;
   final int lastManualLanguageId;
 
+  /// Locale for the currently selected language, or `null` to follow the
+  /// system language. Driven by the [Language] entity so a newly added
+  /// selectable language is handled automatically.
+  Locale? get locale {
+    final language = languageId == Language.system.id
+        ? Language.system
+        : Language.selectable.firstWhere(
+            (language) => language.id == languageId,
+            orElse: () => Language.system,
+          );
+    final languageCode = language.languageCode;
+    if (languageCode == null) return null;
+    return Locale(languageCode, language.countryCode);
+  }
+
   @override
   List<Object?> get props => [languageId, lastManualLanguageId];
 }
@@ -59,21 +74,6 @@ class LanguageCubit extends HydratedCubit<LanguageState> {
       languageId: state.lastManualLanguageId,
       lastManualLanguageId: state.lastManualLanguageId,
     ));
-  }
-
-  /// Returns the [Locale] for the currently selected language, or `null` to
-  /// follow the system language. Driven by the [Language] entity so a newly
-  /// added selectable language is handled automatically.
-  Locale? getLanguageLocale() {
-    if (state.languageId == Language.system.id) {
-      return Language.system.locale;
-    }
-    return Language.selectable
-        .firstWhere(
-          (language) => language.id == state.languageId,
-          orElse: () => Language.system,
-        )
-        .locale;
   }
 
   @override

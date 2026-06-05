@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:en_logger/en_logger.dart';
 import 'package:equatable/equatable.dart';
 import 'package:pokefinder/src/3_domain/entities/learn_method.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
@@ -66,9 +67,14 @@ class DetailMovesState extends Equatable {
 class DetailMovesCubit extends Cubit<DetailMovesState> {
   DetailMovesCubit({
     required List<PokemonMove> moves,
-  }) : super(_initialState(moves)) {
+    required EnLogger logger,
+  })  : _logger = logger,
+        super(_initialState(moves)) {
     _filterMoves();
   }
+
+  final EnLogger _logger;
+  static const _prefix = 'DetailMovesCubit';
 
   /// Filter sentinel that selects moves of any learn method.
   static const allMethodsFilter = 'all';
@@ -118,11 +124,13 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
   }
 
   void updateSelectedMethod(String method, String languageCode) {
+    _logger.info('Method filter changed to "$method"', prefix: _prefix);
     emit(state.copyWith(selectedMethod: method));
     _filterMoves(languageCode: languageCode);
   }
 
   void updateSelectedVersionGroup(String versionGroup, String languageCode) {
+    _logger.info('Version group changed to "$versionGroup"', prefix: _prefix);
     final availableMethods = _availableMethodsFor(state.allMoves, versionGroup);
     final selectedMethod = state.selectedMethod != allMethodsFilter &&
             !availableMethods.contains(state.selectedMethod)
@@ -173,6 +181,7 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
     }
 
     final filteredMoves = uniqueMoves.values.toList();
+    _logger.debug('Filtered ${filteredMoves.length} moves', prefix: _prefix);
 
     filteredMoves.sort((a, b) {
       if (a.learnMethod == LearnMethod.levelUp.apiValue &&
