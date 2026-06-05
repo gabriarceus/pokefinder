@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/src/1_presentation/extensions/form_name_formatter.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 
 class DetailHeader extends StatelessWidget {
@@ -19,9 +20,7 @@ class DetailHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayFormName = selectedFormName.isEmpty
-        ? ''
-        : '${selectedFormName[0].toUpperCase()}${selectedFormName.substring(1)}';
+    final displayFormName = formatFormName(context, selectedFormName);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
