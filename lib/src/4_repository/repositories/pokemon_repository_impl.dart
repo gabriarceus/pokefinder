@@ -6,9 +6,15 @@ import 'package:pokefinder/src/4_repository/repository.dart';
 const _kSpritesRoot =
     'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/';
 
-/// Builds the type-icon sprite URL for the given [type] slug.
-String _typeSpriteUrl(String type) =>
-    '${_kSpritesRoot}types/generation-viii/sword-shield/$type.png';
+/// Form-name suffix marking the vestigial "???" type variant. Such forms have
+/// no type sprite and are excluded from the exposed form list.
+const _kUnknownFormSuffix = '-unknown';
+
+/// Builds the type-icon sprite URL for the given [type], or an empty string
+/// when [type] is null — unknown/unsupported types have no sprite in this set.
+String _typeSpriteUrl(PokemonType? type) => type == null
+    ? ''
+    : '${_kSpritesRoot}types/generation-viii/sword-shield/${type.id}.png';
 
 /// Builds the official-artwork URL for the Pokémon with the given [id],
 /// returning the shiny variant when [shiny] is true.
@@ -34,13 +40,13 @@ class PokemonRepositoryImpl implements IPokemonRepository {
   }
 
   Pokemon _toDomain(RawPokemon rawPokemon) {
-    final type1Id = _getTypeFromUrl(rawPokemon.types.first.type.url);
-    final type2Id = rawPokemon.types.length > 1
-        ? _getTypeFromUrl(rawPokemon.types[1].type.url)
+    final type1 = _typeFromUrl(rawPokemon.types.first.type.url);
+    final type2 = rawPokemon.types.length > 1
+        ? _typeFromUrl(rawPokemon.types[1].type.url)
         : null;
 
-    final typeImage1 = _typeSpriteUrl(type1Id);
-    final typeImage2 = type2Id != null ? _typeSpriteUrl(type2Id) : '';
+    final typeImage1 = _typeSpriteUrl(type1);
+    final typeImage2 = _typeSpriteUrl(type2);
 
     final ability1 = rawPokemon.abilities.first.ability.name;
     final ability2 = rawPokemon.abilities.length > 1
@@ -88,8 +94,8 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       height: rawPokemon.height,
       typeImage1: typeImage1,
       typeImage2: typeImage2,
-      type1: _typeFromId(type1Id),
-      type2: type2Id != null ? _typeFromId(type2Id) : null,
+      type1: type1,
+      type2: type2,
       cry: rawPokemon.cries.latest,
       stats: stats,
       baseExperience: rawPokemon.baseExperience,
@@ -98,6 +104,7 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       locationAreaEncounters: rawPokemon.locationAreaEncounters,
       cryLegacy: rawPokemon.cries.legacy,
       forms: rawPokemon.forms
+          .where((f) => !f.name.endsWith(_kUnknownFormSuffix))
           .map((f) => PokemonForm(name: f.name, url: f.url))
           .toList(),
       gameIndices: rawPokemon.gameIndices.map((gi) => gi.version.name).toList(),
@@ -122,20 +129,20 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     try {
       final raw = await _remoteDataSource.getFormDetails(url);
 
-      final type1Id = _getTypeFromUrl(raw.types.first.type.url);
-      final type2Id =
-          raw.types.length > 1 ? _getTypeFromUrl(raw.types[1].type.url) : null;
+      final type1 = _typeFromUrl(raw.types.first.type.url);
+      final type2 =
+          raw.types.length > 1 ? _typeFromUrl(raw.types[1].type.url) : null;
 
-      final typeImage1 = _typeSpriteUrl(type1Id);
-      final typeImage2 = type2Id != null ? _typeSpriteUrl(type2Id) : '';
+      final typeImage1 = _typeSpriteUrl(type1);
+      final typeImage2 = _typeSpriteUrl(type2);
 
       final artworkDefault = _officialArtworkUrl(raw.id);
       final artworkShiny = _officialArtworkUrl(raw.id, shiny: true);
 
       return right(PokemonFormDetails(
         name: raw.name,
-        type1: _typeFromId(type1Id),
-        type2: type2Id != null ? _typeFromId(type2Id) : null,
+        type1: type1,
+        type2: type2,
         typeImage1: typeImage1,
         typeImage2: typeImage2,
         spriteDefault: raw.sprites.frontDefault,
@@ -173,6 +180,11 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       return left(UnexpectedFailure(e.toString()));
     }
   }
+
+  /// Resolves the [PokemonType] referenced by a PokeAPI type [typeUrl], or
+  /// null when the URL points to a type outside the known set.
+  PokemonType? _typeFromUrl(String typeUrl) =>
+      _typeFromId(_getTypeFromUrl(typeUrl));
 
   /// Maps a raw numeric type id (extracted from a type URL) to its
   /// [PokemonType], or null when the id is outside the known set.
