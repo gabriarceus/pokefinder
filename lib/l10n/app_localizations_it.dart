@@ -204,6 +204,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get formSelectorForms => 'Forme Disponibili';
 
   @override
+  String formTypeModifier({required String type}) {
+    return 'Tipo $type';
+  }
+
+  @override
   String get typeNormal => 'Normale';
 
   @override

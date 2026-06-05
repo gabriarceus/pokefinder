@@ -482,6 +482,12 @@ abstract class AppLocalizations {
   /// **'Available Forms'**
   String get formSelectorForms;
 
+  /// No description provided for @formTypeModifier.
+  ///
+  /// In en, this message translates to:
+  /// **'{type}'**
+  String formTypeModifier({required String type});
+
   /// No description provided for @typeNormal.
   ///
   /// In en, this message translates to:

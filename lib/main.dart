@@ -82,7 +82,7 @@ class MyApp extends StatelessWidget {
           routerConfig: _router,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          locale: context.read<LanguageCubit>().getLanguageLocale(),
+          locale: state.locale,
           debugShowCheckedModeBanner: false,
         );
       }),

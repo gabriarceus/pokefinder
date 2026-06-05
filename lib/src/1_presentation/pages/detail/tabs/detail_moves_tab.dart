@@ -1,5 +1,7 @@
+import 'package:en_logger/en_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/src/3_domain/entities/learn_method.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
@@ -20,7 +22,10 @@ class DetailMovesTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => DetailMovesCubit(moves: pokemon.moves),
+      create: (_) => DetailMovesCubit(
+        moves: pokemon.moves,
+        logger: getIt<EnLogger>(),
+      ),
       child: BlocBuilder<DetailMovesCubit, DetailMovesState>(
         builder: (context, state) {
           final cubit = context.read<DetailMovesCubit>();
