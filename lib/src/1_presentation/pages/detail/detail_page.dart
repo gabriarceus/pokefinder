@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
-import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
+import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/3_domain/services/cry_audio_controller.dart';
 
@@ -43,6 +43,7 @@ class _DetailState extends State<Detail> {
     if (!_hasTappedForm) {
       setState(() => _hasTappedForm = true);
     }
+    final bloc = context.read<PokemonBloc>();
     showModalBottomSheet(
       context: context,
       backgroundColor: Theme.of(context).cardColor,
@@ -50,16 +51,19 @@ class _DetailState extends State<Detail> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (sheetContext) {
-        return FormSelectionBottomSheet(
-          pokemon: pokemon,
-          typeColor: typeColor,
-          textColor: textColor,
-          showShiny: _showShiny,
-          onShinyChanged: (val) {
-            setState(() {
-              _showShiny = val;
-            });
-          },
+        return BlocProvider.value(
+          value: bloc,
+          child: FormSelectionBottomSheet(
+            pokemon: pokemon,
+            typeColor: typeColor,
+            textColor: textColor,
+            showShiny: _showShiny,
+            onShinyChanged: (val) {
+              setState(() {
+                _showShiny = val;
+              });
+            },
+          ),
         );
       },
     );
