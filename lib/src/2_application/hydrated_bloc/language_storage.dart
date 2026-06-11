@@ -5,6 +5,9 @@ import 'package:injectable/injectable.dart';
 import 'package:pokefinder/src/3_domain/entities/language.dart';
 import 'package:en_logger/en_logger.dart';
 
+const _languageKey = 'language';
+const _lastManualLanguageKey = 'lastManualLanguageId';
+
 class LanguageState extends Equatable {
   const LanguageState({
     required this.languageId,
@@ -78,9 +81,9 @@ class LanguageCubit extends HydratedCubit<LanguageState> {
 
   @override
   LanguageState fromJson(Map<String, dynamic> json) {
-    final languageId = json['language'] as int? ?? Language.system.id;
+    final languageId = json[_languageKey] as int? ?? Language.system.id;
     final lastManualLanguageId =
-        json['lastManualLanguageId'] as int? ?? Language.english.id;
+        json[_lastManualLanguageKey] as int? ?? Language.english.id;
     return LanguageState(
       languageId: languageId,
       lastManualLanguageId: lastManualLanguageId,
@@ -89,7 +92,7 @@ class LanguageCubit extends HydratedCubit<LanguageState> {
 
   @override
   Map<String, dynamic> toJson(LanguageState state) => {
-        'language': state.languageId,
-        'lastManualLanguageId': state.lastManualLanguageId,
+        _languageKey: state.languageId,
+        _lastManualLanguageKey: state.lastManualLanguageId,
       };
 }

@@ -49,11 +49,14 @@ class Pokemon extends Equatable {
   final String ability3;
   final String cry;
 
-  /// [weight] is the weight of the Pokemon in hectograms
+  /// Weight in hectograms (as returned by PokeAPI).
   final double weight;
 
-  /// [height] is the height of the Pokemon in decimetres
+  /// Height in decimetres (as returned by PokeAPI).
   final double height;
+
+  double get weightInKg => weight / 10;
+  double get heightInMeters => height / 10;
 
   /// [stats] is a list of base stats in the order: HP, Attack, Defense, Special Attack, Special Defense, Speed
   final List<int> stats;

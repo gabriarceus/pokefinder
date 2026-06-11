@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/l10n/translation_helper.dart';
+import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
+import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/3_domain/services/cry_audio_controller.dart';
-import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
-import 'package:pokefinder/l10n/translation_helper.dart';
-import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 
 class DetailInfoTab extends StatelessWidget {
   const DetailInfoTab({
@@ -31,13 +31,13 @@ class DetailInfoTab extends StatelessWidget {
               _buildInfoCard(
                 context,
                 icon: Icons.scale_rounded,
-                value: '${pokemon.weight / 10} kg',
+                value: '${pokemon.weightInKg} kg',
                 label: context.t().weight,
               ),
               _buildInfoCard(
                 context,
                 icon: Icons.straighten_rounded,
-                value: '${pokemon.height / 10} m',
+                value: '${pokemon.heightInMeters} m',
                 label: context.t().height,
               ),
             ],

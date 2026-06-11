@@ -1,3 +1,4 @@
+import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
@@ -26,47 +27,46 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
   final DataRepository _dataRepository;
 
   @override
-  Future<RawPokemon> getPokemon(PokemonName name) async {
+  Future<Either<PokemonFailure, RawPokemon>> getPokemon(PokemonName name) async {
     try {
       final json = await _dataRepository.fetchData(
         '$_kBaseUrl${name.rightOrCrash()}',
         strategy: FetchStrategy.cacheFirst,
         maxAge: _kDefaultMaxAge,
       );
-
-      return RawPokemon.fromJson(json as Map<String, dynamic>);
+      return right(RawPokemon.fromJson(json as Map<String, dynamic>));
     } catch (error) {
-      throw _mapError(error);
+      return left(_mapError(error));
     }
   }
 
   @override
-  Future<RawFormDetails> getFormDetails(String url) async {
+  Future<Either<PokemonFailure, RawFormDetails>> getFormDetails(String url) async {
     try {
       final json = await _dataRepository.fetchData(
         url,
         strategy: FetchStrategy.cacheFirst,
         maxAge: _kDefaultMaxAge,
       );
-      return RawFormDetails.fromJson(json as Map<String, dynamic>);
+      return right(RawFormDetails.fromJson(json as Map<String, dynamic>));
     } catch (error) {
-      throw _mapError(error);
+      return left(_mapError(error));
     }
   }
 
   @override
-  Future<List<RawEncounter>> getEncounters(String url) async {
+  Future<Either<PokemonFailure, List<RawEncounter>>> getEncounters(String url) async {
     try {
       final json = await _dataRepository.fetchData(
         url,
         strategy: FetchStrategy.cacheFirst,
         maxAge: _kDefaultMaxAge,
       );
-      return (json as List<dynamic>)
+      return right((json as List<dynamic>)
           .map((e) => RawEncounter.fromJson(e as Map<String, dynamic>))
-          .toList();
+          .toList());
     } catch (error) {
-      throw _mapError(error);
+      return left(_mapError(error));
     }
   }
 

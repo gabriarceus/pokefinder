@@ -434,6 +434,12 @@ abstract class AppLocalizations {
   /// **'Sprite Gallery'**
   String get spriteTitle;
 
+  /// No description provided for @statsBase.
+  ///
+  /// In en, this message translates to:
+  /// **'Base'**
+  String get statsBase;
+
   /// No description provided for @statsMin.
   ///
   /// In en, this message translates to:
@@ -451,6 +457,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Game:'**
   String get gameSelectorLabel;
+
+  /// No description provided for @noData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data available'**
+  String get noData;
 
   /// No description provided for @encountersEmpty.
   ///

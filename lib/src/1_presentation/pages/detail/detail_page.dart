@@ -16,9 +16,8 @@ import 'widgets/form_selection_bottom_sheet.dart';
 
 export '_bloc.dart';
 
+/// Detail screen displaying data for a single Pokémon, identified by [pokemonName].
 class Detail extends StatefulWidget {
-  // The name of the Pokémon to display is passed as a parameter to the Detail widget constructor
-  // The Detail widget is a state that depends on the state of the PokemonBloc
   const Detail({super.key, required this.pokemonName});
 
   final String pokemonName;
@@ -73,7 +72,7 @@ class _DetailState extends State<Detail> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: PokemonBlocBuilder(
-        onInitial: (_, __) => const Center(child: Text('No Data')),
+        onInitial: (_, __) => Center(child: Text(context.t().noData)),
         onLoading: (_, __) => const DetailLoading(),
         onFailure: (_, failure) => DetailFailure(state: failure),
         onSuccess: _buildSuccess,
@@ -83,8 +82,7 @@ class _DetailState extends State<Detail> {
 
   Widget _buildSuccess(BuildContext context, PokemonBlocSuccess success) {
     final pokemon = success.pokemon;
-    final formDetails =
-        success.selectedFormDetails ?? PokemonFormDetails.fromPokemon(pokemon);
+    final formDetails = success.formDetails;
 
     final backgroundHelper = TypeColorScheme(
       type1: formDetails.type1,
@@ -230,7 +228,7 @@ class _DetailContentCard extends StatelessWidget {
                     textColor: tabTextColor,
                     encounters: success.encounters,
                     isLoadingEncounters: success.isLoadingEncounters,
-                    encountersError: success.encountersError,
+                    encountersFailure: success.encountersFailure,
                   ),
                 ],
               ),

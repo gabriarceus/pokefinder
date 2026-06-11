@@ -30,10 +30,8 @@ class PokemonRepositoryImpl implements IPokemonRepository {
   @override
   Future<Either<PokemonFailure, Pokemon>> getPokemon(PokemonName name) async {
     try {
-      final rawPokemon = await _remoteDataSource.getPokemon(name);
-      return right(_toDomain(rawPokemon));
-    } on PokemonFailure catch (failure) {
-      return left(failure);
+      final result = await _remoteDataSource.getPokemon(name);
+      return result.map(_toDomain);
     } catch (e) {
       return left(UnexpectedFailure(e.toString()));
     }
@@ -127,31 +125,27 @@ class PokemonRepositoryImpl implements IPokemonRepository {
   Future<Either<PokemonFailure, PokemonFormDetails>> getFormDetails(
       String url) async {
     try {
-      final raw = await _remoteDataSource.getFormDetails(url);
-
-      final type1 = _typeFromUrl(raw.types.first.type.url);
-      final type2 =
-          raw.types.length > 1 ? _typeFromUrl(raw.types[1].type.url) : null;
-
-      final typeImage1 = _typeSpriteUrl(type1);
-      final typeImage2 = _typeSpriteUrl(type2);
-
-      final artworkDefault = _officialArtworkUrl(raw.id);
-      final artworkShiny = _officialArtworkUrl(raw.id, shiny: true);
-
-      return right(PokemonFormDetails(
-        name: raw.name,
-        type1: type1,
-        type2: type2,
-        typeImage1: typeImage1,
-        typeImage2: typeImage2,
-        spriteDefault: raw.sprites.frontDefault,
-        spriteShiny: raw.sprites.frontShiny,
-        artworkDefault: artworkDefault,
-        artworkShiny: artworkShiny,
-      ));
-    } on PokemonFailure catch (failure) {
-      return left(failure);
+      final result = await _remoteDataSource.getFormDetails(url);
+      return result.flatMap((raw) {
+        final type1 = _typeFromUrl(raw.types.first.type.url);
+        final type2 =
+            raw.types.length > 1 ? _typeFromUrl(raw.types[1].type.url) : null;
+        final typeImage1 = _typeSpriteUrl(type1);
+        final typeImage2 = _typeSpriteUrl(type2);
+        final artworkDefault = _officialArtworkUrl(raw.id);
+        final artworkShiny = _officialArtworkUrl(raw.id, shiny: true);
+        return right(PokemonFormDetails(
+          name: raw.name,
+          type1: type1,
+          type2: type2,
+          typeImage1: typeImage1,
+          typeImage2: typeImage2,
+          spriteDefault: raw.sprites.frontDefault,
+          spriteShiny: raw.sprites.frontShiny,
+          artworkDefault: artworkDefault,
+          artworkShiny: artworkShiny,
+        ));
+      });
     } catch (e) {
       return left(UnexpectedFailure(e.toString()));
     }
@@ -161,21 +155,17 @@ class PokemonRepositoryImpl implements IPokemonRepository {
   Future<Either<PokemonFailure, List<PokemonEncounter>>> getEncounters(
       String url) async {
     try {
-      final rawList = await _remoteDataSource.getEncounters(url);
-      final encounters = rawList.map((encounter) {
-        final rawLocationName = encounter.locationArea.name;
-        final versions =
-            encounter.versionDetails.map((d) => d.version.name).toList();
-
-        return PokemonEncounter(
-          locationAreaName: rawLocationName.toDisplayCase(),
-          rawLocationAreaName: rawLocationName,
-          versions: versions,
-        );
-      }).toList();
-      return right(encounters);
-    } on PokemonFailure catch (failure) {
-      return left(failure);
+      final result = await _remoteDataSource.getEncounters(url);
+      return result.map((rawList) => rawList.map((encounter) {
+            final rawLocationName = encounter.locationArea.name;
+            final versions =
+                encounter.versionDetails.map((d) => d.version.name).toList();
+            return PokemonEncounter(
+              locationAreaName: rawLocationName.toDisplayCase(),
+              rawLocationAreaName: rawLocationName,
+              versions: versions,
+            );
+          }).toList());
     } catch (e) {
       return left(UnexpectedFailure(e.toString()));
     }

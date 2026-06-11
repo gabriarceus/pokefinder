@@ -180,6 +180,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get spriteTitle => 'Galleria Sprite';
 
   @override
+  String get statsBase => 'Base';
+
+  @override
   String get statsMin => 'Min';
 
   @override
@@ -187,6 +190,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gameSelectorLabel => 'Gioco:';
+
+  @override
+  String get noData => 'Nessun dato disponibile';
 
   @override
   String get encountersEmpty => 'Nessun incontro trovato';
