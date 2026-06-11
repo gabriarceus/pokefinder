@@ -39,7 +39,7 @@ class DetailStatsTab extends StatelessWidget {
               SizedBox(
                 width: 40,
                 child: Text(
-                  'Base',
+                  context.t().statsBase,
                   textAlign: TextAlign.right,
                   style: TextStyle(
                     fontSize: 11,

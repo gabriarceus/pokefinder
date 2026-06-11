@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
 
 void main() {
@@ -20,6 +21,13 @@ void main() {
     test('is invalid when input is empty or whitespace only', () {
       expect(PokemonName('').isValid(), isFalse);
       expect(PokemonName('   ').isValid(), isFalse);
+    });
+
+    test('rightOrCrash throws the typed PokemonFailure on invalid input', () {
+      expect(
+        () => PokemonName('').rightOrCrash(),
+        throwsA(isA<BadRequestFailure>()),
+      );
     });
   });
 }

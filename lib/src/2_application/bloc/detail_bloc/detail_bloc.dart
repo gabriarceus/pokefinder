@@ -78,7 +78,7 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
             (failure) {
               emit(currentState.copyWith(
                 isLoadingEncounters: false,
-                encountersError: failure.message,
+                encountersFailure: failure,
               ));
             },
             (encounters) {
@@ -104,12 +104,12 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
       emit(currentState.copyWith(
         selectedFormDetails: defaultFormDetails,
         isLoadingForm: false,
-        formError: null,
+        formFailure: null,
       ));
       return;
     }
 
-    emit(currentState.copyWith(isLoadingForm: true, formError: null));
+    emit(currentState.copyWith(isLoadingForm: true, formFailure: null));
 
     final result = await _getPokemonFormDetailsUseCase(event.form.url);
 
@@ -120,14 +120,14 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
       (failure) {
         emit(updatedState.copyWith(
           isLoadingForm: false,
-          formError: failure.message,
+          formFailure: failure,
         ));
       },
       (details) {
         emit(updatedState.copyWith(
           selectedFormDetails: details,
           isLoadingForm: false,
-          formError: null,
+          formFailure: null,
         ));
       },
     );

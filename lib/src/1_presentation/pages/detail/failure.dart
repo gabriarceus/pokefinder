@@ -3,6 +3,8 @@ import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dar
 import 'package:pokefinder/src/1_presentation/presentation.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 
+const _kSadAzurillAsset = 'assets/images/sad_azurill.png';
+
 class DetailFailure extends StatelessWidget {
   const DetailFailure({
     super.key,
@@ -38,7 +40,7 @@ class DetailFailure extends StatelessWidget {
           left: 0,
           right: 0,
           child: Image.asset(
-            'assets/images/sad_azurill.png',
+            _kSadAzurillAsset,
             scale: 2,
           ),
         ),

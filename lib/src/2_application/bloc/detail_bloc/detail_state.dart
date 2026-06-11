@@ -56,17 +56,24 @@ final class PokemonBlocSuccess extends PokemonBlocState {
     this.encounters,
     this.isLoadingForm = false,
     this.isLoadingEncounters = false,
-    this.formError,
-    this.encountersError,
+    this.formFailure,
+    this.encountersFailure,
   });
+
+  static const _unset = Object();
 
   final Pokemon pokemon;
   final PokemonFormDetails? selectedFormDetails;
   final List<PokemonEncounter>? encounters;
   final bool isLoadingForm;
   final bool isLoadingEncounters;
-  final String? formError;
-  final String? encountersError;
+  final PokemonFailure? formFailure;
+  final PokemonFailure? encountersFailure;
+
+  /// Active form details, falling back to the base Pokémon when no alternate
+  /// form has been selected.
+  PokemonFormDetails get formDetails =>
+      selectedFormDetails ?? PokemonFormDetails.fromPokemon(pokemon);
 
   PokemonBlocSuccess copyWith({
     Pokemon? pokemon,
@@ -74,8 +81,8 @@ final class PokemonBlocSuccess extends PokemonBlocState {
     List<PokemonEncounter>? encounters,
     bool? isLoadingForm,
     bool? isLoadingEncounters,
-    String? formError,
-    String? encountersError,
+    Object? formFailure = _unset,
+    Object? encountersFailure = _unset,
   }) {
     return PokemonBlocSuccess(
       pokemon: pokemon ?? this.pokemon,
@@ -83,8 +90,12 @@ final class PokemonBlocSuccess extends PokemonBlocState {
       encounters: encounters ?? this.encounters,
       isLoadingForm: isLoadingForm ?? this.isLoadingForm,
       isLoadingEncounters: isLoadingEncounters ?? this.isLoadingEncounters,
-      formError: formError ?? this.formError,
-      encountersError: encountersError ?? this.encountersError,
+      formFailure: identical(formFailure, _unset)
+          ? this.formFailure
+          : formFailure as PokemonFailure?,
+      encountersFailure: identical(encountersFailure, _unset)
+          ? this.encountersFailure
+          : encountersFailure as PokemonFailure?,
     );
   }
 
@@ -95,7 +106,7 @@ final class PokemonBlocSuccess extends PokemonBlocState {
         encounters,
         isLoadingForm,
         isLoadingEncounters,
-        formError,
-        encountersError,
+        formFailure,
+        encountersFailure,
       ];
 }

@@ -20,8 +20,9 @@ class PokemonName {
 
   final Either<PokemonFailure, String> value;
 
+  /// Returns the validated name, or throws the typed [PokemonFailure] on invalid input.
   String rightOrCrash() {
-    return value.fold((l) => throw ArgumentError(l.message), id);
+    return value.fold((l) => throw l, id);
   }
 
   bool isValid() {
