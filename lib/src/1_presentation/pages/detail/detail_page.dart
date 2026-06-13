@@ -29,7 +29,6 @@ class Detail extends StatefulWidget {
 class _DetailState extends State<Detail> {
   final CryAudioController _audioController = getIt<CryAudioController>();
   bool _showShiny = false;
-  bool _hasTappedForm = false;
 
   @override
   void dispose() {
@@ -39,9 +38,6 @@ class _DetailState extends State<Detail> {
 
   void _showFormSelectionBottomSheet(
       BuildContext context, Pokemon pokemon, Color typeColor, Color textColor) {
-    if (!_hasTappedForm) {
-      setState(() => _hasTappedForm = true);
-    }
     final bloc = context.read<PokemonBloc>();
     showModalBottomSheet(
       context: context,
@@ -104,55 +100,31 @@ class _DetailState extends State<Detail> {
           child: Column(
             children: [
               SizedBox(
-                  height:
-                      MediaQuery.of(context).padding.top + kToolbarHeight + 8),
+                  height: MediaQuery.of(context).padding.top + kToolbarHeight),
               DetailHeader(
                 selectedFormName: formDetails.name,
                 pokemonId: pokemon.id,
                 typeImage1: formDetails.typeImage1,
                 typeImage2: formDetails.typeImage2,
                 textColor: textColor,
+                spriteWidget: AnimatedCrossFade(
+                  duration: const Duration(milliseconds: 300),
+                  crossFadeState: _showShiny
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
+                  firstChild: SpriteBoxImage(sprite: formDetails.spriteDefault),
+                  secondChild: SpriteBoxImage(sprite: formDetails.spriteShiny),
+                ),
               ),
-              const SizedBox(height: 24),
               Expanded(
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Positioned.fill(
-                      top: 40,
-                      child: _DetailContentCard(
-                        typeColor: typeColor,
-                        pokemon: pokemon,
-                        audioController: _audioController,
-                        success: success,
-                      ),
-                    ),
-                    Positioned(
-                      top: -95,
-                      right: 24,
-                      child: GestureDetector(
-                        onTap: () => _showFormSelectionBottomSheet(
-                            context, pokemon, typeColor, textColor),
-                        child: Tooltip(
-                          message: context.t().formSelectorTitle,
-                          child: SizedBox(
-                            width: 200,
-                            height: 200,
-                            child: AnimatedCrossFade(
-                              duration: const Duration(milliseconds: 300),
-                              crossFadeState: _showShiny
-                                  ? CrossFadeState.showSecond
-                                  : CrossFadeState.showFirst,
-                              firstChild: SpriteBoxImage(
-                                  sprite: formDetails.spriteDefault),
-                              secondChild: SpriteBoxImage(
-                                  sprite: formDetails.spriteShiny),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                child: _DetailContentCard(
+                  typeColor: typeColor,
+                  pokemon: pokemon,
+                  audioController: _audioController,
+                  success: success,
+                  showShiny: _showShiny,
+                  onFormTap: () => _showFormSelectionBottomSheet(
+                      context, pokemon, typeColor, textColor),
                 ),
               ),
             ],
@@ -170,12 +142,16 @@ class _DetailContentCard extends StatelessWidget {
     required this.pokemon,
     required this.audioController,
     required this.success,
+    required this.showShiny,
+    required this.onFormTap,
   });
 
   final Color typeColor;
   final Pokemon pokemon;
   final CryAudioController audioController;
   final PokemonBlocSuccess success;
+  final bool showShiny;
+  final VoidCallback onFormTap;
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +175,7 @@ class _DetailContentCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const SizedBox(height: 60),
+          const SizedBox(height: 16),
           _DetailTabBar(typeColor: typeColor),
           Expanded(
             child: Padding(
@@ -214,6 +190,8 @@ class _DetailContentCard extends StatelessWidget {
                     pokemon: pokemon,
                     textColor: tabTextColor,
                     audioController: audioController,
+                    typeColor: typeColor,
+                    onFormTap: onFormTap,
                   ),
                   DetailStatsTab(
                     pokemon: pokemon,
@@ -246,43 +224,71 @@ class _DetailTabBar extends StatelessWidget {
 
   final Color typeColor;
 
+  /// Ensures the type color is visible as an indicator/label on a card
+  /// background. Darkens overly-light colors so the selection is always clear.
+  Color _effectiveIndicatorColor(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final luminance = typeColor.computeLuminance();
+    if (brightness == Brightness.light && luminance > 0.45) {
+      final hsl = HSLColor.fromColor(typeColor);
+      return hsl
+          .withLightness((hsl.lightness - 0.3).clamp(0.0, 1.0))
+          .withSaturation((hsl.saturation + 0.2).clamp(0.0, 1.0))
+          .toColor();
+    }
+    return typeColor;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return TabBar(
-      isScrollable: false,
-      indicatorSize: TabBarIndicatorSize.tab,
-      indicator: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        color: typeColor.withValues(alpha: 0.15),
+    final effectiveColor = _effectiveIndicatorColor(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: TabBar(
+        isScrollable: false,
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerColor: Colors.transparent,
+        splashBorderRadius: BorderRadius.circular(24),
+        overlayColor: WidgetStatePropertyAll(
+          effectiveColor.withValues(alpha: 0.08),
+        ),
+        indicator: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          color: effectiveColor.withValues(alpha: 0.15),
+        ),
+        labelColor: effectiveColor,
+        labelStyle: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
+        unselectedLabelColor: Theme.of(context)
+            .textTheme
+            .bodyMedium
+            ?.color
+            ?.withValues(alpha: 0.5),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 11,
+        ),
+        tabs: [
+          Tab(
+            text: context.t().tabInfo,
+            icon: const Icon(Icons.info_outline),
+          ),
+          Tab(
+            text: context.t().tabStats,
+            icon: const Icon(Icons.bar_chart),
+          ),
+          Tab(
+            text: context.t().tabMoves,
+            icon: const Icon(Icons.bolt),
+          ),
+          Tab(
+            text: context.t().tabItemsGames,
+            icon: const Icon(Icons.backpack_outlined),
+          ),
+        ],
       ),
-      labelColor: typeColor,
-      labelStyle: const TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.bold,
-      ),
-      unselectedLabelColor:
-          Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
-      unselectedLabelStyle: const TextStyle(
-        fontSize: 11,
-      ),
-      tabs: [
-        Tab(
-          text: context.t().tabInfo,
-          icon: const Icon(Icons.info_outline),
-        ),
-        Tab(
-          text: context.t().tabStats,
-          icon: const Icon(Icons.bar_chart),
-        ),
-        Tab(
-          text: context.t().tabMoves,
-          icon: const Icon(Icons.bolt),
-        ),
-        Tab(
-          text: context.t().tabItemsGames,
-          icon: const Icon(Icons.backpack_outlined),
-        ),
-      ],
     );
   }
 }

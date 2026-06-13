@@ -148,14 +148,17 @@ class _EncountersSection extends StatelessWidget {
       );
     }
 
-    return ListView.builder(
+    return ListView.separated(
       shrinkWrap: true,
+      padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: encounters!.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 4),
       itemBuilder: (context, index) {
         final encounter = encounters![index];
         return SurfaceCard(
           borderRadius: 12,
+          margin: EdgeInsets.zero,
           child: ListTile(
             leading: const Icon(Icons.location_on_outlined),
             title: Text(

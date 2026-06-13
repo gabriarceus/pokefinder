@@ -10,6 +10,7 @@ class DetailHeader extends StatelessWidget {
     required this.typeImage1,
     required this.typeImage2,
     required this.textColor,
+    required this.spriteWidget,
   });
 
   final String selectedFormName;
@@ -17,6 +18,10 @@ class DetailHeader extends StatelessWidget {
   final String typeImage1;
   final String typeImage2;
   final Color textColor;
+
+  /// The pre-built sprite widget (including shiny cross-fade logic) injected by
+  /// the parent so this widget stays free of state management concerns.
+  final Widget spriteWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +32,7 @@ class DetailHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Row 1: Name + Number (full width, same style)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -56,13 +62,32 @@ class DetailHeader extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
+          // Row 2: Type badges (left) + Sprite (right)
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TypeImage(type: typeImage1),
-              if (typeImage2.isNotEmpty) ...[
-                const SizedBox(width: 8),
-                TypeImage(type: typeImage2),
-              ],
+              // Type badges on the left
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      TypeImage(type: typeImage1),
+                      if (typeImage2.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        TypeImage(type: typeImage2),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+              const Spacer(),
+              // Sprite on the right
+              SizedBox(
+                width: 160,
+                height: 160,
+                child: spriteWidget,
+              ),
             ],
           ),
         ],
