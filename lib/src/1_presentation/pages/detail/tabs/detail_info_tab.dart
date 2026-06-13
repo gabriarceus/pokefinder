@@ -11,14 +11,35 @@ class DetailInfoTab extends StatelessWidget {
     required this.pokemon,
     required this.textColor,
     required this.audioController,
+    required this.typeColor,
+    required this.onFormTap,
   });
 
   final Pokemon pokemon;
   final Color textColor;
   final CryAudioController audioController;
+  final Color typeColor;
+  final VoidCallback onFormTap;
+
+  /// Returns a darkened version of [typeColor] when it has high luminance on a
+  /// light theme, so that text/icons using it remain visible on card surfaces.
+  Color _visibleTypeColor(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final luminance = typeColor.computeLuminance();
+    if (brightness == Brightness.light && luminance > 0.45) {
+      final hsl = HSLColor.fromColor(typeColor);
+      return hsl
+          .withLightness((hsl.lightness - 0.3).clamp(0.0, 1.0))
+          .withSaturation((hsl.saturation + 0.15).clamp(0.0, 1.0))
+          .toColor();
+    }
+    return typeColor;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final effectiveColor = _visibleTypeColor(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 24),
       child: Column(
@@ -178,6 +199,42 @@ class DetailInfoTab extends StatelessWidget {
                 ),
               ],
             ],
+          ),
+          const SizedBox(height: 24),
+
+          // Form & shiny selector button
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.tonal(
+              onPressed: onFormTap,
+              style: FilledButton.styleFrom(
+                backgroundColor: effectiveColor.withValues(alpha: 0.12),
+                foregroundColor: effectiveColor,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.swap_horiz_rounded,
+                    size: 20,
+                    color: effectiveColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    context.t().formSelectorTitle,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: effectiveColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

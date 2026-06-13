@@ -7,7 +7,10 @@ import 'package:pokefinder/src/1_presentation/extensions/form_name_formatter.dar
 
 /// Bottom sheet that lets the user toggle shiny sprites and pick an
 /// alternate Pokémon form.
-class FormSelectionBottomSheet extends StatelessWidget {
+///
+/// Uses internal state for the shiny toggle so the switch reflects user
+/// interaction immediately, then syncs back to the parent via [onShinyChanged].
+class FormSelectionBottomSheet extends StatefulWidget {
   const FormSelectionBottomSheet({
     super.key,
     required this.pokemon,
@@ -24,6 +27,25 @@ class FormSelectionBottomSheet extends StatelessWidget {
   final ValueChanged<bool> onShinyChanged;
 
   @override
+  State<FormSelectionBottomSheet> createState() =>
+      _FormSelectionBottomSheetState();
+}
+
+class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
+  late bool _localShowShiny;
+
+  @override
+  void initState() {
+    super.initState();
+    _localShowShiny = widget.showShiny;
+  }
+
+  void _onShinyToggled(bool value) {
+    setState(() => _localShowShiny = value);
+    widget.onShinyChanged(value);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocBuilder<PokemonBloc, PokemonBlocState>(
       builder: (context, state) {
@@ -34,7 +56,7 @@ class FormSelectionBottomSheet extends StatelessWidget {
           selectedFormName = state.selectedFormDetails?.name;
           isLoadingForm = state.isLoadingForm;
         } else {
-          selectedFormName = pokemon.name;
+          selectedFormName = widget.pokemon.name;
           isLoadingForm = false;
         }
 
@@ -67,7 +89,9 @@ class FormSelectionBottomSheet extends StatelessWidget {
               const SizedBox(height: 16),
               SwitchListTile.adaptive(
                 secondary: Icon(
-                  showShiny ? Icons.star_rounded : Icons.star_border_rounded,
+                  _localShowShiny
+                      ? Icons.star_rounded
+                      : Icons.star_border_rounded,
                   color: Colors.amber,
                   size: 28,
                 ),
@@ -75,9 +99,9 @@ class FormSelectionBottomSheet extends StatelessWidget {
                   context.t().formSelectorShiny,
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
-                value: showShiny,
-                activeThumbColor: typeColor,
-                onChanged: onShinyChanged,
+                value: _localShowShiny,
+                activeThumbColor: widget.typeColor,
+                onChanged: _onShinyToggled,
               ),
               const Divider(),
               const SizedBox(height: 8),
@@ -102,9 +126,9 @@ class FormSelectionBottomSheet extends StatelessWidget {
                   constraints: const BoxConstraints(maxHeight: 200),
                   child: ListView.builder(
                     shrinkWrap: true,
-                    itemCount: pokemon.forms.length,
+                    itemCount: widget.pokemon.forms.length,
                     itemBuilder: (context, index) {
-                      final form = pokemon.forms[index];
+                      final form = widget.pokemon.forms[index];
                       final isSelected = form.name == selectedFormName;
                       final displayFormName =
                           formatFormName(context, form.name);
@@ -126,11 +150,12 @@ class FormSelectionBottomSheet extends StatelessWidget {
                                 horizontal: 16, vertical: 12),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? typeColor.withValues(alpha: 0.1)
+                                  ? widget.typeColor.withValues(alpha: 0.1)
                                   : Colors.transparent,
                               border: Border.all(
-                                color:
-                                    isSelected ? typeColor : Colors.transparent,
+                                color: isSelected
+                                    ? widget.typeColor
+                                    : Colors.transparent,
                                 width: 1.5,
                               ),
                               borderRadius: BorderRadius.circular(12),
@@ -144,13 +169,13 @@ class FormSelectionBottomSheet extends StatelessWidget {
                                     fontWeight: isSelected
                                         ? FontWeight.bold
                                         : FontWeight.normal,
-                                    color: isSelected ? typeColor : null,
+                                    color: isSelected ? widget.typeColor : null,
                                   ),
                                 ),
                                 if (isSelected)
                                   Icon(
                                     Icons.check_circle,
-                                    color: typeColor,
+                                    color: widget.typeColor,
                                     size: 20,
                                   ),
                               ],
