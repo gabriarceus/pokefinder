@@ -377,7 +377,7 @@ abstract class AppLocalizations {
   /// No description provided for @moveBadgeLevel.
   ///
   /// In en, this message translates to:
-  /// **'Lvl {level}'**
+  /// **'Lv. {level}'**
   String moveBadgeLevel({required int level});
 
   /// No description provided for @moveBadgeTutor.
@@ -385,6 +385,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tutor'**
   String get moveBadgeTutor;
+
+  /// No description provided for @moveDetailPower.
+  ///
+  /// In en, this message translates to:
+  /// **'Power'**
+  String get moveDetailPower;
+
+  /// No description provided for @moveDetailAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Accuracy'**
+  String get moveDetailAccuracy;
+
+  /// No description provided for @moveDetailPP.
+  ///
+  /// In en, this message translates to:
+  /// **'PP'**
+  String get moveDetailPP;
+
+  /// No description provided for @moveDetailType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get moveDetailType;
+
+  /// No description provided for @moveDetailClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get moveDetailClass;
+
+  /// No description provided for @moveDetailEffect.
+  ///
+  /// In en, this message translates to:
+  /// **'Effect'**
+  String get moveDetailEffect;
+
+  /// No description provided for @damageClassPhysical.
+  ///
+  /// In en, this message translates to:
+  /// **'Physical'**
+  String get damageClassPhysical;
+
+  /// No description provided for @damageClassSpecial.
+  ///
+  /// In en, this message translates to:
+  /// **'Special'**
+  String get damageClassSpecial;
+
+  /// No description provided for @damageClassStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get damageClassStatus;
 
   /// No description provided for @heldItems.
   ///

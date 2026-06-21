@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/l10n/abilities_db.dart';
+import 'package:pokefinder/src/3_domain/entities/damage_class.dart';
 import 'package:pokefinder/l10n/moves_db.dart';
 import 'package:pokefinder/l10n/locations_db.dart';
 import 'package:pokefinder/src/3_domain/helpers/string_casing_extensions.dart';
@@ -219,6 +220,16 @@ extension TranslationExtension on BuildContext {
   /// capitalized form of the raw value when the type is not recognized.
   String translateType(String typeName) {
     return translateTypeOrNull(typeName) ?? typeName.capitalize();
+  }
+
+  String translateDamageClass(DamageClass? damageClass) {
+    if (damageClass == null) return '-';
+    final t = AppLocalizations.of(this);
+    return switch (damageClass) {
+      DamageClass.physical => t.damageClassPhysical,
+      DamageClass.special => t.damageClassSpecial,
+      DamageClass.status => t.damageClassStatus,
+    };
   }
 
   String _translateLocationToItalian(String rawName) {

@@ -143,5 +143,14 @@
   "gameGroupUltraSunUltraMoon": "Ultrasole/Ultraluna",
   "gameGroupLetsGoPikachuLetsGoEevee": "Let's Go, Pikachu/Eevee",
   "gameGroupSwordShield": "Spada/Scudo",
-  "gameGroupScarletViolet": "Scarlatto/Violetto"
+  "gameGroupScarletViolet": "Scarlatto/Violetto",
+  "moveDetailPower": "Potenza",
+  "moveDetailAccuracy": "Precisione",
+  "moveDetailPP": "PP",
+  "moveDetailType": "Tipo",
+  "moveDetailClass": "Categoria",
+  "moveDetailEffect": "Effetto",
+  "damageClassPhysical": "Fisico",
+  "damageClassSpecial": "Speciale",
+  "damageClassStatus": "Stato"
 }

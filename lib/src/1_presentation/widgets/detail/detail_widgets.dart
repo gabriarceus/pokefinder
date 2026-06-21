@@ -3,6 +3,7 @@ export "contrasting_text_color.dart";
 export "cry_play_button.dart";
 export "game_version_color.dart";
 export "label_value_row.dart";
+export "move_detail_bottom_sheet.dart";
 export "sprite_box_image.dart";
 export "stat_bar_color.dart";
 export "surface_card.dart";

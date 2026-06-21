@@ -149,11 +149,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String moveBadgeLevel({required int level}) {
-    return 'Lvl $level';
+    return 'Lv. $level';
   }
 
   @override
   String get moveBadgeTutor => 'Tutor';
+
+  @override
+  String get moveDetailPower => 'Power';
+
+  @override
+  String get moveDetailAccuracy => 'Accuracy';
+
+  @override
+  String get moveDetailPP => 'PP';
+
+  @override
+  String get moveDetailType => 'Type';
+
+  @override
+  String get moveDetailClass => 'Category';
+
+  @override
+  String get moveDetailEffect => 'Effect';
+
+  @override
+  String get damageClassPhysical => 'Physical';
+
+  @override
+  String get damageClassSpecial => 'Special';
+
+  @override
+  String get damageClassStatus => 'Status';
 
   @override
   String get heldItems => 'Wild Held Items';
