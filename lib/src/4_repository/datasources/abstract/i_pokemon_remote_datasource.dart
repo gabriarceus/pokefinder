@@ -9,4 +9,5 @@ abstract class IPokemonRemoteDataSource {
   Future<Either<PokemonFailure, RawPokemon>> getPokemon(PokemonName name);
   Future<Either<PokemonFailure, RawFormDetails>> getFormDetails(String url);
   Future<Either<PokemonFailure, List<RawEncounter>>> getEncounters(String url);
+  Future<Either<PokemonFailure, List<String>>> getAllPokemonNames();
 }

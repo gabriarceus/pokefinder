@@ -27,7 +27,8 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
   final DataRepository _dataRepository;
 
   @override
-  Future<Either<PokemonFailure, RawPokemon>> getPokemon(PokemonName name) async {
+  Future<Either<PokemonFailure, RawPokemon>> getPokemon(
+      PokemonName name) async {
     try {
       final json = await _dataRepository.fetchData(
         '$_kBaseUrl${name.rightOrCrash()}',
@@ -41,7 +42,8 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
   }
 
   @override
-  Future<Either<PokemonFailure, RawFormDetails>> getFormDetails(String url) async {
+  Future<Either<PokemonFailure, RawFormDetails>> getFormDetails(
+      String url) async {
     try {
       final json = await _dataRepository.fetchData(
         url,
@@ -55,7 +57,8 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
   }
 
   @override
-  Future<Either<PokemonFailure, List<RawEncounter>>> getEncounters(String url) async {
+  Future<Either<PokemonFailure, List<RawEncounter>>> getEncounters(
+      String url) async {
     try {
       final json = await _dataRepository.fetchData(
         url,
@@ -64,6 +67,24 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
       );
       return right((json as List<dynamic>)
           .map((e) => RawEncounter.fromJson(e as Map<String, dynamic>))
+          .toList());
+    } catch (error) {
+      return left(_mapError(error));
+    }
+  }
+
+  @override
+  Future<Either<PokemonFailure, List<String>>> getAllPokemonNames() async {
+    try {
+      final json = await _dataRepository.fetchData(
+        '$_kBaseUrl?limit=100000',
+        strategy: FetchStrategy.cacheFirst,
+        maxAge: const Duration(days: 30),
+      );
+      final results =
+          (json as Map<String, dynamic>)['results'] as List<dynamic>;
+      return right(results
+          .map((e) => (e as Map<String, dynamic>)['name'] as String)
           .toList());
     } catch (error) {
       return left(_mapError(error));

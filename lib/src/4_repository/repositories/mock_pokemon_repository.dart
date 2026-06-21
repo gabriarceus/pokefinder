@@ -98,4 +98,10 @@ class MockPokemonRepository implements IPokemonRepository {
       ),
     ]);
   }
+
+  @override
+  Future<Either<PokemonFailure, List<String>>> getAllPokemonNames() async {
+    return const Right(
+        ['bulbasaur', 'ivysaur', 'venusaur', 'charmander', 'pikachu']);
+  }
 }

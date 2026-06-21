@@ -7,6 +7,7 @@ void main() {
   group('HomePage', () {
     testWidgets('renders a TextField and accepts input', (tester) async {
       final controller = TextEditingController();
+      final focusNode = FocusNode();
       String inputValue = '';
 
       // Costruisci il widget da testare
@@ -18,6 +19,8 @@ void main() {
           home: Scaffold(
             body: PokeTextField(
               controller: controller,
+              focusNode: focusNode,
+              allNames: const [],
               onChanged: (value) {
                 inputValue = value;
               },
