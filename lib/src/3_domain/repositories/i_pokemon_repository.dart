@@ -8,4 +8,5 @@ abstract class IPokemonRepository {
   Future<Either<PokemonFailure, PokemonFormDetails>> getFormDetails(String url);
   Future<Either<PokemonFailure, List<PokemonEncounter>>> getEncounters(
       String url);
+  Future<Either<PokemonFailure, List<String>>> getAllPokemonNames();
 }

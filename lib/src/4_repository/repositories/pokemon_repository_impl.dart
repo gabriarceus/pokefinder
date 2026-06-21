@@ -171,6 +171,15 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     }
   }
 
+  @override
+  Future<Either<PokemonFailure, List<String>>> getAllPokemonNames() async {
+    try {
+      return await _remoteDataSource.getAllPokemonNames();
+    } catch (e) {
+      return left(UnexpectedFailure(e.toString()));
+    }
+  }
+
   /// Resolves the [PokemonType] referenced by a PokeAPI type [typeUrl], or
   /// null when the URL points to a type outside the known set.
   PokemonType? _typeFromUrl(String typeUrl) =>

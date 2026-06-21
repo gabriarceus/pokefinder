@@ -13,4 +13,6 @@ class IsButtonPressedEvent extends HomeBlocEvent {}
 
 class ClearCacheEvent extends HomeBlocEvent {}
 
+class FetchAllPokemonNamesEvent extends HomeBlocEvent {}
+
 class NavigationDoneEvent extends HomeBlocEvent {}

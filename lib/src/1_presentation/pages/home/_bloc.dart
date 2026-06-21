@@ -20,7 +20,9 @@ class HomePageProvider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => getIt<HomeBloc>()..add(UserInputEvent(userInput)),
+      create: (_) => getIt<HomeBloc>()
+        ..add(FetchAllPokemonNamesEvent())
+        ..add(UserInputEvent(userInput)),
       child: child,
     );
   }

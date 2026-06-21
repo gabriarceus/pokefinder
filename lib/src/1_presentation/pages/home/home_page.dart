@@ -20,10 +20,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -62,6 +64,8 @@ class _HomePageState extends State<HomePage> {
                         width: 200,
                         child: PokeTextField(
                           controller: _controller,
+                          focusNode: _focusNode,
+                          allNames: state.allPokemonNames,
                           onChanged: (input) {
                             context.read<HomeBloc>().add(UserInputEvent(input));
                           },
