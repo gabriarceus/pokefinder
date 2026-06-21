@@ -149,6 +149,9 @@ class DetailMovesTab extends StatelessWidget {
                             borderRadius: 12,
                             margin: const EdgeInsets.symmetric(vertical: 4),
                             child: ListTile(
+                              onTap: () {
+                                MoveDetailBottomSheet.show(context, move.name, capitalizedName);
+                              },
                               title: Text(
                                 capitalizedName,
                                 style: const TextStyle(

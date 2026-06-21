@@ -104,4 +104,23 @@ class MockPokemonRepository implements IPokemonRepository {
     return const Right(
         ['bulbasaur', 'ivysaur', 'venusaur', 'charmander', 'pikachu']);
   }
+
+  @override
+  Future<Either<PokemonFailure, MoveDetail>> getMoveDetail(String name) async {
+    return Right(
+      MoveDetail(
+        id: 1,
+        name: name,
+        accuracy: 100,
+        power: 40,
+        pp: 35,
+        type: PokemonType.normal,
+        damageClass: DamageClass.physical,
+        flavorTexts: const {
+          'en': 'Pounds with fore­legs or tail.',
+          'it': 'Colpisce il bersaglio con la coda o le zampe anteriori.',
+        },
+      ),
+    );
+  }
 }

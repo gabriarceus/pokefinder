@@ -1,4 +1,6 @@
+export 'entities/damage_class.dart';
 export 'entities/language.dart';
+export 'entities/move_detail.dart';
 export 'entities/pokemon.dart';
 export 'entities/pokemon_type.dart';
 export 'failures/pokemon_failure.dart';

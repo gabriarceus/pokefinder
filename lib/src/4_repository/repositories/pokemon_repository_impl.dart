@@ -180,6 +180,32 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     }
   }
 
+  @override
+  Future<Either<PokemonFailure, MoveDetail>> getMoveDetail(String name) async {
+    final result = await _remoteDataSource.getMoveDetail(name);
+    return result.map((raw) {
+      final flavorTexts = <String, String>{};
+      for (final entry in raw.flavorTextEntries) {
+        // Just take the first flavor text we encounter for a language
+        // (sometimes there are multiple for different game versions).
+        if (!flavorTexts.containsKey(entry.language.name)) {
+          flavorTexts[entry.language.name] = entry.flavorText;
+        }
+      }
+
+      return MoveDetail(
+        id: raw.id,
+        name: raw.name,
+        accuracy: raw.accuracy,
+        power: raw.power,
+        pp: raw.pp,
+        type: _typeFromUrl(raw.type.url),
+        damageClass: DamageClass.fromApiName(raw.damageClass.name),
+        flavorTexts: flavorTexts,
+      );
+    });
+  }
+
   /// Resolves the [PokemonType] referenced by a PokeAPI type [typeUrl], or
   /// null when the URL points to a type outside the known set.
   PokemonType? _typeFromUrl(String typeUrl) =>

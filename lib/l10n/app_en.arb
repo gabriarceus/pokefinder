@@ -46,13 +46,24 @@
   "movesFilterMachine": "TM",
   "movesFilterTutor": "Tutor",
   "movesFilterEgg": "Egg",
-  "moveBadgeLevel": "Lvl {level}",
+  "moveBadgeLevel": "Lv. {level}",
   "@moveBadgeLevel": {
     "placeholders": {
-      "level": { "type": "int" }
+      "level": {
+        "type": "int"
+      }
     }
   },
   "moveBadgeTutor": "Tutor",
+  "moveDetailPower": "Power",
+  "moveDetailAccuracy": "Accuracy",
+  "moveDetailPP": "PP",
+  "moveDetailType": "Type",
+  "moveDetailClass": "Category",
+  "moveDetailEffect": "Effect",
+  "damageClassPhysical": "Physical",
+  "damageClassSpecial": "Special",
+  "damageClassStatus": "Status",
   "heldItems": "Wild Held Items",
   "heldItemsEmpty": "No wild items held",
   "rarity": "Rarity",

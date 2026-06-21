@@ -156,6 +156,33 @@ class AppLocalizationsIt extends AppLocalizations {
   String get moveBadgeTutor => 'Tutor';
 
   @override
+  String get moveDetailPower => 'Potenza';
+
+  @override
+  String get moveDetailAccuracy => 'Precisione';
+
+  @override
+  String get moveDetailPP => 'PP';
+
+  @override
+  String get moveDetailType => 'Tipo';
+
+  @override
+  String get moveDetailClass => 'Categoria';
+
+  @override
+  String get moveDetailEffect => 'Effetto';
+
+  @override
+  String get damageClassPhysical => 'Fisico';
+
+  @override
+  String get damageClassSpecial => 'Speciale';
+
+  @override
+  String get damageClassStatus => 'Stato';
+
+  @override
   String get heldItems => 'Strumenti Selvatici';
 
   @override

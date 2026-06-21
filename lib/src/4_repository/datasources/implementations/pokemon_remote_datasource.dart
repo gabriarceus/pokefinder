@@ -7,6 +7,7 @@ import 'package:pokefinder/src/4_repository/datasources/abstract/i_pokemon_remot
 import 'package:pokefinder/src/4_repository/models/raw_encounter/raw_encounter.dart';
 import 'package:pokefinder/src/4_repository/models/raw_form_details/raw_form_details.dart';
 import 'package:pokefinder/src/4_repository/models/raw_pokemon/raw_pokemon.dart';
+import 'package:pokefinder/src/4_repository/models/raw_move_detail/raw_move_detail.dart';
 import 'package:pokefinder/src/4_repository/repositories/data_repository.dart';
 import 'package:pokefinder/src/4_repository/repositories/fetch_strategy.dart';
 
@@ -86,6 +87,21 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
       return right(results
           .map((e) => (e as Map<String, dynamic>)['name'] as String)
           .toList());
+    } catch (error) {
+      return left(_mapError(error));
+    }
+  }
+
+  @override
+  Future<Either<PokemonFailure, RawMoveDetail>> getMoveDetail(
+      String name) async {
+    try {
+      final json = await _dataRepository.fetchData(
+        'https://pokeapi.co/api/v2/move/$name',
+        strategy: FetchStrategy.cacheFirst,
+        maxAge: _kDefaultMaxAge,
+      );
+      return right(RawMoveDetail.fromJson(json as Map<String, dynamic>));
     } catch (error) {
       return left(_mapError(error));
     }
