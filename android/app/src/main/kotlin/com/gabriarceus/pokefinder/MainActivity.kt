@@ -1,4 +1,4 @@
-package com.example.pokefinder
+package com.gabriarceus.pokefinder
 
 import io.flutter.embedding.android.FlutterActivity
 

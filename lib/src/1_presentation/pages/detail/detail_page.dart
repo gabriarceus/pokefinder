@@ -68,8 +68,8 @@ class _DetailState extends State<Detail> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: PokemonBlocBuilder(
-        onInitial: (_, __) => Center(child: Text(context.t().noData)),
-        onLoading: (_, __) => const DetailLoading(),
+        onInitial: (_, _) => Center(child: Text(context.t().noData)),
+        onLoading: (_, _) => const DetailLoading(),
         onFailure: (_, failure) => DetailFailure(state: failure),
         onSuccess: _buildSuccess,
       ),

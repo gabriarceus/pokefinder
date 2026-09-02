@@ -1,24 +1,19 @@
 {
+  "dart.flutterSdkPath": ".fvm/versions/3.41.0",
   "cSpell.language": "en,it-IT",
-  "cmake.sourceDirectory": "/Users/gabrielegortani/Documents/Progetti in Flutter/pokefinder-feature-22010-testing/linux",
-  "cmake.ignoreCMakeListsMissing": true,
+  "cSpell.words": [
+    "pokefinder",
+    "usecase",
+    "usecases"
+  ],
   "[dart]": {
+    "editor.formatOnSave": true,
+    "editor.suggest.showWords": false,
     "editor.codeActionsOnSave": {
       "quickFix.add.required": "explicit",
       "quickFix.add.required.multi": "explicit",
       "quickFix.create.constructorForFinalFields": "explicit",
       "source.fixAll": "explicit"
-    },
-    "files.autoSave": "off",
-    "debug.toolBarLocatoin": "commandCenter",
-    "editor.suggest.showWords": false,
-    "editor.formatOnSave": true
-  },
-  "java.configuration.updateBuildConfiguration": "interactive",
-  "dart.flutterSdkPath": ".fvm/versions/3.41.0",
-  "cSpell.words": [
-    "pokefinder",
-    "usecase",
-    "usecases"
-  ]
+    }
+  }
 }
