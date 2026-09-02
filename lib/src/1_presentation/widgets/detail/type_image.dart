@@ -30,7 +30,7 @@ class TypeImage extends StatelessWidget {
           child: Image.network(
             type,
             fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const SizedBox(),
+            errorBuilder: (_, _, _) => const SizedBox(),
           ),
         ),
       ),

@@ -46,14 +46,14 @@
     {
       "label": "Post build",
       "type": "shell",
-      "command": "dart run ${workspaceFolder}/scripts/post_build.dart",
+      "command": "fvm dart run ${workspaceFolder}/scripts/post_build.dart",
       "detail": "Run post build script",
       "problemMatcher": [],
       "hide": true
     },
     {
       "label": "(Release mode, Prod) Build Appbundle + Post build",
-      "dependsOn": ["(Release mode, Prod) Build", "Post build"],
+      "dependsOn": ["(Release mode, Prod) Build Appbundle", "Post build"],
       "dependsOrder": "sequence",
       "detail": "Build app in release mode for Prod and run post build",
       "problemMatcher": []

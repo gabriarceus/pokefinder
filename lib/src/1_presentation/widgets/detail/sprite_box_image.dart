@@ -16,7 +16,7 @@ class SpriteBoxImage extends StatelessWidget {
       child: Image.network(
         sprite,
         fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) {
+        errorBuilder: (_, _, _) {
           return const Text(":(");
         },
       ),
