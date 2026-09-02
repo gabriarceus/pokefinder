@@ -7,11 +7,7 @@ part of 'type_container.dart';
 // **************************************************************************
 
 TypeContainer _$TypeContainerFromJson(Map<String, dynamic> json) =>
-    TypeContainer(
-      type: Type.fromJson(json['type'] as Map<String, dynamic>),
-    );
+    TypeContainer(type: Type.fromJson(json['type'] as Map<String, dynamic>));
 
 Map<String, dynamic> _$TypeContainerToJson(TypeContainer instance) =>
-    <String, dynamic>{
-      'type': instance.type,
-    };
+    <String, dynamic>{'type': instance.type};

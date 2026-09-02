@@ -46,63 +46,75 @@ const String _mock = 'mock';
 const String _prod = 'prod';
 
 extension GetItInjectableX on _i174.GetIt {
-// initializes the registration of main-scope dependencies inside of GetIt
+  // initializes the registration of main-scope dependencies inside of GetIt
   _i174.GetIt init({
     String? environment,
     _i526.EnvironmentFilter? environmentFilter,
   }) {
-    final gh = _i526.GetItHelper(
-      this,
-      environment,
-      environmentFilter,
-    );
+    final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final registerModule = _$RegisterModule();
     gh.lazySingleton<_i463.EnLogger>(() => registerModule.logger);
     gh.factory<_i814.CryAudioController>(
-        () => _i883.JustAudioCryController(gh<_i463.EnLogger>()));
+      () => _i883.JustAudioCryController(gh<_i463.EnLogger>()),
+    );
     gh.lazySingleton<_i341.IPokemonRepository>(
       () => _i740.MockPokemonRepository(),
       registerFor: {_mock},
     );
     gh.factory<_i1056.LanguageCubit>(
-        () => _i1056.LanguageCubit(gh<_i463.EnLogger>()));
+      () => _i1056.LanguageCubit(gh<_i463.EnLogger>()),
+    );
     gh.lazySingleton<_i477.LocalStorage>(() => _i222.HiveLocalStorage());
     gh.lazySingleton<_i361.Dio>(() => registerModule.dio(gh<_i463.EnLogger>()));
     gh.lazySingleton<_i13.ApiClient>(
-        () => _i876.DioApiClient(dio: gh<_i361.Dio>()));
-    gh.factory<_i95.DataRepository>(() => _i95.DataRepository(
-          apiClient: gh<_i13.ApiClient>(),
-          localStorage: gh<_i477.LocalStorage>(),
-          logger: gh<_i463.EnLogger>(),
-        ));
-    gh.lazySingleton<_i725.IPokemonRemoteDataSource>(() =>
-        _i695.PokemonRemoteDataSource(
-            dataRepository: gh<_i95.DataRepository>()));
+      () => _i876.DioApiClient(dio: gh<_i361.Dio>()),
+    );
+    gh.factory<_i95.DataRepository>(
+      () => _i95.DataRepository(
+        apiClient: gh<_i13.ApiClient>(),
+        localStorage: gh<_i477.LocalStorage>(),
+        logger: gh<_i463.EnLogger>(),
+      ),
+    );
+    gh.lazySingleton<_i725.IPokemonRemoteDataSource>(
+      () => _i695.PokemonRemoteDataSource(
+        dataRepository: gh<_i95.DataRepository>(),
+      ),
+    );
     gh.lazySingleton<_i341.IPokemonRepository>(
       () => _i907.PokemonRepositoryImpl(gh<_i579.IPokemonRemoteDataSource>()),
       registerFor: {_prod},
     );
-    gh.factory<_i56.HomeBloc>(() => _i56.HomeBloc(
-          gh<_i341.IPokemonRepository>(),
-          gh<_i95.DataRepository>(),
-          gh<_i463.EnLogger>(),
-        ));
-    gh.factory<_i539.MoveDetailCubit>(() => _i539.MoveDetailCubit(
-          gh<_i768.IPokemonRepository>(),
-          gh<_i463.EnLogger>(),
-        ));
-    gh.lazySingleton<_i656.GetPokemonEncountersUseCase>(() =>
-        _i656.GetPokemonEncountersUseCase(gh<_i768.IPokemonRepository>()));
-    gh.lazySingleton<_i476.GetPokemonFormDetailsUseCase>(() =>
-        _i476.GetPokemonFormDetailsUseCase(gh<_i768.IPokemonRepository>()));
+    gh.factory<_i56.HomeBloc>(
+      () => _i56.HomeBloc(
+        gh<_i341.IPokemonRepository>(),
+        gh<_i95.DataRepository>(),
+        gh<_i463.EnLogger>(),
+      ),
+    );
+    gh.factory<_i539.MoveDetailCubit>(
+      () => _i539.MoveDetailCubit(
+        gh<_i768.IPokemonRepository>(),
+        gh<_i463.EnLogger>(),
+      ),
+    );
+    gh.lazySingleton<_i656.GetPokemonEncountersUseCase>(
+      () => _i656.GetPokemonEncountersUseCase(gh<_i768.IPokemonRepository>()),
+    );
+    gh.lazySingleton<_i476.GetPokemonFormDetailsUseCase>(
+      () => _i476.GetPokemonFormDetailsUseCase(gh<_i768.IPokemonRepository>()),
+    );
     gh.lazySingleton<_i694.GetPokemonUseCase>(
-        () => _i694.GetPokemonUseCase(gh<_i768.IPokemonRepository>()));
-    gh.factory<_i1067.PokemonBloc>(() => _i1067.PokemonBloc(
-          gh<_i694.GetPokemonUseCase>(),
-          gh<_i656.GetPokemonEncountersUseCase>(),
-          gh<_i476.GetPokemonFormDetailsUseCase>(),
-          gh<_i463.EnLogger>(),
-        ));
+      () => _i694.GetPokemonUseCase(gh<_i768.IPokemonRepository>()),
+    );
+    gh.factory<_i1067.PokemonBloc>(
+      () => _i1067.PokemonBloc(
+        gh<_i694.GetPokemonUseCase>(),
+        gh<_i656.GetPokemonEncountersUseCase>(),
+        gh<_i476.GetPokemonFormDetailsUseCase>(),
+        gh<_i463.EnLogger>(),
+      ),
+    );
     return this;
   }
 }

@@ -7,13 +7,7 @@ part of 'named_api_resource.dart';
 // **************************************************************************
 
 NamedAPIResource _$NamedAPIResourceFromJson(Map<String, dynamic> json) =>
-    NamedAPIResource(
-      name: json['name'] as String,
-      url: json['url'] as String,
-    );
+    NamedAPIResource(name: json['name'] as String, url: json['url'] as String);
 
 Map<String, dynamic> _$NamedAPIResourceToJson(NamedAPIResource instance) =>
-    <String, dynamic>{
-      'name': instance.name,
-      'url': instance.url,
-    };
+    <String, dynamic>{'name': instance.name, 'url': instance.url};
