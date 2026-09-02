@@ -20,17 +20,9 @@ class BoldLabelValue extends StatelessWidget {
             children: [
               Text(
                 '$label: ',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
               ),
-              Text(
-                value.capitalize(),
-                style: TextStyle(
-                  color: textColor,
-                ),
-              ),
+              Text(value.capitalize(), style: TextStyle(color: textColor)),
             ],
           )
         : const SizedBox();

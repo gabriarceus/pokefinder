@@ -13,10 +13,8 @@ const _prefix = 'HTTP';
 /// - Request headers and body (payload sent)
 /// - Response body (payload received)
 class LoggingInterceptor extends Interceptor {
-  LoggingInterceptor({
-    required EnLogger logger,
-    this.verbose = false,
-  }) : _logger = logger;
+  LoggingInterceptor({required EnLogger logger, this.verbose = false})
+    : _logger = logger;
 
   final EnLogger _logger;
 
@@ -35,10 +33,7 @@ class LoggingInterceptor extends Interceptor {
     _pruneStaleEntries();
     _startTimes[options] = DateTime.now();
 
-    _logger.info(
-      '→ ${options.method} ${options.uri}',
-      prefix: _prefix,
-    );
+    _logger.info('→ ${options.method} ${options.uri}', prefix: _prefix);
 
     if (verbose) {
       if (options.headers.isNotEmpty) {
@@ -54,7 +49,9 @@ class LoggingInterceptor extends Interceptor {
 
   @override
   void onResponse(
-      Response<dynamic> response, ResponseInterceptorHandler handler) {
+    Response<dynamic> response,
+    ResponseInterceptorHandler handler,
+  ) {
     final elapsed = _elapsedFor(response.requestOptions);
 
     _logger.info(
@@ -102,7 +99,8 @@ class LoggingInterceptor extends Interceptor {
   /// bounded even when a request never completes.
   void _pruneStaleEntries() {
     final now = DateTime.now();
-    _startTimes
-        .removeWhere((_, start) => now.difference(start) > _staleThreshold);
+    _startTimes.removeWhere(
+      (_, start) => now.difference(start) > _staleThreshold,
+    );
   }
 }

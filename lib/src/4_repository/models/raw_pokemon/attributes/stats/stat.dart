@@ -4,10 +4,7 @@ part 'stat.g.dart';
 
 @JsonSerializable()
 class Stat {
-  const Stat({
-    required this.name,
-    required this.url,
-  });
+  const Stat({required this.name, required this.url});
 
   final String name;
   final String url;

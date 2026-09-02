@@ -27,9 +27,9 @@ class DataRepository {
     required ApiClient apiClient,
     required LocalStorage localStorage,
     required EnLogger logger,
-  })  : _apiClient = apiClient,
-        _localStorage = localStorage,
-        _logger = logger;
+  }) : _apiClient = apiClient,
+       _localStorage = localStorage,
+       _logger = logger;
 
   final ApiClient _apiClient;
   final LocalStorage _localStorage;
@@ -78,10 +78,7 @@ class DataRepository {
 
   /// **Cache-first**: reads from cache; on miss (or expiry), fetches from
   /// network, persists the result, and returns it.
-  Future<dynamic> _cacheFirst(
-    String endpoint, {
-    Duration? maxAge,
-  }) async {
+  Future<dynamic> _cacheFirst(String endpoint, {Duration? maxAge}) async {
     _logger.debug('Attempting cache lookup for: $endpoint', prefix: prefix);
 
     final cached = await _localStorage.read(endpoint, maxAge: maxAge);
@@ -90,16 +87,20 @@ class DataRepository {
       return cached;
     }
 
-    _logger.debug('Cache miss for: $endpoint — fetching from network',
-        prefix: prefix);
+    _logger.debug(
+      'Cache miss for: $endpoint — fetching from network',
+      prefix: prefix,
+    );
     final data = await _apiClient.get(endpoint);
 
     // Persist asynchronously — do not await; the caller should not be
     // blocked by the write operation. A write failure is logged and
     // swallowed so it never affects the returned payload.
     _localStorage.write(endpoint, data).catchError((Object error) {
-      _logger.error('Failed to persist cache for: $endpoint — $error',
-          prefix: prefix);
+      _logger.error(
+        'Failed to persist cache for: $endpoint — $error',
+        prefix: prefix,
+      );
     });
 
     return data;
@@ -113,14 +114,17 @@ class DataRepository {
 
     try {
       final data = await _apiClient.get(endpoint);
-      _logger.debug('Network success for: $endpoint — persisting to cache',
-          prefix: prefix);
+      _logger.debug(
+        'Network success for: $endpoint — persisting to cache',
+        prefix: prefix,
+      );
       await _localStorage.write(endpoint, data);
       return data;
     } catch (e) {
       _logger.debug(
-          'Network request failed for: $endpoint — falling back to cache',
-          prefix: prefix);
+        'Network request failed for: $endpoint — falling back to cache',
+        prefix: prefix,
+      );
 
       final cached = await _localStorage.read(endpoint);
       if (cached != null) {
@@ -128,8 +132,10 @@ class DataRepository {
         return cached;
       }
 
-      _logger.debug('Cache fallback miss for: $endpoint — no data available',
-          prefix: prefix);
+      _logger.debug(
+        'Cache fallback miss for: $endpoint — no data available',
+        prefix: prefix,
+      );
       throw DataFetchException(
         'Failed to fetch data for "$endpoint". '
         'Network request failed and no cached data is available.',
@@ -140,13 +146,17 @@ class DataRepository {
   /// **Network-only**: always fetches from the network and persists the
   /// result to keep the cache up to date. Returns the fresh payload.
   Future<dynamic> _networkOnly(String endpoint) async {
-    _logger.debug('Performing network-only fetch for: $endpoint',
-        prefix: prefix);
+    _logger.debug(
+      'Performing network-only fetch for: $endpoint',
+      prefix: prefix,
+    );
 
     final data = await _apiClient.get(endpoint);
 
-    _logger.debug('Network success for: $endpoint — updating cache',
-        prefix: prefix);
+    _logger.debug(
+      'Network success for: $endpoint — updating cache',
+      prefix: prefix,
+    );
     await _localStorage.write(endpoint, data);
 
     return data;

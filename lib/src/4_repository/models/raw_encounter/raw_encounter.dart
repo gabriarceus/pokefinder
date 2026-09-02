@@ -26,9 +26,7 @@ class RawEncounter {
 /// Version-specific detail for an encounter entry.
 @JsonSerializable(explicitToJson: true)
 class RawEncounterVersionDetail {
-  const RawEncounterVersionDetail({
-    required this.version,
-  });
+  const RawEncounterVersionDetail({required this.version});
 
   final NamedAPIResource version;
 

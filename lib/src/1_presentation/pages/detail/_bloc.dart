@@ -35,13 +35,13 @@ class PokemonBlocBuilder extends StatelessWidget {
   });
 
   final Widget Function(BuildContext context, PokemonBlocInitial state)
-      onInitial;
+  onInitial;
   final Widget Function(BuildContext context, PokemonBlocLoading state)
-      onLoading;
+  onLoading;
   final Widget Function(BuildContext context, PokemonBlocFailure state)
-      onFailure;
+  onFailure;
   final Widget Function(BuildContext context, PokemonBlocSuccess state)
-      onSuccess;
+  onSuccess;
 
   @override
   Widget build(BuildContext context) {

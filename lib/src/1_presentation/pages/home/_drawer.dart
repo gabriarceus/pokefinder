@@ -34,10 +34,11 @@ class HomeDrawer extends StatelessWidget {
               width: double.infinity,
               color: AppPalette.brandRed,
               padding: EdgeInsets.fromLTRB(
-                  MediaQuery.of(context).size.width * 0.05,
-                  MediaQuery.of(context).padding.top,
-                  0,
-                  20),
+                MediaQuery.of(context).size.width * 0.05,
+                MediaQuery.of(context).padding.top,
+                0,
+                20,
+              ),
               child: Text(
                 context.t().settings,
                 style: const TextStyle(

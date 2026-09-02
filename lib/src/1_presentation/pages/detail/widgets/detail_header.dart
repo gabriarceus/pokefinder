@@ -83,11 +83,7 @@ class DetailHeader extends StatelessWidget {
               ),
               const Spacer(),
               // Sprite on the right
-              SizedBox(
-                width: 160,
-                height: 160,
-                child: spriteWidget,
-              ),
+              SizedBox(width: 160, height: 160, child: spriteWidget),
             ],
           ),
         ],

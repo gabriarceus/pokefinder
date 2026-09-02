@@ -22,10 +22,8 @@ class DetailMovesTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => DetailMovesCubit(
-        moves: pokemon.moves,
-        logger: getIt<EnLogger>(),
-      ),
+      create: (_) =>
+          DetailMovesCubit(moves: pokemon.moves, logger: getIt<EnLogger>()),
       child: BlocBuilder<DetailMovesCubit, DetailMovesState>(
         builder: (context, state) {
           final cubit = context.read<DetailMovesCubit>();
@@ -41,7 +39,9 @@ class DetailMovesTab extends StatelessWidget {
                     Text(
                       context.t().gameSelectorLabel,
                       style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 13),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -50,7 +50,9 @@ class DetailMovesTab extends StatelessWidget {
                         isExpanded: true,
                         decoration: InputDecoration(
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -130,14 +132,16 @@ class DetailMovesTab extends StatelessWidget {
                         itemCount: state.filteredMoves.length,
                         itemBuilder: (context, index) {
                           final move = state.filteredMoves[index];
-                          final capitalizedName =
-                              context.translateMove(move.name);
+                          final capitalizedName = context.translateMove(
+                            move.name,
+                          );
 
-                          final learnDetail =
-                              switch (LearnMethod.fromApi(move.learnMethod)) {
-                            LearnMethod.levelUp => context
-                                .t()
-                                .moveBadgeLevel(level: move.levelLearnedAt),
+                          final learnDetail = switch (LearnMethod.fromApi(
+                            move.learnMethod,
+                          )) {
+                            LearnMethod.levelUp => context.t().moveBadgeLevel(
+                              level: move.levelLearnedAt,
+                            ),
                             LearnMethod.machine =>
                               context.t().movesFilterMachine,
                             LearnMethod.tutor => context.t().moveBadgeTutor,
@@ -150,20 +154,27 @@ class DetailMovesTab extends StatelessWidget {
                             margin: const EdgeInsets.symmetric(vertical: 4),
                             child: ListTile(
                               onTap: () {
-                                MoveDetailBottomSheet.show(context, move.name, capitalizedName);
+                                MoveDetailBottomSheet.show(
+                                  context,
+                                  move.name,
+                                  capitalizedName,
+                                );
                               },
                               title: Text(
                                 capitalizedName,
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               trailing: Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .primaryColor
-                                      .withValues(alpha: 0.1),
+                                  color: Theme.of(
+                                    context,
+                                  ).primaryColor.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(

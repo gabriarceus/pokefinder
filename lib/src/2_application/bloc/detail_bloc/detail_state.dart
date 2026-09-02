@@ -101,12 +101,12 @@ final class PokemonBlocSuccess extends PokemonBlocState {
 
   @override
   List<Object?> get props => [
-        pokemon,
-        selectedFormDetails,
-        encounters,
-        isLoadingForm,
-        isLoadingEncounters,
-        formFailure,
-        encountersFailure,
-      ];
+    pokemon,
+    selectedFormDetails,
+    encounters,
+    isLoadingForm,
+    isLoadingEncounters,
+    formFailure,
+    encountersFailure,
+  ];
 }

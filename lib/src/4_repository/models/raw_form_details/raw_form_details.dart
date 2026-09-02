@@ -27,10 +27,7 @@ class RawFormDetails {
 /// Sprite URLs for a Pokémon form.
 @JsonSerializable()
 class RawFormSprites {
-  const RawFormSprites({
-    required this.frontDefault,
-    required this.frontShiny,
-  });
+  const RawFormSprites({required this.frontDefault, required this.frontShiny});
 
   @JsonKey(name: 'front_default')
   final String frontDefault;

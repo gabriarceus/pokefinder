@@ -84,8 +84,10 @@ class _HomePageState extends State<HomePage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppPalette.brandRed,
                       ),
-                      child: Text(AppLocalizations.of(context).searchButton,
-                          style: const TextStyle(color: AppPalette.onBrandRed)),
+                      child: Text(
+                        AppLocalizations.of(context).searchButton,
+                        style: const TextStyle(color: AppPalette.onBrandRed),
+                      ),
                     ),
                   ],
                 ),

@@ -5,9 +5,7 @@ part 'type_container.g.dart';
 
 @JsonSerializable()
 class TypeContainer {
-  const TypeContainer({
-    required this.type,
-  });
+  const TypeContainer({required this.type});
 
   final Type type;
 

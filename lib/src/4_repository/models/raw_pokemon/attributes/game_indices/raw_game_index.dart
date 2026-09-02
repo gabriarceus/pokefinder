@@ -5,10 +5,7 @@ part 'raw_game_index.g.dart';
 
 @JsonSerializable()
 class RawGameIndex {
-  const RawGameIndex({
-    required this.gameIndex,
-    required this.version,
-  });
+  const RawGameIndex({required this.gameIndex, required this.version});
 
   @JsonKey(name: 'game_index')
   final int gameIndex;

@@ -6,10 +6,8 @@ import 'package:pokefinder/src/2_application/bloc/move_detail_cubit/move_detail_
 
 @injectable
 class MoveDetailCubit extends Cubit<MoveDetailState> {
-  MoveDetailCubit(
-    this._pokemonRepository,
-    this._logger,
-  ) : super(MoveDetailInitial());
+  MoveDetailCubit(this._pokemonRepository, this._logger)
+    : super(MoveDetailInitial());
 
   final IPokemonRepository _pokemonRepository;
   final EnLogger _logger;
@@ -19,7 +17,9 @@ class MoveDetailCubit extends Cubit<MoveDetailState> {
     final result = await _pokemonRepository.getMoveDetail(moveName);
     result.fold(
       (failure) {
-        _logger.error('Failed to fetch move detail for $moveName: ${failure.message}');
+        _logger.error(
+          'Failed to fetch move detail for $moveName: ${failure.message}',
+        );
         emit(MoveDetailError(failure.message));
       },
       (moveDetail) {

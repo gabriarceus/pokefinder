@@ -6,10 +6,7 @@ import 'package:pokefinder/src/2_application/application.dart';
 const _kSadAzurillAsset = 'assets/images/sad_azurill.png';
 
 class DetailFailure extends StatelessWidget {
-  const DetailFailure({
-    super.key,
-    required this.state,
-  });
+  const DetailFailure({super.key, required this.state});
 
   final PokemonBlocFailure state;
 
@@ -28,9 +25,7 @@ class DetailFailure extends StatelessWidget {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => context.go('/'),
-                child: Text(
-                  AppLocalizations.of(context).backButton,
-                ),
+                child: Text(AppLocalizations.of(context).backButton),
               ),
             ],
           ),
@@ -39,10 +34,7 @@ class DetailFailure extends StatelessWidget {
           bottom: 0,
           left: 0,
           right: 0,
-          child: Image.asset(
-            _kSadAzurillAsset,
-            scale: 2,
-          ),
+          child: Image.asset(_kSadAzurillAsset, scale: 2),
         ),
       ],
     );

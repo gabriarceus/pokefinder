@@ -62,7 +62,8 @@ class HiveLocalStorage implements LocalStorage {
 
     // If maxAge is specified, check whether the entry has expired.
     if (maxAge != null && storedAt != null) {
-      final age = DateTime.now().millisecondsSinceEpoch -
+      final age =
+          DateTime.now().millisecondsSinceEpoch -
           storedAt; // could be a problem in future testing
       if (age > maxAge.inMilliseconds) return null;
     }

@@ -17,20 +17,25 @@ class Language {
   /// IETF region subtag (e.g. `US`), or `null` when unspecified.
   final String? countryCode;
 
-  static const Language system =
-      Language(id: -1, description: 'System', nativeName: '');
+  static const Language system = Language(
+    id: -1,
+    description: 'System',
+    nativeName: '',
+  );
   static const Language english = Language(
-      id: 0,
-      description: 'ENG',
-      nativeName: 'English',
-      languageCode: 'en',
-      countryCode: 'US');
+    id: 0,
+    description: 'ENG',
+    nativeName: 'English',
+    languageCode: 'en',
+    countryCode: 'US',
+  );
   static const Language italian = Language(
-      id: 1,
-      description: 'ITA',
-      nativeName: 'Italiano',
-      languageCode: 'it',
-      countryCode: 'IT');
+    id: 1,
+    description: 'ITA',
+    nativeName: 'Italiano',
+    languageCode: 'it',
+    countryCode: 'IT',
+  );
 
   /// All languages the user can manually select.
   static const List<Language> selectable = [english, italian];

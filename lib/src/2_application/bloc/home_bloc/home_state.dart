@@ -49,11 +49,11 @@ final class HomeBlocState extends Equatable {
 
   @override
   List<Object?> get props => [
-        userInput,
-        navigateToDetail,
-        cacheCleared,
-        allPokemonNames,
-        searchSuggestions,
-        failure
-      ];
+    userInput,
+    navigateToDetail,
+    cacheCleared,
+    allPokemonNames,
+    searchSuggestions,
+    failure,
+  ];
 }

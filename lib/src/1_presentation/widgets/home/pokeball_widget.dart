@@ -13,15 +13,16 @@ class PokeBallWidget extends StatelessWidget {
   final bool willChange;
   final Widget? child;
 
-  const PokeBallWidget(
-      {super.key,
-      required this.color,
-      this.opacity,
-      this.foregroundPainter,
-      this.size = Size.zero,
-      this.isComplex = false,
-      this.willChange = false,
-      this.child});
+  const PokeBallWidget({
+    super.key,
+    required this.color,
+    this.opacity,
+    this.foregroundPainter,
+    this.size = Size.zero,
+    this.isComplex = false,
+    this.willChange = false,
+    this.child,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -63,19 +64,22 @@ class PokeBallPainter extends CustomPainter {
     final centerCircleRadius = minSize / 8;
 
     canvas.saveLayer(
-        Rect.fromCenter(center: centerOffset, width: minSize, height: minSize),
-        Paint());
+      Rect.fromCenter(center: centerOffset, width: minSize, height: minSize),
+      Paint(),
+    );
     // Draw the outside circle
     canvas.drawCircle(centerOffset, minSize / 2, mainPaint);
     // Draw the parts to remove
     canvas.drawLine(
-        Offset(0, size.height / 2),
-        Offset(size.width / 2 - centerCircleRadius - padding, size.height / 2),
-        linePaintToRemove);
+      Offset(0, size.height / 2),
+      Offset(size.width / 2 - centerCircleRadius - padding, size.height / 2),
+      linePaintToRemove,
+    );
     canvas.drawLine(
-        Offset(size.width / 2 + centerCircleRadius + padding, size.height / 2),
-        Offset(size.width, size.height / 2),
-        linePaintToRemove);
+      Offset(size.width / 2 + centerCircleRadius + padding, size.height / 2),
+      Offset(size.width, size.height / 2),
+      linePaintToRemove,
+    );
     // Draw the middle circle with the same stroke as the rectangles
     canvas.drawCircle(centerOffset, centerCircleRadius + padding, circlePaint);
     canvas.restore();

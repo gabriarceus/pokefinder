@@ -34,9 +34,7 @@ class Sprites {
 
 @JsonSerializable(explicitToJson: true)
 class SpritesOther {
-  const SpritesOther({
-    required this.officialArtwork,
-  });
+  const SpritesOther({required this.officialArtwork});
 
   @JsonKey(name: 'official-artwork')
   final OfficialArtwork officialArtwork;
@@ -49,10 +47,7 @@ class SpritesOther {
 
 @JsonSerializable()
 class OfficialArtwork {
-  const OfficialArtwork({
-    required this.frontDefault,
-    required this.frontShiny,
-  });
+  const OfficialArtwork({required this.frontDefault, required this.frontShiny});
 
   @JsonKey(name: 'front_default')
   final String frontDefault;

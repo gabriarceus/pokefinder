@@ -170,11 +170,14 @@ class _EncountersSection extends StatelessWidget {
               runSpacing: 4,
               children: encounter.versions.map((version) {
                 return Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color:
-                        Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                    color: Theme.of(
+                      context,
+                    ).primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -233,16 +236,20 @@ class _HeldItemsSection extends StatelessWidget {
             itemCount: pokemon.heldItems.length,
             itemBuilder: (context, index) {
               final item = pokemon.heldItems[index];
-              final capitalizedItem =
-                  item.name.replaceAll('-', ' ').toUpperCase();
+              final capitalizedItem = item.name
+                  .replaceAll('-', ' ')
+                  .toUpperCase();
               return SurfaceCard(
                 borderRadius: 12,
                 child: ListTile(
                   leading: const Icon(Icons.gif_box_outlined),
-                  title: Text(capitalizedItem,
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Text(
+                    capitalizedItem,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   subtitle: Text(
-                      '${context.t().versionLabel}: ${context.translateGameVersion(item.version)}'),
+                    '${context.t().versionLabel}: ${context.translateGameVersion(item.version)}',
+                  ),
                   trailing: Text(
                     '${item.rarity}%',
                     style: TextStyle(

@@ -4,10 +4,7 @@ part 'named_api_resource.g.dart';
 
 @JsonSerializable()
 class NamedAPIResource {
-  const NamedAPIResource({
-    required this.name,
-    required this.url,
-  });
+  const NamedAPIResource({required this.name, required this.url});
 
   final String name;
   final String url;

@@ -4,10 +4,7 @@ part 'cries.g.dart';
 
 @JsonSerializable()
 class Cries {
-  const Cries({
-    required this.latest,
-    required this.legacy,
-  });
+  const Cries({required this.latest, required this.legacy});
 
   @JsonKey(name: 'latest')
   final String latest;

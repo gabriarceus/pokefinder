@@ -7,10 +7,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       iconTheme: const IconThemeData(color: Colors.white),
-      title: const Text(
-        'PokéFinder',
-        style: TextStyle(color: Colors.white),
-      ),
+      title: const Text('PokéFinder', style: TextStyle(color: Colors.white)),
       backgroundColor: Colors.red,
     );
   }

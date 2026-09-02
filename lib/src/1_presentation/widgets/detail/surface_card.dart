@@ -25,10 +25,9 @@ class SurfaceCard extends StatelessWidget {
     return Card(
       elevation: 0,
       margin: margin,
-      color: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withValues(alpha: alpha),
+      color: Theme.of(
+        context,
+      ).colorScheme.surfaceContainerHighest.withValues(alpha: alpha),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(borderRadius),
       ),

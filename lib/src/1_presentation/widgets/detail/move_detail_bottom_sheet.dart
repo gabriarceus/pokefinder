@@ -18,7 +18,11 @@ class MoveDetailBottomSheet extends StatelessWidget {
   final String moveName;
   final String capitalizedName;
 
-  static void show(BuildContext context, String moveName, String capitalizedName) {
+  static void show(
+    BuildContext context,
+    String moveName,
+    String capitalizedName,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -35,10 +39,9 @@ class MoveDetailBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => MoveDetailCubit(
-        getIt(),
-        getIt<EnLogger>(),
-      )..fetchMoveDetail(moveName),
+      create: (context) =>
+          MoveDetailCubit(getIt(), getIt<EnLogger>())
+            ..fetchMoveDetail(moveName),
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -57,7 +60,8 @@ class MoveDetailBottomSheet extends StatelessWidget {
               const SizedBox(height: 24),
               BlocBuilder<MoveDetailCubit, MoveDetailState>(
                 builder: (context, state) {
-                  if (state is MoveDetailLoading || state is MoveDetailInitial) {
+                  if (state is MoveDetailLoading ||
+                      state is MoveDetailInitial) {
                     return const Center(
                       child: Padding(
                         padding: EdgeInsets.all(32.0),
@@ -97,16 +101,17 @@ class _MoveDetailContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.t();
     final locale = Localizations.localeOf(context).languageCode;
-    
-    final typeName = moveDetail.type != null 
-        ? context.translateType(moveDetail.type!.apiName) 
+
+    final typeName = moveDetail.type != null
+        ? context.translateType(moveDetail.type!.apiName)
         : '-';
 
-    final damageClassName = context.translateDamageClass(moveDetail.damageClass);
+    final damageClassName = context.translateDamageClass(
+      moveDetail.damageClass,
+    );
 
-    final effectText = moveDetail.flavorTexts[locale] 
-        ?? moveDetail.flavorTexts['en'] 
-        ?? '-';
+    final effectText =
+        moveDetail.flavorTexts[locale] ?? moveDetail.flavorTexts['en'] ?? '-';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -123,18 +128,24 @@ class _MoveDetailContent extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _StatBadge(label: t.moveDetailPower, value: moveDetail.power?.toString() ?? '-'),
-            _StatBadge(label: t.moveDetailAccuracy, value: moveDetail.accuracy?.toString() ?? '-'),
-            _StatBadge(label: t.moveDetailPP, value: moveDetail.pp?.toString() ?? '-'),
+            _StatBadge(
+              label: t.moveDetailPower,
+              value: moveDetail.power?.toString() ?? '-',
+            ),
+            _StatBadge(
+              label: t.moveDetailAccuracy,
+              value: moveDetail.accuracy?.toString() ?? '-',
+            ),
+            _StatBadge(
+              label: t.moveDetailPP,
+              value: moveDetail.pp?.toString() ?? '-',
+            ),
           ],
         ),
         const SizedBox(height: 24),
         Text(
           t.moveDetailEffect,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         const SizedBox(height: 8),
         Text(

@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 
 class TypeColorScheme {
-  const TypeColorScheme({
-    required this.type1,
-    this.type2,
-  });
+  const TypeColorScheme({required this.type1, this.type2});
 
   final PokemonType? type1;
   final PokemonType? type2;
@@ -73,8 +70,9 @@ class TypeColorScheme {
   Color lighten(Color color, [double amount = .1]) {
     assert(amount >= 0 && amount <= 1);
     final hsl = HSLColor.fromColor(color);
-    final hslLight =
-        hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0));
+    final hslLight = hsl.withLightness(
+      (hsl.lightness + amount).clamp(0.0, 1.0),
+    );
     return hslLight.toColor();
   }
 

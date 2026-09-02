@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
 class SpriteBoxImage extends StatelessWidget {
-  const SpriteBoxImage({
-    super.key,
-    required this.sprite,
-  });
+  const SpriteBoxImage({super.key, required this.sprite});
 
   final String sprite;
 

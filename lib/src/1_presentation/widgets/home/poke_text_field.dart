@@ -37,25 +37,25 @@ class PokeTextField extends StatelessWidget {
       },
       fieldViewBuilder:
           (context, fieldController, focusNode, onFieldSubmitted) {
-        return TextField(
-          controller: fieldController,
-          focusNode: focusNode,
-          decoration: InputDecoration(
-            border: const OutlineInputBorder(
-              borderSide: BorderSide(color: textFieldBorderColor),
-            ),
-            enabledBorder: const OutlineInputBorder(
-              borderSide: BorderSide(color: textFieldBorderColor),
-            ),
-            focusedBorder: const OutlineInputBorder(
-              borderSide: BorderSide(color: textFieldBorderColor),
-            ),
-            labelText: AppLocalizations.of(context).searchTextField,
-            labelStyle: const TextStyle(color: textFieldTextColor),
-          ),
-          onChanged: onChanged,
-        );
-      },
+            return TextField(
+              controller: fieldController,
+              focusNode: focusNode,
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(
+                  borderSide: BorderSide(color: textFieldBorderColor),
+                ),
+                enabledBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: textFieldBorderColor),
+                ),
+                focusedBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: textFieldBorderColor),
+                ),
+                labelText: AppLocalizations.of(context).searchTextField,
+                labelStyle: const TextStyle(color: textFieldTextColor),
+              ),
+              onChanged: onChanged,
+            );
+          },
       optionsViewBuilder: (context, onSelected, options) {
         return Align(
           alignment: Alignment.topLeft,

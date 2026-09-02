@@ -3,9 +3,7 @@ part 'ability.g.dart';
 
 @JsonSerializable()
 class Ability {
-  const Ability({
-    required this.name,
-  });
+  const Ability({required this.name});
 
   final String name;
 

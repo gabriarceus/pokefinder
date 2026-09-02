@@ -8,7 +8,8 @@ Pokemon buildPokemon({
   String sprite = 'sprite.png',
   PokemonType? type1 = PokemonType.grass,
   PokemonType? type2,
-  String locationAreaEncounters = 'https://pokeapi.co/api/v2/pokemon/1/encounters',
+  String locationAreaEncounters =
+      'https://pokeapi.co/api/v2/pokemon/1/encounters',
   List<PokemonForm> forms = const [],
   List<PokemonMove> moves = const [],
   String? spriteFrontShiny,

@@ -25,13 +25,13 @@ class MoveDetail extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        accuracy,
-        power,
-        pp,
-        type,
-        damageClass,
-        flavorTexts,
-      ];
+    id,
+    name,
+    accuracy,
+    power,
+    pp,
+    type,
+    damageClass,
+    flavorTexts,
+  ];
 }

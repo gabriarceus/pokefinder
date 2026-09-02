@@ -65,8 +65,10 @@ void main() {
       cubit.updateSelectedVersionGroup('platinum', 'en');
 
       expect(cubit.state.selectedVersionGroup, 'platinum');
-      expect(cubit.state.availableMethods,
-          [DetailMovesCubit.allMethodsFilter, 'egg']);
+      expect(cubit.state.availableMethods, [
+        DetailMovesCubit.allMethodsFilter,
+        'egg',
+      ]);
       expect(cubit.state.filteredMoves.map((m) => m.name), ['wish']);
 
       cubit.close();

@@ -62,8 +62,12 @@ void main() {
     getPokemon = _MockGetPokemonUseCase();
     getEncounters = _MockGetPokemonEncountersUseCase();
     getFormDetails = _MockGetPokemonFormDetailsUseCase();
-    bloc = PokemonBloc(getPokemon, getEncounters, getFormDetails,
-        _MockEnLogger());
+    bloc = PokemonBloc(
+      getPokemon,
+      getEncounters,
+      getFormDetails,
+      _MockEnLogger(),
+    );
 
     when(() => getEncounters(any())).thenAnswer((_) async => right(const []));
   });
@@ -88,8 +92,9 @@ void main() {
     });
 
     test('emits loading then failure when the fetch fails', () async {
-      when(() => getPokemon(any()))
-          .thenAnswer((_) async => left(const BadRequestFailure()));
+      when(
+        () => getPokemon(any()),
+      ).thenAnswer((_) async => left(const BadRequestFailure()));
 
       final emitted = <PokemonBlocState>[];
       final subscription = bloc.stream.listen(emitted.add);
@@ -104,85 +109,96 @@ void main() {
       ]);
     });
 
-    test('emits loading, then success with the default form selected',
-        () async {
-      final pokemon = buildPokemon(
-        name: 'venusaur',
-        spriteFrontShiny: 'shiny.png',
-        officialArtworkDefault: 'art.png',
-      );
-      when(() => getPokemon(any())).thenAnswer((_) async => right(pokemon));
+    test(
+      'emits loading, then success with the default form selected',
+      () async {
+        final pokemon = buildPokemon(
+          name: 'venusaur',
+          spriteFrontShiny: 'shiny.png',
+          officialArtworkDefault: 'art.png',
+        );
+        when(() => getPokemon(any())).thenAnswer((_) async => right(pokemon));
 
-      final emitted = <PokemonBlocState>[];
-      final subscription = bloc.stream.listen(emitted.add);
+        final emitted = <PokemonBlocState>[];
+        final subscription = bloc.stream.listen(emitted.add);
 
-      bloc.add(FetchPokemonEvent('venusaur'));
-      await pumpEventQueue();
-      await subscription.cancel();
+        bloc.add(FetchPokemonEvent('venusaur'));
+        await pumpEventQueue();
+        await subscription.cancel();
 
-      expect(emitted.first, PokemonBlocLoading());
-      final firstSuccess = emitted[1] as PokemonBlocSuccess;
-      expect(firstSuccess.pokemon, pokemon);
-      expect(firstSuccess.isLoadingEncounters, isTrue);
-      expect(firstSuccess.selectedFormDetails,
-          PokemonFormDetails.fromPokemon(pokemon));
-    });
+        expect(emitted.first, PokemonBlocLoading());
+        final firstSuccess = emitted[1] as PokemonBlocSuccess;
+        expect(firstSuccess.pokemon, pokemon);
+        expect(firstSuccess.isLoadingEncounters, isTrue);
+        expect(
+          firstSuccess.selectedFormDetails,
+          PokemonFormDetails.fromPokemon(pokemon),
+        );
+      },
+    );
 
     test('loads encounters in the background after the Pokémon', () async {
-      when(() => getEncounters(any()))
-          .thenAnswer((_) async => right(_encounters));
+      when(
+        () => getEncounters(any()),
+      ).thenAnswer((_) async => right(_encounters));
 
       final state = await fetchSuccessfully(buildPokemon());
 
       expect(state.isLoadingEncounters, isFalse);
       expect(state.encounters, _encounters);
       expect(state.encountersFailure, isNull);
-      verify(() => getEncounters(
-          'https://pokeapi.co/api/v2/pokemon/1/encounters')).called(1);
+      verify(
+        () => getEncounters('https://pokeapi.co/api/v2/pokemon/1/encounters'),
+      ).called(1);
     });
 
-    test('an encounters failure is surfaced without losing the Pokémon',
-        () async {
-      when(() => getEncounters(any()))
-          .thenAnswer((_) async => left(const UnexpectedFailure('boom')));
+    test(
+      'an encounters failure is surfaced without losing the Pokémon',
+      () async {
+        when(
+          () => getEncounters(any()),
+        ).thenAnswer((_) async => left(const UnexpectedFailure('boom')));
 
-      final state = await fetchSuccessfully(buildPokemon(name: 'venusaur'));
+        final state = await fetchSuccessfully(buildPokemon(name: 'venusaur'));
 
-      expect(state.pokemon.name, 'venusaur');
-      expect(state.isLoadingEncounters, isFalse);
-      expect(state.encountersFailure, const UnexpectedFailure('boom'));
-    });
+        expect(state.pokemon.name, 'venusaur');
+        expect(state.isLoadingEncounters, isFalse);
+        expect(state.encountersFailure, const UnexpectedFailure('boom'));
+      },
+    );
 
-    test('a stale encounters response does not overwrite a newer Pokémon',
-        () async {
-      final first = buildPokemon(id: 1, name: 'bulbasaur');
-      final second = buildPokemon(id: 2, name: 'ivysaur');
+    test(
+      'a stale encounters response does not overwrite a newer Pokémon',
+      () async {
+        final first = buildPokemon(id: 1, name: 'bulbasaur');
+        final second = buildPokemon(id: 2, name: 'ivysaur');
 
-      final staleEncounters =
-          Completer<Either<PokemonFailure, List<PokemonEncounter>>>();
-      var encountersCall = 0;
-      when(() => getEncounters(any())).thenAnswer((_) {
-        encountersCall++;
-        return encountersCall == 1
-            ? staleEncounters.future
-            : Future.value(right(const []));
-      });
+        final staleEncounters =
+            Completer<Either<PokemonFailure, List<PokemonEncounter>>>();
+        var encountersCall = 0;
+        when(() => getEncounters(any())).thenAnswer((_) {
+          encountersCall++;
+          return encountersCall == 1
+              ? staleEncounters.future
+              : Future.value(right(const []));
+        });
 
-      when(() => getPokemon(any())).thenAnswer((_) async => right(first));
-      bloc.add(FetchPokemonEvent('bulbasaur'));
-      await pumpEventQueue();
+        when(() => getPokemon(any())).thenAnswer((_) async => right(first));
+        bloc.add(FetchPokemonEvent('bulbasaur'));
+        await pumpEventQueue();
 
-      when(() => getPokemon(any())).thenAnswer((_) async => right(second));
-      bloc.add(FetchPokemonEvent('ivysaur'));
-      await pumpEventQueue();
+        when(() => getPokemon(any())).thenAnswer((_) async => right(second));
+        bloc.add(FetchPokemonEvent('ivysaur'));
+        await pumpEventQueue();
 
-      staleEncounters.complete(right(_encounters));
-      await pumpEventQueue();
+        staleEncounters.complete(right(_encounters));
+        await pumpEventQueue();
 
-      final state = bloc.state as PokemonBlocSuccess;
-      expect(state.pokemon.id, 2);
-      expect(state.encounters, isEmpty);
-    });
+        final state = bloc.state as PokemonBlocSuccess;
+        expect(state.pokemon.id, 2);
+        expect(state.encounters, isEmpty);
+      },
+    );
   });
 
   group('switching form', () {
@@ -195,15 +211,17 @@ void main() {
     });
 
     test('loads the details of a non-default form', () async {
-      await fetchSuccessfully(buildPokemon(name: 'venusaur', forms: [
-        _megaForm,
-      ]));
-      when(() => getFormDetails(_megaForm.url))
-          .thenAnswer((_) async => right(_megaDetails));
+      await fetchSuccessfully(
+        buildPokemon(name: 'venusaur', forms: [_megaForm]),
+      );
+      when(
+        () => getFormDetails(_megaForm.url),
+      ).thenAnswer((_) async => right(_megaDetails));
 
       final emitted = <PokemonBlocSuccess>[];
-      final subscription =
-          bloc.stream.cast<PokemonBlocSuccess>().listen(emitted.add);
+      final subscription = bloc.stream.cast<PokemonBlocSuccess>().listen(
+        emitted.add,
+      );
 
       bloc.add(SelectPokemonFormEvent(_megaForm));
       await pumpEventQueue();
@@ -215,42 +233,57 @@ void main() {
       expect(emitted.last.formFailure, isNull);
     });
 
-    test('a form failure is surfaced and the previous selection is kept',
-        () async {
-      final pokemon = buildPokemon(name: 'venusaur', forms: [_megaForm]);
-      await fetchSuccessfully(pokemon);
-      when(() => getFormDetails(any()))
-          .thenAnswer((_) async => left(const UnexpectedFailure('nope')));
+    test(
+      'a form failure is surfaced and the previous selection is kept',
+      () async {
+        final pokemon = buildPokemon(name: 'venusaur', forms: [_megaForm]);
+        await fetchSuccessfully(pokemon);
+        when(
+          () => getFormDetails(any()),
+        ).thenAnswer((_) async => left(const UnexpectedFailure('nope')));
 
-      bloc.add(SelectPokemonFormEvent(_megaForm));
-      await pumpEventQueue();
+        bloc.add(SelectPokemonFormEvent(_megaForm));
+        await pumpEventQueue();
 
-      final state = bloc.state as PokemonBlocSuccess;
-      expect(state.isLoadingForm, isFalse);
-      expect(state.formFailure, const UnexpectedFailure('nope'));
-      expect(state.selectedFormDetails,
-          PokemonFormDetails.fromPokemon(pokemon));
-    });
+        final state = bloc.state as PokemonBlocSuccess;
+        expect(state.isLoadingForm, isFalse);
+        expect(state.formFailure, const UnexpectedFailure('nope'));
+        expect(
+          state.selectedFormDetails,
+          PokemonFormDetails.fromPokemon(pokemon),
+        );
+      },
+    );
 
-    test('reselecting the base form restores it without a network call',
-        () async {
-      final pokemon = buildPokemon(name: 'venusaur', forms: [_megaForm]);
-      await fetchSuccessfully(pokemon);
-      when(() => getFormDetails(any()))
-          .thenAnswer((_) async => right(_megaDetails));
+    test(
+      'reselecting the base form restores it without a network call',
+      () async {
+        final pokemon = buildPokemon(name: 'venusaur', forms: [_megaForm]);
+        await fetchSuccessfully(pokemon);
+        when(
+          () => getFormDetails(any()),
+        ).thenAnswer((_) async => right(_megaDetails));
 
-      bloc.add(SelectPokemonFormEvent(_megaForm));
-      await pumpEventQueue();
-      expect((bloc.state as PokemonBlocSuccess).selectedFormDetails,
-          _megaDetails);
+        bloc.add(SelectPokemonFormEvent(_megaForm));
+        await pumpEventQueue();
+        expect(
+          (bloc.state as PokemonBlocSuccess).selectedFormDetails,
+          _megaDetails,
+        );
 
-      bloc.add(SelectPokemonFormEvent(
-          PokemonForm(name: pokemon.name, url: 'ignored')));
-      await pumpEventQueue();
+        bloc.add(
+          SelectPokemonFormEvent(
+            PokemonForm(name: pokemon.name, url: 'ignored'),
+          ),
+        );
+        await pumpEventQueue();
 
-      expect((bloc.state as PokemonBlocSuccess).selectedFormDetails,
-          PokemonFormDetails.fromPokemon(pokemon));
-      verify(() => getFormDetails(any())).called(1);
-    });
+        expect(
+          (bloc.state as PokemonBlocSuccess).selectedFormDetails,
+          PokemonFormDetails.fromPokemon(pokemon),
+        );
+        verify(() => getFormDetails(any())).called(1);
+      },
+    );
   });
 }

@@ -41,19 +41,25 @@ void main() {
     });
 
     test(
-        'copyWith(encountersFailure: null) zeroes a non-null encountersFailure',
-        () {
-      final state = PokemonBlocSuccess(
-        pokemon: _fakePokemon,
-        encountersFailure: UnexpectedFailure('oops'),
-      );
-      expect(state.copyWith(encountersFailure: null).encountersFailure, isNull);
-    });
+      'copyWith(encountersFailure: null) zeroes a non-null encountersFailure',
+      () {
+        final state = PokemonBlocSuccess(
+          pokemon: _fakePokemon,
+          encountersFailure: UnexpectedFailure('oops'),
+        );
+        expect(
+          state.copyWith(encountersFailure: null).encountersFailure,
+          isNull,
+        );
+      },
+    );
 
     test('copyWith() without failure args preserves existing failures', () {
       final failure = BadRequestFailure();
-      final state =
-          PokemonBlocSuccess(pokemon: _fakePokemon, formFailure: failure);
+      final state = PokemonBlocSuccess(
+        pokemon: _fakePokemon,
+        formFailure: failure,
+      );
       expect(state.copyWith(isLoadingForm: false).formFailure, same(failure));
     });
   });
