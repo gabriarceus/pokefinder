@@ -9,6 +9,27 @@
       "problemMatcher": []
     },
     {
+      "label": "Verify",
+      "type": "shell",
+      "command": "./scripts/verify.sh",
+      "detail": "Run every quality gate: format, analyze, tests",
+      "problemMatcher": []
+    },
+    {
+      "label": "Format",
+      "type": "shell",
+      "command": "fvm dart format lib test scripts",
+      "detail": "Format project sources",
+      "problemMatcher": []
+    },
+    {
+      "label": "Coverage",
+      "type": "shell",
+      "command": "./scripts/coverage.sh",
+      "detail": "Run tests with coverage and report total line coverage",
+      "problemMatcher": []
+    },
+    {
       "label": "Translations",
       "type": "shell",
       "command": "fvm flutter gen-l10n",
@@ -18,7 +39,7 @@
     {
       "label": "Codegen",
       "type": "shell",
-      "command": "fvm dart run build_runner watch --delete-conflicting-outputs",
+      "command": "fvm dart run build_runner watch",
       "detail": "Run project codegen",
       "problemMatcher": []
     },

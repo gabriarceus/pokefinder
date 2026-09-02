@@ -9,11 +9,12 @@ around a clean, layered architecture.
 
 ## Features
 
-- Search a Pokémon by name from the home screen
+- Search a Pokémon by name, with autocomplete suggestions
 - Detail screen with tabs: info, stats, moves, items & games
+- Move detail sheet, and switching between a Pokémon's alternate forms
+- Plays the Pokémon cry
 - Switch the app language (English / Italian, or follow the system)
-- Real or mock data source, selected at startup via dependency injection
-- Offline caching of API responses
+- Offline caching of API responses, with a per-request cache strategy
 
 ## Tools used
 
@@ -40,6 +41,17 @@ lib/src/
 └── 4_repository/     data sources, repository implementations, API models
 ```
 
+### Flavors and DI environments
+
+Two build flavors are configured, `dev` and `prod` (Android product flavors and
+matching Xcode schemes), differing in application id suffix and display name. Every
+`flutter run` and `flutter build` invocation must pass one of them.
+
+Dependency injection has a separate notion of environment: `Environment.prod` wires the
+real PokeAPI repository, `'mock'` wires `MockPokemonRepository`. `bootstrap()` currently
+selects `Environment.prod` unconditionally, so the build flavor does not change which
+data source is used.
+
 ## Getting started
 
 ```bash
@@ -50,11 +62,28 @@ fvm install
 fvm flutter pub get
 
 # 3. Generate code (DI, JSON models) and translations
-fvm dart run build_runner build --delete-conflicting-outputs
+fvm dart run build_runner build
 fvm flutter gen-l10n
 
-# 4. Run the app
-fvm flutter run
+# 4. Run the app (a flavor is always required)
+fvm flutter run --flavor dev
 ```
 
-Run the tests with `fvm flutter test`.
+## Quality checks
+
+`scripts/verify.sh` runs every gate — formatting, static analysis, tests — and is the
+single entry point to check the project is healthy:
+
+```bash
+./scripts/verify.sh
+```
+
+The individual commands, and test coverage:
+
+```bash
+fvm dart format lib test scripts   # apply formatting
+fvm flutter analyze                # static analysis
+fvm flutter test                   # tests
+./scripts/coverage.sh              # tests with total line coverage
+./scripts/coverage.sh 60           # ...and fail below the given percentage
+```
