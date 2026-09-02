@@ -6,16 +6,56 @@ All notable changes to this project will be documented in this file, following t
 
 ### Added
 
-- _(TBD)_ New features to be released.
-- _(TBD)_ Improvements and enhancements.
+- `scripts/verify.sh`, running every quality gate (format, analysis, tests).
+- `scripts/coverage.sh`, reporting total line coverage with an optional minimum.
 
 ### Changed
 
-- _(TBD)_ Major refactors or breaking API changes.
+- Applied the Dart tall-style formatter across `lib`, `test` and `scripts`.
+- Aligned `README.md` and `CLAUDE.md` with the current codebase.
+- Upgraded dependencies within their existing constraints.
+
+## [1.0.0-rc1] - 2026-09-02
+
+### Added
+
+- Detail screen with a tabbed layout: info, stats, moves, items & games.
+- Autocomplete suggestions while typing a Pokémon name.
+- Move detail sheet, and selection of alternate forms and shiny sprites.
+- Pokémon cry playback, behind a `CryAudioController` domain abstraction.
+- Pokémon stats with computed minimum and maximum values.
+- Encounter locations, held items and game indices.
+- Hive-backed local storage, and a feature-agnostic `DataRepository` exposing
+  `cacheFirst`, `networkFirst` and `networkOnly` fetch strategies.
+- Italian translation databases for abilities, moves and locations, with a
+  translation helper.
+- Language selection from the settings drawer, and a clear-cache action.
+- Typed `json_serializable` models for the PokeAPI payloads.
+- Mock repository, registered under its own dependency injection environment.
+- Test suite covering domain helpers, blocs, repositories and widgets.
+
+### Changed
+
+- Restructured the project into numbered Clean Architecture layers.
+- Replaced `http` with `dio`, adding a logging interceptor for API calls.
+- Replaced stringly-typed errors with a sealed `PokemonFailure` carried through
+  bloc states, mapping HTTP status codes to typed failures.
+- Replaced magic strings with enums: `StatKind`, `LearnMethod`, `PokemonType`.
+- Split the monolithic detail page into per-tab widgets and shared components.
+- Upgraded the pinned Flutter SDK and the project dependencies.
 
 ### Fixed
 
-- _(TBD)_ Bug fixes and minor tweaks.
+- iOS playback of `.ogg` cries, using media_kit as the audio backend.
+- Internet permission missing in release builds.
+- Resource leaks, network and cache robustness, and search input normalization.
+- Bloc not provided to the form selection bottom sheet.
+- Pokémon name shown when displaying alternate forms.
+
+### Removed
+
+- `http` dependency, superseded by `dio`.
+- Unknown form entry from the API fetch.
 
 ## [0.1.0] - 2025-04-25
 
