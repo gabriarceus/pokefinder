@@ -32,14 +32,14 @@ class DetailMovesState extends Equatable {
 
   @override
   List<Object?> get props => [
-        searchQuery,
-        selectedMethod,
-        selectedVersionGroup,
-        filteredMoves,
-        allMoves,
-        versionGroups,
-        availableMethods,
-      ];
+    searchQuery,
+    selectedMethod,
+    selectedVersionGroup,
+    filteredMoves,
+    allMoves,
+    versionGroups,
+    availableMethods,
+  ];
 
   DetailMovesState copyWith({
     String? searchQuery,
@@ -65,11 +65,9 @@ class DetailMovesState extends Equatable {
 /// Cubit that filters and sorts a Pokémon's moves by version group,
 /// learn method, and search query.
 class DetailMovesCubit extends Cubit<DetailMovesState> {
-  DetailMovesCubit({
-    required List<PokemonMove> moves,
-    required EnLogger logger,
-  })  : _logger = logger,
-        super(_initialState(moves)) {
+  DetailMovesCubit({required List<PokemonMove> moves, required EnLogger logger})
+    : _logger = logger,
+      super(_initialState(moves)) {
     _filterMoves();
   }
 
@@ -109,7 +107,9 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
 
   /// Learn-method options for [versionGroup], with [allMethodsFilter] first.
   static List<String> _availableMethodsFor(
-      List<PokemonMove> moves, String? versionGroup) {
+    List<PokemonMove> moves,
+    String? versionGroup,
+  ) {
     if (versionGroup == null) return const [allMethodsFilter];
     final methods = moves
         .where((m) => m.versionGroup == versionGroup)
@@ -132,16 +132,19 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
   void updateSelectedVersionGroup(String versionGroup, String languageCode) {
     _logger.info('Version group changed to "$versionGroup"', prefix: _prefix);
     final availableMethods = _availableMethodsFor(state.allMoves, versionGroup);
-    final selectedMethod = state.selectedMethod != allMethodsFilter &&
+    final selectedMethod =
+        state.selectedMethod != allMethodsFilter &&
             !availableMethods.contains(state.selectedMethod)
         ? allMethodsFilter
         : state.selectedMethod;
 
-    emit(state.copyWith(
-      selectedVersionGroup: versionGroup,
-      availableMethods: availableMethods,
-      selectedMethod: selectedMethod,
-    ));
+    emit(
+      state.copyWith(
+        selectedVersionGroup: versionGroup,
+        availableMethods: availableMethods,
+        selectedMethod: selectedMethod,
+      ),
+    );
 
     _filterMoves(languageCode: languageCode);
   }
@@ -163,7 +166,7 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
 
       final matchesSearch =
           move.name.toLowerCase().contains(state.searchQuery.toLowerCase()) ||
-              translatedName.contains(state.searchQuery.toLowerCase());
+          translatedName.contains(state.searchQuery.toLowerCase());
 
       if (!matchesSearch) continue;
       if (state.selectedMethod != allMethodsFilter &&

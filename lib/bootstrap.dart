@@ -21,15 +21,10 @@ abstract class RegisterModule {
   @lazySingleton
   EnLogger get logger {
     final printer = PrinterHandler()
-      ..configure({
-        Severity.notice: const PrinterColor.green(),
-      });
+      ..configure({Severity.notice: const PrinterColor.green()});
 
     return EnLogger(
-      defaultPrefixFormat: const PrefixFormat(
-        startFormat: '[',
-        endFormat: ']',
-      ),
+      defaultPrefixFormat: const PrefixFormat(startFormat: '[', endFormat: ']'),
     )..addHandler(printer);
   }
 
@@ -41,10 +36,9 @@ abstract class RegisterModule {
         receiveTimeout: const Duration(seconds: 15),
       ),
     );
-    dio.interceptors.add(LoggingInterceptor(
-      logger: logger,
-      verbose: kDebugMode,
-    ));
+    dio.interceptors.add(
+      LoggingInterceptor(logger: logger, verbose: kDebugMode),
+    );
     return dio;
   }
 }

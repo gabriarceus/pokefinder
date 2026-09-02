@@ -12,8 +12,9 @@ void main() {
   }
 
   group('TypeImage', () {
-    testWidgets('renders nothing when the type sprite url is empty',
-        (tester) async {
+    testWidgets('renders nothing when the type sprite url is empty', (
+      tester,
+    ) async {
       await pumpInApp(tester, const TypeImage(type: ''));
 
       expect(find.byType(Image), findsNothing);

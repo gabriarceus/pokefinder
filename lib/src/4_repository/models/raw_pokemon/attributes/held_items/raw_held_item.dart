@@ -5,10 +5,7 @@ part 'raw_held_item.g.dart';
 
 @JsonSerializable()
 class RawHeldItem {
-  const RawHeldItem({
-    required this.item,
-    required this.versionDetails,
-  });
+  const RawHeldItem({required this.item, required this.versionDetails});
 
   final NamedAPIResource item;
 
@@ -23,10 +20,7 @@ class RawHeldItem {
 
 @JsonSerializable()
 class RawHeldItemVersionDetail {
-  const RawHeldItemVersionDetail({
-    required this.rarity,
-    required this.version,
-  });
+  const RawHeldItemVersionDetail({required this.rarity, required this.version});
 
   final int rarity;
   final NamedAPIResource version;

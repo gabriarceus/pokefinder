@@ -13,67 +13,67 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         locale: locale,
-        home: Scaffold(
-          body: Builder(builder: builder),
-        ),
+        home: Scaffold(body: Builder(builder: builder)),
       );
     }
 
     testWidgets(
-        'Translates abilities to Italian and falls back to default formatting in English',
-        (tester) async {
-      // Italian Locale
-      await tester.pumpWidget(
-        buildTestWidget(
-          locale: const Locale('it'),
-          builder: (context) {
-            return Text(context.translateAbility('skill-link'));
-          },
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('Abillegame'), findsOneWidget);
+      'Translates abilities to Italian and falls back to default formatting in English',
+      (tester) async {
+        // Italian Locale
+        await tester.pumpWidget(
+          buildTestWidget(
+            locale: const Locale('it'),
+            builder: (context) {
+              return Text(context.translateAbility('skill-link'));
+            },
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Abillegame'), findsOneWidget);
 
-      // English Locale (should format default)
-      await tester.pumpWidget(
-        buildTestWidget(
-          locale: const Locale('en'),
-          builder: (context) {
-            return Text(context.translateAbility('skill-link'));
-          },
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('Skill Link'), findsOneWidget);
-    });
+        // English Locale (should format default)
+        await tester.pumpWidget(
+          buildTestWidget(
+            locale: const Locale('en'),
+            builder: (context) {
+              return Text(context.translateAbility('skill-link'));
+            },
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Skill Link'), findsOneWidget);
+      },
+    );
 
     testWidgets(
-        'Translates moves to Italian and falls back to default formatting in English',
-        (tester) async {
-      // Italian Locale
-      await tester.pumpWidget(
-        buildTestWidget(
-          locale: const Locale('it'),
-          builder: (context) {
-            return Text(context.translateMove('skill-swap'));
-          },
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('Baratto'), findsOneWidget);
+      'Translates moves to Italian and falls back to default formatting in English',
+      (tester) async {
+        // Italian Locale
+        await tester.pumpWidget(
+          buildTestWidget(
+            locale: const Locale('it'),
+            builder: (context) {
+              return Text(context.translateMove('skill-swap'));
+            },
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Baratto'), findsOneWidget);
 
-      // English Locale
-      await tester.pumpWidget(
-        buildTestWidget(
-          locale: const Locale('en'),
-          builder: (context) {
-            return Text(context.translateMove('skill-swap'));
-          },
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('Skill Swap'), findsOneWidget);
-    });
+        // English Locale
+        await tester.pumpWidget(
+          buildTestWidget(
+            locale: const Locale('en'),
+            builder: (context) {
+              return Text(context.translateMove('skill-swap'));
+            },
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Skill Swap'), findsOneWidget);
+      },
+    );
 
     testWidgets('Translates location routes to Italian', (tester) async {
       await tester.pumpWidget(
@@ -90,29 +90,32 @@ void main() {
     });
 
     testWidgets(
-        'Translates non-route locations using database lookup in Italian',
-        (tester) async {
-      await tester.pumpWidget(
-        buildTestWidget(
-          locale: const Locale('it'),
-          builder: (context) {
-            return Text(context.translateLocation('abandoned-ship'));
-          },
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('Vecchia Nave'), findsOneWidget);
-    });
+      'Translates non-route locations using database lookup in Italian',
+      (tester) async {
+        await tester.pumpWidget(
+          buildTestWidget(
+            locale: const Locale('it'),
+            builder: (context) {
+              return Text(context.translateLocation('abandoned-ship'));
+            },
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Vecchia Nave'), findsOneWidget);
+      },
+    );
 
-    testWidgets('Translates game versions using AppLocalizations',
-        (tester) async {
+    testWidgets('Translates game versions using AppLocalizations', (
+      tester,
+    ) async {
       // Italian Locale
       await tester.pumpWidget(
         buildTestWidget(
           locale: const Locale('it'),
           builder: (context) {
             return Text(
-                context.translateGameVersion('omega-ruby-alpha-sapphire'));
+              context.translateGameVersion('omega-ruby-alpha-sapphire'),
+            );
           },
         ),
       );
@@ -125,7 +128,8 @@ void main() {
           locale: const Locale('en'),
           builder: (context) {
             return Text(
-                context.translateGameVersion('omega-ruby-alpha-sapphire'));
+              context.translateGameVersion('omega-ruby-alpha-sapphire'),
+            );
           },
         ),
       );

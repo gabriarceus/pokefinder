@@ -39,20 +39,24 @@ class LanguageState extends Equatable {
 @injectable
 class LanguageCubit extends HydratedCubit<LanguageState> {
   LanguageCubit(this._logger)
-      : super(LanguageState(
+    : super(
+        LanguageState(
           languageId: Language.system.id,
           lastManualLanguageId: Language.english.id,
-        ));
+        ),
+      );
 
   final EnLogger _logger;
   static const _prefix = 'LanguageCubit';
 
   void setLanguage(int language) {
     _logger.info('Setting language to $language', prefix: _prefix);
-    emit(LanguageState(
-      languageId: language,
-      lastManualLanguageId: state.lastManualLanguageId,
-    ));
+    emit(
+      LanguageState(
+        languageId: language,
+        lastManualLanguageId: state.lastManualLanguageId,
+      ),
+    );
   }
 
   /// Switches to system language, remembering the current manual choice.
@@ -61,10 +65,12 @@ class LanguageCubit extends HydratedCubit<LanguageState> {
     final lastManual = state.languageId != Language.system.id
         ? state.languageId
         : state.lastManualLanguageId;
-    emit(LanguageState(
-      languageId: Language.system.id,
-      lastManualLanguageId: lastManual,
-    ));
+    emit(
+      LanguageState(
+        languageId: Language.system.id,
+        lastManualLanguageId: lastManual,
+      ),
+    );
   }
 
   /// Restores the last manually chosen language.
@@ -73,10 +79,12 @@ class LanguageCubit extends HydratedCubit<LanguageState> {
       'Disabling system language, restoring last manual language: ${state.lastManualLanguageId}',
       prefix: _prefix,
     );
-    emit(LanguageState(
-      languageId: state.lastManualLanguageId,
-      lastManualLanguageId: state.lastManualLanguageId,
-    ));
+    emit(
+      LanguageState(
+        languageId: state.lastManualLanguageId,
+        lastManualLanguageId: state.lastManualLanguageId,
+      ),
+    );
   }
 
   @override
@@ -92,7 +100,7 @@ class LanguageCubit extends HydratedCubit<LanguageState> {
 
   @override
   Map<String, dynamic> toJson(LanguageState state) => {
-        _languageKey: state.languageId,
-        _lastManualLanguageKey: state.lastManualLanguageId,
-      };
+    _languageKey: state.languageId,
+    _lastManualLanguageKey: state.lastManualLanguageId,
+  };
 }

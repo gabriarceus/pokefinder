@@ -37,8 +37,9 @@ class MockPokemonRepository implements IPokemonRepository {
             'https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/legacy/1.ogg',
         forms: [
           PokemonForm(
-              name: 'bulbasaur',
-              url: 'https://pokeapi.co/api/v2/pokemon-form/1/')
+            name: 'bulbasaur',
+            url: 'https://pokeapi.co/api/v2/pokemon-form/1/',
+          ),
         ],
         gameIndices: ['red', 'blue'],
         speciesName: 'bulbasaur',
@@ -65,7 +66,8 @@ class MockPokemonRepository implements IPokemonRepository {
 
   @override
   Future<Either<PokemonFailure, PokemonFormDetails>> getFormDetails(
-      String url) async {
+    String url,
+  ) async {
     return const Right(
       PokemonFormDetails(
         name: 'bulbasaur',
@@ -89,7 +91,8 @@ class MockPokemonRepository implements IPokemonRepository {
 
   @override
   Future<Either<PokemonFailure, List<PokemonEncounter>>> getEncounters(
-      String url) async {
+    String url,
+  ) async {
     return const Right([
       PokemonEncounter(
         locationAreaName: 'Kanto Route 1 Area',
@@ -101,8 +104,13 @@ class MockPokemonRepository implements IPokemonRepository {
 
   @override
   Future<Either<PokemonFailure, List<String>>> getAllPokemonNames() async {
-    return const Right(
-        ['bulbasaur', 'ivysaur', 'venusaur', 'charmander', 'pikachu']);
+    return const Right([
+      'bulbasaur',
+      'ivysaur',
+      'venusaur',
+      'charmander',
+      'pikachu',
+    ]);
   }
 
   @override

@@ -29,17 +29,12 @@ class HomePageProvider extends StatelessWidget {
 }
 
 class HomeBlocBuilder extends StatelessWidget {
-  const HomeBlocBuilder({
-    super.key,
-    required this.builder,
-  });
+  const HomeBlocBuilder({super.key, required this.builder});
 
   final Widget Function(BuildContext context, HomeBlocState state) builder;
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HomeBloc, HomeBlocState>(
-      builder: builder,
-    );
+    return BlocBuilder<HomeBloc, HomeBlocState>(builder: builder);
   }
 }

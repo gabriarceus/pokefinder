@@ -38,54 +38,70 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
   final EnLogger _logger;
 
   FutureOr<void> onFetchPokemon(
-      FetchPokemonEvent event, Emitter<PokemonBlocState> emit) async {
+    FetchPokemonEvent event,
+    Emitter<PokemonBlocState> emit,
+  ) async {
     final name = PokemonName(event.pokemonName);
     if (!name.isValid()) {
       return;
     }
     emit(PokemonBlocLoading());
-    _logger.info('Fetching data for Pokemon: ${name.rightOrCrash()}',
-        prefix: _prefix);
-    final Either<PokemonFailure, Pokemon> result =
-        await _getPokemonUseCase(name);
+    _logger.info(
+      'Fetching data for Pokemon: ${name.rightOrCrash()}',
+      prefix: _prefix,
+    );
+    final Either<PokemonFailure, Pokemon> result = await _getPokemonUseCase(
+      name,
+    );
 
     await result.fold(
       (failure) async {
-        _logger.error('Failed to fetch Pokemon: ${failure.message}',
-            prefix: _prefix);
+        _logger.error(
+          'Failed to fetch Pokemon: ${failure.message}',
+          prefix: _prefix,
+        );
         emit(PokemonBlocFailure(failure));
       },
       (pokemon) async {
-        _logger.info('Successfully fetched Pokemon: ${pokemon.name}',
-            prefix: _prefix);
+        _logger.info(
+          'Successfully fetched Pokemon: ${pokemon.name}',
+          prefix: _prefix,
+        );
 
         final defaultFormDetails = PokemonFormDetails.fromPokemon(pokemon);
 
-        emit(PokemonBlocSuccess(
-          pokemon: pokemon,
-          selectedFormDetails: defaultFormDetails,
-          isLoadingEncounters: true,
-        ));
+        emit(
+          PokemonBlocSuccess(
+            pokemon: pokemon,
+            selectedFormDetails: defaultFormDetails,
+            isLoadingEncounters: true,
+          ),
+        );
 
         // Fetch location area encounters in the background
-        final encountersResult =
-            await _getPokemonEncountersUseCase(pokemon.locationAreaEncounters);
+        final encountersResult = await _getPokemonEncountersUseCase(
+          pokemon.locationAreaEncounters,
+        );
 
         final currentState = state;
         if (currentState is PokemonBlocSuccess &&
             currentState.pokemon.id == pokemon.id) {
           encountersResult.fold(
             (failure) {
-              emit(currentState.copyWith(
-                isLoadingEncounters: false,
-                encountersFailure: failure,
-              ));
+              emit(
+                currentState.copyWith(
+                  isLoadingEncounters: false,
+                  encountersFailure: failure,
+                ),
+              );
             },
             (encounters) {
-              emit(currentState.copyWith(
-                isLoadingEncounters: false,
-                encounters: encounters,
-              ));
+              emit(
+                currentState.copyWith(
+                  isLoadingEncounters: false,
+                  encounters: encounters,
+                ),
+              );
             },
           );
         }
@@ -94,18 +110,23 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
   }
 
   FutureOr<void> onSelectPokemonForm(
-      SelectPokemonFormEvent event, Emitter<PokemonBlocState> emit) async {
+    SelectPokemonFormEvent event,
+    Emitter<PokemonBlocState> emit,
+  ) async {
     final currentState = state;
     if (currentState is! PokemonBlocSuccess) return;
 
     if (event.form.name == currentState.pokemon.name) {
-      final defaultFormDetails =
-          PokemonFormDetails.fromPokemon(currentState.pokemon);
-      emit(currentState.copyWith(
-        selectedFormDetails: defaultFormDetails,
-        isLoadingForm: false,
-        formFailure: null,
-      ));
+      final defaultFormDetails = PokemonFormDetails.fromPokemon(
+        currentState.pokemon,
+      );
+      emit(
+        currentState.copyWith(
+          selectedFormDetails: defaultFormDetails,
+          isLoadingForm: false,
+          formFailure: null,
+        ),
+      );
       return;
     }
 
@@ -118,17 +139,16 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
 
     result.fold(
       (failure) {
-        emit(updatedState.copyWith(
-          isLoadingForm: false,
-          formFailure: failure,
-        ));
+        emit(updatedState.copyWith(isLoadingForm: false, formFailure: failure));
       },
       (details) {
-        emit(updatedState.copyWith(
-          selectedFormDetails: details,
-          isLoadingForm: false,
-          formFailure: null,
-        ));
+        emit(
+          updatedState.copyWith(
+            selectedFormDetails: details,
+            isLoadingForm: false,
+            formFailure: null,
+          ),
+        );
       },
     );
   }

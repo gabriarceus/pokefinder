@@ -54,8 +54,9 @@ void main() {
       expect(reportedInputs.last, 'Pikachu');
     });
 
-    testWidgets('shows no suggestions below the two-character threshold',
-        (tester) async {
+    testWidgets('shows no suggestions below the two-character threshold', (
+      tester,
+    ) async {
       await pumpField(tester, const ['pikachu', 'pidgey']);
 
       await tester.enterText(find.byType(TextField), 'p');
@@ -82,8 +83,9 @@ void main() {
       expect(visibleSuggestions(), hasLength(5));
     });
 
-    testWidgets('tapping a suggestion commits it to the field and the caller',
-        (tester) async {
+    testWidgets('tapping a suggestion commits it to the field and the caller', (
+      tester,
+    ) async {
       await pumpField(tester, const ['pikachu', 'pidgey']);
 
       await tester.enterText(find.byType(TextField), 'pi');

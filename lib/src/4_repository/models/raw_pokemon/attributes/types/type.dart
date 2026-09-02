@@ -4,9 +4,7 @@ part 'type.g.dart';
 
 @JsonSerializable()
 class Type {
-  const Type({
-    required this.url,
-  });
+  const Type({required this.url});
 
   final String url;
 

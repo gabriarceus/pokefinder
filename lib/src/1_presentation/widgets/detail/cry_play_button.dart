@@ -40,15 +40,19 @@ class CryPlayButton extends StatelessWidget {
         return SurfaceCard(
           alpha: 0.3,
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12.0,
+              vertical: 4.0,
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   label,
                   style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 13),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
                 ),
                 if (mode == CryButtonMode.loading)
                   const Padding(
@@ -61,15 +65,12 @@ class CryPlayButton extends StatelessWidget {
                   )
                 else
                   IconButton(
-                    icon: Icon(
-                      switch (mode) {
-                        CryButtonMode.stop => Icons.stop_rounded,
-                        CryButtonMode.replay => Icons.replay_rounded,
-                        CryButtonMode.play => Icons.play_arrow_rounded,
-                        CryButtonMode.loading => Icons.play_arrow_rounded,
-                      },
-                      color: Theme.of(context).primaryColor,
-                    ),
+                    icon: Icon(switch (mode) {
+                      CryButtonMode.stop => Icons.stop_rounded,
+                      CryButtonMode.replay => Icons.replay_rounded,
+                      CryButtonMode.play => Icons.play_arrow_rounded,
+                      CryButtonMode.loading => Icons.play_arrow_rounded,
+                    }, color: Theme.of(context).primaryColor),
                     onPressed: () => controller.toggle(cryUrl),
                   ),
               ],

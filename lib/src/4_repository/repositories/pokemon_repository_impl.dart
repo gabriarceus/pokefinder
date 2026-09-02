@@ -57,28 +57,38 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     final stats = rawPokemon.stats.map((s) => s.baseStat).toList();
 
     final abilities = rawPokemon.abilities
-        .map((a) => PokemonAbility(
-              name: a.ability.name,
-              isHidden: a.isHidden,
-              slot: a.slot,
-            ))
+        .map(
+          (a) => PokemonAbility(
+            name: a.ability.name,
+            isHidden: a.isHidden,
+            slot: a.slot,
+          ),
+        )
         .toList();
 
     final heldItems = rawPokemon.heldItems
-        .expand((item) => item.versionDetails.map((detail) => PokemonHeldItem(
+        .expand(
+          (item) => item.versionDetails.map(
+            (detail) => PokemonHeldItem(
               name: item.item.name,
               rarity: detail.rarity,
               version: detail.version.name,
-            )))
+            ),
+          ),
+        )
         .toList();
 
     final moves = rawPokemon.moves
-        .expand((m) => m.versionGroupDetails.map((detail) => PokemonMove(
+        .expand(
+          (m) => m.versionGroupDetails.map(
+            (detail) => PokemonMove(
               name: m.move.name,
               levelLearnedAt: detail.levelLearnedAt,
               learnMethod: detail.moveLearnMethod.name,
               versionGroup: detail.versionGroup.name,
-            )))
+            ),
+          ),
+        )
         .toList();
 
     return Pokemon(
@@ -123,28 +133,32 @@ class PokemonRepositoryImpl implements IPokemonRepository {
 
   @override
   Future<Either<PokemonFailure, PokemonFormDetails>> getFormDetails(
-      String url) async {
+    String url,
+  ) async {
     try {
       final result = await _remoteDataSource.getFormDetails(url);
       return result.flatMap((raw) {
         final type1 = _typeFromUrl(raw.types.first.type.url);
-        final type2 =
-            raw.types.length > 1 ? _typeFromUrl(raw.types[1].type.url) : null;
+        final type2 = raw.types.length > 1
+            ? _typeFromUrl(raw.types[1].type.url)
+            : null;
         final typeImage1 = _typeSpriteUrl(type1);
         final typeImage2 = _typeSpriteUrl(type2);
         final artworkDefault = _officialArtworkUrl(raw.id);
         final artworkShiny = _officialArtworkUrl(raw.id, shiny: true);
-        return right(PokemonFormDetails(
-          name: raw.name,
-          type1: type1,
-          type2: type2,
-          typeImage1: typeImage1,
-          typeImage2: typeImage2,
-          spriteDefault: raw.sprites.frontDefault,
-          spriteShiny: raw.sprites.frontShiny,
-          artworkDefault: artworkDefault,
-          artworkShiny: artworkShiny,
-        ));
+        return right(
+          PokemonFormDetails(
+            name: raw.name,
+            type1: type1,
+            type2: type2,
+            typeImage1: typeImage1,
+            typeImage2: typeImage2,
+            spriteDefault: raw.sprites.frontDefault,
+            spriteShiny: raw.sprites.frontShiny,
+            artworkDefault: artworkDefault,
+            artworkShiny: artworkShiny,
+          ),
+        );
       });
     } catch (e) {
       return left(UnexpectedFailure(e.toString()));
@@ -153,19 +167,23 @@ class PokemonRepositoryImpl implements IPokemonRepository {
 
   @override
   Future<Either<PokemonFailure, List<PokemonEncounter>>> getEncounters(
-      String url) async {
+    String url,
+  ) async {
     try {
       final result = await _remoteDataSource.getEncounters(url);
-      return result.map((rawList) => rawList.map((encounter) {
-            final rawLocationName = encounter.locationArea.name;
-            final versions =
-                encounter.versionDetails.map((d) => d.version.name).toList();
-            return PokemonEncounter(
-              locationAreaName: rawLocationName.toDisplayCase(),
-              rawLocationAreaName: rawLocationName,
-              versions: versions,
-            );
-          }).toList());
+      return result.map(
+        (rawList) => rawList.map((encounter) {
+          final rawLocationName = encounter.locationArea.name;
+          final versions = encounter.versionDetails
+              .map((d) => d.version.name)
+              .toList();
+          return PokemonEncounter(
+            locationAreaName: rawLocationName.toDisplayCase(),
+            rawLocationAreaName: rawLocationName,
+            versions: versions,
+          );
+        }).toList(),
+      );
     } catch (e) {
       return left(UnexpectedFailure(e.toString()));
     }

@@ -28,8 +28,9 @@ void main() {
 
   /// Seeds the name list the autocomplete suggestions are derived from.
   Future<void> seedNames(List<String> names) async {
-    when(() => pokemonRepository.getAllPokemonNames())
-        .thenAnswer((_) async => right(names));
+    when(
+      () => pokemonRepository.getAllPokemonNames(),
+    ).thenAnswer((_) async => right(names));
     bloc.add(FetchAllPokemonNamesEvent());
     await pumpEventQueue();
   }
@@ -82,8 +83,9 @@ void main() {
 
   group('name list loading', () {
     test('a failure leaves the state untouched', () async {
-      when(() => pokemonRepository.getAllPokemonNames())
-          .thenAnswer((_) async => left(const UnexpectedFailure('offline')));
+      when(
+        () => pokemonRepository.getAllPokemonNames(),
+      ).thenAnswer((_) async => left(const UnexpectedFailure('offline')));
 
       final initialState = bloc.state;
       bloc.add(FetchAllPokemonNamesEvent());
@@ -138,20 +140,23 @@ void main() {
   });
 
   group('cache clearing', () {
-    test('clears the cache and raises then lowers the confirmation flag',
-        () async {
-      when(() => dataRepository.clearCache()).thenAnswer((_) async {});
+    test(
+      'clears the cache and raises then lowers the confirmation flag',
+      () async {
+        when(() => dataRepository.clearCache()).thenAnswer((_) async {});
 
-      final emitted = <bool>[];
-      final subscription =
-          bloc.stream.listen((state) => emitted.add(state.cacheCleared));
+        final emitted = <bool>[];
+        final subscription = bloc.stream.listen(
+          (state) => emitted.add(state.cacheCleared),
+        );
 
-      bloc.add(ClearCacheEvent());
-      await pumpEventQueue();
-      await subscription.cancel();
+        bloc.add(ClearCacheEvent());
+        await pumpEventQueue();
+        await subscription.cancel();
 
-      verify(() => dataRepository.clearCache()).called(1);
-      expect(emitted, [true, false]);
-    });
+        verify(() => dataRepository.clearCache()).called(1);
+        expect(emitted, [true, false]);
+      },
+    );
   });
 }

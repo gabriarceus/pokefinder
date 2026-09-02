@@ -15,7 +15,7 @@ const _prefix = 'HomeBloc';
 @injectable
 class HomeBloc extends Bloc<HomeBlocEvent, HomeBlocState> {
   HomeBloc(this._pokemonRepository, this._dataRepository, this._logger)
-      : super(HomeBlocState.initial()) {
+    : super(HomeBlocState.initial()) {
     on<UserInputEvent>((event, emit) {
       _logger.info('User input: ${event.userInput}', prefix: _prefix);
 
@@ -28,35 +28,38 @@ class HomeBloc extends Bloc<HomeBlocEvent, HomeBlocState> {
             .toList();
       }
 
-      emit(state.copyWith(
-        userInput: event.userInput,
-        searchSuggestions: suggestions,
-        failure: null,
-      ));
+      emit(
+        state.copyWith(
+          userInput: event.userInput,
+          searchSuggestions: suggestions,
+          failure: null,
+        ),
+      );
     });
 
     on<FetchAllPokemonNamesEvent>((event, emit) async {
       final result = await _pokemonRepository.getAllPokemonNames();
       result.fold(
-        (failure) => _logger.error('Failed to fetch pokemon names: $failure',
-            prefix: _prefix),
+        (failure) => _logger.error(
+          'Failed to fetch pokemon names: $failure',
+          prefix: _prefix,
+        ),
         (names) => emit(state.copyWith(allPokemonNames: names)),
       );
     });
 
     on<IsButtonPressedEvent>((event, emit) {
-      _logger.info('Search button pressed with input: ${state.userInput}',
-          prefix: _prefix);
+      _logger.info(
+        'Search button pressed with input: ${state.userInput}',
+        prefix: _prefix,
+      );
       final name = PokemonName(state.userInput);
       if (name.isValid()) {
         emit(state.copyWith(navigateToDetail: true, failure: null));
       } else {
         final failure = name.value.fold((l) => l, (r) => null);
         if (failure != null) {
-          emit(state.copyWith(
-            navigateToDetail: false,
-            failure: failure,
-          ));
+          emit(state.copyWith(navigateToDetail: false, failure: failure));
         }
       }
     });

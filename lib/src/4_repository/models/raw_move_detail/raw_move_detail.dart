@@ -35,10 +35,7 @@ class RawMoveDetail {
 
 @JsonSerializable(explicitToJson: true)
 class RawFlavorTextEntry {
-  const RawFlavorTextEntry({
-    required this.flavorText,
-    required this.language,
-  });
+  const RawFlavorTextEntry({required this.flavorText, required this.language});
 
   @JsonKey(name: 'flavor_text')
   final String flavorText;

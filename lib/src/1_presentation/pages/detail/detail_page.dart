@@ -37,7 +37,11 @@ class _DetailState extends State<Detail> {
   }
 
   void _showFormSelectionBottomSheet(
-      BuildContext context, Pokemon pokemon, Color typeColor, Color textColor) {
+    BuildContext context,
+    Pokemon pokemon,
+    Color typeColor,
+    Color textColor,
+  ) {
     final bloc = context.read<PokemonBloc>();
     showModalBottomSheet(
       context: context,
@@ -92,15 +96,14 @@ class _DetailState extends State<Detail> {
       length: 4,
       child: Scaffold(
         extendBodyBehindAppBar: true,
-        appBar: const DetailAppBar(
-          backgroundColor: Colors.transparent,
-        ),
+        appBar: const DetailAppBar(backgroundColor: Colors.transparent),
         body: Container(
           decoration: backgroundHelper.getBackgroundDecoration(),
           child: Column(
             children: [
               SizedBox(
-                  height: MediaQuery.of(context).padding.top + kToolbarHeight),
+                height: MediaQuery.of(context).padding.top + kToolbarHeight,
+              ),
               DetailHeader(
                 selectedFormName: formDetails.name,
                 pokemonId: pokemon.id,
@@ -124,7 +127,11 @@ class _DetailState extends State<Detail> {
                   success: success,
                   showShiny: _showShiny,
                   onFormTap: () => _showFormSelectionBottomSheet(
-                      context, pokemon, typeColor, textColor),
+                    context,
+                    pokemon,
+                    typeColor,
+                    textColor,
+                  ),
                 ),
               ),
             ],
@@ -193,14 +200,8 @@ class _DetailContentCard extends StatelessWidget {
                     typeColor: typeColor,
                     onFormTap: onFormTap,
                   ),
-                  DetailStatsTab(
-                    pokemon: pokemon,
-                    textColor: tabTextColor,
-                  ),
-                  DetailMovesTab(
-                    pokemon: pokemon,
-                    textColor: tabTextColor,
-                  ),
+                  DetailStatsTab(pokemon: pokemon, textColor: tabTextColor),
+                  DetailMovesTab(pokemon: pokemon, textColor: tabTextColor),
                   DetailItemsGamesTab(
                     pokemon: pokemon,
                     textColor: tabTextColor,
@@ -258,31 +259,15 @@ class _DetailTabBar extends StatelessWidget {
           color: effectiveColor.withValues(alpha: 0.15),
         ),
         labelColor: effectiveColor,
-        labelStyle: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-        ),
-        unselectedLabelColor: Theme.of(context)
-            .textTheme
-            .bodyMedium
-            ?.color
-            ?.withValues(alpha: 0.5),
-        unselectedLabelStyle: const TextStyle(
-          fontSize: 11,
-        ),
+        labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+        unselectedLabelColor: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
+        unselectedLabelStyle: const TextStyle(fontSize: 11),
         tabs: [
-          Tab(
-            text: context.t().tabInfo,
-            icon: const Icon(Icons.info_outline),
-          ),
-          Tab(
-            text: context.t().tabStats,
-            icon: const Icon(Icons.bar_chart),
-          ),
-          Tab(
-            text: context.t().tabMoves,
-            icon: const Icon(Icons.bolt),
-          ),
+          Tab(text: context.t().tabInfo, icon: const Icon(Icons.info_outline)),
+          Tab(text: context.t().tabStats, icon: const Icon(Icons.bar_chart)),
+          Tab(text: context.t().tabMoves, icon: const Icon(Icons.bolt)),
           Tab(
             text: context.t().tabItemsGames,
             icon: const Icon(Icons.backpack_outlined),

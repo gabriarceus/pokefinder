@@ -37,8 +37,9 @@ void main() {
   tearDown(() => cubit.close());
 
   test('emits loading then the loaded move detail', () async {
-    when(() => repository.getMoveDetail('tackle'))
-        .thenAnswer((_) async => right(_tackle));
+    when(
+      () => repository.getMoveDetail('tackle'),
+    ).thenAnswer((_) async => right(_tackle));
 
     final emitted = <MoveDetailState>[];
     final subscription = cubit.stream.listen(emitted.add);
@@ -51,8 +52,9 @@ void main() {
   });
 
   test('emits loading then an error carrying the failure message', () async {
-    when(() => repository.getMoveDetail(any()))
-        .thenAnswer((_) async => left(const UnexpectedFailure('offline')));
+    when(
+      () => repository.getMoveDetail(any()),
+    ).thenAnswer((_) async => left(const UnexpectedFailure('offline')));
 
     final emitted = <MoveDetailState>[];
     final subscription = cubit.stream.listen(emitted.add);

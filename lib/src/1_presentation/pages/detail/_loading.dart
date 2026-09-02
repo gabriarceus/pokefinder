@@ -18,7 +18,4 @@ class DetailLoading extends StatelessWidget {
   }
 }
 
-const spinkit = SpinKitPouringHourGlassRefined(
-  color: Colors.red,
-  size: 50.0,
-);
+const spinkit = SpinKitPouringHourGlassRefined(color: Colors.red, size: 50.0);

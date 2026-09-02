@@ -71,8 +71,9 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                   width: 48,
                   height: 5,
                   decoration: BoxDecoration(
-                    color:
-                        Theme.of(context).dividerColor.withValues(alpha: 0.3),
+                    color: Theme.of(
+                      context,
+                    ).dividerColor.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -130,8 +131,10 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                     itemBuilder: (context, index) {
                       final form = widget.pokemon.forms[index];
                       final isSelected = form.name == selectedFormName;
-                      final displayFormName =
-                          formatFormName(context, form.name);
+                      final displayFormName = formatFormName(
+                        context,
+                        form.name,
+                      );
 
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -139,15 +142,17 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                           onTap: () {
                             if (state is PokemonBlocSuccess &&
                                 !state.isLoadingForm) {
-                              context
-                                  .read<PokemonBloc>()
-                                  .add(SelectPokemonFormEvent(form));
+                              context.read<PokemonBloc>().add(
+                                SelectPokemonFormEvent(form),
+                              );
                             }
                           },
                           borderRadius: BorderRadius.circular(12),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? widget.typeColor.withValues(alpha: 0.1)

@@ -36,8 +36,9 @@ void main() {
   });
 
   void stubCache(dynamic value) {
-    when(() => localStorage.read(any(), maxAge: any(named: 'maxAge')))
-        .thenAnswer((_) async => value);
+    when(
+      () => localStorage.read(any(), maxAge: any(named: 'maxAge')),
+    ).thenAnswer((_) async => value);
   }
 
   group('cacheFirst', () {
@@ -53,33 +54,37 @@ void main() {
     test('forwards maxAge to the storage expiry check', () async {
       stubCache(_cachedPayload);
 
-      await repository.fetchData(_endpoint,
-          maxAge: const Duration(hours: 24));
+      await repository.fetchData(_endpoint, maxAge: const Duration(hours: 24));
 
-      verify(() => localStorage.read(_endpoint,
-          maxAge: const Duration(hours: 24))).called(1);
+      verify(
+        () => localStorage.read(_endpoint, maxAge: const Duration(hours: 24)),
+      ).called(1);
     });
 
-    test('falls back to the network on a miss and persists the response',
-        () async {
+    test(
+      'falls back to the network on a miss and persists the response',
+      () async {
+        stubCache(null);
+        when(
+          () => apiClient.get(_endpoint),
+        ).thenAnswer((_) async => _networkPayload);
+
+        final data = await repository.fetchData(_endpoint);
+        await pumpEventQueue();
+
+        expect(data, _networkPayload);
+        verify(() => localStorage.write(_endpoint, _networkPayload)).called(1);
+      },
+    );
+
+    test('a failed cache write does not affect the returned payload', () async {
       stubCache(null);
-      when(() => apiClient.get(_endpoint))
-          .thenAnswer((_) async => _networkPayload);
-
-      final data = await repository.fetchData(_endpoint);
-      await pumpEventQueue();
-
-      expect(data, _networkPayload);
-      verify(() => localStorage.write(_endpoint, _networkPayload)).called(1);
-    });
-
-    test('a failed cache write does not affect the returned payload',
-        () async {
-      stubCache(null);
-      when(() => apiClient.get(_endpoint))
-          .thenAnswer((_) async => _networkPayload);
-      when(() => localStorage.write(any(), any()))
-          .thenAnswer((_) => Future.error(Exception('disk full')));
+      when(
+        () => apiClient.get(_endpoint),
+      ).thenAnswer((_) async => _networkPayload);
+      when(
+        () => localStorage.write(any(), any()),
+      ).thenAnswer((_) => Future.error(Exception('disk full')));
 
       final data = await repository.fetchData(_endpoint);
       await pumpEventQueue();
@@ -89,8 +94,9 @@ void main() {
 
     test('a network error on a cache miss propagates to the caller', () async {
       stubCache(null);
-      when(() => apiClient.get(_endpoint))
-          .thenThrow(ApiException(statusCode: 404, message: 'not found'));
+      when(
+        () => apiClient.get(_endpoint),
+      ).thenThrow(ApiException(statusCode: 404, message: 'not found'));
 
       await expectLater(
         repository.fetchData(_endpoint),
@@ -101,8 +107,9 @@ void main() {
 
   group('networkFirst', () {
     test('returns the fresh payload and awaits the cache write', () async {
-      when(() => apiClient.get(_endpoint))
-          .thenAnswer((_) async => _networkPayload);
+      when(
+        () => apiClient.get(_endpoint),
+      ).thenAnswer((_) async => _networkPayload);
 
       final data = await repository.fetchData(
         _endpoint,
@@ -115,8 +122,9 @@ void main() {
 
     test('falls back to the cache when the network fails', () async {
       when(() => apiClient.get(_endpoint)).thenThrow(Exception('offline'));
-      when(() => localStorage.read(_endpoint))
-          .thenAnswer((_) async => _cachedPayload);
+      when(
+        () => localStorage.read(_endpoint),
+      ).thenAnswer((_) async => _cachedPayload);
 
       final data = await repository.fetchData(
         _endpoint,
@@ -126,26 +134,26 @@ void main() {
       expect(data, _cachedPayload);
     });
 
-    test('throws DataFetchException when both network and cache fail',
-        () async {
-      when(() => apiClient.get(_endpoint)).thenThrow(Exception('offline'));
-      when(() => localStorage.read(_endpoint)).thenAnswer((_) async => null);
+    test(
+      'throws DataFetchException when both network and cache fail',
+      () async {
+        when(() => apiClient.get(_endpoint)).thenThrow(Exception('offline'));
+        when(() => localStorage.read(_endpoint)).thenAnswer((_) async => null);
 
-      await expectLater(
-        repository.fetchData(
-          _endpoint,
-          strategy: FetchStrategy.networkFirst,
-        ),
-        throwsA(isA<DataFetchException>()),
-      );
-    });
+        await expectLater(
+          repository.fetchData(_endpoint, strategy: FetchStrategy.networkFirst),
+          throwsA(isA<DataFetchException>()),
+        );
+      },
+    );
   });
 
   group('networkOnly', () {
     test('ignores the cache and refreshes it with the response', () async {
       stubCache(_cachedPayload);
-      when(() => apiClient.get(_endpoint))
-          .thenAnswer((_) async => _networkPayload);
+      when(
+        () => apiClient.get(_endpoint),
+      ).thenAnswer((_) async => _networkPayload);
 
       final data = await repository.fetchData(
         _endpoint,
@@ -153,8 +161,7 @@ void main() {
       );
 
       expect(data, _networkPayload);
-      verifyNever(
-          () => localStorage.read(any(), maxAge: any(named: 'maxAge')));
+      verifyNever(() => localStorage.read(any(), maxAge: any(named: 'maxAge')));
       verify(() => localStorage.write(_endpoint, _networkPayload)).called(1);
     });
   });

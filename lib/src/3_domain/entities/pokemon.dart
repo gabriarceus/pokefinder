@@ -81,38 +81,38 @@ class Pokemon extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        sprite,
-        ability1,
-        ability2,
-        ability3,
-        weight,
-        height,
-        typeImage1,
-        typeImage2,
-        type1,
-        type2,
-        cry,
-        stats,
-        baseExperience,
-        isDefault,
-        order,
-        locationAreaEncounters,
-        cryLegacy,
-        forms,
-        gameIndices,
-        speciesName,
-        speciesUrl,
-        spriteBackDefault,
-        spriteFrontShiny,
-        spriteBackShiny,
-        officialArtworkDefault,
-        officialArtworkShiny,
-        abilities,
-        heldItems,
-        moves,
-      ];
+    id,
+    name,
+    sprite,
+    ability1,
+    ability2,
+    ability3,
+    weight,
+    height,
+    typeImage1,
+    typeImage2,
+    type1,
+    type2,
+    cry,
+    stats,
+    baseExperience,
+    isDefault,
+    order,
+    locationAreaEncounters,
+    cryLegacy,
+    forms,
+    gameIndices,
+    speciesName,
+    speciesUrl,
+    spriteBackDefault,
+    spriteFrontShiny,
+    spriteBackShiny,
+    officialArtworkDefault,
+    officialArtworkShiny,
+    abilities,
+    heldItems,
+    moves,
+  ];
 }
 
 class PokemonAbility extends Equatable {
@@ -163,10 +163,7 @@ class PokemonMove extends Equatable {
 }
 
 class PokemonForm extends Equatable {
-  const PokemonForm({
-    required this.name,
-    required this.url,
-  });
+  const PokemonForm({required this.name, required this.url});
 
   final String name;
   final String url;
@@ -191,18 +188,19 @@ class PokemonFormDetails extends Equatable {
   /// Builds the default form details from a [Pokemon]'s own attributes,
   /// falling back to the base sprite when shiny/artwork variants are missing.
   factory PokemonFormDetails.fromPokemon(Pokemon pokemon) => PokemonFormDetails(
-        name: pokemon.name,
-        type1: pokemon.type1,
-        type2: pokemon.type2,
-        typeImage1: pokemon.typeImage1,
-        typeImage2: pokemon.typeImage2,
-        spriteDefault: pokemon.sprite,
-        spriteShiny: pokemon.spriteFrontShiny ?? pokemon.sprite,
-        artworkDefault: pokemon.officialArtworkDefault ?? pokemon.sprite,
-        artworkShiny: pokemon.officialArtworkShiny ??
-            pokemon.spriteFrontShiny ??
-            pokemon.sprite,
-      );
+    name: pokemon.name,
+    type1: pokemon.type1,
+    type2: pokemon.type2,
+    typeImage1: pokemon.typeImage1,
+    typeImage2: pokemon.typeImage2,
+    spriteDefault: pokemon.sprite,
+    spriteShiny: pokemon.spriteFrontShiny ?? pokemon.sprite,
+    artworkDefault: pokemon.officialArtworkDefault ?? pokemon.sprite,
+    artworkShiny:
+        pokemon.officialArtworkShiny ??
+        pokemon.spriteFrontShiny ??
+        pokemon.sprite,
+  );
 
   final String name;
   final PokemonType? type1;
@@ -216,16 +214,16 @@ class PokemonFormDetails extends Equatable {
 
   @override
   List<Object?> get props => [
-        name,
-        type1,
-        type2,
-        typeImage1,
-        typeImage2,
-        spriteDefault,
-        spriteShiny,
-        artworkDefault,
-        artworkShiny,
-      ];
+    name,
+    type1,
+    type2,
+    typeImage1,
+    typeImage2,
+    spriteDefault,
+    spriteShiny,
+    artworkDefault,
+    artworkShiny,
+  ];
 }
 
 class PokemonEncounter extends Equatable {

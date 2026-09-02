@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
 class TypeImage extends StatelessWidget {
-  const TypeImage({
-    super.key,
-    required this.type,
-  });
+  const TypeImage({super.key, required this.type});
 
   final String type;
 

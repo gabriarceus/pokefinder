@@ -23,13 +23,14 @@ const _kBaseUrl = 'https://pokeapi.co/api/v2/pokemon/';
 @LazySingleton(as: IPokemonRemoteDataSource)
 class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
   PokemonRemoteDataSource({required DataRepository dataRepository})
-      : _dataRepository = dataRepository;
+    : _dataRepository = dataRepository;
 
   final DataRepository _dataRepository;
 
   @override
   Future<Either<PokemonFailure, RawPokemon>> getPokemon(
-      PokemonName name) async {
+    PokemonName name,
+  ) async {
     try {
       final json = await _dataRepository.fetchData(
         '$_kBaseUrl${name.rightOrCrash()}',
@@ -44,7 +45,8 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
 
   @override
   Future<Either<PokemonFailure, RawFormDetails>> getFormDetails(
-      String url) async {
+    String url,
+  ) async {
     try {
       final json = await _dataRepository.fetchData(
         url,
@@ -59,16 +61,19 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
 
   @override
   Future<Either<PokemonFailure, List<RawEncounter>>> getEncounters(
-      String url) async {
+    String url,
+  ) async {
     try {
       final json = await _dataRepository.fetchData(
         url,
         strategy: FetchStrategy.cacheFirst,
         maxAge: _kDefaultMaxAge,
       );
-      return right((json as List<dynamic>)
-          .map((e) => RawEncounter.fromJson(e as Map<String, dynamic>))
-          .toList());
+      return right(
+        (json as List<dynamic>)
+            .map((e) => RawEncounter.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
     } catch (error) {
       return left(_mapError(error));
     }
@@ -84,9 +89,11 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
       );
       final results =
           (json as Map<String, dynamic>)['results'] as List<dynamic>;
-      return right(results
-          .map((e) => (e as Map<String, dynamic>)['name'] as String)
-          .toList());
+      return right(
+        results
+            .map((e) => (e as Map<String, dynamic>)['name'] as String)
+            .toList(),
+      );
     } catch (error) {
       return left(_mapError(error));
     }
@@ -94,7 +101,8 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
 
   @override
   Future<Either<PokemonFailure, RawMoveDetail>> getMoveDetail(
-      String name) async {
+    String name,
+  ) async {
     try {
       final json = await _dataRepository.fetchData(
         'https://pokeapi.co/api/v2/move/$name',

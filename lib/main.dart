@@ -26,8 +26,9 @@ void bootstrap({required Widget Function() then}) async {
   // Initialize media_kit as the audio backend to support OGG on iOS
   JustAudioMediaKit.ensureInitialized(iOS: true);
   HydratedBloc.storage = await HydratedStorage.build(
-    storageDirectory:
-        HydratedStorageDirectory((await getTemporaryDirectory()).path),
+    storageDirectory: HydratedStorageDirectory(
+      (await getTemporaryDirectory()).path,
+    ),
   );
   runApp(then());
 }
@@ -43,10 +44,7 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/',
       builder: (BuildContext context, GoRouterState state) {
-        return const HomePageProvider(
-          userInput: '',
-          child: HomePage(),
-        );
+        return const HomePageProvider(userInput: '', child: HomePage());
       },
       routes: <RouteBase>[
         GoRoute(
@@ -76,16 +74,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => getIt<LanguageCubit>(),
-      child:
-          BlocBuilder<LanguageCubit, LanguageState>(builder: (context, state) {
-        return MaterialApp.router(
-          routerConfig: _router,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: state.locale,
-          debugShowCheckedModeBanner: false,
-        );
-      }),
+      child: BlocBuilder<LanguageCubit, LanguageState>(
+        builder: (context, state) {
+          return MaterialApp.router(
+            routerConfig: _router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: state.locale,
+            debugShowCheckedModeBanner: false,
+          );
+        },
+      ),
     );
   }
 }

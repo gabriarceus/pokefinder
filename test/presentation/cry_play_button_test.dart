@@ -9,7 +9,9 @@ void main() {
 
     test('play when this url is not the current source', () {
       expect(
-          cryButtonModeFor(const CryPlaybackState(), url), CryButtonMode.play);
+        cryButtonModeFor(const CryPlaybackState(), url),
+        CryButtonMode.play,
+      );
       expect(
         cryButtonModeFor(
           const CryPlaybackState(currentUrl: otherUrl, playing: true),

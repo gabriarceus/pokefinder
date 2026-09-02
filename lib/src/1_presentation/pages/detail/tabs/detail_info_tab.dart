@@ -113,18 +113,19 @@ class DetailInfoTab extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: pokemon.abilities.map((ability) {
-              final capitalizedAbility =
-                  context.translateAbility(ability.name).toUpperCase();
+              final capitalizedAbility = context
+                  .translateAbility(ability.name)
+                  .toUpperCase();
               return Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: ability.isHidden
                       ? Colors.amber.withValues(alpha: 0.1)
-                      : Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest
-                          .withValues(alpha: 0.4),
+                      : Theme.of(context).colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: ability.isHidden
@@ -137,8 +138,11 @@ class DetailInfoTab extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (ability.isHidden) ...[
-                      const Icon(Icons.visibility_off_outlined,
-                          size: 16, color: Colors.amber),
+                      const Icon(
+                        Icons.visibility_off_outlined,
+                        size: 16,
+                        color: Colors.amber,
+                      ),
                       const SizedBox(width: 6),
                     ],
                     Text(
@@ -241,16 +245,19 @@ class DetailInfoTab extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard(BuildContext context,
-      {required IconData icon, required String value, required String label}) {
+  Widget _buildInfoCard(
+    BuildContext context, {
+    required IconData icon,
+    required String value,
+    required String label,
+  }) {
     return Container(
       width: 130,
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withValues(alpha: 0.5),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -264,14 +271,17 @@ class DetailInfoTab extends StatelessWidget {
               Text(
                 value,
                 style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: textColor),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
               ),
               Text(
                 label,
                 style: TextStyle(
-                    fontSize: 12, color: textColor.withValues(alpha: 0.6)),
+                  fontSize: 12,
+                  color: textColor.withValues(alpha: 0.6),
+                ),
               ),
             ],
           ),

@@ -14,8 +14,10 @@ class JustAudioCryController implements CryAudioController {
   JustAudioCryController(this._logger) {
     _playbackSubscription = _player.playbackEventStream.listen(
       (event) {
-        _logger.info("Playback event: ${event.processingState}",
-            prefix: _prefix);
+        _logger.info(
+          "Playback event: ${event.processingState}",
+          prefix: _prefix,
+        );
       },
       onError: (Object e, StackTrace stacktrace) {
         _logger.error("Playback error: $e", prefix: _prefix);
@@ -93,10 +95,7 @@ class JustAudioCryController implements CryAudioController {
         await _player.stop();
       }
       await _player
-          .setAudioSource(
-            AudioSource.uri(Uri.parse(url)),
-            preload: true,
-          )
+          .setAudioSource(AudioSource.uri(Uri.parse(url)), preload: true)
           .timeout(const Duration(seconds: 10));
       _logger.info("Audio source loaded successfully", prefix: _prefix);
     } catch (e) {
