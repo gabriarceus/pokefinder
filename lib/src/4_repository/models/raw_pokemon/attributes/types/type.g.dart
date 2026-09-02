@@ -6,10 +6,9 @@ part of 'type.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Type _$TypeFromJson(Map<String, dynamic> json) => Type(
-      url: json['url'] as String,
-    );
+Type _$TypeFromJson(Map<String, dynamic> json) =>
+    Type(url: json['url'] as String);
 
 Map<String, dynamic> _$TypeToJson(Type instance) => <String, dynamic>{
-      'url': instance.url,
-    };
+  'url': instance.url,
+};

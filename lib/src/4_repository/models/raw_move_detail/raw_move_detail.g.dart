@@ -15,10 +15,13 @@ RawMoveDetail _$RawMoveDetailFromJson(Map<String, dynamic> json) =>
       pp: (json['pp'] as num?)?.toInt(),
       type: NamedAPIResource.fromJson(json['type'] as Map<String, dynamic>),
       damageClass: NamedAPIResource.fromJson(
-          json['damage_class'] as Map<String, dynamic>),
-      flavorTextEntries: (json['flavor_text_entries'] as List<dynamic>?)
+        json['damage_class'] as Map<String, dynamic>,
+      ),
+      flavorTextEntries:
+          (json['flavor_text_entries'] as List<dynamic>?)
               ?.map(
-                  (e) => RawFlavorTextEntry.fromJson(e as Map<String, dynamic>))
+                (e) => RawFlavorTextEntry.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           const [],
     );
@@ -32,15 +35,17 @@ Map<String, dynamic> _$RawMoveDetailToJson(RawMoveDetail instance) =>
       'pp': instance.pp,
       'type': instance.type.toJson(),
       'damage_class': instance.damageClass.toJson(),
-      'flavor_text_entries':
-          instance.flavorTextEntries.map((e) => e.toJson()).toList(),
+      'flavor_text_entries': instance.flavorTextEntries
+          .map((e) => e.toJson())
+          .toList(),
     };
 
 RawFlavorTextEntry _$RawFlavorTextEntryFromJson(Map<String, dynamic> json) =>
     RawFlavorTextEntry(
       flavorText: json['flavor_text'] as String,
-      language:
-          NamedAPIResource.fromJson(json['language'] as Map<String, dynamic>),
+      language: NamedAPIResource.fromJson(
+        json['language'] as Map<String, dynamic>,
+      ),
     );
 
 Map<String, dynamic> _$RawFlavorTextEntryToJson(RawFlavorTextEntry instance) =>

@@ -1,0 +1,51 @@
+import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
+
+/// Builds a [Pokemon] with placeholder values for every field not overridden.
+Pokemon buildPokemon({
+  int id = 1,
+  String name = 'bulbasaur',
+  String sprite = 'sprite.png',
+  PokemonType? type1 = PokemonType.grass,
+  PokemonType? type2,
+  String locationAreaEncounters = 'https://pokeapi.co/api/v2/pokemon/1/encounters',
+  List<PokemonForm> forms = const [],
+  List<PokemonMove> moves = const [],
+  String? spriteFrontShiny,
+  String? officialArtworkDefault,
+  String? officialArtworkShiny,
+}) {
+  return Pokemon(
+    id: id,
+    name: name,
+    sprite: sprite,
+    ability1: 'overgrow',
+    ability2: '',
+    ability3: '',
+    weight: 69,
+    height: 7,
+    typeImage1: 'type1.png',
+    typeImage2: '',
+    type1: type1,
+    type2: type2,
+    cry: 'cry.ogg',
+    stats: const [45, 49, 49, 65, 65, 45],
+    baseExperience: 64,
+    isDefault: true,
+    order: 1,
+    locationAreaEncounters: locationAreaEncounters,
+    cryLegacy: null,
+    forms: forms,
+    gameIndices: const [],
+    speciesName: name,
+    speciesUrl: '',
+    spriteBackDefault: null,
+    spriteFrontShiny: spriteFrontShiny,
+    spriteBackShiny: null,
+    officialArtworkDefault: officialArtworkDefault,
+    officialArtworkShiny: officialArtworkShiny,
+    abilities: const [],
+    heldItems: const [],
+    moves: moves,
+  );
+}

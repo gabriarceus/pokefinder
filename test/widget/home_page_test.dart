@@ -4,14 +4,24 @@ import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/widgets/home/poke_text_field.dart';
 
 void main() {
-  group('HomePage', () {
-    testWidgets('renders a TextField and accepts input', (tester) async {
-      final controller = TextEditingController();
-      final focusNode = FocusNode();
-      String inputValue = '';
+  group('PokeTextField', () {
+    late TextEditingController controller;
+    late FocusNode focusNode;
+    late List<String> reportedInputs;
 
-      // Costruisci il widget da testare
-      await tester.pumpWidget(
+    setUp(() {
+      controller = TextEditingController();
+      focusNode = FocusNode();
+      reportedInputs = [];
+    });
+
+    tearDown(() {
+      controller.dispose();
+      focusNode.dispose();
+    });
+
+    Future<void> pumpField(WidgetTester tester, List<String> allNames) {
+      return tester.pumpWidget(
         MaterialApp(
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -20,21 +30,69 @@ void main() {
             body: PokeTextField(
               controller: controller,
               focusNode: focusNode,
-              allNames: const [],
-              onChanged: (value) {
-                inputValue = value;
-              },
+              allNames: allNames,
+              onChanged: reportedInputs.add,
             ),
           ),
         ),
       );
+    }
 
-      // L'operazione da testare: inserire un testo nel TextField
+    /// Names shown in the suggestion overlay, excluding the field's own text.
+    List<String> visibleSuggestions() => find
+        .descendant(of: find.byType(ListView), matching: find.byType(Text))
+        .evaluate()
+        .map((element) => (element.widget as Text).data!)
+        .toList();
+
+    testWidgets('reports every keystroke to the caller', (tester) async {
+      await pumpField(tester, const []);
+
       await tester.enterText(find.byType(TextField), 'Pikachu');
 
-      // Verifica che il testo sia stato inserito correttamente
       expect(controller.text, 'Pikachu');
-      expect(inputValue, 'Pikachu');
+      expect(reportedInputs.last, 'Pikachu');
+    });
+
+    testWidgets('shows no suggestions below the two-character threshold',
+        (tester) async {
+      await pumpField(tester, const ['pikachu', 'pidgey']);
+
+      await tester.enterText(find.byType(TextField), 'p');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ListView), findsNothing);
+    });
+
+    testWidgets('suggests prefix matches case-insensitively', (tester) async {
+      await pumpField(tester, const ['pikachu', 'pidgey', 'raichu']);
+
+      await tester.enterText(find.byType(TextField), 'PI');
+      await tester.pumpAndSettle();
+
+      expect(visibleSuggestions(), ['pikachu', 'pidgey']);
+    });
+
+    testWidgets('caps the suggestion list at five entries', (tester) async {
+      await pumpField(tester, List.generate(10, (i) => 'pika$i'));
+
+      await tester.enterText(find.byType(TextField), 'pika');
+      await tester.pumpAndSettle();
+
+      expect(visibleSuggestions(), hasLength(5));
+    });
+
+    testWidgets('tapping a suggestion commits it to the field and the caller',
+        (tester) async {
+      await pumpField(tester, const ['pikachu', 'pidgey']);
+
+      await tester.enterText(find.byType(TextField), 'pi');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('pidgey'));
+      await tester.pumpAndSettle();
+
+      expect(controller.text, 'pidgey');
+      expect(reportedInputs.last, 'pidgey');
     });
   });
 }
