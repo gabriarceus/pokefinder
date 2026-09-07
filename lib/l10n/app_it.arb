@@ -152,5 +152,11 @@
   "moveDetailEffect": "Effetto",
   "damageClassPhysical": "Fisico",
   "damageClassSpecial": "Speciale",
-  "damageClassStatus": "Stato"
+  "damageClassStatus": "Stato",
+  "startupErrorTitle": "Avvio non riuscito",
+  "startupErrorMessage": "Si è verificato un errore durante l'inizializzazione della memoria. Riprova.",
+  "retryButton": "Riprova",
+  "routeNotFoundTitle": "Pagina non trovata",
+  "routeNotFoundMessage": "Il Pokémon o la pagina richiesta non è stata trovata.",
+  "goHome": "Torna alla Home"
 }

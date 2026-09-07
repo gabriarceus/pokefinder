@@ -23,21 +23,37 @@ class _HomePageState extends State<HomePage> {
   final FocusNode _focusNode = FocusNode();
 
   @override
+  void initState() {
+    super.initState();
+    final initialInput = context.read<HomeBloc>().state.userInput;
+    if (initialInput.isNotEmpty) {
+      _controller.text = initialInput;
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
   }
 
-  void _onListen(BuildContext context, HomeBlocState state) {
+  void _onListen(BuildContext context, HomeBlocState state) async {
     final failure = state.failure;
     if (failure != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(failure.localizedMessage(context))),
       );
     } else if (state.navigateToDetail) {
-      context.go('/detail', extra: {'pokemonName': state.userInput});
+      final nameOrId = state.userInput.trim();
+      final hadFocus = _focusNode.hasFocus;
       context.read<HomeBloc>().add(NavigationDoneEvent());
+      await context.push('/pokemon/${Uri.encodeComponent(nameOrId)}');
+      if (mounted) {
+        if (hadFocus) {
+          _focusNode.requestFocus();
+        }
+      }
     }
   }
 
@@ -68,6 +84,11 @@ class _HomePageState extends State<HomePage> {
                           allNames: state.allPokemonNames,
                           onChanged: (input) {
                             context.read<HomeBloc>().add(UserInputEvent(input));
+                          },
+                          onSubmitted: (_) {
+                            context.read<HomeBloc>().add(
+                              IsButtonPressedEvent(),
+                            );
                           },
                         ),
                       ),

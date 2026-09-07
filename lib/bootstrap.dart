@@ -13,8 +13,10 @@ final GetIt getIt = GetIt.instance;
   preferRelativeImports: true, // default
   asExtension: true, // default
 )
-void configureDependencies(String environment) =>
-    getIt.init(environment: environment);
+Future<void> configureDependencies(String environment) async {
+  await getIt.reset();
+  getIt.init(environment: environment);
+}
 
 @module
 abstract class RegisterModule {

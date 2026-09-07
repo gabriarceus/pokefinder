@@ -1015,6 +1015,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Scarlet/Violet'**
   String get gameGroupScarletViolet;
+
+  /// No description provided for @startupErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Startup Failed'**
+  String get startupErrorTitle;
+
+  /// No description provided for @startupErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred while initializing app storage. Please try again.'**
+  String get startupErrorMessage;
+
+  /// No description provided for @retryButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retryButton;
+
+  /// No description provided for @routeNotFoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Page Not Found'**
+  String get routeNotFoundTitle;
+
+  /// No description provided for @routeNotFoundMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The requested Pokémon or page could not be found.'**
+  String get routeNotFoundMessage;
+
+  /// No description provided for @goHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Home'**
+  String get goHome;
 }
 
 class _AppLocalizationsDelegate
