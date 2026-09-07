@@ -2,19 +2,20 @@
 
 > The best app to find information about Pokémon.
 
-PokeFinder is a small Flutter app that lets you search a Pokémon by name and explore a
-detail screen with its stats, abilities, moves, items, encounters, forms, and cry. Data
-comes from the public [PokeAPI](https://pokeapi.co/). It is built as a learning project
-around a clean, layered architecture.
+PokeFinder is a mobile Flutter app (officially targeting **Android and iOS**) that
+lets you search a Pokémon by name or Pokédex ID and explore a detail screen with its
+stats, abilities, moves, items, encounters, forms, and cry. Data comes from the public
+[PokeAPI](https://pokeapi.co/). It is built around a clean, layered architecture.
 
 ## Features
 
-- Search a Pokémon by name, with autocomplete suggestions
+- Search a Pokémon by name or numeric Pokédex ID, with autocomplete suggestions
+- Canonical routing (`/pokemon/:nameOrId`) supporting deep linking and recovery fallback
 - Detail screen with tabs: info, stats, moves, items & games
 - Move detail sheet, and switching between a Pokémon's alternate forms
 - Plays the Pokémon cry
 - Switch the app language (English / Italian, or follow the system)
-- Offline caching of API responses, with a per-request cache strategy
+- Isolated storage lifecycles (durable user preferences vs. disposable API cache)
 
 ## Tools used
 

@@ -265,25 +265,28 @@ class DetailInfoTab extends StatelessWidget {
         children: [
           Icon(icon, size: 28, color: textColor.withValues(alpha: 0.7)),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
                 ),
-              ),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: textColor.withValues(alpha: 0.6),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: textColor.withValues(alpha: 0.6),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

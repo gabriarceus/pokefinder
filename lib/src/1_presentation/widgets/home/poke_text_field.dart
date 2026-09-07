@@ -9,12 +9,14 @@ class PokeTextField extends StatelessWidget {
     required this.focusNode,
     required this.onChanged,
     required this.allNames,
+    this.onSubmitted,
   });
 
   final TextEditingController controller;
   final FocusNode focusNode;
   final void Function(String) onChanged;
   final List<String> allNames;
+  final void Function(String)? onSubmitted;
   static const Color textFieldBorderColor = AppPalette.brandRed;
   static const Color textFieldTextColor = Colors.black;
 
@@ -34,12 +36,17 @@ class PokeTextField extends StatelessWidget {
       },
       onSelected: (String selection) {
         onChanged(selection);
+        onSubmitted?.call(selection);
       },
       fieldViewBuilder:
           (context, fieldController, focusNode, onFieldSubmitted) {
             return TextField(
               controller: fieldController,
               focusNode: focusNode,
+              textInputAction: TextInputAction.search,
+              onSubmitted: (value) {
+                onSubmitted?.call(value);
+              },
               decoration: InputDecoration(
                 border: const OutlineInputBorder(
                   borderSide: BorderSide(color: textFieldBorderColor),

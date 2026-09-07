@@ -24,7 +24,13 @@ class DetailFailure extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () => context.go('/'),
+                onPressed: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/');
+                  }
+                },
                 child: Text(AppLocalizations.of(context).backButton),
               ),
             ],
@@ -34,7 +40,7 @@ class DetailFailure extends StatelessWidget {
           bottom: 0,
           left: 0,
           right: 0,
-          child: Image.asset(_kSadAzurillAsset, scale: 2),
+          child: IgnorePointer(child: Image.asset(_kSadAzurillAsset, scale: 2)),
         ),
       ],
     );

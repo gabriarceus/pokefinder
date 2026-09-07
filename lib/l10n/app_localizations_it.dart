@@ -471,4 +471,24 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gameGroupScarletViolet => 'Scarlatto/Violetto';
+
+  @override
+  String get startupErrorTitle => 'Avvio non riuscito';
+
+  @override
+  String get startupErrorMessage =>
+      'Si è verificato un errore durante l\'inizializzazione della memoria. Riprova.';
+
+  @override
+  String get retryButton => 'Riprova';
+
+  @override
+  String get routeNotFoundTitle => 'Pagina non trovata';
+
+  @override
+  String get routeNotFoundMessage =>
+      'Il Pokémon o la pagina richiesta non è stata trovata.';
+
+  @override
+  String get goHome => 'Torna alla Home';
 }

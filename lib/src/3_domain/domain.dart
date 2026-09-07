@@ -12,3 +12,4 @@ export 'usecases/get_pokemon_form_details_usecase.dart';
 export 'value_objects/pokemon_name.dart';
 export 'helpers/stat_calculator.dart';
 export 'helpers/string_casing_extensions.dart';
+export 'helpers/pokemon_route_param_parser.dart';

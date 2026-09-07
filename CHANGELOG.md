@@ -6,11 +6,16 @@ All notable changes to this project will be documented in this file, following t
 
 ### Added
 
+- Canonical mobile route `/pokemon/:nameOrId` with parameter validation and a `RouteErrorPage`.
+- Recoverable mobile startup error screen (`StartupErrorApp`, `StartupErrorPage`) with retry action.
+- Storage lifecycle separation: durable user state in documents storage, disposable cache in temporary directory.
 - `scripts/verify.sh`, running every quality gate (format, analysis, tests).
 - `scripts/coverage.sh`, reporting total line coverage with an optional minimum.
 
 ### Changed
 
+- Replaced `/detail` route and unsafe extra payload cast with GoRouter configuration in `app_router.dart`.
+- Preserved search query and focus state when popping back from detail to home.
 - Applied the Dart tall-style formatter across `lib`, `test` and `scripts`.
 - Aligned `README.md` and `CLAUDE.md` with the current codebase.
 - Upgraded dependencies within their existing constraints.

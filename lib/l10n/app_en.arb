@@ -164,5 +164,11 @@
   "gameGroupUltraSunUltraMoon": "Ultra Sun/Ultra Moon",
   "gameGroupLetsGoPikachuLetsGoEevee": "Let's Go, Pikachu/Eevee",
   "gameGroupSwordShield": "Sword/Shield",
-  "gameGroupScarletViolet": "Scarlet/Violet"
+  "gameGroupScarletViolet": "Scarlet/Violet",
+  "startupErrorTitle": "Startup Failed",
+  "startupErrorMessage": "An error occurred while initializing app storage. Please try again.",
+  "retryButton": "Retry",
+  "routeNotFoundTitle": "Page Not Found",
+  "routeNotFoundMessage": "The requested Pokémon or page could not be found.",
+  "goHome": "Go to Home"
 }
