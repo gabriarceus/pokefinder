@@ -49,10 +49,8 @@ class _HomePageState extends State<HomePage> {
       final hadFocus = _focusNode.hasFocus;
       context.read<HomeBloc>().add(NavigationDoneEvent());
       await context.push('/pokemon/${Uri.encodeComponent(nameOrId)}');
-      if (mounted) {
-        if (hadFocus) {
-          _focusNode.requestFocus();
-        }
+      if (mounted && hadFocus) {
+        _focusNode.requestFocus();
       }
     }
   }
@@ -60,28 +58,32 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false, // or else it shows an error
       appBar: const HomeAppBar(),
       drawer: const HomeDrawer(),
       body: BlocListener<HomeBloc, HomeBlocState>(
         listener: _onListen,
-
-        // When the search button is pressed with !previous.pokemonFound && current.pokemonFound I can't perform a new search
         child: HomeBlocBuilder(
           builder: (context, state) {
             return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Padding(
-                      padding: const EdgeInsets.only(top: 48.0, bottom: 16.0),
+                      padding: const EdgeInsets.symmetric(vertical: 20),
                       child: SizedBox(
                         width: 200,
                         child: PokeTextField(
                           controller: _controller,
                           focusNode: _focusNode,
                           allNames: state.allPokemonNames,
+                          nameIndexFailure: state.nameIndexFailure,
+                          onRetryIndex: () {
+                            context.read<HomeBloc>().add(
+                              FetchAllPokemonNamesEvent(),
+                            );
+                          },
                           onChanged: (input) {
                             context.read<HomeBloc>().add(UserInputEvent(input));
                           },

@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:injectable/injectable.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
@@ -69,11 +72,10 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
         strategy: FetchStrategy.cacheFirst,
         maxAge: _kDefaultMaxAge,
       );
-      return right(
-        (json as List<dynamic>)
-            .map((e) => RawEncounter.fromJson(e as Map<String, dynamic>))
-            .toList(),
-      );
+      final list = (json as List<dynamic>)
+          .map((e) => RawEncounter.fromJson(e as Map<String, dynamic>))
+          .toList();
+      return right(list);
     } catch (error) {
       return left(_mapError(error));
     }
@@ -83,9 +85,9 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
   Future<Either<PokemonFailure, List<String>>> getAllPokemonNames() async {
     try {
       final json = await _dataRepository.fetchData(
-        '$_kBaseUrl?limit=100000',
+        '$_kBaseUrl?limit=100000&offset=0',
         strategy: FetchStrategy.cacheFirst,
-        maxAge: const Duration(days: 30),
+        maxAge: _kDefaultMaxAge,
       );
       final results =
           (json as Map<String, dynamic>)['results'] as List<dynamic>;
@@ -116,19 +118,39 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
   }
 
   /// Translates a low-level error into a typed [PokemonFailure].
-  ///
-  /// Already-typed failures pass through unchanged; an [ApiException] is mapped
-  /// by its HTTP status (401 → unauthorized, 400 → bad request); anything else
-  /// becomes an [UnexpectedFailure] preserving the original cause.
   PokemonFailure _mapError(Object error) {
     if (error is PokemonFailure) return error;
+
     if (error is ApiException) {
-      return switch (error.statusCode) {
-        401 => UnauthorizedFailure(),
-        400 => BadRequestFailure(),
-        _ => UnexpectedFailure(error.message),
-      };
+      if (error.isConnectionError) {
+        return const NetworkUnavailableFailure();
+      }
+      if (error.isTimeout) {
+        return const RequestTimeoutFailure();
+      }
+      if (error.statusCode != null) {
+        final code = error.statusCode!;
+        if (code == 404) return const PokemonNotFoundFailure();
+        if (code == 401) return const UnauthorizedFailure();
+        if (code == 400) return const BadRequestFailure();
+        if (code == 429) return const RateLimitedFailure();
+        if (code >= 500 && code < 600) return ServerFailure(code);
+      }
+      return UnexpectedFailure(error.message);
     }
+
+    if (error is SocketException) {
+      return const NetworkUnavailableFailure();
+    }
+    if (error is FormatException ||
+        error is TypeError ||
+        error is EmptyResponseException) {
+      return InvalidResponseFailure(error.toString());
+    }
+    if (error is HiveError) {
+      return StorageFailure(error.message);
+    }
+
     return UnexpectedFailure(error.toString());
   }
 }

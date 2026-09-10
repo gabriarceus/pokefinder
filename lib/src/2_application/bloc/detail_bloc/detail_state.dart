@@ -58,6 +58,7 @@ final class PokemonBlocSuccess extends PokemonBlocState {
     this.isLoadingEncounters = false,
     this.formFailure,
     this.encountersFailure,
+    this.failedForm,
   });
 
   static const _unset = Object();
@@ -69,6 +70,7 @@ final class PokemonBlocSuccess extends PokemonBlocState {
   final bool isLoadingEncounters;
   final PokemonFailure? formFailure;
   final PokemonFailure? encountersFailure;
+  final PokemonForm? failedForm;
 
   /// Active form details, falling back to the base Pokémon when no alternate
   /// form has been selected.
@@ -83,6 +85,7 @@ final class PokemonBlocSuccess extends PokemonBlocState {
     bool? isLoadingEncounters,
     Object? formFailure = _unset,
     Object? encountersFailure = _unset,
+    Object? failedForm = _unset,
   }) {
     return PokemonBlocSuccess(
       pokemon: pokemon ?? this.pokemon,
@@ -96,6 +99,9 @@ final class PokemonBlocSuccess extends PokemonBlocState {
       encountersFailure: identical(encountersFailure, _unset)
           ? this.encountersFailure
           : encountersFailure as PokemonFailure?,
+      failedForm: identical(failedForm, _unset)
+          ? this.failedForm
+          : failedForm as PokemonForm?,
     );
   }
 
@@ -108,5 +114,6 @@ final class PokemonBlocSuccess extends PokemonBlocState {
     isLoadingEncounters,
     formFailure,
     encountersFailure,
+    failedForm,
   ];
 }

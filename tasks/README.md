@@ -13,7 +13,7 @@ This directory contains the modularized task breakdown for the PokéFinder produ
 | # | Task Document | Roadmap Sections | Target | Priority | Status |
 |---|---|---|---|---|:---:|
 | **01** | [Task 01: Mobile Bootstrap and Canonical Routing](file:///C:/Users/gabri/Documents/GitHub/pokefinder/tasks/task_01_bootstrap_and_routing.md) | §4.1, §4.3 (PR 1) | Android & iOS | **P0** | `[x]` Done |
-| **02** | [Task 02: Failure Taxonomy, Media Error States and Recovery UX](file:///C:/Users/gabri/Documents/GitHub/pokefinder/tasks/task_02_failure_taxonomy_and_recovery.md) | §4.2, §9.1 (PR 2) | Android & iOS | **P0** | `[ ]` Open |
+| **02** | [Task 02: Failure Taxonomy, Media Error States and Recovery UX](file:///C:/Users/gabri/Documents/GitHub/pokefinder/tasks/task_02_failure_taxonomy_and_recovery.md) | §4.2, §9.1 (PR 2) | Android & iOS | **P0** | `[x]` Done |
 | **03** | [Task 03: Mobile Responsive Layouts and Deliberate Accessibility](file:///C:/Users/gabri/Documents/GitHub/pokefinder/tasks/task_03_responsive_and_accessibility.md) | §4.4, §4.5, §4.6 (PR 3) | Android & iOS | **P0** | `[ ]` Open |
 | **04** | [Task 04: Cache Correctness, Clean Architecture and Resilience](file:///C:/Users/gabri/Documents/GitHub/pokefinder/tasks/task_04_cache_architecture_and_resilience.md) | §5.1, §5.2, §5.3, §9.2 (PR 4) | Android & iOS | **P0/P1** | `[ ]` Open |
 | **05** | [Task 05: Test Suite Expansion, Unused Dependency Cleanup and CI](file:///C:/Users/gabri/Documents/GitHub/pokefinder/tasks/task_05_testing_suite_and_ci.md) | §5.4, §5.5, §9.4 | Android & iOS | **P0** | `[ ]` Open |

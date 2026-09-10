@@ -74,7 +74,8 @@ class _DetailState extends State<Detail> {
       body: PokemonBlocBuilder(
         onInitial: (_, _) => Center(child: Text(context.t().noData)),
         onLoading: (_, _) => const DetailLoading(),
-        onFailure: (_, failure) => DetailFailure(state: failure),
+        onFailure: (_, failure) =>
+            DetailFailure(state: failure, pokemonName: widget.pokemonName),
         onSuccess: _buildSuccess,
       ),
     );

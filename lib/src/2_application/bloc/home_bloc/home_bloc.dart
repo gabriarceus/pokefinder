@@ -40,11 +40,16 @@ class HomeBloc extends Bloc<HomeBlocEvent, HomeBlocState> {
     on<FetchAllPokemonNamesEvent>((event, emit) async {
       final result = await _pokemonRepository.getAllPokemonNames();
       result.fold(
-        (failure) => _logger.error(
-          'Failed to fetch pokemon names: $failure',
-          prefix: _prefix,
+        (failure) {
+          _logger.error(
+            'Failed to fetch pokemon names: $failure',
+            prefix: _prefix,
+          );
+          emit(state.copyWith(nameIndexFailure: failure));
+        },
+        (names) => emit(
+          state.copyWith(allPokemonNames: names, nameIndexFailure: null),
         ),
-        (names) => emit(state.copyWith(allPokemonNames: names)),
       );
     });
 

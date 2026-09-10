@@ -5,31 +5,49 @@ sealed class PokemonFailure extends Equatable {
 
   final String message;
 
-  T map<T>({
-    required T Function(UnauthorizedFailure failure) onFailure,
-    required T Function(BadRequestFailure failure) onBadRequest,
-    required T Function(UnexpectedFailure failure) onUnexpected,
-  }) {
-    switch (this) {
-      case UnauthorizedFailure unauthorizedFailure:
-        return onFailure(unauthorizedFailure);
-      case BadRequestFailure badRequest:
-        return onBadRequest(badRequest);
-      case UnexpectedFailure unexpected:
-        return onUnexpected(unexpected);
-    }
-  }
-
   @override
   List<Object?> get props => [message];
 }
 
 final class UnauthorizedFailure extends PokemonFailure {
-  const UnauthorizedFailure() : super('Unauthorized');
+  const UnauthorizedFailure([super.message = 'Unauthorized']);
 }
 
 final class BadRequestFailure extends PokemonFailure {
-  const BadRequestFailure() : super('Bad Request');
+  const BadRequestFailure([super.message = 'Bad Request']);
+}
+
+final class PokemonNotFoundFailure extends PokemonFailure {
+  const PokemonNotFoundFailure([super.message = 'Pokemon not found']);
+}
+
+final class NetworkUnavailableFailure extends PokemonFailure {
+  const NetworkUnavailableFailure([super.message = 'Network unavailable']);
+}
+
+final class RequestTimeoutFailure extends PokemonFailure {
+  const RequestTimeoutFailure([super.message = 'Request timed out']);
+}
+
+final class RateLimitedFailure extends PokemonFailure {
+  const RateLimitedFailure([super.message = 'Rate limit exceeded']);
+}
+
+final class ServerFailure extends PokemonFailure {
+  const ServerFailure([this.statusCode, super.message = 'Server error']);
+
+  final int? statusCode;
+
+  @override
+  List<Object?> get props => [statusCode, message];
+}
+
+final class InvalidResponseFailure extends PokemonFailure {
+  const InvalidResponseFailure([super.message = 'Invalid response']);
+}
+
+final class StorageFailure extends PokemonFailure {
+  const StorageFailure([super.message = 'Storage failure']);
 }
 
 final class UnexpectedFailure extends PokemonFailure {

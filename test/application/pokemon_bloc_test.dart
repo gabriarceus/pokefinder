@@ -201,6 +201,29 @@ void main() {
     );
   });
 
+  group('retrying encounters', () {
+    test('retries encounters loading after a failure', () async {
+      when(
+        () => getEncounters(any()),
+      ).thenAnswer((_) async => left(const NetworkUnavailableFailure()));
+
+      final state = await fetchSuccessfully(buildPokemon(name: 'venusaur'));
+      expect(state.encountersFailure, const NetworkUnavailableFailure());
+
+      when(
+        () => getEncounters(any()),
+      ).thenAnswer((_) async => right(_encounters));
+
+      bloc.add(RetryPokemonEncountersEvent());
+      await pumpEventQueue();
+
+      final updatedState = bloc.state as PokemonBlocSuccess;
+      expect(updatedState.isLoadingEncounters, isFalse);
+      expect(updatedState.encounters, _encounters);
+      expect(updatedState.encountersFailure, isNull);
+    });
+  });
+
   group('switching form', () {
     test('is ignored before a Pokémon has been loaded', () async {
       bloc.add(SelectPokemonFormEvent(_megaForm));
@@ -234,7 +257,7 @@ void main() {
     });
 
     test(
-      'a form failure is surfaced and the previous selection is kept',
+      'a form failure is surfaced and the previous selection is kept, recording failedForm',
       () async {
         final pokemon = buildPokemon(name: 'venusaur', forms: [_megaForm]);
         await fetchSuccessfully(pokemon);
@@ -248,12 +271,35 @@ void main() {
         final state = bloc.state as PokemonBlocSuccess;
         expect(state.isLoadingForm, isFalse);
         expect(state.formFailure, const UnexpectedFailure('nope'));
+        expect(state.failedForm, _megaForm);
         expect(
           state.selectedFormDetails,
           PokemonFormDetails.fromPokemon(pokemon),
         );
       },
     );
+
+    test('clearing form failure resets formFailure and failedForm', () async {
+      final pokemon = buildPokemon(name: 'venusaur', forms: [_megaForm]);
+      await fetchSuccessfully(pokemon);
+      when(
+        () => getFormDetails(any()),
+      ).thenAnswer((_) async => left(const UnexpectedFailure('nope')));
+
+      bloc.add(SelectPokemonFormEvent(_megaForm));
+      await pumpEventQueue();
+
+      var state = bloc.state as PokemonBlocSuccess;
+      expect(state.formFailure, isNotNull);
+      expect(state.failedForm, isNotNull);
+
+      bloc.add(ClearPokemonFormFailureEvent());
+      await pumpEventQueue();
+
+      state = bloc.state as PokemonBlocSuccess;
+      expect(state.formFailure, isNull);
+      expect(state.failedForm, isNull);
+    });
 
     test(
       'reselecting the base form restores it without a network call',

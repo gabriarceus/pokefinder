@@ -26,6 +26,7 @@ class CryPlaybackState extends Equatable {
     this.playing = false,
     this.completed = false,
     this.loading = false,
+    this.unavailable = false,
   });
 
   /// URL of the currently loaded cry, or `null` when nothing is loaded.
@@ -40,6 +41,18 @@ class CryPlaybackState extends Equatable {
   /// Whether the current cry is being loaded.
   final bool loading;
 
+  /// Whether loading or playback failed and is currently unavailable.
+  final bool unavailable;
+
+  /// Alias for [unavailable] indicating error state.
+  bool get hasError => unavailable;
+
   @override
-  List<Object?> get props => [currentUrl, playing, completed, loading];
+  List<Object?> get props => [
+    currentUrl,
+    playing,
+    completed,
+    loading,
+    unavailable,
+  ];
 }

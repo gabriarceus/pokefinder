@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:pokefinder/src/3_domain/entities/move_detail.dart';
+import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 
 sealed class MoveDetailState extends Equatable {
   const MoveDetailState();
@@ -21,9 +22,10 @@ final class MoveDetailLoaded extends MoveDetailState {
 }
 
 final class MoveDetailError extends MoveDetailState {
-  const MoveDetailError(this.message);
+  const MoveDetailError(this.message, {this.failure});
   final String message;
+  final PokemonFailure? failure;
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, failure];
 }

@@ -1,17 +1,21 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 
-/// Maps a [PokemonFailure] to its localized, user-facing message.
 extension PokemonFailureLocalization on PokemonFailure {
-  /// Returns the localized message for this failure, branching on the failure
-  /// type rather than matching raw message strings.
   String localizedMessage(BuildContext context) {
     final t = AppLocalizations.of(context);
-    return map(
-      onFailure: (_) => t.errorUnauthorized,
-      onBadRequest: (_) => t.errorBadRequest,
-      onUnexpected: (_) => t.errorUnexpected,
-    );
+    return switch (this) {
+      PokemonNotFoundFailure() => t.errorPokemonNotFound,
+      NetworkUnavailableFailure() => t.errorNetworkUnavailable,
+      RequestTimeoutFailure() => t.errorRequestTimeout,
+      RateLimitedFailure() => t.errorRateLimited,
+      ServerFailure() => t.errorServer,
+      InvalidResponseFailure() => t.errorInvalidResponse,
+      StorageFailure() => t.errorStorage,
+      UnauthorizedFailure() => t.errorUnauthorized,
+      BadRequestFailure() => t.errorBadRequest,
+      UnexpectedFailure() => t.errorUnexpected,
+    };
   }
 }

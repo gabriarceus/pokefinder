@@ -1,6 +1,6 @@
 # Task 02: Failure Taxonomy, Media Error States and Recovery UX
 
-- **Status:** Open
+- **Status:** Done
 - **Roadmap Reference:** [ROADMAP.md §4.2, §9.1](file:///C:/Users/gabri/Documents/GitHub/pokefinder/ROADMAP.md#L220-L270), [PR 2 §12](file:///C:/Users/gabri/Documents/GitHub/pokefinder/ROADMAP.md#L1126-L1136)
 - **Priority:** P0 (Release Blocker)
 
@@ -41,8 +41,8 @@ The objective is to establish an exhaustive failure model in domain/data layers,
 ## 3. Action Items
 
 ### 3.1 Exhaustive Failure Model (§4.2)
-- [ ] Preserve transport diagnostics in `ApiException` (HTTP status code, connection timeout vs receive timeout, cancellation flag, response body safely truncated).
-- [ ] Expand `PokemonFailure` sealed class/union to include:
+- [x] Preserve transport diagnostics in `ApiException` (HTTP status code, connection timeout vs receive timeout, cancellation flag, response body safely truncated).
+- [x] Expand `PokemonFailure` sealed class/union to include:
   - `PokemonNotFoundFailure` (HTTP 404)
   - `NetworkUnavailableFailure` (SocketException, offline connectivity)
   - `RequestTimeoutFailure` (Connect/receive timeout)
@@ -51,47 +51,47 @@ The objective is to establish an exhaustive failure model in domain/data layers,
   - `InvalidResponseFailure` (JSON schema mismatch or parsing error)
   - `StorageFailure` (Cache read/write issue)
   - `UnexpectedFailure` (Final fallback only)
-- [ ] Map Dio exceptions accurately in `DioApiClient` and remote data sources without leaking raw exceptions.
+- [x] Map Dio exceptions accurately in `DioApiClient` and remote data sources without leaking raw exceptions.
 
 ### 3.2 Presentation Recovery & Retry UX (§4.2)
-- [ ] **Main Detail Screen Failure:** Provide distinct UI cards with:
+- [x] **Main Detail Screen Failure:** Provide distinct UI cards with:
   - Specific localized message (e.g., "Pokémon not found", "No internet connection", "Server error").
   - Primary "Retry" action.
   - "Edit Search" action (returns to home with the previous search query restored).
-- [ ] **Partial Async Sections:**
+- [x] **Partial Async Sections:**
   - Encounters failure: Show localized inline failure banner with an inline "Retry" button.
   - Alternate form failure: Show inline error message within form sheet, allowing retry or safe rollback to the default form.
   - Move detail bottom sheet failure: Localized message with retry action.
   - Autocomplete index failure: Non-blocking warning state; direct search must remain operable.
 
 ### 3.3 Audio Failure and Media Fallbacks (§9.1)
-- [ ] Add `error` / `unavailable` state to `CryPlaybackState`.
-- [ ] Update `JustAudioCryController` so failed sound loading disables playback instead of attempting `play()`.
-- [ ] Provide localized tooltip and accessibility semantics for cry states (`loading`, `playing`, `stopped`, `unavailable`, `retry`).
-- [ ] Gracefully handle sprite image 404/failure with a clean placeholder icon instead of raw text `:( `.
+- [x] Add `error` / `unavailable` state to `CryPlaybackState`.
+- [x] Update `JustAudioCryController` so failed sound loading disables playback instead of attempting `play()`.
+- [x] Provide localized tooltip and accessibility semantics for cry states (`loading`, `playing`, `stopped`, `unavailable`, `retry`).
+- [x] Gracefully handle sprite image 404/failure with a clean placeholder icon instead of raw text `:( `.
 
 ---
 
 ## 4. Acceptance Criteria
 
-- [ ] Searching for a non-existent name or ID displays a clear, localized "Pokémon not found" message.
-- [ ] Offline mode, timeouts, rate limits, and server errors each render distinct, localized messages.
-- [ ] No raw Dio, socket, or stack-trace strings are shown to the user.
-- [ ] Every recoverable async section (detail, encounters, forms, move details) has a functional retry button.
-- [ ] Audio loading failures transition the button to an "unavailable" or "retry" state without crashing or freezing.
-- [ ] An autocomplete index fetch failure does not block manual name/ID lookup.
+- [x] Searching for a non-existent name or ID displays a clear, localized "Pokémon not found" message.
+- [x] Offline mode, timeouts, rate limits, and server errors each render distinct, localized messages.
+- [x] No raw Dio, socket, or stack-trace strings are shown to the user.
+- [x] Every recoverable async section (detail, encounters, forms, move details) has a functional retry button.
+- [x] Audio loading failures transition the button to an "unavailable" or "retry" state without crashing or freezing.
+- [x] An autocomplete index fetch failure does not block manual name/ID lookup.
 
 ---
 
 ## 5. Testing & Verification Plan
 
-- [ ] **Unit Tests:**
+- [x] **Unit Tests:**
   - `DioApiClient` mapping for timeouts, connection errors, 404, 429, 500, and cancellations.
   - `PokemonRemoteDataSource` failure conversion to domain `PokemonFailure`.
   - `CryAudioController` lifecycle, failed sound load, and state transitions.
-- [ ] **BLoC Tests:**
+- [x] **BLoC Tests:**
   - `PokemonBloc` emits proper failure states on network error, not found, and subsequent retry success.
   - `MoveDetailCubit` retry flow and state emission.
-- [ ] **Widget Tests:**
+- [x] **Widget Tests:**
   - Main detail error view renders Retry and Edit Search buttons and triggers callbacks.
   - Encounters section renders inline retry upon encounter fetch failure.

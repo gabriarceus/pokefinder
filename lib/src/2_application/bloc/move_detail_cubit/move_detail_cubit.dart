@@ -20,7 +20,7 @@ class MoveDetailCubit extends Cubit<MoveDetailState> {
         _logger.error(
           'Failed to fetch move detail for $moveName: ${failure.message}',
         );
-        emit(MoveDetailError(failure.message));
+        emit(MoveDetailError(failure.message, failure: failure));
       },
       (moveDetail) {
         emit(MoveDetailLoaded(moveDetail));

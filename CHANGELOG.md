@@ -9,6 +9,11 @@ All notable changes to this project will be documented in this file, following t
 - Canonical mobile route `/pokemon/:nameOrId` with parameter validation and a `RouteErrorPage`.
 - Recoverable mobile startup error screen (`StartupErrorApp`, `StartupErrorPage`) with retry action.
 - Storage lifecycle separation: durable user state in documents storage, disposable cache in temporary directory.
+- Exhaustive domain `PokemonFailure` taxonomy (`PokemonNotFoundFailure`, `NetworkUnavailableFailure`, `RequestTimeoutFailure`, `RateLimitedFailure`, `ServerFailure`, `InvalidResponseFailure`, `StorageFailure`) with full localization in English and Italian.
+- Detail failure screen (`DetailFailure`) with localized descriptions, primary Retry, and Edit Search navigation restoring query state.
+- In-place recovery UX for partial async views: inline retry for encounters, retry and default form rollback for alternate forms, retry action in move detail sheet, and non-blocking indicator for search autocomplete index failures.
+- Media fallback and cry audio error handling in `JustAudioCryController` with `unavailable` state, playback suppression on failure, tap-to-retry, accessibility semantics/tooltips, and placeholder icon for broken sprites.
+- Transport error diagnostics in `ApiException` and `DioApiClient` preserving status codes, timeout types, connection errors, cancellations, and safely truncated response payloads.
 - `scripts/verify.sh`, running every quality gate (format, analysis, tests).
 - `scripts/coverage.sh`, reporting total line coverage with an optional minimum.
 

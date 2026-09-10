@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
+import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 
@@ -129,9 +131,41 @@ class _EncountersSection extends StatelessWidget {
     }
 
     if (encountersFailure != null) {
-      return Text(
-        encountersFailure!.localizedMessage(context),
-        style: const TextStyle(color: Colors.red),
+      final t = context.t();
+      return SurfaceCard(
+        borderRadius: 12,
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Icon(
+                Icons.error_outline_rounded,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  encountersFailure!.localizedMessage(context),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton.icon(
+                onPressed: () {
+                  context.read<PokemonBloc>().add(
+                    RetryPokemonEncountersEvent(),
+                  );
+                },
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: Text(t.retryButton),
+              ),
+            ],
+          ),
+        ),
       );
     }
 

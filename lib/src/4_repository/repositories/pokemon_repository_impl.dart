@@ -6,7 +6,7 @@ import 'package:pokefinder/src/4_repository/repository.dart';
 const _kSpritesRoot =
     'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/';
 
-/// Form-name suffix marking the vestigial "???" type variant. Such forms have
+/// Form-name suffix marking the vestigial "???". Such forms have
 /// no type sprite and are excluded from the exposed form list.
 const _kUnknownFormSuffix = '-unknown';
 
@@ -33,7 +33,7 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       final result = await _remoteDataSource.getPokemon(name);
       return result.map(_toDomain);
     } catch (e) {
-      return left(UnexpectedFailure(e.toString()));
+      return left(_mapRepoError(e));
     }
   }
 
@@ -161,7 +161,7 @@ class PokemonRepositoryImpl implements IPokemonRepository {
         );
       });
     } catch (e) {
-      return left(UnexpectedFailure(e.toString()));
+      return left(_mapRepoError(e));
     }
   }
 
@@ -185,7 +185,7 @@ class PokemonRepositoryImpl implements IPokemonRepository {
         }).toList(),
       );
     } catch (e) {
-      return left(UnexpectedFailure(e.toString()));
+      return left(_mapRepoError(e));
     }
   }
 
@@ -194,34 +194,49 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     try {
       return await _remoteDataSource.getAllPokemonNames();
     } catch (e) {
-      return left(UnexpectedFailure(e.toString()));
+      return left(_mapRepoError(e));
     }
   }
 
   @override
   Future<Either<PokemonFailure, MoveDetail>> getMoveDetail(String name) async {
-    final result = await _remoteDataSource.getMoveDetail(name);
-    return result.map((raw) {
-      final flavorTexts = <String, String>{};
-      for (final entry in raw.flavorTextEntries) {
-        // Just take the first flavor text we encounter for a language
-        // (sometimes there are multiple for different game versions).
-        if (!flavorTexts.containsKey(entry.language.name)) {
-          flavorTexts[entry.language.name] = entry.flavorText;
+    try {
+      final result = await _remoteDataSource.getMoveDetail(name);
+      return result.map((raw) {
+        final flavorTexts = <String, String>{};
+        for (final entry in raw.flavorTextEntries) {
+          // Just take the first flavor text we encounter for a language
+          // (sometimes there are multiple for different game versions).
+          if (!flavorTexts.containsKey(entry.language.name)) {
+            flavorTexts[entry.language.name] = entry.flavorText;
+          }
         }
-      }
 
-      return MoveDetail(
-        id: raw.id,
-        name: raw.name,
-        accuracy: raw.accuracy,
-        power: raw.power,
-        pp: raw.pp,
-        type: _typeFromUrl(raw.type.url),
-        damageClass: DamageClass.fromApiName(raw.damageClass.name),
-        flavorTexts: flavorTexts,
-      );
-    });
+        return MoveDetail(
+          id: raw.id,
+          name: raw.name,
+          accuracy: raw.accuracy,
+          power: raw.power,
+          pp: raw.pp,
+          type: _typeFromUrl(raw.type.url),
+          damageClass: DamageClass.fromApiName(raw.damageClass.name),
+          flavorTexts: flavorTexts,
+        );
+      });
+    } catch (e) {
+      return left(_mapRepoError(e));
+    }
+  }
+
+  PokemonFailure _mapRepoError(Object e) {
+    if (e is PokemonFailure) return e;
+    if (e is TypeError ||
+        e is FormatException ||
+        e is StateError ||
+        e is EmptyResponseException) {
+      return InvalidResponseFailure(e.toString());
+    }
+    return UnexpectedFailure(e.toString());
   }
 
   /// Resolves the [PokemonType] referenced by a PokeAPI type [typeUrl], or

@@ -4,11 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/src/2_application/bloc/move_detail_cubit/move_detail_cubit.dart';
 import 'package:pokefinder/src/2_application/bloc/move_detail_cubit/move_detail_state.dart';
-import 'package:pokefinder/src/3_domain/entities/damage_class.dart';
-import 'package:pokefinder/src/3_domain/entities/move_detail.dart';
-import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
-import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
-import 'package:pokefinder/src/3_domain/repositories/i_pokemon_repository.dart';
+import 'package:pokefinder/src/3_domain/domain.dart';
 
 class _MockPokemonRepository extends Mock implements IPokemonRepository {}
 
@@ -27,14 +23,22 @@ const _tackle = MoveDetail(
 
 void main() {
   late _MockPokemonRepository repository;
+  late _MockEnLogger logger;
   late MoveDetailCubit cubit;
 
   setUp(() {
     repository = _MockPokemonRepository();
-    cubit = MoveDetailCubit(repository, _MockEnLogger());
+    logger = _MockEnLogger();
+    cubit = MoveDetailCubit(repository, logger);
   });
 
-  tearDown(() => cubit.close());
+  tearDown(() async {
+    await cubit.close();
+  });
+
+  test('initial state is MoveDetailInitial', () {
+    expect(cubit.state, isA<MoveDetailInitial>());
+  });
 
   test('emits loading then the loaded move detail', () async {
     when(
@@ -51,18 +55,24 @@ void main() {
     expect(emitted, [MoveDetailLoading(), const MoveDetailLoaded(_tackle)]);
   });
 
-  test('emits loading then an error carrying the failure message', () async {
-    when(
-      () => repository.getMoveDetail(any()),
-    ).thenAnswer((_) async => left(const UnexpectedFailure('offline')));
+  test(
+    'emits loading then an error carrying the failure message and typed failure',
+    () async {
+      when(
+        () => repository.getMoveDetail(any()),
+      ).thenAnswer((_) async => left(const UnexpectedFailure('offline')));
 
-    final emitted = <MoveDetailState>[];
-    final subscription = cubit.stream.listen(emitted.add);
+      final emitted = <MoveDetailState>[];
+      final subscription = cubit.stream.listen(emitted.add);
 
-    await cubit.fetchMoveDetail('tackle');
-    await pumpEventQueue();
-    await subscription.cancel();
+      await cubit.fetchMoveDetail('tackle');
+      await pumpEventQueue();
+      await subscription.cancel();
 
-    expect(emitted, [MoveDetailLoading(), const MoveDetailError('offline')]);
-  });
+      expect(emitted, [
+        MoveDetailLoading(),
+        const MoveDetailError('offline', failure: UnexpectedFailure('offline')),
+      ]);
+    },
+  );
 }

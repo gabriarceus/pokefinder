@@ -24,6 +24,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorUnexpected => 'An unexpected error occurred.';
 
   @override
+  String get errorPokemonNotFound => 'Pokémon not found.';
+
+  @override
+  String get errorNetworkUnavailable =>
+      'No internet connection. Please check your network.';
+
+  @override
+  String get errorRequestTimeout => 'The request timed out. Please try again.';
+
+  @override
+  String get errorRateLimited =>
+      'Too many requests. Please wait a moment and try again.';
+
+  @override
+  String get errorServer => 'Server error occurred. Please try again later.';
+
+  @override
+  String get errorInvalidResponse =>
+      'Received an invalid response from the server.';
+
+  @override
+  String get errorStorage => 'A storage error occurred. Please try again.';
+
+  @override
   String get loading => 'Loading...';
 
   @override
@@ -491,4 +515,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goHome => 'Go to Home';
+
+  @override
+  String get editSearchButton => 'Edit Search';
+
+  @override
+  String get errorEncounters => 'Failed to load encounters.';
+
+  @override
+  String get errorFormDetails => 'Failed to load form details.';
+
+  @override
+  String get errorMoveDetails => 'Failed to load move details.';
+
+  @override
+  String get defaultFormRollback => 'Reset to default form';
+
+  @override
+  String get errorSuggestions => 'Failed to load suggestions.';
+
+  @override
+  String get cryPlayTooltip => 'Play cry';
+
+  @override
+  String get cryStopTooltip => 'Stop cry';
+
+  @override
+  String get cryReplayTooltip => 'Replay cry';
+
+  @override
+  String get cryLoadingTooltip => 'Loading cry...';
+
+  @override
+  String get cryUnavailableTooltip => 'Cry unavailable. Tap to retry';
 }

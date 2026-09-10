@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/widgets/home/poke_text_field.dart';
+import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 
 void main() {
   group('PokeTextField', () {
@@ -20,7 +21,12 @@ void main() {
       focusNode.dispose();
     });
 
-    Future<void> pumpField(WidgetTester tester, List<String> allNames) {
+    Future<void> pumpField(
+      WidgetTester tester,
+      List<String> allNames, {
+      PokemonFailure? nameIndexFailure,
+      VoidCallback? onRetryIndex,
+    }) {
       return tester.pumpWidget(
         MaterialApp(
           locale: const Locale('en'),
@@ -32,6 +38,8 @@ void main() {
               focusNode: focusNode,
               allNames: allNames,
               onChanged: reportedInputs.add,
+              nameIndexFailure: nameIndexFailure,
+              onRetryIndex: onRetryIndex,
             ),
           ),
         ),
@@ -96,5 +104,26 @@ void main() {
       expect(controller.text, 'pidgey');
       expect(reportedInputs.last, 'pidgey');
     });
+
+    testWidgets(
+      'renders sync problem icon and triggers retry when index fails',
+      (tester) async {
+        var retried = false;
+        await pumpField(
+          tester,
+          const [],
+          nameIndexFailure: const NetworkUnavailableFailure(),
+          onRetryIndex: () => retried = true,
+        );
+
+        final iconFinder = find.byIcon(Icons.sync_problem_rounded);
+        expect(iconFinder, findsOneWidget);
+
+        await tester.tap(iconFinder);
+        await tester.pumpAndSettle();
+
+        expect(retried, isTrue);
+      },
+    );
   });
 }

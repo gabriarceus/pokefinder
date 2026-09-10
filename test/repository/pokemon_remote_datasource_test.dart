@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
@@ -38,6 +41,12 @@ void main() {
   }
 
   group('PokemonRemoteDataSource error mapping', () {
+    test('maps ApiException 404 to PokemonNotFoundFailure', () async {
+      stubFetchThrow(ApiException(statusCode: 404, message: 'Not found'));
+      final result = await dataSource.getPokemon(PokemonName('unknown'));
+      expect(_leftOf(result), isA<PokemonNotFoundFailure>());
+    });
+
     test('maps ApiException 401 to UnauthorizedFailure', () async {
       stubFetchThrow(ApiException(statusCode: 401, message: 'no'));
       final result = await dataSource.getPokemon(PokemonName('pikachu'));
@@ -50,14 +59,62 @@ void main() {
       expect(_leftOf(result), isA<BadRequestFailure>());
     });
 
-    test('maps other ApiException status codes to UnexpectedFailure', () async {
+    test('maps ApiException 429 to RateLimitedFailure', () async {
+      stubFetchThrow(ApiException(statusCode: 429, message: 'rate limit'));
+      final result = await dataSource.getPokemon(PokemonName('pikachu'));
+      expect(_leftOf(result), isA<RateLimitedFailure>());
+    });
+
+    test('maps ApiException 500 to ServerFailure', () async {
       stubFetchThrow(ApiException(statusCode: 500, message: 'boom'));
       final result = await dataSource.getPokemon(PokemonName('pikachu'));
-      expect(_leftOf(result), isA<UnexpectedFailure>());
+      final failure = _leftOf(result);
+      expect(failure, isA<ServerFailure>());
+      expect((failure as ServerFailure).statusCode, 500);
+    });
+
+    test(
+      'maps ApiException with isConnectionError to NetworkUnavailableFailure',
+      () async {
+        stubFetchThrow(
+          ApiException(message: 'connect error', isConnectionError: true),
+        );
+        final result = await dataSource.getPokemon(PokemonName('pikachu'));
+        expect(_leftOf(result), isA<NetworkUnavailableFailure>());
+      },
+    );
+
+    test(
+      'maps ApiException with isConnectionTimeout to RequestTimeoutFailure',
+      () async {
+        stubFetchThrow(
+          ApiException(message: 'timeout', isConnectionTimeout: true),
+        );
+        final result = await dataSource.getPokemon(PokemonName('pikachu'));
+        expect(_leftOf(result), isA<RequestTimeoutFailure>());
+      },
+    );
+
+    test('maps SocketException to NetworkUnavailableFailure', () async {
+      stubFetchThrow(const SocketException('Failed host lookup'));
+      final result = await dataSource.getPokemon(PokemonName('pikachu'));
+      expect(_leftOf(result), isA<NetworkUnavailableFailure>());
+    });
+
+    test('maps FormatException to InvalidResponseFailure', () async {
+      stubFetchThrow(const FormatException('corrupted JSON'));
+      final result = await dataSource.getPokemon(PokemonName('pikachu'));
+      expect(_leftOf(result), isA<InvalidResponseFailure>());
+    });
+
+    test('maps HiveError to StorageFailure', () async {
+      stubFetchThrow(HiveError('Box not found'));
+      final result = await dataSource.getPokemon(PokemonName('pikachu'));
+      expect(_leftOf(result), isA<StorageFailure>());
     });
 
     test('maps non-ApiException errors to UnexpectedFailure', () async {
-      stubFetchThrow(const FormatException('corrupted'));
+      stubFetchThrow(Exception('general error'));
       final result = await dataSource.getPokemon(PokemonName('pikachu'));
       expect(_leftOf(result), isA<UnexpectedFailure>());
     });

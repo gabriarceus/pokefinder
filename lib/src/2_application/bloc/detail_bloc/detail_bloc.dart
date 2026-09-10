@@ -27,9 +27,11 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
     this._getPokemonEncountersUseCase,
     this._getPokemonFormDetailsUseCase,
     this._logger,
-  ) : super(PokemonBlocInitial()) {
+  ) : super(const PokemonBlocInitial()) {
     on<FetchPokemonEvent>(onFetchPokemon);
     on<SelectPokemonFormEvent>(onSelectPokemonForm);
+    on<RetryPokemonEncountersEvent>(onRetryEncounters);
+    on<ClearPokemonFormFailureEvent>(onClearFormFailure);
   }
 
   final GetPokemonUseCase _getPokemonUseCase;
@@ -45,7 +47,7 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
     if (!name.isValid()) {
       return;
     }
-    emit(PokemonBlocLoading());
+    emit(const PokemonBlocLoading());
     _logger.info(
       'Fetching data for Pokemon: ${name.rightOrCrash()}',
       prefix: _prefix,
@@ -100,6 +102,7 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
                 currentState.copyWith(
                   isLoadingEncounters: false,
                   encounters: encounters,
+                  encountersFailure: null,
                 ),
               );
             },
@@ -107,6 +110,51 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
         }
       },
     );
+  }
+
+  FutureOr<void> onRetryEncounters(
+    RetryPokemonEncountersEvent event,
+    Emitter<PokemonBlocState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! PokemonBlocSuccess) return;
+
+    emit(
+      currentState.copyWith(isLoadingEncounters: true, encountersFailure: null),
+    );
+
+    _logger.info(
+      'Retrying encounters for Pokemon: ${currentState.pokemon.name}',
+      prefix: _prefix,
+    );
+
+    final encountersResult = await _getPokemonEncountersUseCase(
+      currentState.pokemon.locationAreaEncounters,
+    );
+
+    final latestState = state;
+    if (latestState is PokemonBlocSuccess &&
+        latestState.pokemon.id == currentState.pokemon.id) {
+      encountersResult.fold(
+        (failure) {
+          emit(
+            latestState.copyWith(
+              isLoadingEncounters: false,
+              encountersFailure: failure,
+            ),
+          );
+        },
+        (encounters) {
+          emit(
+            latestState.copyWith(
+              isLoadingEncounters: false,
+              encounters: encounters,
+              encountersFailure: null,
+            ),
+          );
+        },
+      );
+    }
   }
 
   FutureOr<void> onSelectPokemonForm(
@@ -125,12 +173,19 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
           selectedFormDetails: defaultFormDetails,
           isLoadingForm: false,
           formFailure: null,
+          failedForm: null,
         ),
       );
       return;
     }
 
-    emit(currentState.copyWith(isLoadingForm: true, formFailure: null));
+    emit(
+      currentState.copyWith(
+        isLoadingForm: true,
+        formFailure: null,
+        failedForm: null,
+      ),
+    );
 
     final result = await _getPokemonFormDetailsUseCase(event.form.url);
 
@@ -139,7 +194,13 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
 
     result.fold(
       (failure) {
-        emit(updatedState.copyWith(isLoadingForm: false, formFailure: failure));
+        emit(
+          updatedState.copyWith(
+            isLoadingForm: false,
+            formFailure: failure,
+            failedForm: event.form,
+          ),
+        );
       },
       (details) {
         emit(
@@ -147,9 +208,20 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
             selectedFormDetails: details,
             isLoadingForm: false,
             formFailure: null,
+            failedForm: null,
           ),
         );
       },
     );
+  }
+
+  FutureOr<void> onClearFormFailure(
+    ClearPokemonFormFailureEvent event,
+    Emitter<PokemonBlocState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is PokemonBlocSuccess) {
+      emit(currentState.copyWith(formFailure: null, failedForm: null));
+    }
   }
 }

@@ -4,6 +4,7 @@ import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/extensions/form_name_formatter.dart';
+import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
 
 /// Bottom sheet that lets the user toggle shiny sprites and pick an
 /// alternate Pokémon form.
@@ -51,6 +52,12 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
       builder: (context, state) {
         final String? selectedFormName;
         final bool isLoadingForm;
+        final formFailure = state is PokemonBlocSuccess
+            ? state.formFailure
+            : null;
+        final failedForm = state is PokemonBlocSuccess
+            ? state.failedForm
+            : null;
 
         if (state is PokemonBlocSuccess) {
           selectedFormName = state.selectedFormDetails?.name;
@@ -115,6 +122,83 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                 ),
               ),
               const SizedBox(height: 12),
+              if (formFailure != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.error.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.error_outline_rounded,
+                              color: Theme.of(context).colorScheme.error,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                formFailure.localizedMessage(context),
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            if (failedForm != null)
+                              TextButton.icon(
+                                onPressed: () {
+                                  context.read<PokemonBloc>().add(
+                                    SelectPokemonFormEvent(failedForm),
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.refresh_rounded,
+                                  size: 16,
+                                ),
+                                label: Text(context.t().retryButton),
+                              ),
+                            const SizedBox(width: 8),
+                            TextButton.icon(
+                              onPressed: () {
+                                context.read<PokemonBloc>().add(
+                                  SelectPokemonFormEvent(
+                                    PokemonForm(
+                                      name: widget.pokemon.name,
+                                      url: '',
+                                    ),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.restore_rounded, size: 16),
+                              label: Text(context.t().defaultFormRollback),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               if (isLoadingForm)
                 const Center(
                   child: Padding(

@@ -17,7 +17,8 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
         path: '/',
         name: 'home',
         builder: (BuildContext context, GoRouterState state) {
-          return const HomePageProvider(userInput: '', child: HomePage());
+          final query = state.uri.queryParameters['query'] ?? '';
+          return HomePageProvider(userInput: query, child: const HomePage());
         },
         routes: <RouteBase>[
           GoRoute(

@@ -317,7 +317,7 @@ void main() {
     });
 
     test(
-      'a malformed payload becomes an UnexpectedFailure instead of throwing',
+      'a malformed payload becomes an InvalidResponseFailure instead of throwing',
       () async {
         final json = rawPokemonJson(types: const []);
         when(
@@ -327,7 +327,10 @@ void main() {
         final result = await repository.getPokemon(PokemonName('venusaur'));
 
         expect(result.isLeft(), isTrue);
-        expect(result.fold((l) => l, (_) => null), isA<UnexpectedFailure>());
+        expect(
+          result.fold((l) => l, (_) => null),
+          isA<InvalidResponseFailure>(),
+        );
       },
     );
   });

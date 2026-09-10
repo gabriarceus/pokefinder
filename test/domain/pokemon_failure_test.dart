@@ -6,15 +6,33 @@ void main() {
     test('same subtype compares equal by value', () {
       expect(BadRequestFailure(), BadRequestFailure());
       expect(UnauthorizedFailure(), UnauthorizedFailure());
-      expect(UnexpectedFailure('boom'), UnexpectedFailure('boom'));
+      expect(PokemonNotFoundFailure(), PokemonNotFoundFailure());
+      expect(NetworkUnavailableFailure(), NetworkUnavailableFailure());
+      expect(RequestTimeoutFailure(), RequestTimeoutFailure());
+      expect(RateLimitedFailure(), RateLimitedFailure());
+      expect(const ServerFailure(500), const ServerFailure(500));
+      expect(const InvalidResponseFailure(), const InvalidResponseFailure());
+      expect(const StorageFailure(), const StorageFailure());
+      expect(const UnexpectedFailure('boom'), const UnexpectedFailure('boom'));
     });
 
     test('different subtypes are not equal', () {
       expect(BadRequestFailure(), isNot(UnauthorizedFailure()));
+      expect(PokemonNotFoundFailure(), isNot(NetworkUnavailableFailure()));
+      expect(RequestTimeoutFailure(), isNot(RateLimitedFailure()));
+      expect(const ServerFailure(500), isNot(const ServerFailure(502)));
+      expect(const StorageFailure(), isNot(const InvalidResponseFailure()));
     });
 
     test('UnexpectedFailure differs by message', () {
-      expect(UnexpectedFailure('a'), isNot(UnexpectedFailure('b')));
+      expect(const UnexpectedFailure('a'), isNot(const UnexpectedFailure('b')));
+    });
+
+    test('ServerFailure props include statusCode and message', () {
+      const failure = ServerFailure(503, 'Gateway Timeout');
+      expect(failure.statusCode, 503);
+      expect(failure.message, 'Gateway Timeout');
+      expect(failure.props, [503, 'Gateway Timeout']);
     });
   });
 }
