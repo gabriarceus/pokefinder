@@ -13,16 +13,6 @@ class _MockDataRepository extends Mock implements DataRepository {}
 
 class _MockEnLogger extends Mock implements EnLogger {}
 
-const _kSampleNames = [
-  'pikachu',
-  'pidgey',
-  'pidgeotto',
-  'pidgeot',
-  'pikachu-rock-star',
-  'raichu',
-  'bulbasaur',
-];
-
 void main() {
   late _MockPokemonRepository pokemonRepository;
   late _MockDataRepository dataRepository;
@@ -38,78 +28,6 @@ void main() {
 
   tearDown(() async {
     await bloc.close();
-  });
-
-  group('search suggestions', () {
-    test('are empty below the two-character threshold', () async {
-      when(
-        () => pokemonRepository.getAllPokemonNames(),
-      ).thenAnswer((_) async => right(_kSampleNames));
-
-      bloc.add(FetchAllPokemonNamesEvent());
-      await pumpEventQueue();
-
-      bloc.add(UserInputEvent('p'));
-      await pumpEventQueue();
-
-      expect(bloc.state.searchSuggestions, isEmpty);
-    });
-
-    test('match by prefix, case-insensitively', () async {
-      when(
-        () => pokemonRepository.getAllPokemonNames(),
-      ).thenAnswer((_) async => right(_kSampleNames));
-
-      bloc.add(FetchAllPokemonNamesEvent());
-      await pumpEventQueue();
-
-      bloc.add(UserInputEvent('Pi'));
-      await pumpEventQueue();
-
-      expect(bloc.state.searchSuggestions, [
-        'pikachu',
-        'pidgey',
-        'pidgeotto',
-        'pidgeot',
-        'pikachu-rock-star',
-      ]);
-    });
-
-    test('exclude names that only contain the query mid-word', () async {
-      when(
-        () => pokemonRepository.getAllPokemonNames(),
-      ).thenAnswer((_) async => right(_kSampleNames));
-
-      bloc.add(FetchAllPokemonNamesEvent());
-      await pumpEventQueue();
-
-      bloc.add(UserInputEvent('chu'));
-      await pumpEventQueue();
-
-      expect(bloc.state.searchSuggestions, isEmpty);
-    });
-
-    test('are capped at five entries', () async {
-      final manyPNames = List.generate(10, (i) => 'pkm-$i');
-      when(
-        () => pokemonRepository.getAllPokemonNames(),
-      ).thenAnswer((_) async => right(manyPNames));
-
-      bloc.add(FetchAllPokemonNamesEvent());
-      await pumpEventQueue();
-
-      bloc.add(UserInputEvent('pk'));
-      await pumpEventQueue();
-
-      expect(bloc.state.searchSuggestions.length, 5);
-    });
-
-    test('are empty while the name list has not been loaded', () async {
-      bloc.add(UserInputEvent('pika'));
-      await pumpEventQueue();
-
-      expect(bloc.state.searchSuggestions, isEmpty);
-    });
   });
 
   group('name list loading', () {

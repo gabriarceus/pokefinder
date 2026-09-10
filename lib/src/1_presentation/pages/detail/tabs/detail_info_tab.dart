@@ -134,8 +134,8 @@ class DetailInfoTab extends StatelessWidget {
                     width: 1.5,
                   ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     if (ability.isHidden) ...[
                       const Icon(
@@ -190,6 +190,7 @@ class DetailInfoTab extends StatelessWidget {
                   controller: audioController,
                   cryUrl: pokemon.cry,
                   label: context.t().cryLatest,
+                  pokemonName: pokemon.name,
                 ),
               ),
               if (pokemon.cryLegacy != null) ...[
@@ -199,6 +200,7 @@ class DetailInfoTab extends StatelessWidget {
                     controller: audioController,
                     cryUrl: pokemon.cryLegacy!,
                     label: context.t().cryLegacy,
+                    pokemonName: pokemon.name,
                   ),
                 ),
               ],
@@ -228,12 +230,16 @@ class DetailInfoTab extends StatelessWidget {
                     color: effectiveColor,
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    context.t().formSelectorTitle,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      color: effectiveColor,
+                  Flexible(
+                    child: Text(
+                      context.t().formSelectorTitle,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: effectiveColor,
+                      ),
                     ),
                   ),
                 ],

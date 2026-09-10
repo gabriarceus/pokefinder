@@ -23,11 +23,13 @@ class CryPlayButton extends StatelessWidget {
     required this.controller,
     required this.cryUrl,
     required this.label,
+    this.pokemonName,
   });
 
   final CryAudioController controller;
   final String cryUrl;
   final String label;
+  final String? pokemonName;
 
   @override
   Widget build(BuildContext context) {
@@ -50,42 +52,62 @@ class CryPlayButton extends StatelessWidget {
           CryButtonMode.unavailable => t.cryUnavailableTooltip,
         };
 
+        final semanticLabel = switch (mode) {
+          CryButtonMode.play =>
+            pokemonName != null
+                ? '$label: ${t.cryPlayFor(pokemon: pokemonName!)}'
+                : '$label: ${t.cryPlayTooltip}',
+          CryButtonMode.stop => '$label: ${t.cryStopTooltip}',
+          CryButtonMode.replay => '$label: ${t.cryReplayTooltip}',
+          CryButtonMode.loading => '$label: ${t.cryLoadingTooltip}',
+          CryButtonMode.unavailable => '$label: ${t.cryUnavailableTooltip}',
+        };
+
         return Semantics(
           button: true,
           enabled: mode != CryButtonMode.loading,
-          label: '$label: $tooltipMessage',
+          excludeSemantics: true,
+          label: semanticLabel,
           child: Tooltip(
             message: tooltipMessage,
-            child: SurfaceCard(
-              borderRadius: 24,
-              margin: EdgeInsets.zero,
-              color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-              child: InkWell(
-                onTap: mode == CryButtonMode.loading
-                    ? null
-                    : () => controller.toggle(cryUrl),
-                borderRadius: BorderRadius.circular(24),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _ModeIcon(mode: mode),
-                      const SizedBox(width: 6),
-                      Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: mode == CryButtonMode.unavailable
-                              ? Theme.of(context).disabledColor
-                              : Theme.of(context).primaryColor,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+              child: SurfaceCard(
+                borderRadius: 24,
+                margin: EdgeInsets.zero,
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                child: InkWell(
+                  onTap: mode == CryButtonMode.loading
+                      ? null
+                      : () => controller.toggle(cryUrl),
+                  borderRadius: BorderRadius.circular(24),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _ModeIcon(mode: mode),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            label,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: mode == CryButtonMode.unavailable
+                                  ? Theme.of(context).disabledColor
+                                  : Theme.of(context).primaryColor,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

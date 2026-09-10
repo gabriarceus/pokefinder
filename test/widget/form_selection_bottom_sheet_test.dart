@@ -98,4 +98,57 @@ void main() {
       ).called(1);
     },
   );
+
+  testWidgets(
+    'FormSelectionBottomSheet renders long form name without overflow at 2.0 text scale',
+    (tester) async {
+      const longForm = PokemonForm(
+        name: 'venusaur-gmax-gigantamax-special-form',
+        url: 'form/10034/',
+      );
+      final pokemon = buildPokemon(
+        name: 'venusaur',
+        forms: [
+          const PokemonForm(name: 'venusaur', url: 'form/3/'),
+          longForm,
+        ],
+      );
+
+      final successState = PokemonBlocSuccess(
+        pokemon: pokemon,
+        selectedFormDetails: PokemonFormDetails.fromPokemon(pokemon),
+      );
+
+      when(() => bloc.state).thenReturn(successState);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: MediaQuery(
+            data: const MediaQueryData(
+              size: Size(320, 568),
+              textScaler: TextScaler.linear(2.0),
+            ),
+            child: Scaffold(
+              body: BlocProvider<PokemonBloc>.value(
+                value: bloc,
+                child: FormSelectionBottomSheet(
+                  pokemon: pokemon,
+                  typeColor: Colors.green,
+                  textColor: Colors.white,
+                  showShiny: false,
+                  onShinyChanged: (_) {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+    },
+  );
 }

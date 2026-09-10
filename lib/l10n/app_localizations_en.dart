@@ -548,4 +548,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cryUnavailableTooltip => 'Cry unavailable. Tap to retry';
+
+  @override
+  String cryPlayFor({required String pokemon}) {
+    return 'Play cry for $pokemon';
+  }
 }

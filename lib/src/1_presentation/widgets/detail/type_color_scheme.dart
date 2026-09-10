@@ -7,7 +7,7 @@ class TypeColorScheme {
   final PokemonType? type1;
   final PokemonType? type2;
 
-  Color _getColorFromType(PokemonType? type) {
+  static Color getColorFromType(PokemonType? type) {
     return switch (type) {
       PokemonType.normal => Colors.grey[300]!,
       PokemonType.fighting => Colors.orange[600]!,
@@ -31,6 +31,8 @@ class TypeColorScheme {
       null => Colors.grey[300]!,
     };
   }
+
+  Color _getColorFromType(PokemonType? type) => getColorFromType(type);
 
   BoxDecoration getBackgroundDecoration() {
     final color1 = _getColorFromType(type1);

@@ -188,5 +188,14 @@
   "cryStopTooltip": "Stop cry",
   "cryReplayTooltip": "Replay cry",
   "cryLoadingTooltip": "Loading cry...",
-  "cryUnavailableTooltip": "Cry unavailable. Tap to retry"
+  "cryUnavailableTooltip": "Cry unavailable. Tap to retry",
+  "cryPlayFor": "Play cry for {pokemon}",
+  "@cryPlayFor": {
+    "placeholders": {
+      "pokemon": {
+        "type": "String"
+      }
+    }
+  }
 }
+

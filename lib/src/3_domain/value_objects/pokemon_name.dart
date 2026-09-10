@@ -1,18 +1,19 @@
 import 'package:dartz/dartz.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
+import 'package:pokefinder/src/3_domain/helpers/pokemon_route_param_parser.dart';
 
-/// Validates and normalizes a raw name.
+/// Validates and normalizes a raw name or numeric Pokédex ID.
 ///
 /// On success returns the canonical value: trimmed and lower-cased, so that
-/// equivalent inputs (different casing or surrounding whitespace) collapse to
-/// a single value used downstream as both the request path and the cache key.
-/// Returns a [BadRequestFailure] when the input is empty after trimming.
+/// equivalent inputs (different casing, surrounding whitespace, leading zeroes)
+/// collapse to a single value used downstream as both the request path and the cache key.
+/// Returns a [BadRequestFailure] when the input is empty, non-positive, or malformed.
 Either<PokemonFailure, String> _validatePokemonName(String input) {
-  final normalized = input.trim().toLowerCase();
-  if (normalized.isEmpty) {
+  final canonical = parsePokemonRouteParam(input);
+  if (canonical == null) {
     return left(BadRequestFailure());
   }
-  return right(normalized);
+  return right(canonical);
 }
 
 class PokemonName {

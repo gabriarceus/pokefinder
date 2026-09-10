@@ -176,5 +176,7 @@
   "cryStopTooltip": "Interrompi verso",
   "cryReplayTooltip": "Riascolta verso",
   "cryLoadingTooltip": "Caricamento verso...",
-  "cryUnavailableTooltip": "Verso non disponibile. Tocca per riprovare"
+  "cryUnavailableTooltip": "Verso non disponibile. Tocca per riprovare",
+  "cryPlayFor": "Riproduci verso di {pokemon}"
 }
+
