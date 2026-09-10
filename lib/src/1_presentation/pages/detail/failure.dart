@@ -75,6 +75,7 @@ class DetailFailure extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
+          tooltip: t.backButton,
           onPressed: () {
             if (context.canPop()) {
               context.pop();

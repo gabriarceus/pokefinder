@@ -7,7 +7,6 @@ final class HomeBlocState extends Equatable {
     required this.navigateToDetail,
     required this.cacheCleared,
     required this.allPokemonNames,
-    required this.searchSuggestions,
     this.failure,
     this.nameIndexFailure,
   });
@@ -18,7 +17,6 @@ final class HomeBlocState extends Equatable {
       navigateToDetail: false,
       cacheCleared: false,
       allPokemonNames: [],
-      searchSuggestions: [],
       failure: null,
       nameIndexFailure: null,
     );
@@ -30,7 +28,6 @@ final class HomeBlocState extends Equatable {
   final bool navigateToDetail;
   final bool cacheCleared;
   final List<String> allPokemonNames;
-  final List<String> searchSuggestions;
   final PokemonFailure? failure;
   final PokemonFailure? nameIndexFailure;
 
@@ -39,7 +36,6 @@ final class HomeBlocState extends Equatable {
     bool? navigateToDetail,
     bool? cacheCleared,
     List<String>? allPokemonNames,
-    List<String>? searchSuggestions,
     PokemonFailure? failure,
     Object? nameIndexFailure = _unset,
   }) {
@@ -48,7 +44,6 @@ final class HomeBlocState extends Equatable {
       navigateToDetail: navigateToDetail ?? this.navigateToDetail,
       cacheCleared: cacheCleared ?? this.cacheCleared,
       allPokemonNames: allPokemonNames ?? this.allPokemonNames,
-      searchSuggestions: searchSuggestions ?? this.searchSuggestions,
       failure: failure, // Let it be null if passed as null
       nameIndexFailure: identical(nameIndexFailure, _unset)
           ? this.nameIndexFailure
@@ -62,7 +57,6 @@ final class HomeBlocState extends Equatable {
     navigateToDetail,
     cacheCleared,
     allPokemonNames,
-    searchSuggestions,
     failure,
     nameIndexFailure,
   ];

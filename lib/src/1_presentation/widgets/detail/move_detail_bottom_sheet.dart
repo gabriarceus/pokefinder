@@ -41,76 +41,78 @@ class MoveDetailBottomSheet extends StatelessWidget {
     return BlocProvider(
       create: (context) => getIt<MoveDetailCubit>()..fetchMoveDetail(moveName),
       child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                capitalizedName,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  capitalizedName,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              BlocBuilder<MoveDetailCubit, MoveDetailState>(
-                builder: (context, state) {
-                  if (state is MoveDetailLoading ||
-                      state is MoveDetailInitial) {
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(32.0),
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  } else if (state is MoveDetailError) {
-                    final errorMessage = state.failure != null
-                        ? state.failure!.localizedMessage(context)
-                        : state.message;
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.error_outline_rounded,
-                              color: Theme.of(context).colorScheme.error,
-                              size: 40,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              errorMessage,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.error,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            OutlinedButton.icon(
-                              onPressed: () {
-                                context.read<MoveDetailCubit>().fetchMoveDetail(
-                                  moveName,
-                                );
-                              },
-                              icon: const Icon(Icons.refresh_rounded),
-                              label: Text(context.t().retryButton),
-                            ),
-                          ],
+                const SizedBox(height: 24),
+                BlocBuilder<MoveDetailCubit, MoveDetailState>(
+                  builder: (context, state) {
+                    if (state is MoveDetailLoading ||
+                        state is MoveDetailInitial) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: CircularProgressIndicator(),
                         ),
-                      ),
-                    );
-                  } else if (state is MoveDetailLoaded) {
-                    return _MoveDetailContent(moveDetail: state.moveDetail);
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-            ],
+                      );
+                    } else if (state is MoveDetailError) {
+                      final errorMessage = state.failure != null
+                          ? state.failure!.localizedMessage(context)
+                          : state.message;
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.error_outline_rounded,
+                                color: Theme.of(context).colorScheme.error,
+                                size: 40,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                errorMessage,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  context
+                                      .read<MoveDetailCubit>()
+                                      .fetchMoveDetail(moveName);
+                                },
+                                icon: const Icon(Icons.refresh_rounded),
+                                label: Text(context.t().retryButton),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    } else if (state is MoveDetailLoaded) {
+                      return _MoveDetailContent(moveDetail: state.moveDetail);
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -21,34 +21,41 @@ class LabelValueRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              color: textColor.withValues(alpha: 0.6),
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                color: textColor.withValues(alpha: 0.6),
+              ),
             ),
           ),
-          onTap != null
-              ? InkWell(
-                  onTap: onTap,
-                  child: Text(
+          const SizedBox(width: 8),
+          Flexible(
+            child: onTap != null
+                ? InkWell(
+                    onTap: onTap,
+                    child: Text(
+                      value,
+                      textAlign: TextAlign.right,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  )
+                : Text(
                     value,
-                    style: const TextStyle(
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline,
+                      color: textColor,
                     ),
                   ),
-                )
-              : Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
+          ),
         ],
       ),
     );

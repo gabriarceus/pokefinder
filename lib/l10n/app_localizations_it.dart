@@ -550,4 +550,9 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get cryUnavailableTooltip =>
       'Verso non disponibile. Tocca per riprovare';
+
+  @override
+  String cryPlayFor({required String pokemon}) {
+    return 'Riproduci verso di $pokemon';
+  }
 }

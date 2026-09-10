@@ -14,6 +14,13 @@ All notable changes to this project will be documented in this file, following t
 - In-place recovery UX for partial async views: inline retry for encounters, retry and default form rollback for alternate forms, retry action in move detail sheet, and non-blocking indicator for search autocomplete index failures.
 - Media fallback and cry audio error handling in `JustAudioCryController` with `unavailable` state, playback suppression on failure, tap-to-retry, accessibility semantics/tooltips, and placeholder icon for broken sprites.
 - Transport error diagnostics in `ApiException` and `DioApiClient` preserving status codes, timeout types, connection errors, cancellations, and safely truncated response payloads.
+- Responsive mobile and tablet layouts supporting compact phones (320×568), standard phones (390×844), landscape orientation (844×390), and tablets (768×1024) across Home and Detail views.
+- 2.0x Dynamic Type and system font scaling support with scrollable tab bars and responsive containers without visual overflow.
+- Mobile accessibility semantics with explicit announcements for Pokémon headers, shiny sprites, cry audio buttons, and stats (announcing base, min, and max values).
+- Interactive touch targets meeting WCAG 2.5.5 minimum 48×48 dp sizing across primary actions, buttons, and autocomplete suggestion items.
+- Resilient type badge fallback (`TypeChip`) with network error recovery and graceful degradation to high-contrast localized text chips.
+- Pure domain prefix suggestion helper (`filterPrefixSuggestions`) with case-insensitive and whitespace-trimmed matching.
+- Keyboard search ergonomics: `TextInputAction.search`, hardware keyboard navigation, inline validation errors, and submission deduplication.
 - `scripts/verify.sh`, running every quality gate (format, analysis, tests).
 - `scripts/coverage.sh`, reporting total line coverage with an optional minimum.
 
@@ -21,6 +28,8 @@ All notable changes to this project will be documented in this file, following t
 
 - Replaced `/detail` route and unsafe extra payload cast with GoRouter configuration in `app_router.dart`.
 - Preserved search query and focus state when popping back from detail to home.
+- Consolidated autocomplete suggestion filtering into `PokeTextField`'s default builder, removing redundant imperative queries from `HomeBloc`.
+- Wrapped submitting state mutation in `setState` within `HomePage` listener to ensure deterministic widget tree rebuilds.
 - Applied the Dart tall-style formatter across `lib`, `test` and `scripts`.
 - Aligned `README.md` and `CLAUDE.md` with the current codebase.
 - Upgraded dependencies within their existing constraints.

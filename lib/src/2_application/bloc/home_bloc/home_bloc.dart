@@ -19,22 +19,7 @@ class HomeBloc extends Bloc<HomeBlocEvent, HomeBlocState> {
     on<UserInputEvent>((event, emit) {
       _logger.info('User input: ${event.userInput}', prefix: _prefix);
 
-      List<String> suggestions = [];
-      if (event.userInput.length >= 2) {
-        final query = event.userInput.toLowerCase();
-        suggestions = state.allPokemonNames
-            .where((name) => name.toLowerCase().startsWith(query))
-            .take(5)
-            .toList();
-      }
-
-      emit(
-        state.copyWith(
-          userInput: event.userInput,
-          searchSuggestions: suggestions,
-          failure: null,
-        ),
-      );
+      emit(state.copyWith(userInput: event.userInput, failure: null));
     });
 
     on<FetchAllPokemonNamesEvent>((event, emit) async {
