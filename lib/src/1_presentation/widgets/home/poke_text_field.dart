@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
+import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
+import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 
 class PokeTextField extends StatelessWidget {
   const PokeTextField({
@@ -10,6 +12,8 @@ class PokeTextField extends StatelessWidget {
     required this.onChanged,
     required this.allNames,
     this.onSubmitted,
+    this.nameIndexFailure,
+    this.onRetryIndex,
   });
 
   final TextEditingController controller;
@@ -17,11 +21,16 @@ class PokeTextField extends StatelessWidget {
   final void Function(String) onChanged;
   final List<String> allNames;
   final void Function(String)? onSubmitted;
+  final PokemonFailure? nameIndexFailure;
+  final VoidCallback? onRetryIndex;
+
   static const Color textFieldBorderColor = AppPalette.brandRed;
   static const Color textFieldTextColor = Colors.black;
 
   @override
   Widget build(BuildContext context) {
+    final t = context.t();
+
     return RawAutocomplete<String>(
       textEditingController: controller,
       focusNode: focusNode,
@@ -59,6 +68,18 @@ class PokeTextField extends StatelessWidget {
                 ),
                 labelText: AppLocalizations.of(context).searchTextField,
                 labelStyle: const TextStyle(color: textFieldTextColor),
+                suffixIcon: nameIndexFailure != null
+                    ? Tooltip(
+                        message: t.errorSuggestions,
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.sync_problem_rounded,
+                            color: Colors.orange,
+                          ),
+                          onPressed: onRetryIndex,
+                        ),
+                      )
+                    : null,
               ),
               onChanged: onChanged,
             );

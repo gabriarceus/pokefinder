@@ -24,6 +24,31 @@ class AppLocalizationsIt extends AppLocalizations {
   String get errorUnexpected => 'Si è verificato un errore imprevisto.';
 
   @override
+  String get errorPokemonNotFound => 'Pokémon non trovato.';
+
+  @override
+  String get errorNetworkUnavailable =>
+      'Nessuna connessione a Internet. Verifica la tua rete.';
+
+  @override
+  String get errorRequestTimeout => 'La richiesta è scaduta. Riprova.';
+
+  @override
+  String get errorRateLimited =>
+      'Troppe richieste. Attendi un momento e riprova.';
+
+  @override
+  String get errorServer =>
+      'Si è verificato un errore del server. Riprova più tardi.';
+
+  @override
+  String get errorInvalidResponse =>
+      'Ricevuta una risposta non valida dal server.';
+
+  @override
+  String get errorStorage => 'Si è verificato un errore di memoria. Riprova.';
+
+  @override
   String get loading => 'Caricamento...';
 
   @override
@@ -491,4 +516,38 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get goHome => 'Torna alla Home';
+
+  @override
+  String get editSearchButton => 'Modifica ricerca';
+
+  @override
+  String get errorEncounters => 'Impossibile caricare gli incontri.';
+
+  @override
+  String get errorFormDetails => 'Impossibile caricare i dettagli della forma.';
+
+  @override
+  String get errorMoveDetails => 'Impossibile caricare i dettagli della mossa.';
+
+  @override
+  String get defaultFormRollback => 'Ripristina forma predefinita';
+
+  @override
+  String get errorSuggestions => 'Impossibile caricare i suggerimenti.';
+
+  @override
+  String get cryPlayTooltip => 'Riproduci verso';
+
+  @override
+  String get cryStopTooltip => 'Interrompi verso';
+
+  @override
+  String get cryReplayTooltip => 'Riascolta verso';
+
+  @override
+  String get cryLoadingTooltip => 'Caricamento verso...';
+
+  @override
+  String get cryUnavailableTooltip =>
+      'Verso non disponibile. Tocca per riprovare';
 }

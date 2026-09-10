@@ -1,9 +1,9 @@
-import 'package:en_logger/en_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
+import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
 import 'package:pokefinder/src/2_application/bloc/move_detail_cubit/move_detail_cubit.dart';
 import 'package:pokefinder/src/2_application/bloc/move_detail_cubit/move_detail_state.dart';
 import 'package:pokefinder/src/3_domain/entities/move_detail.dart';
@@ -39,9 +39,7 @@ class MoveDetailBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          MoveDetailCubit(getIt(), getIt<EnLogger>())
-            ..fetchMoveDetail(moveName),
+      create: (context) => getIt<MoveDetailCubit>()..fetchMoveDetail(moveName),
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -69,12 +67,40 @@ class MoveDetailBottomSheet extends StatelessWidget {
                       ),
                     );
                   } else if (state is MoveDetailError) {
+                    final errorMessage = state.failure != null
+                        ? state.failure!.localizedMessage(context)
+                        : state.message;
                     return Center(
                       child: Padding(
-                        padding: const EdgeInsets.all(32.0),
-                        child: Text(
-                          state.message,
-                          style: const TextStyle(color: Colors.red),
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.error_outline_rounded,
+                              color: Theme.of(context).colorScheme.error,
+                              size: 40,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              errorMessage,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                context.read<MoveDetailCubit>().fetchMoveDetail(
+                                  moveName,
+                                );
+                              },
+                              icon: const Icon(Icons.refresh_rounded),
+                              label: Text(context.t().retryButton),
+                            ),
+                          ],
                         ),
                       ),
                     );

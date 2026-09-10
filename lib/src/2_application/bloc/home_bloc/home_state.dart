@@ -9,6 +9,7 @@ final class HomeBlocState extends Equatable {
     required this.allPokemonNames,
     required this.searchSuggestions,
     this.failure,
+    this.nameIndexFailure,
   });
 
   factory HomeBlocState.initial() {
@@ -19,8 +20,11 @@ final class HomeBlocState extends Equatable {
       allPokemonNames: [],
       searchSuggestions: [],
       failure: null,
+      nameIndexFailure: null,
     );
   }
+
+  static const _unset = Object();
 
   final String userInput;
   final bool navigateToDetail;
@@ -28,6 +32,7 @@ final class HomeBlocState extends Equatable {
   final List<String> allPokemonNames;
   final List<String> searchSuggestions;
   final PokemonFailure? failure;
+  final PokemonFailure? nameIndexFailure;
 
   HomeBlocState copyWith({
     String? userInput,
@@ -36,6 +41,7 @@ final class HomeBlocState extends Equatable {
     List<String>? allPokemonNames,
     List<String>? searchSuggestions,
     PokemonFailure? failure,
+    Object? nameIndexFailure = _unset,
   }) {
     return HomeBlocState(
       userInput: userInput ?? this.userInput,
@@ -44,6 +50,9 @@ final class HomeBlocState extends Equatable {
       allPokemonNames: allPokemonNames ?? this.allPokemonNames,
       searchSuggestions: searchSuggestions ?? this.searchSuggestions,
       failure: failure, // Let it be null if passed as null
+      nameIndexFailure: identical(nameIndexFailure, _unset)
+          ? this.nameIndexFailure
+          : nameIndexFailure as PokemonFailure?,
     );
   }
 
@@ -55,5 +64,6 @@ final class HomeBlocState extends Equatable {
     allPokemonNames,
     searchSuggestions,
     failure,
+    nameIndexFailure,
   ];
 }

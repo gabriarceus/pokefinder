@@ -128,6 +128,48 @@ abstract class AppLocalizations {
   /// **'An unexpected error occurred.'**
   String get errorUnexpected;
 
+  /// No description provided for @errorPokemonNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Pokémon not found.'**
+  String get errorPokemonNotFound;
+
+  /// No description provided for @errorNetworkUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection. Please check your network.'**
+  String get errorNetworkUnavailable;
+
+  /// No description provided for @errorRequestTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The request timed out. Please try again.'**
+  String get errorRequestTimeout;
+
+  /// No description provided for @errorRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many requests. Please wait a moment and try again.'**
+  String get errorRateLimited;
+
+  /// No description provided for @errorServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Server error occurred. Please try again later.'**
+  String get errorServer;
+
+  /// No description provided for @errorInvalidResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Received an invalid response from the server.'**
+  String get errorInvalidResponse;
+
+  /// No description provided for @errorStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'A storage error occurred. Please try again.'**
+  String get errorStorage;
+
   /// No description provided for @loading.
   ///
   /// In en, this message translates to:
@@ -1051,6 +1093,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Go to Home'**
   String get goHome;
+
+  /// No description provided for @editSearchButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Search'**
+  String get editSearchButton;
+
+  /// No description provided for @errorEncounters.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load encounters.'**
+  String get errorEncounters;
+
+  /// No description provided for @errorFormDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load form details.'**
+  String get errorFormDetails;
+
+  /// No description provided for @errorMoveDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load move details.'**
+  String get errorMoveDetails;
+
+  /// No description provided for @defaultFormRollback.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to default form'**
+  String get defaultFormRollback;
+
+  /// No description provided for @errorSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load suggestions.'**
+  String get errorSuggestions;
+
+  /// No description provided for @cryPlayTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Play cry'**
+  String get cryPlayTooltip;
+
+  /// No description provided for @cryStopTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop cry'**
+  String get cryStopTooltip;
+
+  /// No description provided for @cryReplayTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay cry'**
+  String get cryReplayTooltip;
+
+  /// No description provided for @cryLoadingTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading cry...'**
+  String get cryLoadingTooltip;
+
+  /// No description provided for @cryUnavailableTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Cry unavailable. Tap to retry'**
+  String get cryUnavailableTooltip;
 }
 
 class _AppLocalizationsDelegate

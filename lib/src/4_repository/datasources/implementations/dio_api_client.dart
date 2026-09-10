@@ -1,43 +1,79 @@
 import 'package:dio/dio.dart';
-import 'package:injectable/injectable.dart';
 import 'package:pokefinder/src/4_repository/datasources/abstract/api_client.dart';
 
-/// Concrete [ApiClient] backed by [Dio].
-///
-/// Delegates HTTP GET requests to a [Dio] instance and extracts the
-/// response body as a [Map<String, dynamic>]. Translates any [DioException]
-/// into a transport-agnostic [ApiException] so callers stay decoupled from Dio.
-@LazySingleton(as: ApiClient)
 class DioApiClient implements ApiClient {
-  DioApiClient({required Dio dio}) : _dio = dio;
+  DioApiClient({Dio? dio}) : _dio = dio ?? Dio();
 
   final Dio _dio;
 
   @override
-  Future<dynamic> get(String endpoint) async {
+  Future<dynamic> get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Duration? timeout,
+  }) async {
     try {
-      final response = await _dio.get<dynamic>(endpoint);
-      final data = response.data;
-      if (data == null) {
-        throw EmptyResponseException(endpoint);
-      }
-      return data;
-    } on DioException catch (e) {
-      throw ApiException(
-        statusCode: e.response?.statusCode,
-        message: e.message ?? e.toString(),
+      final options = timeout != null
+          ? Options(sendTimeout: timeout, receiveTimeout: timeout)
+          : null;
+
+      final response = await _dio.get<dynamic>(
+        path,
+        queryParameters: queryParameters,
+        options: options,
       );
+      if (response.data == null) {
+        throw EmptyResponseException(path);
+      }
+      return response.data;
+    } on DioException catch (e) {
+      String? safeResponseBody;
+      if (e.response?.data != null) {
+        final bodyStr = e.response!.data.toString();
+        safeResponseBody = bodyStr.length > 256
+            ? '${bodyStr.substring(0, 253)}...'
+            : bodyStr;
+      }
+
+      final isConnTimeout = e.type == DioExceptionType.connectionTimeout;
+      final isRecvTimeout = e.type == DioExceptionType.receiveTimeout;
+      final isSndTimeout = e.type == DioExceptionType.sendTimeout;
+      final isConnError = e.type == DioExceptionType.connectionError;
+      final isCancel = e.type == DioExceptionType.cancel;
+
+      final message = _sanitizeErrorMessage(e);
+
+      throw ApiException(
+        message: message,
+        statusCode: e.response?.statusCode,
+        isConnectionTimeout: isConnTimeout,
+        isReceiveTimeout: isRecvTimeout,
+        isSendTimeout: isSndTimeout,
+        isConnectionError: isConnError,
+        isCancelled: isCancel,
+        responseBody: safeResponseBody,
+      );
+    } catch (e) {
+      if (e is ApiException || e is EmptyResponseException) rethrow;
+      throw ApiException(message: 'Unexpected network error');
     }
   }
-}
 
-/// Thrown when a successful HTTP response carries no body.
-class EmptyResponseException implements Exception {
-  EmptyResponseException(this.endpoint);
-
-  /// The endpoint whose response was empty.
-  final String endpoint;
-
-  @override
-  String toString() => 'EmptyResponseException: no body returned for $endpoint';
+  String _sanitizeErrorMessage(DioException e) {
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.sendTimeout) {
+      return 'Request timed out';
+    }
+    if (e.type == DioExceptionType.connectionError) {
+      return 'Network connection unavailable';
+    }
+    if (e.type == DioExceptionType.cancel) {
+      return 'Request was cancelled';
+    }
+    if (e.response?.statusCode != null) {
+      return 'HTTP ${e.response!.statusCode}';
+    }
+    return 'Network request failed';
+  }
 }
