@@ -197,6 +197,41 @@
       }
     }
   },
-  "staleDataNotice": "Offline cached data"
+  "staleDataNotice": "Offline cached data",
+  "browsePokedex": "Browse Pokédex",
+  "pokedexTitle": "Pokédex",
+  "filter": "Filter",
+  "filters": "Filters",
+  "filterCount": "{count} active",
+  "@filterCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "types": "Types",
+  "generation": "Generation",
+  "generationAll": "All Generations",
+  "generationNum": "Gen {number}",
+  "@generationNum": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "sortBy": "Sort By",
+  "sortIdAscending": "Number: Lowest first",
+  "sortIdDescending": "Number: Highest first",
+  "sortNameAscending": "Name: A - Z",
+  "sortNameDescending": "Name: Z - A",
+  "randomPokemon": "Random Pokémon",
+  "noPokemonFound": "No Pokémon found matching your filters",
+  "clearFilters": "Clear Filters",
+  "apply": "Apply",
+  "reset": "Reset",
+  "searchPokedexPlaceholder": "Search by name or number...",
+  "offlineIndexNotice": "Browsing offline cached Pokédex"
 }
 

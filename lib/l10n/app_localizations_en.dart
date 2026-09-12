@@ -556,4 +556,71 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get staleDataNotice => 'Offline cached data';
+
+  @override
+  String get browsePokedex => 'Browse Pokédex';
+
+  @override
+  String get pokedexTitle => 'Pokédex';
+
+  @override
+  String get filter => 'Filter';
+
+  @override
+  String get filters => 'Filters';
+
+  @override
+  String filterCount({required int count}) {
+    return '$count active';
+  }
+
+  @override
+  String get types => 'Types';
+
+  @override
+  String get generation => 'Generation';
+
+  @override
+  String get generationAll => 'All Generations';
+
+  @override
+  String generationNum({required int number}) {
+    return 'Gen $number';
+  }
+
+  @override
+  String get sortBy => 'Sort By';
+
+  @override
+  String get sortIdAscending => 'Number: Lowest first';
+
+  @override
+  String get sortIdDescending => 'Number: Highest first';
+
+  @override
+  String get sortNameAscending => 'Name: A - Z';
+
+  @override
+  String get sortNameDescending => 'Name: Z - A';
+
+  @override
+  String get randomPokemon => 'Random Pokémon';
+
+  @override
+  String get noPokemonFound => 'No Pokémon found matching your filters';
+
+  @override
+  String get clearFilters => 'Clear Filters';
+
+  @override
+  String get apply => 'Apply';
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String get searchPokedexPlaceholder => 'Search by name or number...';
+
+  @override
+  String get offlineIndexNotice => 'Browsing offline cached Pokédex';
 }

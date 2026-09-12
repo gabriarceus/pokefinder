@@ -1171,6 +1171,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Offline cached data'**
   String get staleDataNotice;
+
+  /// No description provided for @browsePokedex.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse Pokédex'**
+  String get browsePokedex;
+
+  /// No description provided for @pokedexTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pokédex'**
+  String get pokedexTitle;
+
+  /// No description provided for @filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get filter;
+
+  /// No description provided for @filters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get filters;
+
+  /// No description provided for @filterCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} active'**
+  String filterCount({required int count});
+
+  /// No description provided for @types.
+  ///
+  /// In en, this message translates to:
+  /// **'Types'**
+  String get types;
+
+  /// No description provided for @generation.
+  ///
+  /// In en, this message translates to:
+  /// **'Generation'**
+  String get generation;
+
+  /// No description provided for @generationAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All Generations'**
+  String get generationAll;
+
+  /// No description provided for @generationNum.
+  ///
+  /// In en, this message translates to:
+  /// **'Gen {number}'**
+  String generationNum({required int number});
+
+  /// No description provided for @sortBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort By'**
+  String get sortBy;
+
+  /// No description provided for @sortIdAscending.
+  ///
+  /// In en, this message translates to:
+  /// **'Number: Lowest first'**
+  String get sortIdAscending;
+
+  /// No description provided for @sortIdDescending.
+  ///
+  /// In en, this message translates to:
+  /// **'Number: Highest first'**
+  String get sortIdDescending;
+
+  /// No description provided for @sortNameAscending.
+  ///
+  /// In en, this message translates to:
+  /// **'Name: A - Z'**
+  String get sortNameAscending;
+
+  /// No description provided for @sortNameDescending.
+  ///
+  /// In en, this message translates to:
+  /// **'Name: Z - A'**
+  String get sortNameDescending;
+
+  /// No description provided for @randomPokemon.
+  ///
+  /// In en, this message translates to:
+  /// **'Random Pokémon'**
+  String get randomPokemon;
+
+  /// No description provided for @noPokemonFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No Pokémon found matching your filters'**
+  String get noPokemonFound;
+
+  /// No description provided for @clearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Filters'**
+  String get clearFilters;
+
+  /// No description provided for @apply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get apply;
+
+  /// No description provided for @reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
+
+  /// No description provided for @searchPokedexPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name or number...'**
+  String get searchPokedexPlaceholder;
+
+  /// No description provided for @offlineIndexNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Browsing offline cached Pokédex'**
+  String get offlineIndexNotice;
 }
 
 class _AppLocalizationsDelegate

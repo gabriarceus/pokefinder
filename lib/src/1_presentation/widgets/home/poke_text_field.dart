@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
-import 'package:pokefinder/src/3_domain/helpers/prefix_suggestions_filter.dart';
+import 'package:pokefinder/src/3_domain/helpers/index_suggestions_filter.dart';
 
 class PokeTextField extends StatelessWidget {
   const PokeTextField({
@@ -12,7 +13,7 @@ class PokeTextField extends StatelessWidget {
     required this.focusNode,
     required this.onChanged,
     this.optionsBuilder,
-    this.allNames = const [],
+    this.allEntries = const [],
     this.onSubmitted,
     this.nameIndexFailure,
     this.onRetryIndex,
@@ -23,7 +24,7 @@ class PokeTextField extends StatelessWidget {
   final FocusNode focusNode;
   final void Function(String) onChanged;
   final AutocompleteOptionsBuilder<String>? optionsBuilder;
-  final List<String> allNames;
+  final List<PokemonIndexEntry> allEntries;
   final void Function(String)? onSubmitted;
   final PokemonFailure? nameIndexFailure;
   final VoidCallback? onRetryIndex;
@@ -42,8 +43,9 @@ class PokeTextField extends StatelessWidget {
       focusNode: focusNode,
       optionsBuilder:
           optionsBuilder ??
-          (TextEditingValue textEditingValue) =>
-              filterPrefixSuggestions(allNames, textEditingValue.text),
+          (TextEditingValue textEditingValue) {
+            return filterIndexSuggestions(allEntries, textEditingValue.text);
+          },
       onSelected: (String selection) {
         handledBySelection = true;
         onChanged(selection);

@@ -18,6 +18,7 @@ import 'package:pokefinder/src/3_domain/cancellation_token.dart';
 import 'package:pokefinder/src/3_domain/entities/damage_class.dart';
 import 'package:pokefinder/src/3_domain/entities/move_detail.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/repositories/i_pokemon_repository.dart';
@@ -101,6 +102,13 @@ void main() {
     // Default stubs
     when(() => repository.getAllPokemonNames()).thenAnswer(
       (_) async => const Right(['pikachu', 'bulbasaur', 'venusaur']),
+    );
+    when(() => repository.getPokemonIndex()).thenAnswer(
+      (_) async => const Right([
+        PokemonIndexEntry(id: 25, name: 'pikachu', detailUrl: ''),
+        PokemonIndexEntry(id: 1, name: 'bulbasaur', detailUrl: ''),
+        PokemonIndexEntry(id: 3, name: 'venusaur', detailUrl: ''),
+      ]),
     );
     when(
       () => repository.getEncounters(

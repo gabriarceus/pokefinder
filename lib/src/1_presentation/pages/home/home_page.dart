@@ -138,7 +138,7 @@ class _HomePageState extends State<HomePage> {
                             child: PokeTextField(
                               controller: _controller,
                               focusNode: _focusNode,
-                              allNames: state.allPokemonNames,
+                              allEntries: state.pokemonIndex,
                               nameIndexFailure: state.nameIndexFailure,
                               errorText: state.failure?.localizedMessage(
                                 context,
@@ -187,6 +187,32 @@ class _HomePageState extends State<HomePage> {
                                       color: AppPalette.onBrandRed,
                                     ),
                                   ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            minWidth: 140,
+                            minHeight: 48,
+                          ),
+                          child: OutlinedButton.icon(
+                            onPressed: () => context.push('/pokedex'),
+                            icon: const Icon(
+                              Icons.catching_pokemon,
+                              color: AppPalette.brandRed,
+                            ),
+                            label: Text(
+                              AppLocalizations.of(context).browsePokedex,
+                              style: const TextStyle(
+                                color: AppPalette.brandRed,
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(140, 48),
+                              side: const BorderSide(
+                                color: AppPalette.brandRed,
+                              ),
+                            ),
                           ),
                         ),
                         SizedBox(

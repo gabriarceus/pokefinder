@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/src/3_domain/entities/damage_class.dart';
 import 'package:pokefinder/src/3_domain/entities/move_detail.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
@@ -614,5 +615,92 @@ void main() {
       expect(result, right(unit));
       verify(() => dataSource.clearCache()).called(1);
     });
+  });
+
+  group('getPokemonIndex', () {
+    test(
+      'delegates getPokemonIndex to remote data source with cancelToken and forceRefresh',
+      () async {
+        const sampleEntries = [
+          PokemonIndexEntry(id: 1, name: 'bulbasaur', detailUrl: 'url1'),
+        ];
+        when(
+          () => dataSource.getPokemonIndex(
+            cancelToken: any(named: 'cancelToken'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).thenAnswer((_) async => right(sampleEntries));
+
+        final result = await repository.getPokemonIndex(forceRefresh: true);
+        expect(result, right(sampleEntries));
+        verify(
+          () => dataSource.getPokemonIndex(
+            cancelToken: any(named: 'cancelToken'),
+            forceRefresh: true,
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'returns UnexpectedFailure when remote data source throws unexpected error',
+      () async {
+        when(
+          () => dataSource.getPokemonIndex(
+            cancelToken: any(named: 'cancelToken'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).thenThrow(Exception('Unexpected crash'));
+
+        final result = await repository.getPokemonIndex();
+        expect(result.isLeft(), isTrue);
+        result.fold(
+          (failure) => expect(failure, isA<UnexpectedFailure>()),
+          (_) => fail('expected left'),
+        );
+      },
+    );
+  });
+
+  group('getPokemonIdsForType', () {
+    test(
+      'delegates getPokemonIdsForType to remote data source with cancelToken',
+      () async {
+        when(
+          () => dataSource.getPokemonIdsForType(
+            PokemonType.fire,
+            cancelToken: any(named: 'cancelToken'),
+          ),
+        ).thenAnswer((_) async => const Right({4, 5, 6}));
+
+        final result = await repository.getPokemonIdsForType(PokemonType.fire);
+        expect(result, const Right({4, 5, 6}));
+        verify(
+          () => dataSource.getPokemonIdsForType(
+            PokemonType.fire,
+            cancelToken: any(named: 'cancelToken'),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'returns UnexpectedFailure when remote data source throws unexpected error',
+      () async {
+        when(
+          () => dataSource.getPokemonIdsForType(
+            PokemonType.fire,
+            cancelToken: any(named: 'cancelToken'),
+          ),
+        ).thenThrow(Exception('Unexpected crash'));
+
+        final result = await repository.getPokemonIdsForType(PokemonType.fire);
+        expect(result.isLeft(), isTrue);
+        result.fold(
+          (failure) => expect(failure, isA<UnexpectedFailure>()),
+          (_) => fail('expected left'),
+        );
+      },
+    );
   });
 }

@@ -9,6 +9,7 @@ import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
 import 'package:pokefinder/src/1_presentation/router/app_router.dart';
 import 'package:pokefinder/src/1_presentation/widgets/home/pokeball_widget.dart';
 import 'package:pokefinder/src/1_presentation/widgets/home/poke_text_field.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 
 void main() {
@@ -47,7 +48,12 @@ void main() {
             body: PokeTextField(
               controller: controller,
               focusNode: focusNode,
-              allNames: allNames,
+              allEntries: allNames
+                  .map(
+                    (name) =>
+                        PokemonIndexEntry(id: 1, name: name, detailUrl: ''),
+                  )
+                  .toList(),
               onChanged: reportedInputs.add,
               nameIndexFailure: nameIndexFailure,
               onRetryIndex: onRetryIndex,

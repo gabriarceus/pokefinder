@@ -178,6 +178,27 @@
   "cryLoadingTooltip": "Caricamento verso...",
   "cryUnavailableTooltip": "Verso non disponibile. Tocca per riprovare",
   "cryPlayFor": "Riproduci verso di {pokemon}",
-  "staleDataNotice": "Dati memorizzati offline"
+  "staleDataNotice": "Dati memorizzati offline",
+  "browsePokedex": "Esplora Pokédex",
+  "pokedexTitle": "Pokédex",
+  "filter": "Filtra",
+  "filters": "Filtri",
+  "filterCount": "{count} attivi",
+  "types": "Tipi",
+  "generation": "Generazione",
+  "generationAll": "Tutte le generazioni",
+  "generationNum": "Gen {number}",
+  "sortBy": "Ordina per",
+  "sortIdAscending": "Numero: Minore",
+  "sortIdDescending": "Numero: Maggiore",
+  "sortNameAscending": "Nome: A - Z",
+  "sortNameDescending": "Nome: Z - A",
+  "randomPokemon": "Pokémon casuale",
+  "noPokemonFound": "Nessun Pokémon trovato con i filtri selezionati",
+  "clearFilters": "Reimposta filtri",
+  "apply": "Applica",
+  "reset": "Reimposta",
+  "searchPokedexPlaceholder": "Cerca per nome o numero...",
+  "offlineIndexNotice": "Consultazione Pokédex offline"
 }
 

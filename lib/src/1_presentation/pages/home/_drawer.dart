@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 import 'package:pokefinder/src/2_application/bloc/home_bloc/home_bloc.dart';
@@ -36,6 +37,18 @@ class HomeDrawer extends StatelessWidget {
               ),
             ),
           ),
+          ListTile(
+            leading: const Icon(
+              Icons.catching_pokemon,
+              color: AppPalette.brandRed,
+            ),
+            title: Text(context.t().browsePokedex),
+            onTap: () {
+              Navigator.of(context).pop();
+              context.push('/pokedex');
+            },
+          ),
+          const Divider(height: 1),
           // "Use device language" toggle
           SwitchListTile(
             title: Text(context.t().useDeviceLanguage),

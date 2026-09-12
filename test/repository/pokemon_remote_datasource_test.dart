@@ -5,6 +5,7 @@ import 'package:dio/dio.dart' show CancelToken;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
 import 'package:pokefinder/src/4_repository/datasources/abstract/api_client.dart';
@@ -244,6 +245,183 @@ void main() {
       final result = await dataSource.clearCache();
       expect(result.isRight(), isTrue);
       verify(() => dataRepository.clearCache()).called(1);
+    });
+  });
+
+  group('PokemonRemoteDataSource.getPokemonIndex', () {
+    test(
+      'parses numeric IDs from varied URL formats and ignores invalid items',
+      () async {
+        final json = {
+          'results': [
+            {
+              'name': 'bulbasaur',
+              'url': 'https://pokeapi.co/api/v2/pokemon/1/',
+            },
+            {
+              'name': 'charmander',
+              'url': 'https://pokeapi.co/api/v2/pokemon/4',
+            },
+            {
+              'name': 'invalid-url',
+              'url': 'https://pokeapi.co/api/v2/pokemon/abc/',
+            },
+            {'name': 'zero-id', 'url': 'https://pokeapi.co/api/v2/pokemon/0/'},
+            {'name': '', 'url': 'https://pokeapi.co/api/v2/pokemon/5/'},
+            {'name': 'missing-slash', 'url': 'invalid-url'},
+          ],
+        };
+
+        when(
+          () => dataRepository.fetchData<Map<String, dynamic>>(
+            'https://pokeapi.co/api/v2/pokemon/?limit=100000&offset=0',
+            strategy: FetchStrategy.cacheFirst,
+            maxAge: any(named: 'maxAge'),
+            cancelToken: any(named: 'cancelToken'),
+          ),
+        ).thenAnswer(
+          (_) async =>
+              DataResponse(data: json, metadata: const CacheMetadata.network()),
+        );
+
+        final result = await dataSource.getPokemonIndex();
+        expect(result.isRight(), isTrue);
+        result.fold((_) => fail('expected right'), (entries) {
+          expect(entries.length, 2);
+          expect(entries[0].id, 1);
+          expect(entries[0].name, 'bulbasaur');
+          expect(entries[0].detailUrl, 'https://pokeapi.co/api/v2/pokemon/1/');
+          expect(entries[1].id, 4);
+          expect(entries[1].name, 'charmander');
+          expect(entries[1].detailUrl, 'https://pokeapi.co/api/v2/pokemon/4');
+        });
+      },
+    );
+
+    test('uses FetchStrategy.networkFirst when forceRefresh is true', () async {
+      when(
+        () => dataRepository.fetchData<Map<String, dynamic>>(
+          any(),
+          strategy: FetchStrategy.networkFirst,
+          maxAge: any(named: 'maxAge'),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).thenAnswer(
+        (_) async => DataResponse(
+          data: {'results': <dynamic>[]},
+          metadata: const CacheMetadata.network(),
+        ),
+      );
+
+      final result = await dataSource.getPokemonIndex(forceRefresh: true);
+      expect(result.isRight(), isTrue);
+      verify(
+        () => dataRepository.fetchData<Map<String, dynamic>>(
+          any(),
+          strategy: FetchStrategy.networkFirst,
+          maxAge: any(named: 'maxAge'),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).called(1);
+    });
+
+    test('maps exceptions to PokemonFailure', () async {
+      stubFetchThrow(ApiException(statusCode: 500, message: 'Server error'));
+      final result = await dataSource.getPokemonIndex();
+      expect(result.isLeft(), isTrue);
+      result.fold(
+        (failure) => expect(failure, isA<ServerFailure>()),
+        (_) => fail('expected left'),
+      );
+    });
+  });
+
+  group('PokemonRemoteDataSource.getPokemonIdsForType', () {
+    test(
+      'parses type payload pokemon array and extracts numeric ID set',
+      () async {
+        final json = {
+          'pokemon': [
+            {
+              'pokemon': {
+                'name': 'charmander',
+                'url': 'https://pokeapi.co/api/v2/pokemon/4/',
+              },
+            },
+            {
+              'pokemon': {
+                'name': 'charizard',
+                'url': 'https://pokeapi.co/api/v2/pokemon/6',
+              },
+            },
+            {
+              'pokemon': {
+                'name': 'invalid',
+                'url': 'https://pokeapi.co/api/v2/pokemon/invalid/',
+              },
+            },
+            {'pokemon': null},
+          ],
+        };
+
+        when(
+          () => dataRepository.fetchData<Map<String, dynamic>>(
+            'https://pokeapi.co/api/v2/type/fire',
+            strategy: FetchStrategy.cacheFirst,
+            maxAge: any(named: 'maxAge'),
+            cancelToken: any(named: 'cancelToken'),
+          ),
+        ).thenAnswer(
+          (_) async =>
+              DataResponse(data: json, metadata: const CacheMetadata.network()),
+        );
+
+        final result = await dataSource.getPokemonIdsForType(PokemonType.fire);
+        expect(result.isRight(), isTrue);
+        result.fold((_) => fail('expected right'), (ids) {
+          expect(ids, {4, 6});
+        });
+      },
+    );
+
+    test('maps exceptions to PokemonFailure', () async {
+      stubFetchThrow(ApiException(statusCode: 404, message: 'Type not found'));
+      final result = await dataSource.getPokemonIdsForType(PokemonType.fire);
+      expect(result.isLeft(), isTrue);
+      result.fold(
+        (failure) => expect(failure, isA<PokemonNotFoundFailure>()),
+        (_) => fail('expected left'),
+      );
+    });
+  });
+
+  group('PokemonRemoteDataSource.getAllPokemonNames', () {
+    test('extracts names from getPokemonIndex entries', () async {
+      final json = {
+        'results': [
+          {'name': 'bulbasaur', 'url': 'https://pokeapi.co/api/v2/pokemon/1/'},
+          {'name': 'ivysaur', 'url': 'https://pokeapi.co/api/v2/pokemon/2/'},
+        ],
+      };
+
+      when(
+        () => dataRepository.fetchData<Map<String, dynamic>>(
+          any(),
+          strategy: any(named: 'strategy'),
+          maxAge: any(named: 'maxAge'),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            DataResponse(data: json, metadata: const CacheMetadata.network()),
+      );
+
+      final result = await dataSource.getAllPokemonNames();
+      expect(result.isRight(), isTrue);
+      result.fold(
+        (_) => fail('expected right'),
+        (names) => expect(names, ['bulbasaur', 'ivysaur']),
+      );
     });
   });
 }

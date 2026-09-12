@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file, following t
 
 ### Added
 
+- Browsable Pokédex discovery route `/pokedex` with responsive layouts for mobile and tablets, pull-to-refresh (`RefreshIndicator`), infinite scroll pagination, and shimmer skeleton loading states.
+- Domain model `PokemonIndexEntry` capturing numeric Pokédex ID, name, details URL, generation (Gen 1-9), and official artwork URLs.
+- Mobile filtering bottom sheet (`PokedexFilterBottomSheet`) supporting multi-type intersection filtering across 18 Pokémon types, Generation 1-9 selection, and 4-way sorting (ID / Name ascending & descending).
+- Instant "Random Pokémon" action picking uniformly from the current filtered catalog and navigating directly to its detail view.
+- `PokedexBloc` managing catalog discovery, pagination state, filter application, type ID mapping cache, and random Pokémon selection.
+- Domain filter and sort helper `PokemonIndexFilterHelper` and `PokedexSortOrder` providing pure, deterministic discovery routines.
+- Unified autocomplete in `PokeTextField` consuming structured `PokemonIndexEntry` items for prefix, contains, and numeric ID matching.
+- Discovery entry points added to `HomeAppBar`, `HomeDrawer`, and `HomePage`.
+- Full localization in English and Italian for all Pokédex discovery, filter, and sorting labels.
 - Canonical mobile route `/pokemon/:nameOrId` with parameter validation and a `RouteErrorPage`.
 - Recoverable mobile startup error screen (`StartupErrorApp`, `StartupErrorPage`) with retry action.
 - Storage lifecycle separation: durable user state in documents storage, disposable cache in temporary directory.
@@ -33,11 +42,17 @@ All notable changes to this project will be documented in this file, following t
 - Empty collection validation returning `InvalidResponseFailure` when `types` collections are empty in `getPokemon` and `getFormDetails`.
 - Stale data indicator (`Icons.cloud_off_rounded`) and tooltip in `DetailAppBar` when serving expired cache records.
 - GitHub Actions CI workflow (`.github/workflows/ci.yml`) enforcing pinned FVM Flutter setup, dependency hygiene, formatting, static analysis (`--fatal-infos`), code generation consistency via untracked porcelain status checks, line coverage threshold verification, and an Android release APK build (`--flavor dev --release`) targeting Java 21.
+- Pure domain autocomplete filter helper `filterIndexSuggestions` matching index entries by name substring, numeric ID, and formatted ID.
+- Automated test suites covering remote data source Pokédex index URL parsing and type ID mapping, repository index delegation, and `PokemonCard` accessibility semantics.
 - End-to-end integration test suite (`test/integration/critical_journeys_test.dart`) covering all 8 critical user journeys from ROADMAP §5.4: valid search to detail navigation, not found recovery and retry, offline cached Pokémon inspection, direct `/pokemon/:nameOrId` deep links, form selection and rollback, move detail inspection and retry, language persistence across app restarts, and cache clearing.
 - Unit and BLoC test suite expansion covering `HomeBloc` (normalization, suggestions, error states), `PokemonBloc` (loading, stale cached data, retry, form toggles), `MoveDetailCubit` (error handling and retry), `LearnMethod` domain mapping, `LoggingInterceptor`, and version colors.
 
 ### Changed
 
+- Consolidated autocomplete suggestions in `PokeTextField` around structured `PokemonIndexEntry` items, removing the redundant `allNames` parameter.
+- Moved search text controller synchronization out of `PokedexBrowsePage` builder into `_onBlocListener` to avoid mutating external state during widget builds.
+- Equipped `PokedexLoadMoreEvent` with `droppable()` concurrency transformer to eliminate premature multi-page loading during inertial fling gestures.
+- Added debounce transformer (250ms) for search query changes in `PokedexBloc`, while immediately processing empty query resets.
 - Replaced `/detail` route and unsafe extra payload cast with GoRouter configuration in `app_router.dart`.
 - Preserved search query and focus state when popping back from detail to home.
 - Consolidated autocomplete suggestion filtering into `PokeTextField`'s default builder, removing redundant imperative queries from `HomeBloc`.
@@ -55,6 +70,10 @@ All notable changes to this project will be documented in this file, following t
 
 ### Fixed
 
+- Silent filter bypass and false-positive matches in `PokemonIndexFilterHelper` when type ID sets are missing or unresolved from the cache map.
+- Unpropagated type fetch failures in `PokedexBloc._onTypeFilterToggled` by emitting `state.failure` on repository errors.
+- Unhandled `StateError` on pull-to-refresh completion when navigating away or unmounting `PokedexBrowsePage` by providing an `orElse` fallback to `firstWhere`.
+- Redundant screen reader announcements in `PokemonCard` by configuring `excludeSemantics: true` and embedding localized types in the parent semantics label.
 - UI jank and append-only Hive storage bloat caused by full-box JSON decoding during LRU eviction and rewriting large payloads on every read.
 - Concurrent request cancellation cascading failures to joining deduplicated callers in `RequestDeduplicator`.
 - Cancelled requests surfacing as runtime failures or assertion errors in `PokemonBloc` by adding lifecycle guards (`token.isCancelled` and `emit.isDone`) and ignoring cancellation failures.
@@ -63,6 +82,7 @@ All notable changes to this project will be documented in this file, following t
 
 ### Removed
 
+- Dead fallback and unreachable `try/catch` in `HomeBloc.FetchAllPokemonNamesEvent`.
 - Artificial `@visibleForTesting` constructor `PokemonBloc.withCancelToken`, replacing it with standard event-driven cancellation testing.
 - Unused runtime dependencies: `flutter_animate`, `gap`, `pokeball_widget`, and `flutter_gen`.
 
