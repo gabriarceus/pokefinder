@@ -34,6 +34,7 @@ class DetailFailure extends StatelessWidget {
       StorageFailure() => Icons.storage_rounded,
       UnauthorizedFailure() => Icons.lock_outline_rounded,
       BadRequestFailure() => Icons.error_outline_rounded,
+      RequestCancelledFailure() => Icons.cancel_outlined,
       UnexpectedFailure() => Icons.error_outline_rounded,
     };
   }

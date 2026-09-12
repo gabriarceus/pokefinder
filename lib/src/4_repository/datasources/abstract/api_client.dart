@@ -1,15 +1,22 @@
+import 'package:dio/dio.dart' show CancelToken;
+
 /// An abstract interface for performing HTTP GET requests.
 ///
 /// Designed to be injected into repository classes, decoupling them from
 /// concrete HTTP implementations (e.g. Dio). Implementations must return
-/// the decoded JSON body as a [Map<String, dynamic>].
+/// the decoded JSON body as [T].
 abstract class ApiClient {
   /// Performs a GET request to the given [endpoint] and returns the
   /// response body as a decoded JSON payload.
   ///
   /// Throws an [ApiException] if the request fails, carrying the HTTP status
   /// code when one is available.
-  Future<dynamic> get(String endpoint);
+  Future<T> get<T>(
+    String endpoint, {
+    Map<String, dynamic>? queryParameters,
+    Duration? timeout,
+    CancelToken? cancelToken,
+  });
 }
 
 /// Raised when an API client returns an empty or null body.

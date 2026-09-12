@@ -5,25 +5,25 @@ import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/src/2_application/bloc/home_bloc/home_bloc.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/repositories/i_pokemon_repository.dart';
-import 'package:pokefinder/src/4_repository/repositories/data_repository.dart';
+import 'package:pokefinder/src/3_domain/usecases/clear_cache_usecase.dart';
 
 class _MockPokemonRepository extends Mock implements IPokemonRepository {}
 
-class _MockDataRepository extends Mock implements DataRepository {}
+class _MockClearCacheUseCase extends Mock implements ClearCacheUseCase {}
 
 class _MockEnLogger extends Mock implements EnLogger {}
 
 void main() {
   late _MockPokemonRepository pokemonRepository;
-  late _MockDataRepository dataRepository;
+  late _MockClearCacheUseCase clearCacheUseCase;
   late _MockEnLogger logger;
   late HomeBloc bloc;
 
   setUp(() {
     pokemonRepository = _MockPokemonRepository();
-    dataRepository = _MockDataRepository();
+    clearCacheUseCase = _MockClearCacheUseCase();
     logger = _MockEnLogger();
-    bloc = HomeBloc(pokemonRepository, dataRepository, logger);
+    bloc = HomeBloc(pokemonRepository, clearCacheUseCase, logger);
   });
 
   tearDown(() async {
@@ -101,9 +101,11 @@ void main() {
 
   group('cache clearing', () {
     test(
-      'clears the cache and raises then lowers the confirmation flag',
+      'clears the cache and raises then lowers the confirmation flag on success',
       () async {
-        when(() => dataRepository.clearCache()).thenAnswer((_) async {});
+        when(
+          () => clearCacheUseCase(),
+        ).thenAnswer((_) async => const Right(unit));
 
         final emitted = <bool>[];
         final sub = bloc.stream
@@ -115,9 +117,26 @@ void main() {
         await pumpEventQueue();
         await sub.cancel();
 
-        verify(() => dataRepository.clearCache()).called(1);
+        verify(() => clearCacheUseCase()).called(1);
         expect(emitted, [true, false]);
+        expect(bloc.state.failure, isNull);
       },
     );
+
+    test('surfaces failure when cache clearing fails', () async {
+      when(() => clearCacheUseCase()).thenAnswer(
+        (_) async => const Left(StorageFailure('Failed to clear storage')),
+      );
+
+      bloc.add(ClearCacheEvent());
+      await pumpEventQueue();
+
+      verify(() => clearCacheUseCase()).called(1);
+      expect(bloc.state.cacheCleared, isFalse);
+      expect(
+        bloc.state.failure,
+        const StorageFailure('Failed to clear storage'),
+      );
+    });
   });
 }

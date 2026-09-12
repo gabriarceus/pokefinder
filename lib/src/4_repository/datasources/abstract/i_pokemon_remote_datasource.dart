@@ -1,15 +1,26 @@
 import 'package:dartz/dartz.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
+import 'package:dio/dio.dart' show CancelToken;
 import 'package:pokefinder/src/4_repository/models/raw_encounter/raw_encounter.dart';
 import 'package:pokefinder/src/4_repository/models/raw_form_details/raw_form_details.dart';
 import 'package:pokefinder/src/4_repository/models/raw_pokemon/raw_pokemon.dart';
 import 'package:pokefinder/src/4_repository/models/raw_move_detail/raw_move_detail.dart';
 
 abstract class IPokemonRemoteDataSource {
-  Future<Either<PokemonFailure, RawPokemon>> getPokemon(PokemonName name);
-  Future<Either<PokemonFailure, RawFormDetails>> getFormDetails(String url);
-  Future<Either<PokemonFailure, List<RawEncounter>>> getEncounters(String url);
+  Future<Either<PokemonFailure, RawPokemon>> getPokemon(
+    PokemonName name, {
+    CancelToken? cancelToken,
+  });
+  Future<Either<PokemonFailure, RawFormDetails>> getFormDetails(
+    String url, {
+    CancelToken? cancelToken,
+  });
+  Future<Either<PokemonFailure, List<RawEncounter>>> getEncounters(
+    String url, {
+    CancelToken? cancelToken,
+  });
   Future<Either<PokemonFailure, List<String>>> getAllPokemonNames();
   Future<Either<PokemonFailure, RawMoveDetail>> getMoveDetail(String name);
+  Future<Either<PokemonFailure, Unit>> clearCache();
 }

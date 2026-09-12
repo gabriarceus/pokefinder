@@ -4,12 +4,22 @@ import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
 import 'package:pokefinder/src/3_domain/entities/move_detail.dart';
 
+import 'package:pokefinder/src/3_domain/cancellation_token.dart';
+
 abstract class IPokemonRepository {
-  Future<Either<PokemonFailure, Pokemon>> getPokemon(PokemonName name);
-  Future<Either<PokemonFailure, PokemonFormDetails>> getFormDetails(String url);
+  Future<Either<PokemonFailure, Pokemon>> getPokemon(
+    PokemonName name, {
+    CancellationToken? cancelToken,
+  });
+  Future<Either<PokemonFailure, PokemonFormDetails>> getFormDetails(
+    String url, {
+    CancellationToken? cancelToken,
+  });
   Future<Either<PokemonFailure, List<PokemonEncounter>>> getEncounters(
-    String url,
-  );
+    String url, {
+    CancellationToken? cancelToken,
+  });
   Future<Either<PokemonFailure, List<String>>> getAllPokemonNames();
   Future<Either<PokemonFailure, MoveDetail>> getMoveDetail(String name);
+  Future<Either<PokemonFailure, Unit>> clearCache();
 }

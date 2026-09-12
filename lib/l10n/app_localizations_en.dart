@@ -553,4 +553,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String cryPlayFor({required String pokemon}) {
     return 'Play cry for $pokemon';
   }
+
+  @override
+  String get staleDataNotice => 'Offline cached data';
 }

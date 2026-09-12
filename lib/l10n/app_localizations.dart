@@ -1165,6 +1165,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Play cry for {pokemon}'**
   String cryPlayFor({required String pokemon});
+
+  /// No description provided for @staleDataNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline cached data'**
+  String get staleDataNotice;
 }
 
 class _AppLocalizationsDelegate

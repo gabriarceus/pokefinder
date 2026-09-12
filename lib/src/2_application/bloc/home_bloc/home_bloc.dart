@@ -1,10 +1,10 @@
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:en_logger/en_logger.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
 import 'package:meta/meta.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
-import 'package:pokefinder/src/4_repository/repositories/data_repository.dart';
 
 part 'home_event.dart';
 part 'home_state.dart';
@@ -14,13 +14,13 @@ const _prefix = 'HomeBloc';
 /// Manages home screen state: user search input, navigation, and cache clearing.
 @injectable
 class HomeBloc extends Bloc<HomeBlocEvent, HomeBlocState> {
-  HomeBloc(this._pokemonRepository, this._dataRepository, this._logger)
+  HomeBloc(this._pokemonRepository, this._clearCacheUseCase, this._logger)
     : super(HomeBlocState.initial()) {
     on<UserInputEvent>((event, emit) {
       _logger.info('User input: ${event.userInput}', prefix: _prefix);
 
       emit(state.copyWith(userInput: event.userInput, failure: null));
-    });
+    }, transformer: restartable());
 
     on<FetchAllPokemonNamesEvent>((event, emit) async {
       final result = await _pokemonRepository.getAllPokemonNames();
@@ -56,9 +56,20 @@ class HomeBloc extends Bloc<HomeBlocEvent, HomeBlocState> {
 
     on<ClearCacheEvent>((event, emit) async {
       _logger.info('Clearing repository cache', prefix: _prefix);
-      await _dataRepository.clearCache();
-      emit(state.copyWith(cacheCleared: true, failure: null));
-      emit(state.copyWith(cacheCleared: false)); // Reset the flag
+      final result = await _clearCacheUseCase();
+      result.fold(
+        (failure) {
+          _logger.error(
+            'Failed to clear repository cache: $failure',
+            prefix: _prefix,
+          );
+          emit(state.copyWith(cacheCleared: false, failure: failure));
+        },
+        (_) {
+          emit(state.copyWith(cacheCleared: true, failure: null));
+          emit(state.copyWith(cacheCleared: false)); // Reset the flag
+        },
+      );
     });
 
     on<NavigationDoneEvent>((event, emit) {
@@ -67,6 +78,6 @@ class HomeBloc extends Bloc<HomeBlocEvent, HomeBlocState> {
   }
 
   final IPokemonRepository _pokemonRepository;
-  final DataRepository _dataRepository;
+  final ClearCacheUseCase _clearCacheUseCase;
   final EnLogger _logger;
 }

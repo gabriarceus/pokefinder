@@ -177,6 +177,7 @@
   "cryReplayTooltip": "Riascolta verso",
   "cryLoadingTooltip": "Caricamento verso...",
   "cryUnavailableTooltip": "Verso non disponibile. Tocca per riprovare",
-  "cryPlayFor": "Riproduci verso di {pokemon}"
+  "cryPlayFor": "Riproduci verso di {pokemon}",
+  "staleDataNotice": "Dati memorizzati offline"
 }
 
