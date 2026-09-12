@@ -1,6 +1,6 @@
 # Task 05: Test Suite Expansion, Unused Dependency Cleanup and CI
 
-- **Status:** Open
+- **Status:** Completed
 - **Roadmap Reference:** [ROADMAP.md §5.4, §5.5, §9.4](file:///C:/Users/gabri/Documents/GitHub/pokefinder/ROADMAP.md#L592-L672)
 - **Priority:** P0 (Quality & Engineering Foundation)
 
@@ -35,13 +35,13 @@ The goal of this task is to prune dependencies, implement high-value BLoC and in
 ## 3. Action Items
 
 ### 3.1 Dependency and Lockfile Hygiene (§9.4)
-- [ ] Audit dependencies; remove unused packages (`flutter_animate`, `gap`, `pokeball_widget`, `flutter_gen`).
-- [ ] Move build/script dependencies (`path`, `yaml`) to `dev_dependencies`.
-- [ ] Align lockfile using `fvm flutter pub get` matching `.fvmrc`.
-- [ ] Re-run code generators (`fvm dart run build_runner build --delete-conflicting-outputs`) to ensure generated files match dependencies.
+- [x] Audit dependencies; remove unused packages (`flutter_animate`, `gap`, `pokeball_widget`, `flutter_gen`).
+- [x] Move build/script dependencies (`path`, `yaml`) to `dev_dependencies`.
+- [x] Align lockfile using `fvm flutter pub get` matching `.fvmrc`.
+- [x] Re-run code generators (`fvm dart run build_runner build`) to ensure generated files match dependencies.
 
 ### 3.2 Automated CI Pipeline (§5.5)
-- [ ] Create `.github/workflows/ci.yml` executing on push and PR to `main`:
+- [x] Create `.github/workflows/ci.yml` executing on push and PR to `main`:
   1. FVM Flutter setup with caching.
   2. `fvm flutter pub get`.
   3. Format verification (`dart format --output=none --set-exit-if-changed .`).
@@ -51,15 +51,15 @@ The goal of this task is to prune dependencies, implement high-value BLoC and in
   7. Run test suite (`flutter test --coverage`).
 
 ### 3.3 Test Suite Expansion (§5.4)
-- [ ] **BLoC and State Tests:**
+- [x] **BLoC and State Tests:**
   - `HomeBloc`: search normalization, autocomplete suggestions, clear cache event, error state.
   - `PokemonBloc`: initial load, cached load, encounter fetch, alternate form toggle, retry triggers.
   - `MoveDetailCubit`: fetch details, error handling, retry.
-- [ ] **Data & Repository Tests:**
+- [x] **Data & Repository Tests:**
   - `PokemonRepositoryImpl`: full mapping from DTO to domain model.
   - `DataRepository`: cache hit, cache miss, expiration, offline fallback.
   - `DioApiClient`: timeout, cancellation, network error handling.
-- [ ] **Critical Integration Journeys:**
+- [x] **Critical Integration Journeys:**
   - Valid search → detail navigation.
   - Unknown Pokémon → not found error → edit/retry.
   - Offline cached Pokémon inspection.
@@ -71,16 +71,16 @@ The goal of this task is to prune dependencies, implement high-value BLoC and in
 
 ## 4. Acceptance Criteria
 
-- [ ] All unused runtime dependencies are removed from `pubspec.yaml`.
-- [ ] Every Pull Request to `main` automatically triggers CI and blocks merge on formatting, analysis, code gen discrepancy, or test failure.
-- [ ] CI uses the exact Flutter version defined in `.fvmrc`.
-- [ ] Comprehensive unit and BLoC tests cover all business logic branches.
-- [ ] Automated tests verify the 8 critical integration journeys listed in §5.4.
+- [x] All unused runtime dependencies are removed from `pubspec.yaml`.
+- [x] Every Pull Request to `main` automatically triggers CI and blocks merge on formatting, analysis, code gen discrepancy, or test failure.
+- [x] CI uses the exact Flutter version defined in `.fvmrc`.
+- [x] Comprehensive unit and BLoC tests cover all business logic branches.
+- [x] Automated tests verify the 8 critical integration journeys listed in §5.4.
 
 ---
 
 ## 5. Testing & Verification Plan
 
-- [ ] Execute `fvm flutter analyze` locally to verify 0 issues.
-- [ ] Run full test suite with coverage: `fvm flutter test --coverage`.
-- [ ] Run simulated CI steps locally to verify script and command exit codes.
+- [x] Execute `fvm flutter analyze` locally to verify 0 issues.
+- [x] Run full test suite with coverage: `fvm flutter test --coverage`.
+- [x] Run simulated CI steps locally to verify script and command exit codes.

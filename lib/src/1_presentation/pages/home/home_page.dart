@@ -70,6 +70,13 @@ class _HomePageState extends State<HomePage> {
           SnackBar(content: Text(failure.localizedMessage(context))),
         );
       }
+    } else if (state.cacheCleared) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).cacheClearedSuccessfully),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } else if (state.navigateToDetail && !_isSubmitting) {
       if (mounted) {
         setState(() {

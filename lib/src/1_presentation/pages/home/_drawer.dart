@@ -15,91 +15,79 @@ class HomeDrawer extends StatelessWidget {
     final currentLanguageId = languageState.languageId;
     final isSystemLanguage = currentLanguageId == Language.system.id;
 
-    return BlocListener<HomeBloc, HomeBlocState>(
-      listenWhen: (previous, current) =>
-          current.cacheCleared && !previous.cacheCleared,
-      listener: (context, state) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.t().cacheClearedSuccessfully),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      },
-      child: Drawer(
-        child: Column(
-          children: <Widget>[
-            // Header
-            Container(
-              width: double.infinity,
-              color: AppPalette.brandRed,
-              padding: EdgeInsets.fromLTRB(
-                MediaQuery.of(context).size.width * 0.05,
-                MediaQuery.of(context).padding.top,
-                0,
-                20,
-              ),
-              child: Text(
-                context.t().settings,
-                style: const TextStyle(
-                  color: AppPalette.onBrandRed,
-                  fontSize: 24,
-                ),
+    return Drawer(
+      child: Column(
+        children: <Widget>[
+          // Header
+          Container(
+            width: double.infinity,
+            color: AppPalette.brandRed,
+            padding: EdgeInsets.fromLTRB(
+              MediaQuery.of(context).size.width * 0.05,
+              MediaQuery.of(context).padding.top,
+              0,
+              20,
+            ),
+            child: Text(
+              context.t().settings,
+              style: const TextStyle(
+                color: AppPalette.onBrandRed,
+                fontSize: 24,
               ),
             ),
-            // "Use device language" toggle
-            SwitchListTile(
-              title: Text(context.t().useDeviceLanguage),
-              subtitle: Text(
-                context.t().useDeviceLanguageInfo,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              value: isSystemLanguage,
-              activeTrackColor: AppPalette.brandRed,
-              onChanged: (bool value) {
-                if (value) {
-                  context.read<LanguageCubit>().enableSystemLanguage();
-                } else {
-                  context.read<LanguageCubit>().disableSystemLanguage();
+          ),
+          // "Use device language" toggle
+          SwitchListTile(
+            title: Text(context.t().useDeviceLanguage),
+            subtitle: Text(
+              context.t().useDeviceLanguageInfo,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            value: isSystemLanguage,
+            activeTrackColor: AppPalette.brandRed,
+            onChanged: (bool value) {
+              if (value) {
+                context.read<LanguageCubit>().enableSystemLanguage();
+              } else {
+                context.read<LanguageCubit>().disableSystemLanguage();
+              }
+            },
+          ),
+          const Divider(height: 1),
+          // Language list – shown only when system language is off
+          if (!isSystemLanguage)
+            RadioGroup<int>(
+              groupValue: currentLanguageId,
+              onChanged: (int? value) {
+                if (value != null) {
+                  context.read<LanguageCubit>().setLanguage(value);
                 }
               },
-            ),
-            const Divider(height: 1),
-            // Language list – shown only when system language is off
-            if (!isSystemLanguage)
-              RadioGroup<int>(
-                groupValue: currentLanguageId,
-                onChanged: (int? value) {
-                  if (value != null) {
-                    context.read<LanguageCubit>().setLanguage(value);
-                  }
-                },
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: Language.selectable.map((language) {
-                    return RadioListTile<int>(
-                      title: Text(language.nativeName),
-                      value: language.id,
-                    );
-                  }).toList(),
-                ),
-              ),
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close drawer
-                  context.read<HomeBloc>().add(ClearCacheEvent());
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(48),
-                ),
-                child: Text(context.t().clearCache),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: Language.selectable.map((language) {
+                  return RadioListTile<int>(
+                    title: Text(language.nativeName),
+                    value: language.id,
+                  );
+                }).toList(),
               ),
             ),
-          ],
-        ),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close drawer
+                context.read<HomeBloc>().add(ClearCacheEvent());
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+              ),
+              child: Text(context.t().clearCache),
+            ),
+          ),
+        ],
       ),
     );
   }

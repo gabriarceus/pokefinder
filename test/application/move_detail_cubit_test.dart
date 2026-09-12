@@ -75,4 +75,29 @@ void main() {
       ]);
     },
   );
+
+  test('retrying fetchMoveDetail after error transitions to loaded', () async {
+    when(
+      () => repository.getMoveDetail('tackle'),
+    ).thenAnswer((_) async => left(const UnexpectedFailure('network down')));
+
+    await cubit.fetchMoveDetail('tackle');
+    await pumpEventQueue();
+
+    expect(cubit.state, isA<MoveDetailError>());
+
+    when(
+      () => repository.getMoveDetail('tackle'),
+    ).thenAnswer((_) async => right(_tackle));
+
+    final emitted = <MoveDetailState>[];
+    final subscription = cubit.stream.listen(emitted.add);
+
+    await cubit.fetchMoveDetail('tackle');
+    await pumpEventQueue();
+    await subscription.cancel();
+
+    expect(emitted, [MoveDetailLoading(), const MoveDetailLoaded(_tackle)]);
+    expect(cubit.state, const MoveDetailLoaded(_tackle));
+  });
 }

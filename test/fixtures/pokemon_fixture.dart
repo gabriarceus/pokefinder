@@ -15,6 +15,7 @@ Pokemon buildPokemon({
   String? spriteFrontShiny,
   String? officialArtworkDefault,
   String? officialArtworkShiny,
+  bool isStale = false,
 }) {
   return Pokemon(
     id: id,
@@ -45,5 +46,6 @@ Pokemon buildPokemon({
     abilities: const [],
     heldItems: const [],
     moves: moves,
+    isStale: isStale,
   );
 }
