@@ -5,13 +5,18 @@ import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/repositories/i_pokemon_repository.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
 
+import 'package:pokefinder/src/3_domain/cancellation_token.dart';
+
 @lazySingleton
 class GetPokemonUseCase {
   GetPokemonUseCase(this._repository);
 
   final IPokemonRepository _repository;
 
-  Future<Either<PokemonFailure, Pokemon>> call(PokemonName name) {
-    return _repository.getPokemon(name);
+  Future<Either<PokemonFailure, Pokemon>> call(
+    PokemonName name, {
+    CancellationToken? cancelToken,
+  }) {
+    return _repository.getPokemon(name, cancelToken: cancelToken);
   }
 }

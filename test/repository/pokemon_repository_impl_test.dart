@@ -147,6 +147,24 @@ void main() {
       expect(pokemon.typeImage2, isEmpty);
     });
 
+    test(
+      'returns InvalidResponseFailure when types collection is empty',
+      () async {
+        when(() => dataSource.getPokemon(any())).thenAnswer(
+          (_) async =>
+              right(RawPokemon.fromJson(rawPokemonJson(types: const []))),
+        );
+
+        final result = await repository.getPokemon(PokemonName('venusaur'));
+
+        expect(result.isLeft(), isTrue);
+        result.fold((failure) {
+          expect(failure, isA<InvalidResponseFailure>());
+          expect(failure.message, contains('has no types specified'));
+        }, (_) => fail('expected left'));
+      },
+    );
+
     test('an unknown type id maps to no type and no sprite', () async {
       final pokemon = await mapPokemon(
         rawPokemonJson(
@@ -184,9 +202,6 @@ void main() {
           ),
         );
 
-        expect(pokemon.ability1, 'overgrow');
-        expect(pokemon.ability2, 'chlorophyll');
-        expect(pokemon.ability3, isEmpty);
         expect(pokemon.abilities, const [
           PokemonAbility(name: 'overgrow', isHidden: false, slot: 1),
           PokemonAbility(name: 'chlorophyll', isHidden: true, slot: 3),
@@ -374,6 +389,30 @@ void main() {
         expect(details.artworkShiny, endsWith('shiny/10033.png'));
       },
     );
+
+    test(
+      'returns InvalidResponseFailure when form types collection is empty',
+      () async {
+        when(() => dataSource.getFormDetails(any())).thenAnswer(
+          (_) async => right(
+            RawFormDetails.fromJson({
+              'id': 10033,
+              'name': 'venusaur-mega',
+              'types': <Map<String, dynamic>>[],
+              'sprites': {'front_default': 'mega.png'},
+            }),
+          ),
+        );
+
+        final result = await repository.getFormDetails('form/10033/');
+
+        expect(result.isLeft(), isTrue);
+        result.fold((failure) {
+          expect(failure, isA<InvalidResponseFailure>());
+          expect(failure.message, contains('has no types specified'));
+        }, (_) => fail('expected left'));
+      },
+    );
   });
 
   group('getEncounters', () {
@@ -477,6 +516,103 @@ void main() {
       );
 
       expect(detail.damageClass, isNull);
+    });
+  });
+
+  group('getPokemon stat mapping by name', () {
+    test(
+      'maps stats by explicit API name even if array is shuffled or reversed',
+      () async {
+        final shuffledStats = [
+          {
+            'base_stat': 99,
+            'effort': 0,
+            'stat': {'name': 'speed', 'url': ''},
+          },
+          {
+            'base_stat': 88,
+            'effort': 0,
+            'stat': {'name': 'special-defense', 'url': ''},
+          },
+          {
+            'base_stat': 77,
+            'effort': 0,
+            'stat': {'name': 'special-attack', 'url': ''},
+          },
+          {
+            'base_stat': 66,
+            'effort': 0,
+            'stat': {'name': 'defense', 'url': ''},
+          },
+          {
+            'base_stat': 55,
+            'effort': 0,
+            'stat': {'name': 'attack', 'url': ''},
+          },
+          {
+            'base_stat': 44,
+            'effort': 0,
+            'stat': {'name': 'hp', 'url': ''},
+          },
+        ];
+
+        final json = rawPokemonJson()..['stats'] = shuffledStats;
+        final pokemon = await mapPokemon(json);
+
+        // Order should always be: [hp, attack, defense, special-attack, special-defense, speed]
+        expect(pokemon.stats, [44, 55, 66, 77, 88, 99]);
+      },
+    );
+  });
+
+  group('getPokemon sprite fallback order', () {
+    test('prefers official artwork over front_default', () async {
+      final json = rawPokemonJson(
+        sprites: {
+          'front_default': 'front.png',
+          'other': {
+            'official-artwork': {'front_default': 'artwork.png'},
+          },
+        },
+      );
+      final pokemon = await mapPokemon(json);
+      expect(pokemon.sprite, 'artwork.png');
+    });
+
+    test(
+      'falls back to front_default when official artwork is missing',
+      () async {
+        final json = rawPokemonJson(
+          sprites: {'front_default': 'front.png', 'other': null},
+        );
+        final pokemon = await mapPokemon(json);
+        expect(pokemon.sprite, 'front.png');
+      },
+    );
+
+    test(
+      'falls back to front_shiny when both artwork and front_default are missing',
+      () async {
+        final json = rawPokemonJson(
+          sprites: {
+            'front_default': null,
+            'front_shiny': 'shiny.png',
+            'other': null,
+          },
+        );
+        final pokemon = await mapPokemon(json);
+        expect(pokemon.sprite, 'shiny.png');
+      },
+    );
+  });
+
+  group('clearCache', () {
+    test('delegates clearCache to remote data source', () async {
+      when(() => dataSource.clearCache()).thenAnswer((_) async => right(unit));
+
+      final result = await repository.clearCache();
+      expect(result, right(unit));
+      verify(() => dataSource.clearCache()).called(1);
     });
   });
 }

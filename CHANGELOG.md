@@ -23,6 +23,15 @@ All notable changes to this project will be documented in this file, following t
 - Keyboard search ergonomics: `TextInputAction.search`, hardware keyboard navigation, inline validation errors, and submission deduplication.
 - `scripts/verify.sh`, running every quality gate (format, analysis, tests).
 - `scripts/coverage.sh`, reporting total line coverage with an optional minimum.
+- Pure domain `ClearCacheUseCase` decoupling `HomeBloc` from direct repository layer caching details.
+- In-flight network request deduplication service (`RequestDeduplicator`) with transparent retry recovery when an in-flight caller cancels.
+- In-memory LRU access tracking in `HiveLocalStorage` delivering O(1) eviction without deserializing payload envelopes and eliminating redundant disk writes on cache hits.
+- Cache envelope schema versioning (`kCurrentCacheSchemaVersion`) and deterministic `Clock` injection across caching layers.
+- Cooperative request cancellation lifecycle via `CancellationToken` in domain use cases, repository methods, and data sources.
+- Domain `RequestCancelledFailure` variant with exhaustive handling across presentation and domain layers.
+- Resilient PokeAPI DTO mapping: stat mapping by explicit API name independent of array ordering, and fallback sprite hierarchy (`official-artwork` -> `front_default` -> `front_shiny` -> `back_default`).
+- Empty collection validation returning `InvalidResponseFailure` when `types` collections are empty in `getPokemon` and `getFormDetails`.
+- Stale data indicator (`Icons.cloud_off_rounded`) and tooltip in `DetailAppBar` when serving expired cache records.
 
 ### Changed
 
@@ -30,9 +39,24 @@ All notable changes to this project will be documented in this file, following t
 - Preserved search query and focus state when popping back from detail to home.
 - Consolidated autocomplete suggestion filtering into `PokeTextField`'s default builder, removing redundant imperative queries from `HomeBloc`.
 - Wrapped submitting state mutation in `setState` within `HomePage` listener to ensure deterministic widget tree rebuilds.
+- Decoupled `HomeBloc` from `DataRepository` by introducing and injecting `ClearCacheUseCase`.
+- Allowed `TypeError` and `FormatException` to propagate through `DioApiClient.get` rather than flattening them into generic network errors.
+- Prevented `DataRepository._cacheFirst` and `DataRepository._networkFirst` from returning stale cached data when a request is intentionally cancelled.
+- Preserved valid disk envelopes on generic type argument mismatch in `HiveLocalStorage.readEntry` by returning `null` without deleting data.
 - Applied the Dart tall-style formatter across `lib`, `test` and `scripts`.
 - Aligned `README.md` and `CLAUDE.md` with the current codebase.
 - Upgraded dependencies within their existing constraints.
+
+### Fixed
+
+- UI jank and append-only Hive storage bloat caused by full-box JSON decoding during LRU eviction and rewriting large payloads on every read.
+- Concurrent request cancellation cascading failures to joining deduplicated callers in `RequestDeduplicator`.
+- Cancelled requests surfacing as runtime failures or assertion errors in `PokemonBloc` by adding lifecycle guards (`token.isCancelled` and `emit.isDone`) and ignoring cancellation failures.
+- Redundant screen reader announcements for stale cache indicator in `DetailAppBar` by removing the nested `Semantics` wrapper inside `Tooltip`.
+
+### Removed
+
+- Artificial `@visibleForTesting` constructor `PokemonBloc.withCancelToken`, replacing it with standard event-driven cancellation testing.
 
 ## [1.0.0-rc1] - 2026-09-02
 

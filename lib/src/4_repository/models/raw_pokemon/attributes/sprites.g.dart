@@ -7,7 +7,7 @@ part of 'sprites.dart';
 // **************************************************************************
 
 Sprites _$SpritesFromJson(Map<String, dynamic> json) => Sprites(
-  frontDefault: json['front_default'] as String,
+  frontDefault: json['front_default'] as String?,
   backDefault: json['back_default'] as String?,
   frontShiny: json['front_shiny'] as String?,
   backShiny: json['back_shiny'] as String?,
@@ -25,18 +25,20 @@ Map<String, dynamic> _$SpritesToJson(Sprites instance) => <String, dynamic>{
 };
 
 SpritesOther _$SpritesOtherFromJson(Map<String, dynamic> json) => SpritesOther(
-  officialArtwork: OfficialArtwork.fromJson(
-    json['official-artwork'] as Map<String, dynamic>,
-  ),
+  officialArtwork: json['official-artwork'] == null
+      ? null
+      : OfficialArtwork.fromJson(
+          json['official-artwork'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$SpritesOtherToJson(SpritesOther instance) =>
-    <String, dynamic>{'official-artwork': instance.officialArtwork.toJson()};
+    <String, dynamic>{'official-artwork': instance.officialArtwork?.toJson()};
 
 OfficialArtwork _$OfficialArtworkFromJson(Map<String, dynamic> json) =>
     OfficialArtwork(
-      frontDefault: json['front_default'] as String,
-      frontShiny: json['front_shiny'] as String,
+      frontDefault: json['front_default'] as String?,
+      frontShiny: json['front_shiny'] as String?,
     );
 
 Map<String, dynamic> _$OfficialArtworkToJson(OfficialArtwork instance) =>

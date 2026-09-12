@@ -101,6 +101,7 @@ class _DetailState extends State<Detail> {
         appBar: DetailAppBar(
           backgroundColor: Colors.transparent,
           showShiny: _showShiny,
+          isStale: pokemon.isStale,
           onToggleShiny: () {
             setState(() {
               _showShiny = !_showShiny;

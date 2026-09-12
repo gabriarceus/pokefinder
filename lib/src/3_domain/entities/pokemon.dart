@@ -7,9 +7,6 @@ class Pokemon extends Equatable {
     required this.id,
     required this.name,
     required this.sprite,
-    required this.ability1,
-    required this.ability2,
-    required this.ability3,
     required this.weight,
     required this.height,
     required this.typeImage1,
@@ -35,6 +32,7 @@ class Pokemon extends Equatable {
     required this.abilities,
     required this.heldItems,
     required this.moves,
+    this.isStale = false,
   });
 
   final int id;
@@ -44,9 +42,6 @@ class Pokemon extends Equatable {
   final PokemonType? type1;
   final PokemonType? type2;
   final String sprite;
-  final String ability1;
-  final String ability2;
-  final String ability3;
   final String cry;
 
   /// Weight in hectograms (as returned by PokeAPI).
@@ -78,15 +73,13 @@ class Pokemon extends Equatable {
   final List<PokemonAbility> abilities;
   final List<PokemonHeldItem> heldItems;
   final List<PokemonMove> moves;
+  final bool isStale;
 
   @override
   List<Object?> get props => [
     id,
     name,
     sprite,
-    ability1,
-    ability2,
-    ability3,
     weight,
     height,
     typeImage1,
@@ -112,6 +105,7 @@ class Pokemon extends Equatable {
     abilities,
     heldItems,
     moves,
+    isStale,
   ];
 }
 

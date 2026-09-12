@@ -7,11 +7,13 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     required this.backgroundColor,
     this.showShiny = false,
+    this.isStale = false,
     this.onToggleShiny,
   });
 
   final Color? backgroundColor;
   final bool showShiny;
+  final bool isStale;
   final VoidCallback? onToggleShiny;
 
   @override
@@ -29,6 +31,18 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text(t.details, style: TextStyle(color: itemsColor)),
       backgroundColor: backgroundColor,
       actions: [
+        if (isStale)
+          Tooltip(
+            message: t.staleDataNotice,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Icon(
+                Icons.cloud_off_rounded,
+                color: itemsColor.withValues(alpha: 0.75),
+                size: 20,
+              ),
+            ),
+          ),
         if (onToggleShiny != null)
           IconButton(
             style: const ButtonStyle(

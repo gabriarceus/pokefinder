@@ -5,15 +5,15 @@ part 'sprites.g.dart';
 @JsonSerializable(explicitToJson: true)
 class Sprites {
   const Sprites({
-    required this.frontDefault,
-    required this.backDefault,
-    required this.frontShiny,
-    required this.backShiny,
-    required this.other,
+    this.frontDefault,
+    this.backDefault,
+    this.frontShiny,
+    this.backShiny,
+    this.other,
   });
 
   @JsonKey(name: 'front_default')
-  final String frontDefault;
+  final String? frontDefault;
 
   @JsonKey(name: 'back_default')
   final String? backDefault;
@@ -34,10 +34,10 @@ class Sprites {
 
 @JsonSerializable(explicitToJson: true)
 class SpritesOther {
-  const SpritesOther({required this.officialArtwork});
+  const SpritesOther({this.officialArtwork});
 
   @JsonKey(name: 'official-artwork')
-  final OfficialArtwork officialArtwork;
+  final OfficialArtwork? officialArtwork;
 
   factory SpritesOther.fromJson(Map<String, dynamic> json) =>
       _$SpritesOtherFromJson(json);
@@ -47,13 +47,13 @@ class SpritesOther {
 
 @JsonSerializable()
 class OfficialArtwork {
-  const OfficialArtwork({required this.frontDefault, required this.frontShiny});
+  const OfficialArtwork({this.frontDefault, this.frontShiny});
 
   @JsonKey(name: 'front_default')
-  final String frontDefault;
+  final String? frontDefault;
 
   @JsonKey(name: 'front_shiny')
-  final String frontShiny;
+  final String? frontShiny;
 
   factory OfficialArtwork.fromJson(Map<String, dynamic> json) =>
       _$OfficialArtworkFromJson(json);

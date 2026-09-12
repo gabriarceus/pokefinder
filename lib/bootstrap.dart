@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:dio/dio.dart';
 import 'package:en_logger/en_logger.dart';
 import 'package:flutter/foundation.dart';
@@ -43,4 +44,7 @@ abstract class RegisterModule {
     );
     return dio;
   }
+
+  @lazySingleton
+  Clock get clock => const Clock();
 }

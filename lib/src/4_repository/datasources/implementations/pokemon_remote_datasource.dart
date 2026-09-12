@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart' show CancelToken;
 import 'package:hive_ce/hive.dart';
 import 'package:injectable/injectable.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
@@ -32,15 +33,20 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
 
   @override
   Future<Either<PokemonFailure, RawPokemon>> getPokemon(
-    PokemonName name,
-  ) async {
+    PokemonName name, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final json = await _dataRepository.fetchData(
+      final response = await _dataRepository.fetchData<Map<String, dynamic>>(
         '$_kBaseUrl${name.rightOrCrash()}',
         strategy: FetchStrategy.cacheFirst,
         maxAge: _kDefaultMaxAge,
+        cancelToken: cancelToken,
       );
-      return right(RawPokemon.fromJson(json as Map<String, dynamic>));
+      final rawPokemon = RawPokemon.fromJson(
+        response.data,
+      ).copyWith(isStale: response.metadata.isStale);
+      return right(rawPokemon);
     } catch (error) {
       return left(_mapError(error));
     }
@@ -48,15 +54,17 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
 
   @override
   Future<Either<PokemonFailure, RawFormDetails>> getFormDetails(
-    String url,
-  ) async {
+    String url, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final json = await _dataRepository.fetchData(
+      final response = await _dataRepository.fetchData<Map<String, dynamic>>(
         url,
         strategy: FetchStrategy.cacheFirst,
         maxAge: _kDefaultMaxAge,
+        cancelToken: cancelToken,
       );
-      return right(RawFormDetails.fromJson(json as Map<String, dynamic>));
+      return right(RawFormDetails.fromJson(response.data));
     } catch (error) {
       return left(_mapError(error));
     }
@@ -64,15 +72,17 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
 
   @override
   Future<Either<PokemonFailure, List<RawEncounter>>> getEncounters(
-    String url,
-  ) async {
+    String url, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final json = await _dataRepository.fetchData(
+      final response = await _dataRepository.fetchData<List<dynamic>>(
         url,
         strategy: FetchStrategy.cacheFirst,
         maxAge: _kDefaultMaxAge,
+        cancelToken: cancelToken,
       );
-      final list = (json as List<dynamic>)
+      final list = response.data
           .map((e) => RawEncounter.fromJson(e as Map<String, dynamic>))
           .toList();
       return right(list);
@@ -84,13 +94,12 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
   @override
   Future<Either<PokemonFailure, List<String>>> getAllPokemonNames() async {
     try {
-      final json = await _dataRepository.fetchData(
+      final response = await _dataRepository.fetchData<Map<String, dynamic>>(
         '$_kBaseUrl?limit=100000&offset=0',
         strategy: FetchStrategy.cacheFirst,
         maxAge: _kDefaultMaxAge,
       );
-      final results =
-          (json as Map<String, dynamic>)['results'] as List<dynamic>;
+      final results = response.data['results'] as List<dynamic>;
       return right(
         results
             .map((e) => (e as Map<String, dynamic>)['name'] as String)
@@ -106,12 +115,22 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
     String name,
   ) async {
     try {
-      final json = await _dataRepository.fetchData(
+      final response = await _dataRepository.fetchData<Map<String, dynamic>>(
         'https://pokeapi.co/api/v2/move/$name',
         strategy: FetchStrategy.cacheFirst,
         maxAge: _kDefaultMaxAge,
       );
-      return right(RawMoveDetail.fromJson(json as Map<String, dynamic>));
+      return right(RawMoveDetail.fromJson(response.data));
+    } catch (error) {
+      return left(_mapError(error));
+    }
+  }
+
+  @override
+  Future<Either<PokemonFailure, Unit>> clearCache() async {
+    try {
+      await _dataRepository.clearCache();
+      return const Right(unit);
     } catch (error) {
       return left(_mapError(error));
     }
@@ -122,6 +141,9 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
     if (error is PokemonFailure) return error;
 
     if (error is ApiException) {
+      if (error.isCancelled) {
+        return const RequestCancelledFailure();
+      }
       if (error.isConnectionError) {
         return const NetworkUnavailableFailure();
       }

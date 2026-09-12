@@ -54,7 +54,7 @@ class _HomePageState extends State<HomePage> {
     final failure = state.failure;
     if (failure != null) {
       final showSnackBar = switch (failure) {
-        BadRequestFailure() => false,
+        BadRequestFailure() || RequestCancelledFailure() => false,
         UnauthorizedFailure() ||
         PokemonNotFoundFailure() ||
         NetworkUnavailableFailure() ||

@@ -13,6 +13,7 @@ void main() {
       expect(const ServerFailure(500), const ServerFailure(500));
       expect(const InvalidResponseFailure(), const InvalidResponseFailure());
       expect(const StorageFailure(), const StorageFailure());
+      expect(const RequestCancelledFailure(), const RequestCancelledFailure());
       expect(const UnexpectedFailure('boom'), const UnexpectedFailure('boom'));
     });
 
@@ -22,6 +23,10 @@ void main() {
       expect(RequestTimeoutFailure(), isNot(RateLimitedFailure()));
       expect(const ServerFailure(500), isNot(const ServerFailure(502)));
       expect(const StorageFailure(), isNot(const InvalidResponseFailure()));
+      expect(
+        const RequestCancelledFailure(),
+        isNot(const UnexpectedFailure('')),
+      );
     });
 
     test('UnexpectedFailure differs by message', () {

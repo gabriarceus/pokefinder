@@ -555,4 +555,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String cryPlayFor({required String pokemon}) {
     return 'Riproduci verso di $pokemon';
   }
+
+  @override
+  String get staleDataNotice => 'Dati memorizzati offline';
 }

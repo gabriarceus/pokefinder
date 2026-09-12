@@ -1,16 +1,19 @@
 import 'package:dio/dio.dart';
+import 'package:injectable/injectable.dart';
 import 'package:pokefinder/src/4_repository/datasources/abstract/api_client.dart';
 
+@LazySingleton(as: ApiClient)
 class DioApiClient implements ApiClient {
   DioApiClient({Dio? dio}) : _dio = dio ?? Dio();
 
   final Dio _dio;
 
   @override
-  Future<dynamic> get(
+  Future<T> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
     Duration? timeout,
+    CancelToken? cancelToken,
   }) async {
     try {
       final options = timeout != null
@@ -21,11 +24,12 @@ class DioApiClient implements ApiClient {
         path,
         queryParameters: queryParameters,
         options: options,
+        cancelToken: cancelToken,
       );
       if (response.data == null) {
         throw EmptyResponseException(path);
       }
-      return response.data;
+      return response.data as T;
     } on DioException catch (e) {
       String? safeResponseBody;
       if (e.response?.data != null) {
@@ -54,7 +58,12 @@ class DioApiClient implements ApiClient {
         responseBody: safeResponseBody,
       );
     } catch (e) {
-      if (e is ApiException || e is EmptyResponseException) rethrow;
+      if (e is ApiException ||
+          e is EmptyResponseException ||
+          e is TypeError ||
+          e is FormatException) {
+        rethrow;
+      }
       throw ApiException(message: 'Unexpected network error');
     }
   }

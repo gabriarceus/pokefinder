@@ -196,6 +196,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "staleDataNotice": "Offline cached data"
 }
 

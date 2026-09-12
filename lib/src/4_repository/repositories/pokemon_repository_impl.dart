@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart' show CancelToken;
 import 'package:injectable/injectable.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 import 'package:pokefinder/src/4_repository/repository.dart';
@@ -28,16 +29,30 @@ class PokemonRepositoryImpl implements IPokemonRepository {
   final IPokemonRemoteDataSource _remoteDataSource;
 
   @override
-  Future<Either<PokemonFailure, Pokemon>> getPokemon(PokemonName name) async {
+  Future<Either<PokemonFailure, Pokemon>> getPokemon(
+    PokemonName name, {
+    CancellationToken? cancelToken,
+  }) async {
     try {
-      final result = await _remoteDataSource.getPokemon(name);
-      return result.map(_toDomain);
+      final result = await _remoteDataSource.getPokemon(
+        name,
+        cancelToken: _bridgeToDio(cancelToken),
+      );
+      return result.flatMap(_toDomain);
     } catch (e) {
       return left(_mapRepoError(e));
     }
   }
 
-  Pokemon _toDomain(RawPokemon rawPokemon) {
+  Either<PokemonFailure, Pokemon> _toDomain(RawPokemon rawPokemon) {
+    if (rawPokemon.types.isEmpty) {
+      return left(
+        InvalidResponseFailure(
+          'Pokemon "${rawPokemon.name}" has no types specified.',
+        ),
+      );
+    }
+
     final type1 = _typeFromUrl(rawPokemon.types.first.type.url);
     final type2 = rawPokemon.types.length > 1
         ? _typeFromUrl(rawPokemon.types[1].type.url)
@@ -46,15 +61,17 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     final typeImage1 = _typeSpriteUrl(type1);
     final typeImage2 = _typeSpriteUrl(type2);
 
-    final ability1 = rawPokemon.abilities.first.ability.name;
-    final ability2 = rawPokemon.abilities.length > 1
-        ? rawPokemon.abilities[1].ability.name
-        : '';
-    final ability3 = rawPokemon.abilities.length > 2
-        ? rawPokemon.abilities[2].ability.name
-        : '';
-
-    final stats = rawPokemon.stats.map((s) => s.baseStat).toList();
+    final statMap = <String, int>{
+      for (final s in rawPokemon.stats) s.stat.name: s.baseStat,
+    };
+    final stats = [
+      statMap['hp'] ?? 0,
+      statMap['attack'] ?? 0,
+      statMap['defense'] ?? 0,
+      statMap['special-attack'] ?? 0,
+      statMap['special-defense'] ?? 0,
+      statMap['speed'] ?? 0,
+    ];
 
     final abilities = rawPokemon.abilities
         .map(
@@ -91,53 +108,77 @@ class PokemonRepositoryImpl implements IPokemonRepository {
         )
         .toList();
 
-    return Pokemon(
-      id: rawPokemon.id,
-      name: rawPokemon.name,
-      sprite: rawPokemon.sprites.frontDefault,
-      ability1: ability1,
-      ability2: ability2,
-      ability3: ability3,
-      weight: rawPokemon.weight,
-      height: rawPokemon.height,
-      typeImage1: typeImage1,
-      typeImage2: typeImage2,
-      type1: type1,
-      type2: type2,
-      cry: rawPokemon.cries.latest,
-      stats: stats,
-      baseExperience: rawPokemon.baseExperience,
-      isDefault: rawPokemon.isDefault,
-      order: rawPokemon.order,
-      locationAreaEncounters: rawPokemon.locationAreaEncounters,
-      cryLegacy: rawPokemon.cries.legacy,
-      forms: rawPokemon.forms
-          .where((f) => !f.name.endsWith(_kUnknownFormSuffix))
-          .map((f) => PokemonForm(name: f.name, url: f.url))
-          .toList(),
-      gameIndices: rawPokemon.gameIndices.map((gi) => gi.version.name).toList(),
-      speciesName: rawPokemon.species.name,
-      speciesUrl: rawPokemon.species.url,
-      spriteBackDefault: rawPokemon.sprites.backDefault,
-      spriteFrontShiny: rawPokemon.sprites.frontShiny,
-      spriteBackShiny: rawPokemon.sprites.backShiny,
-      officialArtworkDefault:
-          rawPokemon.sprites.other?.officialArtwork.frontDefault,
-      officialArtworkShiny:
-          rawPokemon.sprites.other?.officialArtwork.frontShiny,
-      abilities: abilities,
-      heldItems: heldItems,
-      moves: moves,
+    final officialArtworkDefault =
+        rawPokemon.sprites.other?.officialArtwork?.frontDefault;
+    final officialArtworkShiny =
+        rawPokemon.sprites.other?.officialArtwork?.frontShiny;
+
+    final sprite =
+        officialArtworkDefault ??
+        rawPokemon.sprites.frontDefault ??
+        rawPokemon.sprites.frontShiny ??
+        rawPokemon.sprites.backDefault ??
+        '';
+
+    return right(
+      Pokemon(
+        id: rawPokemon.id,
+        name: rawPokemon.name,
+        sprite: sprite,
+        weight: rawPokemon.weight,
+        height: rawPokemon.height,
+        typeImage1: typeImage1,
+        typeImage2: typeImage2,
+        type1: type1,
+        type2: type2,
+        cry: rawPokemon.cries.latest,
+        stats: stats,
+        baseExperience: rawPokemon.baseExperience,
+        isDefault: rawPokemon.isDefault,
+        order: rawPokemon.order,
+        locationAreaEncounters: rawPokemon.locationAreaEncounters,
+        cryLegacy: rawPokemon.cries.legacy,
+        forms: rawPokemon.forms
+            .where((f) => !f.name.endsWith(_kUnknownFormSuffix))
+            .map((f) => PokemonForm(name: f.name, url: f.url))
+            .toList(),
+        gameIndices: rawPokemon.gameIndices
+            .map((gi) => gi.version.name)
+            .toList(),
+        speciesName: rawPokemon.species.name,
+        speciesUrl: rawPokemon.species.url,
+        spriteBackDefault: rawPokemon.sprites.backDefault,
+        spriteFrontShiny: rawPokemon.sprites.frontShiny,
+        spriteBackShiny: rawPokemon.sprites.backShiny,
+        officialArtworkDefault: officialArtworkDefault,
+        officialArtworkShiny: officialArtworkShiny,
+        abilities: abilities,
+        heldItems: heldItems,
+        moves: moves,
+        isStale: rawPokemon.isStale,
+      ),
     );
   }
 
   @override
   Future<Either<PokemonFailure, PokemonFormDetails>> getFormDetails(
-    String url,
-  ) async {
+    String url, {
+    CancellationToken? cancelToken,
+  }) async {
     try {
-      final result = await _remoteDataSource.getFormDetails(url);
+      final result = await _remoteDataSource.getFormDetails(
+        url,
+        cancelToken: _bridgeToDio(cancelToken),
+      );
       return result.flatMap((raw) {
+        if (raw.types.isEmpty) {
+          return left(
+            InvalidResponseFailure(
+              'Form "${raw.name}" has no types specified.',
+            ),
+          );
+        }
+
         final type1 = _typeFromUrl(raw.types.first.type.url);
         final type2 = raw.types.length > 1
             ? _typeFromUrl(raw.types[1].type.url)
@@ -146,6 +187,8 @@ class PokemonRepositoryImpl implements IPokemonRepository {
         final typeImage2 = _typeSpriteUrl(type2);
         final artworkDefault = _officialArtworkUrl(raw.id);
         final artworkShiny = _officialArtworkUrl(raw.id, shiny: true);
+        final spriteDefault = raw.sprites.frontDefault ?? artworkDefault;
+        final spriteShiny = raw.sprites.frontShiny ?? artworkShiny;
         return right(
           PokemonFormDetails(
             name: raw.name,
@@ -153,8 +196,8 @@ class PokemonRepositoryImpl implements IPokemonRepository {
             type2: type2,
             typeImage1: typeImage1,
             typeImage2: typeImage2,
-            spriteDefault: raw.sprites.frontDefault,
-            spriteShiny: raw.sprites.frontShiny,
+            spriteDefault: spriteDefault,
+            spriteShiny: spriteShiny,
             artworkDefault: artworkDefault,
             artworkShiny: artworkShiny,
           ),
@@ -167,10 +210,14 @@ class PokemonRepositoryImpl implements IPokemonRepository {
 
   @override
   Future<Either<PokemonFailure, List<PokemonEncounter>>> getEncounters(
-    String url,
-  ) async {
+    String url, {
+    CancellationToken? cancelToken,
+  }) async {
     try {
-      final result = await _remoteDataSource.getEncounters(url);
+      final result = await _remoteDataSource.getEncounters(
+        url,
+        cancelToken: _bridgeToDio(cancelToken),
+      );
       return result.map(
         (rawList) => rawList.map((encounter) {
           final rawLocationName = encounter.locationArea.name;
@@ -255,4 +302,27 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     final previousSlashIndex = trimmed.lastIndexOf('/');
     return trimmed.substring(previousSlashIndex + 1);
   }
+
+  @override
+  Future<Either<PokemonFailure, Unit>> clearCache() async {
+    try {
+      return await _remoteDataSource.clearCache();
+    } catch (e) {
+      return left(_mapRepoError(e));
+    }
+  }
+}
+
+/// Bridges a domain [CancellationToken] to Dio's [CancelToken].
+///
+/// Returns `null` when [token] is `null`. The returned Dio token is
+/// cancelled automatically when the domain token fires.
+CancelToken? _bridgeToDio(CancellationToken? token) {
+  if (token == null) return null;
+  final dioToken = CancelToken();
+  token.onCancel(() => dioToken.cancel(token.reason));
+  if (token.isCancelled) {
+    dioToken.cancel(token.reason);
+  }
+  return dioToken;
 }

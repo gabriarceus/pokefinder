@@ -149,5 +149,30 @@ void main() {
         );
       },
     );
+
+    test('allows TypeError from type cast to propagate', () async {
+      when(() => dio.get<dynamic>(any())).thenAnswer(
+        (_) async => Response(
+          requestOptions: requestOptions,
+          data: 'a string, not a map',
+        ),
+      );
+
+      expect(
+        () => client.get<Map<String, dynamic>>('/pokemon/test'),
+        throwsA(isA<TypeError>()),
+      );
+    });
+
+    test('allows FormatException to propagate', () async {
+      when(
+        () => dio.get<dynamic>(any()),
+      ).thenThrow(const FormatException('malformed data'));
+
+      expect(
+        () => client.get('/pokemon/test'),
+        throwsA(isA<FormatException>()),
+      );
+    });
   });
 }

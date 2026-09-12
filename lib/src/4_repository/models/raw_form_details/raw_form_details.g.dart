@@ -26,8 +26,8 @@ Map<String, dynamic> _$RawFormDetailsToJson(RawFormDetails instance) =>
 
 RawFormSprites _$RawFormSpritesFromJson(Map<String, dynamic> json) =>
     RawFormSprites(
-      frontDefault: json['front_default'] as String,
-      frontShiny: json['front_shiny'] as String,
+      frontDefault: json['front_default'] as String?,
+      frontShiny: json['front_shiny'] as String?,
     );
 
 Map<String, dynamic> _$RawFormSpritesToJson(RawFormSprites instance) =>

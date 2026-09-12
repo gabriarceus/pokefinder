@@ -5,7 +5,10 @@ import 'package:pokefinder/src/3_domain/domain.dart';
 @LazySingleton(as: IPokemonRepository, env: ['mock'])
 class MockPokemonRepository implements IPokemonRepository {
   @override
-  Future<Either<PokemonFailure, Pokemon>> getPokemon(PokemonName name) async {
+  Future<Either<PokemonFailure, Pokemon>> getPokemon(
+    PokemonName name, {
+    CancellationToken? cancelToken,
+  }) async {
     await Future.delayed(const Duration(seconds: 1));
 
     return const Right(
@@ -14,9 +17,6 @@ class MockPokemonRepository implements IPokemonRepository {
         name: 'bulbasaur',
         sprite:
             'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png',
-        ability1: 'overgrow',
-        ability2: 'chlorophyll',
-        ability3: '',
         weight: 69,
         height: 7,
         typeImage1:
@@ -66,8 +66,9 @@ class MockPokemonRepository implements IPokemonRepository {
 
   @override
   Future<Either<PokemonFailure, PokemonFormDetails>> getFormDetails(
-    String url,
-  ) async {
+    String url, {
+    CancellationToken? cancelToken,
+  }) async {
     return const Right(
       PokemonFormDetails(
         name: 'bulbasaur',
@@ -91,8 +92,9 @@ class MockPokemonRepository implements IPokemonRepository {
 
   @override
   Future<Either<PokemonFailure, List<PokemonEncounter>>> getEncounters(
-    String url,
-  ) async {
+    String url, {
+    CancellationToken? cancelToken,
+  }) async {
     return const Right([
       PokemonEncounter(
         locationAreaName: 'Kanto Route 1 Area',
@@ -130,5 +132,10 @@ class MockPokemonRepository implements IPokemonRepository {
         },
       ),
     );
+  }
+
+  @override
+  Future<Either<PokemonFailure, Unit>> clearCache() async {
+    return const Right(unit);
   }
 }
