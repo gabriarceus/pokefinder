@@ -32,6 +32,9 @@ All notable changes to this project will be documented in this file, following t
 - Resilient PokeAPI DTO mapping: stat mapping by explicit API name independent of array ordering, and fallback sprite hierarchy (`official-artwork` -> `front_default` -> `front_shiny` -> `back_default`).
 - Empty collection validation returning `InvalidResponseFailure` when `types` collections are empty in `getPokemon` and `getFormDetails`.
 - Stale data indicator (`Icons.cloud_off_rounded`) and tooltip in `DetailAppBar` when serving expired cache records.
+- GitHub Actions CI workflow (`.github/workflows/ci.yml`) enforcing pinned FVM Flutter setup, dependency hygiene, formatting, static analysis (`--fatal-infos`), code generation consistency via untracked porcelain status checks, line coverage threshold verification, and an Android release APK build (`--flavor dev --release`) targeting Java 21.
+- End-to-end integration test suite (`test/integration/critical_journeys_test.dart`) covering all 8 critical user journeys from ROADMAP §5.4: valid search to detail navigation, not found recovery and retry, offline cached Pokémon inspection, direct `/pokemon/:nameOrId` deep links, form selection and rollback, move detail inspection and retry, language persistence across app restarts, and cache clearing.
+- Unit and BLoC test suite expansion covering `HomeBloc` (normalization, suggestions, error states), `PokemonBloc` (loading, stale cached data, retry, form toggles), `MoveDetailCubit` (error handling and retry), `LearnMethod` domain mapping, `LoggingInterceptor`, and version colors.
 
 ### Changed
 
@@ -46,6 +49,9 @@ All notable changes to this project will be documented in this file, following t
 - Applied the Dart tall-style formatter across `lib`, `test` and `scripts`.
 - Aligned `README.md` and `CLAUDE.md` with the current codebase.
 - Upgraded dependencies within their existing constraints.
+- Relocated tooling dependencies (`path`, `yaml`) from runtime dependencies to `dev_dependencies`.
+- Replaced `bc` dependency in `scripts/coverage.sh` with pure `awk` floating-point comparison for cross-platform portability.
+- Restricted CI workflow `cancel-in-progress` concurrency to pull requests and non-`main` branches to preserve build verification history on `main`.
 
 ### Fixed
 
@@ -53,10 +59,12 @@ All notable changes to this project will be documented in this file, following t
 - Concurrent request cancellation cascading failures to joining deduplicated callers in `RequestDeduplicator`.
 - Cancelled requests surfacing as runtime failures or assertion errors in `PokemonBloc` by adding lifecycle guards (`token.isCancelled` and `emit.isDone`) and ignoring cancellation failures.
 - Redundant screen reader announcements for stale cache indicator in `DetailAppBar` by removing the nested `Semantics` wrapper inside `Tooltip`.
+- Duplicate cache cleared SnackBar queued between `HomeDrawer` and `HomePage` by removing redundant `BlocListener` from `HomeDrawer`.
 
 ### Removed
 
 - Artificial `@visibleForTesting` constructor `PokemonBloc.withCancelToken`, replacing it with standard event-driven cancellation testing.
+- Unused runtime dependencies: `flutter_animate`, `gap`, `pokeball_widget`, and `flutter_gen`.
 
 ## [1.0.0-rc1] - 2026-09-02
 

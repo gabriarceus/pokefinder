@@ -30,7 +30,33 @@ void main() {
     await bloc.close();
   });
 
+  test('initial state has empty fields and null failures', () {
+    expect(bloc.state, HomeBlocState.initial());
+    expect(bloc.state.userInput, isEmpty);
+    expect(bloc.state.allPokemonNames, isEmpty);
+    expect(bloc.state.nameIndexFailure, isNull);
+    expect(bloc.state.failure, isNull);
+    expect(bloc.state.navigateToDetail, isFalse);
+    expect(bloc.state.cacheCleared, isFalse);
+  });
+
   group('name list loading', () {
+    test(
+      'successfully fetches names, updates allPokemonNames, and clears nameIndexFailure',
+      () async {
+        const names = ['bulbasaur', 'charmander', 'squirtle'];
+        when(
+          () => pokemonRepository.getAllPokemonNames(),
+        ).thenAnswer((_) async => const Right(names));
+
+        bloc.add(FetchAllPokemonNamesEvent());
+        await pumpEventQueue();
+
+        expect(bloc.state.allPokemonNames, names);
+        expect(bloc.state.nameIndexFailure, isNull);
+      },
+    );
+
     test(
       'a failure records nameIndexFailure while leaving search operable',
       () async {
@@ -63,6 +89,27 @@ void main() {
 
       expect(bloc.state.navigateToDetail, isTrue);
       expect(bloc.state.failure, isNull);
+    });
+
+    test(
+      'normalizes input with surrounding whitespace and capital letters to navigate',
+      () async {
+        bloc.add(UserInputEvent('   CHARIZARD   '));
+        bloc.add(IsButtonPressedEvent());
+        await pumpEventQueue();
+
+        expect(bloc.state.navigateToDetail, isTrue);
+        expect(bloc.state.failure, isNull);
+      },
+    );
+
+    test('invalid characters surface a failure and do not navigate', () async {
+      bloc.add(UserInputEvent('pikachu!@#'));
+      bloc.add(IsButtonPressedEvent());
+      await pumpEventQueue();
+
+      expect(bloc.state.navigateToDetail, isFalse);
+      expect(bloc.state.failure, isA<BadRequestFailure>());
     });
 
     test('a blank input surfaces a failure instead of navigating', () async {

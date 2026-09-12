@@ -434,4 +434,54 @@ void main() {
       },
     );
   });
+
+  group('retry and cached loading', () {
+    test(
+      'retrying fetch after failure successfully loads the Pokémon',
+      () async {
+        when(
+          () => getPokemon(any(), cancelToken: any(named: 'cancelToken')),
+        ).thenAnswer((_) async => left(const NetworkUnavailableFailure()));
+
+        bloc.add(FetchPokemonEvent('pikachu'));
+        await pumpEventQueue();
+
+        expect(bloc.state, isA<PokemonBlocFailure>());
+        expect(
+          (bloc.state as PokemonBlocFailure).failure,
+          isA<NetworkUnavailableFailure>(),
+        );
+
+        final pikachu = buildPokemon(id: 25, name: 'pikachu');
+        when(
+          () => getPokemon(any(), cancelToken: any(named: 'cancelToken')),
+        ).thenAnswer((_) async => right(pikachu));
+
+        bloc.add(FetchPokemonEvent('pikachu'));
+        await pumpEventQueue();
+
+        expect(bloc.state, isA<PokemonBlocSuccess>());
+        expect((bloc.state as PokemonBlocSuccess).pokemon.name, 'pikachu');
+      },
+    );
+
+    test('successfully loads cached Pokémon with stale indicator', () async {
+      final cachedPokemon = buildPokemon(
+        id: 25,
+        name: 'pikachu',
+        isStale: true,
+      );
+      when(
+        () => getPokemon(any(), cancelToken: any(named: 'cancelToken')),
+      ).thenAnswer((_) async => right(cachedPokemon));
+
+      bloc.add(FetchPokemonEvent('pikachu'));
+      await pumpEventQueue();
+
+      expect(bloc.state, isA<PokemonBlocSuccess>());
+      final success = bloc.state as PokemonBlocSuccess;
+      expect(success.pokemon.name, 'pikachu');
+      expect(success.pokemon.isStale, isTrue);
+    });
+  });
 }
