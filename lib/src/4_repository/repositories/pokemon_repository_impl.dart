@@ -237,6 +237,36 @@ class PokemonRepositoryImpl implements IPokemonRepository {
   }
 
   @override
+  Future<Either<PokemonFailure, List<PokemonIndexEntry>>> getPokemonIndex({
+    CancellationToken? cancelToken,
+    bool forceRefresh = false,
+  }) async {
+    try {
+      return await _remoteDataSource.getPokemonIndex(
+        cancelToken: _bridgeToDio(cancelToken),
+        forceRefresh: forceRefresh,
+      );
+    } catch (e) {
+      return left(_mapRepoError(e));
+    }
+  }
+
+  @override
+  Future<Either<PokemonFailure, Set<int>>> getPokemonIdsForType(
+    PokemonType type, {
+    CancellationToken? cancelToken,
+  }) async {
+    try {
+      return await _remoteDataSource.getPokemonIdsForType(
+        type,
+        cancelToken: _bridgeToDio(cancelToken),
+      );
+    } catch (e) {
+      return left(_mapRepoError(e));
+    }
+  }
+
+  @override
   Future<Either<PokemonFailure, List<String>>> getAllPokemonNames() async {
     try {
       return await _remoteDataSource.getAllPokemonNames();

@@ -21,6 +21,7 @@ import 'src/2_application/bloc/detail_bloc/detail_bloc.dart' as _i1067;
 import 'src/2_application/bloc/home_bloc/home_bloc.dart' as _i56;
 import 'src/2_application/bloc/move_detail_cubit/move_detail_cubit.dart'
     as _i539;
+import 'src/2_application/bloc/pokedex_bloc/pokedex_bloc.dart' as _i820;
 import 'src/2_application/hydrated_bloc/language_storage.dart' as _i1056;
 import 'src/3_domain/domain.dart' as _i341;
 import 'src/3_domain/repositories/i_pokemon_repository.dart' as _i768;
@@ -114,6 +115,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i694.GetPokemonUseCase>(
       () => _i694.GetPokemonUseCase(gh<_i768.IPokemonRepository>()),
+    );
+    gh.factory<_i820.PokedexBloc>(
+      () => _i820.PokedexBloc(
+        gh<_i341.IPokemonRepository>(),
+        gh<_i463.EnLogger>(),
+      ),
     );
     gh.factory<_i1067.PokemonBloc>(
       () => _i1067.PokemonBloc(

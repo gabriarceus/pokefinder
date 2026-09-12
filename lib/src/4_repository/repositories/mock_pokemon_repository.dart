@@ -105,14 +105,76 @@ class MockPokemonRepository implements IPokemonRepository {
   }
 
   @override
-  Future<Either<PokemonFailure, List<String>>> getAllPokemonNames() async {
+  Future<Either<PokemonFailure, List<PokemonIndexEntry>>> getPokemonIndex({
+    CancellationToken? cancelToken,
+    bool forceRefresh = false,
+  }) async {
     return const Right([
-      'bulbasaur',
-      'ivysaur',
-      'venusaur',
-      'charmander',
-      'pikachu',
+      PokemonIndexEntry(
+        id: 1,
+        name: 'bulbasaur',
+        detailUrl: 'https://pokeapi.co/api/v2/pokemon/1/',
+        types: [PokemonType.grass, PokemonType.poison],
+      ),
+      PokemonIndexEntry(
+        id: 2,
+        name: 'ivysaur',
+        detailUrl: 'https://pokeapi.co/api/v2/pokemon/2/',
+        types: [PokemonType.grass, PokemonType.poison],
+      ),
+      PokemonIndexEntry(
+        id: 3,
+        name: 'venusaur',
+        detailUrl: 'https://pokeapi.co/api/v2/pokemon/3/',
+        types: [PokemonType.grass, PokemonType.poison],
+      ),
+      PokemonIndexEntry(
+        id: 4,
+        name: 'charmander',
+        detailUrl: 'https://pokeapi.co/api/v2/pokemon/4/',
+        types: [PokemonType.fire],
+      ),
+      PokemonIndexEntry(
+        id: 25,
+        name: 'pikachu',
+        detailUrl: 'https://pokeapi.co/api/v2/pokemon/25/',
+        types: [PokemonType.electric],
+      ),
     ]);
+  }
+
+  @override
+  Future<Either<PokemonFailure, Set<int>>> getPokemonIdsForType(
+    PokemonType type, {
+    CancellationToken? cancelToken,
+  }) async {
+    return switch (type) {
+      PokemonType.grass => const Right({1, 2, 3}),
+      PokemonType.poison => const Right({1, 2, 3}),
+      PokemonType.fire => const Right({4}),
+      PokemonType.electric => const Right({25}),
+      PokemonType.normal ||
+      PokemonType.fighting ||
+      PokemonType.flying ||
+      PokemonType.ground ||
+      PokemonType.rock ||
+      PokemonType.bug ||
+      PokemonType.ghost ||
+      PokemonType.steel ||
+      PokemonType.water ||
+      PokemonType.psychic ||
+      PokemonType.ice ||
+      PokemonType.dragon ||
+      PokemonType.dark ||
+      PokemonType.fairy ||
+      PokemonType.stellar => const Right({}),
+    };
+  }
+
+  @override
+  Future<Either<PokemonFailure, List<String>>> getAllPokemonNames() async {
+    final indexResult = await getPokemonIndex();
+    return indexResult.map((entries) => entries.map((e) => e.name).toList());
   }
 
   @override

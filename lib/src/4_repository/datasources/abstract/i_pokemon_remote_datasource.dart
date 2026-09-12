@@ -7,6 +7,9 @@ import 'package:pokefinder/src/4_repository/models/raw_form_details/raw_form_det
 import 'package:pokefinder/src/4_repository/models/raw_pokemon/raw_pokemon.dart';
 import 'package:pokefinder/src/4_repository/models/raw_move_detail/raw_move_detail.dart';
 
+import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
+
 abstract class IPokemonRemoteDataSource {
   Future<Either<PokemonFailure, RawPokemon>> getPokemon(
     PokemonName name, {
@@ -18,6 +21,14 @@ abstract class IPokemonRemoteDataSource {
   });
   Future<Either<PokemonFailure, List<RawEncounter>>> getEncounters(
     String url, {
+    CancelToken? cancelToken,
+  });
+  Future<Either<PokemonFailure, List<PokemonIndexEntry>>> getPokemonIndex({
+    CancelToken? cancelToken,
+    bool forceRefresh = false,
+  });
+  Future<Either<PokemonFailure, Set<int>>> getPokemonIdsForType(
+    PokemonType type, {
     CancelToken? cancelToken,
   });
   Future<Either<PokemonFailure, List<String>>> getAllPokemonNames();

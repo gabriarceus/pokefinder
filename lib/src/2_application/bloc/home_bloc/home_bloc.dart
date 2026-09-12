@@ -23,17 +23,25 @@ class HomeBloc extends Bloc<HomeBlocEvent, HomeBlocState> {
     }, transformer: restartable());
 
     on<FetchAllPokemonNamesEvent>((event, emit) async {
-      final result = await _pokemonRepository.getAllPokemonNames();
+      emit(state.copyWith(isIndexLoading: true));
+      final result = await _pokemonRepository.getPokemonIndex();
       result.fold(
         (failure) {
           _logger.error(
-            'Failed to fetch pokemon names: $failure',
+            'Failed to fetch pokemon index: $failure',
             prefix: _prefix,
           );
-          emit(state.copyWith(nameIndexFailure: failure));
+          emit(
+            state.copyWith(nameIndexFailure: failure, isIndexLoading: false),
+          );
         },
-        (names) => emit(
-          state.copyWith(allPokemonNames: names, nameIndexFailure: null),
+        (entries) => emit(
+          state.copyWith(
+            pokemonIndex: entries,
+            allPokemonNames: entries.map((e) => e.name).toList(),
+            nameIndexFailure: null,
+            isIndexLoading: false,
+          ),
         ),
       );
     });

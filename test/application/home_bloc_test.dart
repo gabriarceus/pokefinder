@@ -3,6 +3,7 @@ import 'package:en_logger/en_logger.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/src/2_application/bloc/home_bloc/home_bloc.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/repositories/i_pokemon_repository.dart';
 import 'package:pokefinder/src/3_domain/usecases/clear_cache_usecase.dart';
@@ -44,15 +45,27 @@ void main() {
     test(
       'successfully fetches names, updates allPokemonNames, and clears nameIndexFailure',
       () async {
-        const names = ['bulbasaur', 'charmander', 'squirtle'];
+        const entries = [
+          PokemonIndexEntry(id: 1, name: 'bulbasaur', detailUrl: ''),
+          PokemonIndexEntry(id: 4, name: 'charmander', detailUrl: ''),
+          PokemonIndexEntry(id: 7, name: 'squirtle', detailUrl: ''),
+        ];
         when(
-          () => pokemonRepository.getAllPokemonNames(),
-        ).thenAnswer((_) async => const Right(names));
+          () => pokemonRepository.getPokemonIndex(
+            cancelToken: any(named: 'cancelToken'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).thenAnswer((_) async => const Right(entries));
 
         bloc.add(FetchAllPokemonNamesEvent());
         await pumpEventQueue();
 
-        expect(bloc.state.allPokemonNames, names);
+        expect(bloc.state.allPokemonNames, [
+          'bulbasaur',
+          'charmander',
+          'squirtle',
+        ]);
+        expect(bloc.state.pokemonIndex, entries);
         expect(bloc.state.nameIndexFailure, isNull);
       },
     );
@@ -61,7 +74,10 @@ void main() {
       'a failure records nameIndexFailure while leaving search operable',
       () async {
         when(
-          () => pokemonRepository.getAllPokemonNames(),
+          () => pokemonRepository.getPokemonIndex(
+            cancelToken: any(named: 'cancelToken'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
         ).thenAnswer((_) async => left(const UnexpectedFailure('offline')));
 
         bloc.add(FetchAllPokemonNamesEvent());

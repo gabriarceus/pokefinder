@@ -558,4 +558,72 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get staleDataNotice => 'Dati memorizzati offline';
+
+  @override
+  String get browsePokedex => 'Esplora Pokédex';
+
+  @override
+  String get pokedexTitle => 'Pokédex';
+
+  @override
+  String get filter => 'Filtra';
+
+  @override
+  String get filters => 'Filtri';
+
+  @override
+  String filterCount({required int count}) {
+    return '$count attivi';
+  }
+
+  @override
+  String get types => 'Tipi';
+
+  @override
+  String get generation => 'Generazione';
+
+  @override
+  String get generationAll => 'Tutte le generazioni';
+
+  @override
+  String generationNum({required int number}) {
+    return 'Gen $number';
+  }
+
+  @override
+  String get sortBy => 'Ordina per';
+
+  @override
+  String get sortIdAscending => 'Numero: Minore';
+
+  @override
+  String get sortIdDescending => 'Numero: Maggiore';
+
+  @override
+  String get sortNameAscending => 'Nome: A - Z';
+
+  @override
+  String get sortNameDescending => 'Nome: Z - A';
+
+  @override
+  String get randomPokemon => 'Pokémon casuale';
+
+  @override
+  String get noPokemonFound =>
+      'Nessun Pokémon trovato con i filtri selezionati';
+
+  @override
+  String get clearFilters => 'Reimposta filtri';
+
+  @override
+  String get apply => 'Applica';
+
+  @override
+  String get reset => 'Reimposta';
+
+  @override
+  String get searchPokedexPlaceholder => 'Cerca per nome o numero...';
+
+  @override
+  String get offlineIndexNotice => 'Consultazione Pokédex offline';
 }

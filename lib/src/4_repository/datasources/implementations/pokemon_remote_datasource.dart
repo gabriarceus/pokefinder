@@ -4,6 +4,8 @@ import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart' show CancelToken;
 import 'package:hive_ce/hive.dart';
 import 'package:injectable/injectable.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
 import 'package:pokefinder/src/4_repository/datasources/abstract/api_client.dart';
@@ -91,23 +93,80 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
     }
   }
 
+  int _extractIdFromUrl(String url) {
+    final trimmed = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+    final lastSlashIndex = trimmed.lastIndexOf('/');
+    if (lastSlashIndex == -1) return -1;
+    return int.tryParse(trimmed.substring(lastSlashIndex + 1)) ?? -1;
+  }
+
   @override
-  Future<Either<PokemonFailure, List<String>>> getAllPokemonNames() async {
+  Future<Either<PokemonFailure, List<PokemonIndexEntry>>> getPokemonIndex({
+    CancelToken? cancelToken,
+    bool forceRefresh = false,
+  }) async {
     try {
       final response = await _dataRepository.fetchData<Map<String, dynamic>>(
         '$_kBaseUrl?limit=100000&offset=0',
-        strategy: FetchStrategy.cacheFirst,
+        strategy: forceRefresh
+            ? FetchStrategy.networkFirst
+            : FetchStrategy.cacheFirst,
         maxAge: _kDefaultMaxAge,
+        cancelToken: cancelToken,
       );
       final results = response.data['results'] as List<dynamic>;
-      return right(
-        results
-            .map((e) => (e as Map<String, dynamic>)['name'] as String)
-            .toList(),
-      );
+      final entries = <PokemonIndexEntry>[];
+      for (final raw in results) {
+        final map = raw as Map<String, dynamic>;
+        final name = map['name'] as String? ?? '';
+        final url = map['url'] as String? ?? '';
+        final id = _extractIdFromUrl(url);
+        if (id > 0 && name.isNotEmpty) {
+          entries.add(PokemonIndexEntry(id: id, name: name, detailUrl: url));
+        }
+      }
+      return right(entries);
     } catch (error) {
       return left(_mapError(error));
     }
+  }
+
+  @override
+  Future<Either<PokemonFailure, Set<int>>> getPokemonIdsForType(
+    PokemonType type, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dataRepository.fetchData<Map<String, dynamic>>(
+        'https://pokeapi.co/api/v2/type/${type.apiName}',
+        strategy: FetchStrategy.cacheFirst,
+        maxAge: _kDefaultMaxAge,
+        cancelToken: cancelToken,
+      );
+      final pokemonList =
+          response.data['pokemon'] as List<dynamic>? ?? const [];
+      final idSet = <int>{};
+      for (final item in pokemonList) {
+        final pokemonMap =
+            (item as Map<String, dynamic>)['pokemon'] as Map<String, dynamic>?;
+        if (pokemonMap != null) {
+          final url = pokemonMap['url'] as String? ?? '';
+          final id = _extractIdFromUrl(url);
+          if (id > 0) {
+            idSet.add(id);
+          }
+        }
+      }
+      return right(idSet);
+    } catch (error) {
+      return left(_mapError(error));
+    }
+  }
+
+  @override
+  Future<Either<PokemonFailure, List<String>>> getAllPokemonNames() async {
+    final indexResult = await getPokemonIndex();
+    return indexResult.map((entries) => entries.map((e) => e.name).toList());
   }
 
   @override

@@ -6,6 +6,9 @@ import 'package:pokefinder/src/3_domain/entities/move_detail.dart';
 
 import 'package:pokefinder/src/3_domain/cancellation_token.dart';
 
+import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
+
 abstract class IPokemonRepository {
   Future<Either<PokemonFailure, Pokemon>> getPokemon(
     PokemonName name, {
@@ -17,6 +20,14 @@ abstract class IPokemonRepository {
   });
   Future<Either<PokemonFailure, List<PokemonEncounter>>> getEncounters(
     String url, {
+    CancellationToken? cancelToken,
+  });
+  Future<Either<PokemonFailure, List<PokemonIndexEntry>>> getPokemonIndex({
+    CancellationToken? cancelToken,
+    bool forceRefresh = false,
+  });
+  Future<Either<PokemonFailure, Set<int>>> getPokemonIdsForType(
+    PokemonType type, {
     CancellationToken? cancelToken,
   });
   Future<Either<PokemonFailure, List<String>>> getAllPokemonNames();
