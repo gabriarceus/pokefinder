@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
-import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
-import 'package:pokefinder/src/3_domain/services/cry_audio_controller.dart';
+import 'package:pokefinder/src/2_application/application.dart';
+import 'package:pokefinder/src/3_domain/domain.dart';
 
 class DetailInfoTab extends StatelessWidget {
   const DetailInfoTab({
@@ -40,6 +40,23 @@ class DetailInfoTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveColor = _visibleTypeColor(context);
 
+    UnitSystem unitSystem = UnitSystem.metric;
+    try {
+      unitSystem = context.watch<PreferencesCubit>().state.unitSystem;
+    } catch (_) {}
+
+    final locale = Localizations.localeOf(context).languageCode;
+    final formattedWeight = MeasurementFormatter.formatWeight(
+      pokemon.weightInKg,
+      unitSystem,
+      locale: locale,
+    );
+    final formattedHeight = MeasurementFormatter.formatHeight(
+      pokemon.heightInMeters,
+      unitSystem,
+      locale: locale,
+    );
+
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 24),
       child: Column(
@@ -52,13 +69,13 @@ class DetailInfoTab extends StatelessWidget {
               _buildInfoCard(
                 context,
                 icon: Icons.scale_rounded,
-                value: '${pokemon.weightInKg} kg',
+                value: formattedWeight,
                 label: context.t().weight,
               ),
               _buildInfoCard(
                 context,
                 icon: Icons.straighten_rounded,
-                value: '${pokemon.heightInMeters} m',
+                value: formattedHeight,
                 label: context.t().height,
               ),
             ],

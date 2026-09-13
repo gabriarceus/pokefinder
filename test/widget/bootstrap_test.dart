@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/main.dart';
 import 'package:pokefinder/src/1_presentation/pages/startup_error/startup_error_page.dart';
+import 'package:pokefinder/src/2_application/application.dart';
 
 void main() {
   group('bootstrap startup and error recovery', () {
@@ -72,6 +73,22 @@ void main() {
         await configureDependencies('mock');
         await configureDependencies('mock');
         expect(getIt.isRegistered<EnLogger>(), isTrue);
+      },
+    );
+
+    test(
+      'resolves all presentation BLoCs and Cubits without missing dependencies',
+      () async {
+        ensureHydratedStorage();
+        await configureDependencies('mock');
+
+        expect(getIt<PokedexBloc>(), isA<PokedexBloc>());
+        expect(getIt<HomeBloc>(), isA<HomeBloc>());
+        expect(getIt<PokemonBloc>(), isA<PokemonBloc>());
+        expect(getIt<FavoritesCubit>(), isA<FavoritesCubit>());
+        expect(getIt<PreferencesCubit>(), isA<PreferencesCubit>());
+        expect(getIt<RecentHistoryCubit>(), isA<RecentHistoryCubit>());
+        expect(getIt<MoveDetailCubit>(), isA<MoveDetailCubit>());
       },
     );
   });

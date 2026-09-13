@@ -54,16 +54,32 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<LanguageCubit>(),
-      child: BlocBuilder<LanguageCubit, LanguageState>(
-        builder: (context, state) {
-          return MaterialApp.router(
-            routerConfig: router ?? appRouter,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            locale: state.locale,
-            debugShowCheckedModeBanner: false,
+    return MultiBlocProvider(
+      providers: [
+        if (getIt.isRegistered<PreferencesCubit>())
+          BlocProvider.value(value: getIt<PreferencesCubit>()),
+        if (getIt.isRegistered<LanguageCubit>())
+          BlocProvider.value(value: getIt<LanguageCubit>()),
+        if (getIt.isRegistered<FavoritesCubit>())
+          BlocProvider.value(value: getIt<FavoritesCubit>()),
+        if (getIt.isRegistered<RecentHistoryCubit>())
+          BlocProvider.value(value: getIt<RecentHistoryCubit>()),
+      ],
+      child: BlocBuilder<PreferencesCubit, PreferencesState>(
+        builder: (context, prefState) {
+          return BlocBuilder<LanguageCubit, LanguageState>(
+            builder: (context, langState) {
+              return MaterialApp.router(
+                routerConfig: router ?? appRouter,
+                themeMode: prefState.themeMode,
+                theme: AppPalette.lightTheme,
+                darkTheme: AppPalette.darkTheme,
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                locale: langState.locale,
+                debugShowCheckedModeBanner: false,
+              );
+            },
           );
         },
       ),

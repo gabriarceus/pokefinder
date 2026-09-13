@@ -70,6 +70,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get about => 'About';
 
   @override
+  String get language => 'Language';
+
+  @override
   String get weight => 'Weight';
 
   @override
@@ -659,4 +662,101 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hasAlternateFormsSemantics => 'alternate forms available';
+
+  @override
+  String get favorites => 'Favorites';
+
+  @override
+  String get favoritesEmptyTitle => 'No Favorites Yet';
+
+  @override
+  String get favoritesEmptyMessage =>
+      'Tap the heart icon on any Pokémon to add it to your favorites.';
+
+  @override
+  String get addToFavorites => 'Add to favorites';
+
+  @override
+  String get removeFromFavorites => 'Remove from favorites';
+
+  @override
+  String get removeFromHistory => 'Remove from history';
+
+  @override
+  String get sortRecentlyAdded => 'Recently Added';
+
+  @override
+  String get recentlyViewed => 'Recently Viewed';
+
+  @override
+  String get recentSearches => 'Recent Searches';
+
+  @override
+  String get clearHistory => 'Clear history';
+
+  @override
+  String get clearHistoryConfirmation =>
+      'Are you sure you want to clear your search and viewing history?';
+
+  @override
+  String get historyEnabled => 'Keep history';
+
+  @override
+  String get historyEnabledInfo =>
+      'Record recently viewed Pokémon and searches.';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get themeSystem => 'System';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get unitSystem => 'Measurement Units';
+
+  @override
+  String get unitSystemMetric => 'Metric (m, kg)';
+
+  @override
+  String get unitSystemImperial => 'Imperial (ft, lbs)';
+
+  @override
+  String get audioSettings => 'Audio';
+
+  @override
+  String get autoPlayCry => 'Auto-play cry on open';
+
+  @override
+  String get autoPlayCryInfo =>
+      'Automatically play the Pokémon\'s cry when opening the details screen.';
+
+  @override
+  String get cryVolume => 'Cry Volume';
+
+  @override
+  String get storageAndCache => 'Storage & Cache';
+
+  @override
+  String cacheSize({required String size}) {
+    return 'Cache size: $size';
+  }
+
+  @override
+  String get clearCacheConfirmation =>
+      'Are you sure you want to clear the cache? Downloaded data and images will need to be reloaded.';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get clear => 'Clear';
 }

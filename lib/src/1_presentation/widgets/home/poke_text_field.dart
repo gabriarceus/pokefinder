@@ -31,7 +31,6 @@ class PokeTextField extends StatelessWidget {
   final String? errorText;
 
   static const Color textFieldBorderColor = AppPalette.brandRed;
-  static const Color textFieldTextColor = Colors.black;
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +75,9 @@ class PokeTextField extends StatelessWidget {
                 ),
                 errorText: errorText,
                 labelText: AppLocalizations.of(context).searchTextField,
-                labelStyle: const TextStyle(color: textFieldTextColor),
+                floatingLabelStyle: const TextStyle(
+                  color: textFieldBorderColor,
+                ),
                 suffixIcon: nameIndexFailure != null
                     ? Tooltip(
                         message: t.errorSuggestions,
@@ -125,6 +126,9 @@ class PokeTextField extends StatelessWidget {
                     }
                   }
 
+                  final isDark =
+                      Theme.of(context).brightness == Brightness.dark;
+
                   return InkWell(
                     onTap: () {
                       onSelected(option);
@@ -146,10 +150,16 @@ class PokeTextField extends StatelessWidget {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.purple.shade50,
+                                  color: isDark
+                                      ? Colors.purple.shade900.withValues(
+                                          alpha: 0.4,
+                                        )
+                                      : Colors.purple.shade50,
                                   borderRadius: BorderRadius.circular(4),
                                   border: Border.all(
-                                    color: Colors.purple.shade300,
+                                    color: isDark
+                                        ? Colors.purple.shade400
+                                        : Colors.purple.shade300,
                                     width: 0.8,
                                   ),
                                 ),
@@ -158,7 +168,9 @@ class PokeTextField extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.purple.shade900,
+                                    color: isDark
+                                        ? Colors.purple.shade200
+                                        : Colors.purple.shade900,
                                   ),
                                 ),
                               ),

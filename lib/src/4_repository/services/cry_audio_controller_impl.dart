@@ -81,6 +81,25 @@ class JustAudioCryController implements CryAudioController {
   }
 
   @override
+  Future<void> play(String url) async {
+    final isCurrent = _currentUrl == url;
+    if (isCurrent && !_unavailable) {
+      await _player.seek(Duration.zero);
+      await _player.play();
+      return;
+    }
+    final loaded = await _load(url);
+    if (loaded) {
+      await _player.play();
+    }
+  }
+
+  @override
+  Future<void> setVolume(double volume) async {
+    await _player.setVolume(volume.clamp(0.0, 1.0));
+  }
+
+  @override
   Future<void> toggle(String url) async {
     final playerState = _player.playerState;
     final isCurrent = _currentUrl == url;

@@ -174,13 +174,15 @@ class DetailMovesTab extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   color: Theme.of(
                                     context,
-                                  ).primaryColor.withValues(alpha: 0.1),
+                                  ).colorScheme.primary.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
                                   learnDetail,
                                   style: TextStyle(
-                                    color: Theme.of(context).primaryColor,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                   ),

@@ -212,6 +212,12 @@ abstract class AppLocalizations {
   /// **'About'**
   String get about;
 
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
   /// No description provided for @weight.
   ///
   /// In en, this message translates to:
@@ -1369,6 +1375,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'alternate forms available'**
   String get hasAlternateFormsSemantics;
+
+  /// No description provided for @favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get favorites;
+
+  /// No description provided for @favoritesEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No Favorites Yet'**
+  String get favoritesEmptyTitle;
+
+  /// No description provided for @favoritesEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the heart icon on any Pokémon to add it to your favorites.'**
+  String get favoritesEmptyMessage;
+
+  /// No description provided for @addToFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to favorites'**
+  String get addToFavorites;
+
+  /// No description provided for @removeFromFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from favorites'**
+  String get removeFromFavorites;
+
+  /// No description provided for @removeFromHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from history'**
+  String get removeFromHistory;
+
+  /// No description provided for @sortRecentlyAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently Added'**
+  String get sortRecentlyAdded;
+
+  /// No description provided for @recentlyViewed.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently Viewed'**
+  String get recentlyViewed;
+
+  /// No description provided for @recentSearches.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Searches'**
+  String get recentSearches;
+
+  /// No description provided for @clearHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear history'**
+  String get clearHistory;
+
+  /// No description provided for @clearHistoryConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to clear your search and viewing history?'**
+  String get clearHistoryConfirmation;
+
+  /// No description provided for @historyEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep history'**
+  String get historyEnabled;
+
+  /// No description provided for @historyEnabledInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Record recently viewed Pokémon and searches.'**
+  String get historyEnabledInfo;
+
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get themeSystem;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// No description provided for @unitSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement Units'**
+  String get unitSystem;
+
+  /// No description provided for @unitSystemMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Metric (m, kg)'**
+  String get unitSystemMetric;
+
+  /// No description provided for @unitSystemImperial.
+  ///
+  /// In en, this message translates to:
+  /// **'Imperial (ft, lbs)'**
+  String get unitSystemImperial;
+
+  /// No description provided for @audioSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get audioSettings;
+
+  /// No description provided for @autoPlayCry.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-play cry on open'**
+  String get autoPlayCry;
+
+  /// No description provided for @autoPlayCryInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically play the Pokémon\'s cry when opening the details screen.'**
+  String get autoPlayCryInfo;
+
+  /// No description provided for @cryVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Cry Volume'**
+  String get cryVolume;
+
+  /// No description provided for @storageAndCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage & Cache'**
+  String get storageAndCache;
+
+  /// No description provided for @cacheSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache size: {size}'**
+  String cacheSize({required String size});
+
+  /// No description provided for @clearCacheConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to clear the cache? Downloaded data and images will need to be reloaded.'**
+  String get clearCacheConfirmation;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
 }
 
 class _AppLocalizationsDelegate

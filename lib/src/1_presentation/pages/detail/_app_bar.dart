@@ -9,12 +9,16 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.showShiny = false,
     this.isStale = false,
     this.onToggleShiny,
+    this.isFavorite = false,
+    this.onToggleFavorite,
   });
 
   final Color? backgroundColor;
   final bool showShiny;
   final bool isStale;
   final VoidCallback? onToggleShiny;
+  final bool isFavorite;
+  final VoidCallback? onToggleFavorite;
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +58,20 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
             tooltip: t.spriteToggleShiny,
             onPressed: onToggleShiny,
+          ),
+        if (onToggleFavorite != null)
+          IconButton(
+            style: const ButtonStyle(
+              minimumSize: WidgetStatePropertyAll(Size(48, 48)),
+            ),
+            icon: Icon(
+              isFavorite
+                  ? Icons.favorite_rounded
+                  : Icons.favorite_border_rounded,
+              color: isFavorite ? Colors.redAccent : itemsColor,
+            ),
+            tooltip: isFavorite ? t.removeFromFavorites : t.addToFavorites,
+            onPressed: onToggleFavorite,
           ),
       ],
     );

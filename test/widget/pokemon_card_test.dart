@@ -250,5 +250,127 @@ void main() {
         });
       },
     );
+
+    testWidgets(
+      'renders favorite button and fires onFavoriteToggle when tapped',
+      (tester) async {
+        await mockNetworkImagesFor(() async {
+          var favoriteToggled = false;
+          const entry = PokemonIndexEntry(
+            id: 25,
+            name: 'pikachu',
+            detailUrl: '',
+            types: [PokemonType.electric],
+          );
+
+          await tester.pumpWidget(
+            buildTestableWidget(
+              SizedBox(
+                width: 160,
+                height: 180,
+                child: PokemonCard(
+                  entry: entry,
+                  isFavorite: true,
+                  onFavoriteToggle: () => favoriteToggled = true,
+                ),
+              ),
+            ),
+          );
+
+          expect(find.byIcon(Icons.favorite), findsOneWidget);
+          await tester.tap(find.byIcon(Icons.favorite));
+          await tester.pump();
+
+          expect(favoriteToggled, isTrue);
+        });
+      },
+    );
+
+    testWidgets(
+      'favorite button exposes accessible semantics and meets 48x48 dp touch target',
+      (tester) async {
+        await mockNetworkImagesFor(() async {
+          const entry = PokemonIndexEntry(
+            id: 25,
+            name: 'pikachu',
+            detailUrl: '',
+            types: [PokemonType.electric],
+          );
+
+          // Test non-favorite state (Add to favorites)
+          await tester.pumpWidget(
+            buildTestableWidget(
+              const SizedBox(
+                width: 160,
+                height: 180,
+                child: PokemonCard(
+                  entry: entry,
+                  isFavorite: false,
+                  showFavoriteButton: true,
+                ),
+              ),
+            ),
+          );
+
+          expect(find.bySemanticsLabel('Add to favorites'), findsOneWidget);
+          final addFavButton = find.byType(IconButton);
+          expect(addFavButton, findsOneWidget);
+          final addFavSize = tester.getSize(addFavButton);
+          expect(addFavSize.width, greaterThanOrEqualTo(48.0));
+          expect(addFavSize.height, greaterThanOrEqualTo(48.0));
+
+          // Test favorite state (Remove from favorites)
+          await tester.pumpWidget(
+            buildTestableWidget(
+              const SizedBox(
+                width: 160,
+                height: 180,
+                child: PokemonCard(
+                  entry: entry,
+                  isFavorite: true,
+                  showFavoriteButton: true,
+                ),
+              ),
+            ),
+          );
+
+          expect(
+            find.bySemanticsLabel('Remove from favorites'),
+            findsOneWidget,
+          );
+          final removeFavButton = find.byType(IconButton);
+          expect(removeFavButton, findsOneWidget);
+          final removeFavSize = tester.getSize(removeFavButton);
+          expect(removeFavSize.width, greaterThanOrEqualTo(48.0));
+          expect(removeFavSize.height, greaterThanOrEqualTo(48.0));
+        });
+      },
+    );
+
+    testWidgets('hides favorite button when showFavoriteButton is false', (
+      tester,
+    ) async {
+      await mockNetworkImagesFor(() async {
+        const entry = PokemonIndexEntry(
+          id: 25,
+          name: 'pikachu',
+          detailUrl: '',
+          types: [PokemonType.electric],
+        );
+
+        await tester.pumpWidget(
+          buildTestableWidget(
+            const SizedBox(
+              width: 160,
+              height: 180,
+              child: PokemonCard(entry: entry, showFavoriteButton: false),
+            ),
+          ),
+        );
+
+        expect(find.byIcon(Icons.favorite), findsNothing);
+        expect(find.byIcon(Icons.favorite_border), findsNothing);
+      });
+    });
   });
 }

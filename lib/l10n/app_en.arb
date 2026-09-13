@@ -19,6 +19,7 @@
   "useDeviceLanguage": "Use device language",
   "useDeviceLanguageInfo": "If enabled, the app will use your device's language.",
   "about": "About",
+  "language": "Language",
   "weight": "Weight",
   "height": "Height",
   "pokemonCry": "Pokemon Cry",
@@ -244,6 +245,43 @@
   "formBadgeRegionalIndicator": "🌍 Regional",
   "formBadgeGmaxIndicator": "💥 G-Max",
   "formBadgeFormsIndicator": "✨ Forms",
-  "hasAlternateFormsSemantics": "alternate forms available"
+  "hasAlternateFormsSemantics": "alternate forms available",
+  "favorites": "Favorites",
+  "favoritesEmptyTitle": "No Favorites Yet",
+  "favoritesEmptyMessage": "Tap the heart icon on any Pokémon to add it to your favorites.",
+  "addToFavorites": "Add to favorites",
+  "removeFromFavorites": "Remove from favorites",
+  "removeFromHistory": "Remove from history",
+  "sortRecentlyAdded": "Recently Added",
+  "recentlyViewed": "Recently Viewed",
+  "recentSearches": "Recent Searches",
+  "clearHistory": "Clear history",
+  "clearHistoryConfirmation": "Are you sure you want to clear your search and viewing history?",
+  "historyEnabled": "Keep history",
+  "historyEnabledInfo": "Record recently viewed Pokémon and searches.",
+  "theme": "Theme",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "unitSystem": "Measurement Units",
+  "unitSystemMetric": "Metric (m, kg)",
+  "unitSystemImperial": "Imperial (ft, lbs)",
+  "audioSettings": "Audio",
+  "autoPlayCry": "Auto-play cry on open",
+  "autoPlayCryInfo": "Automatically play the Pokémon's cry when opening the details screen.",
+  "cryVolume": "Cry Volume",
+  "storageAndCache": "Storage & Cache",
+  "cacheSize": "Cache size: {size}",
+  "@cacheSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "clearCacheConfirmation": "Are you sure you want to clear the cache? Downloaded data and images will need to be reloaded.",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "clear": "Clear"
 }
 

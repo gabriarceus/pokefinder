@@ -1,19 +1,27 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/detail/failure.dart';
 import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
 import 'package:pokefinder/src/1_presentation/router/app_router.dart';
 import 'package:pokefinder/src/1_presentation/widgets/home/pokeball_widget.dart';
 import 'package:pokefinder/src/1_presentation/widgets/home/poke_text_field.dart';
-import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
-import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
+import 'package:pokefinder/src/2_application/application.dart';
+import 'package:pokefinder/src/3_domain/domain.dart';
+
+class _MockPokemonRepository extends Mock implements IPokemonRepository {}
 
 void main() {
   setUpAll(() async {
+    registerFallbackValue(PokemonName('pikachu'));
+    registerFallbackValue(CancellationToken());
+    ensureHydratedStorage();
     await configureDependencies('mock');
   });
 
@@ -220,6 +228,13 @@ void main() {
   });
 
   group('HomePage', () {
+    setUp(() {
+      if (getIt.isRegistered<RecentHistoryCubit>()) {
+        getIt<RecentHistoryCubit>().clearRecentSearches();
+        getIt<RecentHistoryCubit>().clearRecentPokemon();
+      }
+    });
+
     Future<void> pumpHomePage(
       WidgetTester tester, {
       Size? physicalSize,
@@ -237,22 +252,34 @@ void main() {
       await mockNetworkImagesFor(() async {
         final router = createAppRouter(initialLocation: '/');
         await tester.pumpWidget(
-          MaterialApp.router(
-            routerConfig: router,
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            builder: (context, child) {
-              if (textScaleFactor != null) {
-                return MediaQuery(
-                  data: MediaQuery.of(
-                    context,
-                  ).copyWith(textScaler: TextScaler.linear(textScaleFactor)),
-                  child: child!,
-                );
-              }
-              return child!;
-            },
+          MultiBlocProvider(
+            providers: [
+              if (getIt.isRegistered<LanguageCubit>())
+                BlocProvider.value(value: getIt<LanguageCubit>()),
+              if (getIt.isRegistered<PreferencesCubit>())
+                BlocProvider.value(value: getIt<PreferencesCubit>()),
+              if (getIt.isRegistered<FavoritesCubit>())
+                BlocProvider.value(value: getIt<FavoritesCubit>()),
+              if (getIt.isRegistered<RecentHistoryCubit>())
+                BlocProvider.value(value: getIt<RecentHistoryCubit>()),
+            ],
+            child: MaterialApp.router(
+              routerConfig: router,
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              builder: (context, child) {
+                if (textScaleFactor != null) {
+                  return MediaQuery(
+                    data: MediaQuery.of(
+                      context,
+                    ).copyWith(textScaler: TextScaler.linear(textScaleFactor)),
+                    child: child!,
+                  );
+                }
+                return child!;
+              },
+            ),
           ),
         );
         await tester.pumpAndSettle();
@@ -311,6 +338,73 @@ void main() {
         expect(find.byType(Detail), findsOneWidget);
         final detail = tester.widget<Detail>(find.byType(Detail));
         expect(detail.pokemonName, 'bulbasaur');
+      });
+    });
+
+    testWidgets(
+      'search query that results in failure is not added to recent searches',
+      (tester) async {
+        final mockRepo = _MockPokemonRepository();
+        final originalRepo = getIt<IPokemonRepository>();
+        final originalUseCase = getIt<GetPokemonUseCase>();
+        getIt.unregister<IPokemonRepository>();
+        getIt.unregister<GetPokemonUseCase>();
+        getIt.registerSingleton<IPokemonRepository>(mockRepo);
+        getIt.registerSingleton<GetPokemonUseCase>(GetPokemonUseCase(mockRepo));
+        addTearDown(() {
+          getIt.unregister<IPokemonRepository>();
+          getIt.unregister<GetPokemonUseCase>();
+          getIt.registerSingleton<IPokemonRepository>(originalRepo);
+          getIt.registerSingleton<GetPokemonUseCase>(originalUseCase);
+        });
+
+        when(
+          () => mockRepo.getPokemonIndex(),
+        ).thenAnswer((_) async => const Right([]));
+        when(
+          () => mockRepo.getAllPokemonNames(),
+        ).thenAnswer((_) async => const Right([]));
+        when(
+          () => mockRepo.getPokemon(
+            any(),
+            cancelToken: any(named: 'cancelToken'),
+          ),
+        ).thenAnswer((_) async => Left(PokemonNotFoundFailure()));
+
+        await mockNetworkImagesFor(() async {
+          await pumpHomePage(tester);
+
+          await tester.enterText(find.byType(TextField), 'notapokemon');
+          await tester.pumpAndSettle();
+
+          await tester.tap(find.text('Search'), warnIfMissed: false);
+          await tester.pumpAndSettle();
+
+          expect(find.byType(Detail), findsOneWidget);
+          expect(find.byType(DetailFailure), findsOneWidget);
+
+          expect(getIt<RecentHistoryCubit>().state.recentSearches, isEmpty);
+        });
+      },
+    );
+
+    testWidgets('successful search query is added to recent searches', (
+      tester,
+    ) async {
+      await mockNetworkImagesFor(() async {
+        await pumpHomePage(tester);
+
+        await tester.enterText(find.byType(TextField), 'bulbasaur');
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Search'), warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(Detail), findsOneWidget);
+        expect(
+          getIt<RecentHistoryCubit>().state.recentSearches,
+          contains('bulbasaur'),
+        );
       });
     });
 
