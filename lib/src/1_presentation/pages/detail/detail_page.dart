@@ -148,100 +148,169 @@ class _DetailState extends State<Detail> {
     final typeColor = backgroundHelper.colorFromType();
     final textColor = contrastingTextColor(typeColor);
 
-    return DefaultTabController(
-      length: 4,
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: DetailAppBar(
-          backgroundColor: Colors.transparent,
-          showShiny: _showShiny,
-          isStale: pokemon.isStale,
-          isFavorite: isFavorite,
-          onToggleFavorite: () {
-            try {
-              final spriteUrl = formDetails.spriteDefault.isNotEmpty
-                  ? formDetails.spriteDefault
-                  : pokemon.sprite;
-              final types = <PokemonType>[
-                if (formDetails.type1 != null)
-                  formDetails.type1!
-                else if (pokemon.type1 != null)
-                  pokemon.type1!,
-                if (formDetails.type2 != null)
-                  formDetails.type2!
-                else if (pokemon.type2 != null)
-                  pokemon.type2!,
-              ];
-              context.read<FavoritesCubit>().toggleFavorite(
-                id: pokemon.id,
-                name: pokemon.name,
-                spriteUrl: spriteUrl,
-                types: types,
-              );
-            } catch (_) {}
-          },
-          onToggleShiny: () {
-            setState(() {
-              _showShiny = !_showShiny;
-            });
-          },
-        ),
-        body: Container(
-          decoration: backgroundHelper.getBackgroundDecoration(),
-          child: OrientationBuilder(
-            builder: (context, orientation) {
-              final isLandscape = orientation == Orientation.landscape;
-              final topPadding =
-                  MediaQuery.of(context).padding.top + kToolbarHeight;
+    return BlocProvider<DetailGameVersionCubit>(
+      create: (_) =>
+          DetailGameVersionCubit()
+            ..initialize(pokemon, encounters: success.encounters),
+      child: BlocListener<PokemonBloc, PokemonBlocState>(
+        listenWhen: (prev, curr) {
+          if (prev is PokemonBlocSuccess && curr is PokemonBlocSuccess) {
+            return prev.encounters != curr.encounters;
+          }
+          return false;
+        },
+        listener: (context, state) {
+          if (state is PokemonBlocSuccess) {
+            context.read<DetailGameVersionCubit>().initialize(
+              state.pokemon,
+              encounters: state.encounters,
+            );
+          }
+        },
+        child: DefaultTabController(
+          length: 4,
+          child: Scaffold(
+            extendBodyBehindAppBar: true,
+            appBar: DetailAppBar(
+              backgroundColor: Colors.transparent,
+              showShiny: _showShiny,
+              isStale: pokemon.isStale,
+              isFavorite: isFavorite,
+              onToggleFavorite: () {
+                try {
+                  final spriteUrl = formDetails.spriteDefault.isNotEmpty
+                      ? formDetails.spriteDefault
+                      : pokemon.sprite;
+                  final types = <PokemonType>[
+                    if (formDetails.type1 != null)
+                      formDetails.type1!
+                    else if (pokemon.type1 != null)
+                      pokemon.type1!,
+                    if (formDetails.type2 != null)
+                      formDetails.type2!
+                    else if (pokemon.type2 != null)
+                      pokemon.type2!,
+                  ];
+                  context.read<FavoritesCubit>().toggleFavorite(
+                    id: pokemon.id,
+                    name: pokemon.name,
+                    spriteUrl: spriteUrl,
+                    types: types,
+                  );
+                } catch (_) {}
+              },
+              onToggleShiny: () {
+                setState(() {
+                  _showShiny = !_showShiny;
+                });
+              },
+            ),
+            body: Container(
+              decoration: backgroundHelper.getBackgroundDecoration(),
+              child: OrientationBuilder(
+                builder: (context, orientation) {
+                  final isLandscape = orientation == Orientation.landscape;
+                  final topPadding =
+                      MediaQuery.of(context).padding.top + kToolbarHeight;
 
-              if (isLandscape) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(
-                      width: 280,
-                      child: Column(
-                        children: [
-                          SizedBox(height: topPadding),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              child: DetailHeader(
-                                selectedFormName: formDetails.name,
-                                pokemonId: pokemon.id,
-                                type1: formDetails.type1,
-                                type2: formDetails.type2,
-                                typeImage1: formDetails.typeImage1,
-                                typeImage2: formDetails.typeImage2,
-                                textColor: textColor,
-                                showShiny: _showShiny,
-                                isLandscape: true,
-                                spriteWidget: AnimatedCrossFade(
-                                  duration: const Duration(milliseconds: 300),
-                                  crossFadeState: _showShiny
-                                      ? CrossFadeState.showSecond
-                                      : CrossFadeState.showFirst,
-                                  firstChild: SpriteBoxImage(
-                                    sprite: formDetails.spriteDefault,
-                                  ),
-                                  secondChild: SpriteBoxImage(
-                                    sprite: formDetails.spriteShiny,
+                  if (isLandscape) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(
+                          width: 280,
+                          child: Column(
+                            children: [
+                              SizedBox(height: topPadding),
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  child: DetailHeader(
+                                    selectedFormName: formDetails.name,
+                                    pokemonId: pokemon.id,
+                                    type1: formDetails.type1,
+                                    type2: formDetails.type2,
+                                    typeImage1: formDetails.typeImage1,
+                                    typeImage2: formDetails.typeImage2,
+                                    textColor: textColor,
+                                    showShiny: _showShiny,
+                                    isLandscape: true,
+                                    spriteWidget: AnimatedCrossFade(
+                                      duration: const Duration(
+                                        milliseconds: 300,
+                                      ),
+                                      crossFadeState: _showShiny
+                                          ? CrossFadeState.showSecond
+                                          : CrossFadeState.showFirst,
+                                      firstChild: SpriteBoxImage(
+                                        sprite: formDetails.spriteDefault,
+                                      ),
+                                      secondChild: SpriteBoxImage(
+                                        sprite: formDetails.spriteShiny,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.only(top: topPadding),
+                            child: _DetailContentCard(
+                              typeColor: typeColor,
+                              pokemon: pokemon,
+                              audioController: _audioController,
+                              success: success,
+                              showShiny: _showShiny,
+                              selectedFormName: formDetails.name,
+                              onFormTap: () => _showFormSelectionBottomSheet(
+                                context,
+                                pokemon,
+                                typeColor,
+                                textColor,
+                              ),
                             ),
                           ),
-                        ],
+                        ),
+                      ],
+                    );
+                  }
+
+                  return Column(
+                    children: [
+                      SizedBox(height: topPadding),
+                      DetailHeader(
+                        selectedFormName: formDetails.name,
+                        pokemonId: pokemon.id,
+                        type1: formDetails.type1,
+                        type2: formDetails.type2,
+                        typeImage1: formDetails.typeImage1,
+                        typeImage2: formDetails.typeImage2,
+                        textColor: textColor,
+                        showShiny: _showShiny,
+                        isLandscape: false,
+                        spriteWidget: AnimatedCrossFade(
+                          duration: const Duration(milliseconds: 300),
+                          crossFadeState: _showShiny
+                              ? CrossFadeState.showSecond
+                              : CrossFadeState.showFirst,
+                          firstChild: SpriteBoxImage(
+                            sprite: formDetails.spriteDefault,
+                          ),
+                          secondChild: SpriteBoxImage(
+                            sprite: formDetails.spriteShiny,
+                          ),
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(top: topPadding),
+                      Expanded(
                         child: _DetailContentCard(
                           typeColor: typeColor,
                           pokemon: pokemon,
                           audioController: _audioController,
                           success: success,
                           showShiny: _showShiny,
+                          selectedFormName: formDetails.name,
                           onFormTap: () => _showFormSelectionBottomSheet(
                             context,
                             pokemon,
@@ -250,55 +319,11 @@ class _DetailState extends State<Detail> {
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                );
-              }
-
-              return Column(
-                children: [
-                  SizedBox(height: topPadding),
-                  DetailHeader(
-                    selectedFormName: formDetails.name,
-                    pokemonId: pokemon.id,
-                    type1: formDetails.type1,
-                    type2: formDetails.type2,
-                    typeImage1: formDetails.typeImage1,
-                    typeImage2: formDetails.typeImage2,
-                    textColor: textColor,
-                    showShiny: _showShiny,
-                    isLandscape: false,
-                    spriteWidget: AnimatedCrossFade(
-                      duration: const Duration(milliseconds: 300),
-                      crossFadeState: _showShiny
-                          ? CrossFadeState.showSecond
-                          : CrossFadeState.showFirst,
-                      firstChild: SpriteBoxImage(
-                        sprite: formDetails.spriteDefault,
-                      ),
-                      secondChild: SpriteBoxImage(
-                        sprite: formDetails.spriteShiny,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: _DetailContentCard(
-                      typeColor: typeColor,
-                      pokemon: pokemon,
-                      audioController: _audioController,
-                      success: success,
-                      showShiny: _showShiny,
-                      onFormTap: () => _showFormSelectionBottomSheet(
-                        context,
-                        pokemon,
-                        typeColor,
-                        textColor,
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
+                    ],
+                  );
+                },
+              ),
+            ),
           ),
         ),
       ),
@@ -315,6 +340,7 @@ class _DetailContentCard extends StatelessWidget {
     required this.success,
     required this.showShiny,
     required this.onFormTap,
+    this.selectedFormName,
   });
 
   final Color typeColor;
@@ -323,6 +349,7 @@ class _DetailContentCard extends StatelessWidget {
   final PokemonBlocSuccess success;
   final bool showShiny;
   final VoidCallback onFormTap;
+  final String? selectedFormName;
 
   @override
   Widget build(BuildContext context) {
@@ -347,13 +374,10 @@ class _DetailContentCard extends StatelessWidget {
         children: [
           const SizedBox(height: 16),
           _DetailTabBar(typeColor: typeColor),
+          DetailGameVersionSelector(typeColor: typeColor),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(
-                top: 16.0,
-                left: 24.0,
-                right: 24.0,
-              ),
+              padding: const EdgeInsets.only(top: 8.0, left: 24.0, right: 24.0),
               child: TabBarView(
                 children: [
                   DetailInfoTab(
@@ -362,6 +386,7 @@ class _DetailContentCard extends StatelessWidget {
                     audioController: audioController,
                     typeColor: typeColor,
                     onFormTap: onFormTap,
+                    selectedFormName: selectedFormName,
                   ),
                   DetailStatsTab(pokemon: pokemon, textColor: tabTextColor),
                   DetailMovesTab(pokemon: pokemon, textColor: tabTextColor),

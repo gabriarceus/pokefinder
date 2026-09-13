@@ -404,7 +404,10 @@ void main() {
       expect(find.byType(FormSelectionBottomSheet), findsOneWidget);
 
       // Select mega form
-      final megaTile = find.widgetWithText(InkWell, 'Venusaur - Mega');
+      final megaTile = find.descendant(
+        of: find.byType(FormSelectionBottomSheet),
+        matching: find.widgetWithText(InkWell, 'Venusaur - Mega'),
+      );
       expect(megaTile, findsOneWidget);
       await mockNetworkImagesFor(() async {
         await tester.tap(megaTile);
@@ -454,7 +457,10 @@ void main() {
       await tester.tap(formsButton);
       await tester.pumpAndSettle();
 
-      final megaTile = find.widgetWithText(InkWell, 'Venusaur - Mega');
+      final megaTile = find.descendant(
+        of: find.byType(FormSelectionBottomSheet),
+        matching: find.widgetWithText(InkWell, 'Venusaur - Mega'),
+      );
       await tester.tap(megaTile);
       await tester.pumpAndSettle();
 

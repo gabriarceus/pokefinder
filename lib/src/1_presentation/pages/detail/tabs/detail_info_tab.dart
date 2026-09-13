@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
+import 'package:pokefinder/src/1_presentation/extensions/form_name_formatter.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
+import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
@@ -13,6 +16,7 @@ class DetailInfoTab extends StatelessWidget {
     required this.audioController,
     required this.typeColor,
     required this.onFormTap,
+    this.selectedFormName,
   });
 
   final Pokemon pokemon;
@@ -20,6 +24,7 @@ class DetailInfoTab extends StatelessWidget {
   final CryAudioController audioController;
   final Color typeColor;
   final VoidCallback onFormTap;
+  final String? selectedFormName;
 
   /// Returns a darkened version of [typeColor] when it has high luminance on a
   /// light theme, so that text/icons using it remain visible on card surfaces.
@@ -40,6 +45,43 @@ class DetailInfoTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveColor = _visibleTypeColor(context);
 
+    return BlocProvider(
+      create: (context) =>
+          getIt<SpeciesCubit>()..fetchSpecies(pokemon.speciesUrl),
+      child: _DetailInfoTabContent(
+        pokemon: pokemon,
+        textColor: textColor,
+        audioController: audioController,
+        typeColor: typeColor,
+        effectiveColor: effectiveColor,
+        onFormTap: onFormTap,
+        selectedFormName: selectedFormName,
+      ),
+    );
+  }
+}
+
+class _DetailInfoTabContent extends StatelessWidget {
+  const _DetailInfoTabContent({
+    required this.pokemon,
+    required this.textColor,
+    required this.audioController,
+    required this.typeColor,
+    required this.effectiveColor,
+    required this.onFormTap,
+    this.selectedFormName,
+  });
+
+  final Pokemon pokemon;
+  final Color textColor;
+  final CryAudioController audioController;
+  final Color typeColor;
+  final Color effectiveColor;
+  final VoidCallback onFormTap;
+  final String? selectedFormName;
+
+  @override
+  Widget build(BuildContext context) {
     UnitSystem unitSystem = UnitSystem.metric;
     try {
       unitSystem = context.watch<PreferencesCubit>().state.unitSystem;
@@ -57,12 +99,59 @@ class DetailInfoTab extends StatelessWidget {
       locale: locale,
     );
 
+    String selectedVersion = 'all';
+    try {
+      selectedVersion = context.select<DetailGameVersionCubit, String>(
+        (cubit) => cubit.state.selectedVersion,
+      );
+    } catch (_) {}
+
+    final isAlternateForm =
+        selectedFormName != null && selectedFormName != pokemon.name;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Height and Weight cards
+          // 0. Alternate Form Consistency Banner (§8.4)
+          if (isAlternateForm) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: effectiveColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: effectiveColor.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    size: 20,
+                    color: effectiveColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      context.t().baseSpeciesDataNotice(
+                        formName: formatFormName(context, selectedFormName!),
+                      ),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: effectiveColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          // 1. Height and Weight cards
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -82,41 +171,259 @@ class DetailInfoTab extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // Core Info card
-          Text(
-            context.t().about,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          SurfaceCard(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  LabelValueRow(
-                    label: context.t().baseExp,
-                    value: pokemon.baseExperience != null
-                        ? '${pokemon.baseExperience} XP'
-                        : '-',
-                    textColor: textColor,
+          // 2. Pokédex Description & Species Information (§8.1)
+          BlocBuilder<SpeciesCubit, SpeciesState>(
+            builder: (context, speciesState) {
+              if (speciesState is SpeciesLoading) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(),
                   ),
-                  const Divider(),
-                  LabelValueRow(
-                    label: context.t().defaultForm,
-                    value: pokemon.isDefault ? context.t().yes : context.t().no,
-                    textColor: textColor,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
+                );
+              }
 
-          // Abilities
+              if (speciesState is SpeciesError) {
+                final errorMessage = speciesState.failure != null
+                    ? speciesState.failure!.localizedMessage(context)
+                    : speciesState.message;
+                return SurfaceCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline_rounded,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            errorMessage,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: () {
+                            context.read<SpeciesCubit>().fetchSpecies(
+                              pokemon.speciesUrl,
+                            );
+                          },
+                          icon: const Icon(Icons.refresh_rounded, size: 16),
+                          label: Text(context.t().retryButton),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              if (speciesState is SpeciesLoaded) {
+                final species = speciesState.species;
+                final flavorText = species.flavorTextFor(
+                  languageCode: locale,
+                  version: selectedVersion,
+                );
+                final genus = species.genusFor(locale);
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (flavorText.isNotEmpty || genus.isNotEmpty) ...[
+                      Text(
+                        context.t().flavorText,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SurfaceCard(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (genus.isNotEmpty) ...[
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: effectiveColor.withValues(
+                                      alpha: 0.12,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    genus,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: effectiveColor,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                              ],
+                              if (flavorText.isNotEmpty)
+                                Text(
+                                  flavorText,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    height: 1.5,
+                                    color: textColor,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+
+                    // Core Info card enriched with species attributes
+                    Text(
+                      context.t().about,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SurfaceCard(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            LabelValueRow(
+                              label: context.t().baseExp,
+                              value: pokemon.baseExperience != null
+                                  ? '${pokemon.baseExperience} XP'
+                                  : '-',
+                              textColor: textColor,
+                            ),
+                            if (species.generation != null) ...[
+                              const Divider(),
+                              LabelValueRow(
+                                label: context.t().generation,
+                                value: species.generation!.toUpperCase(),
+                                textColor: textColor,
+                              ),
+                            ],
+                            if (species.habitat != null) ...[
+                              const Divider(),
+                              LabelValueRow(
+                                label: context.t().habitat,
+                                value: species.habitat!.capitalize(),
+                                textColor: textColor,
+                              ),
+                            ],
+                            if (species.captureRate != null) ...[
+                              const Divider(),
+                              LabelValueRow(
+                                label: context.t().captureRate,
+                                value: '${species.captureRate}',
+                                textColor: textColor,
+                              ),
+                            ],
+                            if (species.baseHappiness != null) ...[
+                              const Divider(),
+                              LabelValueRow(
+                                label: context.t().baseHappiness,
+                                value: '${species.baseHappiness}',
+                                textColor: textColor,
+                              ),
+                            ],
+                            const Divider(),
+                            LabelValueRow(
+                              label: context.t().defaultForm,
+                              value: pokemon.isDefault
+                                  ? context.t().yes
+                                  : context.t().no,
+                              textColor: textColor,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Evolution Chain Visualization (§8.2)
+                    if (species.evolutionChainUrl != null) ...[
+                      EvolutionChainWidget(
+                        evolutionChainUrl: species.evolutionChainUrl,
+                        currentPokemonName: pokemon.name,
+                        typeColor: effectiveColor,
+                        textColor: textColor,
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  ],
+                );
+              }
+
+              // Fallback default About card when species is initial/unloaded
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.t().about,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SurfaceCard(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          LabelValueRow(
+                            label: context.t().baseExp,
+                            value: pokemon.baseExperience != null
+                                ? '${pokemon.baseExperience} XP'
+                                : '-',
+                            textColor: textColor,
+                          ),
+                          const Divider(),
+                          LabelValueRow(
+                            label: context.t().defaultForm,
+                            value: pokemon.isDefault
+                                ? context.t().yes
+                                : context.t().no,
+                            textColor: textColor,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              );
+            },
+          ),
+
+          // 2.1 Alternate Forms Gallery (§8.5)
+          if (pokemon.forms.length > 1) ...[
+            AlternateFormsWidget(
+              pokemon: pokemon,
+              typeColor: effectiveColor,
+              textColor: textColor,
+              selectedFormName: selectedFormName,
+            ),
+            const SizedBox(height: 20),
+          ],
+
+          // 3. Abilities with tap-to-inspect (§8.3)
           Text(
             context.t().abilities,
             style: TextStyle(
@@ -133,64 +440,88 @@ class DetailInfoTab extends StatelessWidget {
               final capitalizedAbility = context
                   .translateAbility(ability.name)
                   .toUpperCase();
-              return Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: ability.isHidden
-                      ? Colors.amber.withValues(alpha: 0.1)
-                      : Theme.of(context).colorScheme.surfaceContainerHighest
-                            .withValues(alpha: 0.4),
+              return Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    AbilityDetailBottomSheet.show(
+                      context,
+                      abilityName: ability.name,
+                      displayName: capitalizedAbility,
+                      isHidden: ability.isHidden,
+                    );
+                  },
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: ability.isHidden
-                        ? Colors.amber.withValues(alpha: 0.5)
-                        : Colors.transparent,
-                    width: 1.5,
-                  ),
-                ),
-                child: Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    if (ability.isHidden) ...[
-                      const Icon(
-                        Icons.visibility_off_outlined,
-                        size: 16,
-                        color: Colors.amber,
-                      ),
-                      const SizedBox(width: 6),
-                    ],
-                    Text(
-                      capitalizedAbility,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: ability.isHidden
+                          ? Colors.amber.withValues(alpha: 0.1)
+                          : Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest
+                                .withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
                         color: ability.isHidden
-                            ? Colors.amber.shade900
-                            : textColor,
+                            ? Colors.amber.withValues(alpha: 0.5)
+                            : Colors.transparent,
+                        width: 1.5,
                       ),
                     ),
-                    if (ability.isHidden) ...[
-                      const SizedBox(width: 4),
-                      Text(
-                        '(${context.t().abilityHidden})',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.amber.shade900,
-                          fontWeight: FontWeight.bold,
+                    child: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        if (ability.isHidden) ...[
+                          const Icon(
+                            Icons.visibility_off_outlined,
+                            size: 16,
+                            color: Colors.amber,
+                          ),
+                          const SizedBox(width: 6),
+                        ],
+                        Text(
+                          capitalizedAbility,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: ability.isHidden
+                                ? Colors.amber.shade900
+                                : textColor,
+                          ),
                         ),
-                      ),
-                    ],
-                  ],
+                        if (ability.isHidden) ...[
+                          const SizedBox(width: 4),
+                          Text(
+                            '(${context.t().abilityHidden})',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.amber.shade900,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.info_outline_rounded,
+                          size: 14,
+                          color: ability.isHidden
+                              ? Colors.amber.shade900.withValues(alpha: 0.7)
+                              : textColor.withValues(alpha: 0.5),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               );
             }).toList(),
           ),
           const SizedBox(height: 20),
 
-          // Cries Section
+          // 4. Cries Section
           Text(
             context.t().cries,
             style: TextStyle(
@@ -225,7 +556,7 @@ class DetailInfoTab extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Form & shiny selector button
+          // 5. Form & shiny selector button
           SizedBox(
             width: double.infinity,
             child: FilledButton.tonal(

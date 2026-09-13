@@ -7,6 +7,7 @@ import 'package:injectable/injectable.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
+import 'package:pokefinder/src/3_domain/helpers/pokeapi_url_helper.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
 import 'package:pokefinder/src/4_repository/datasources/abstract/api_client.dart';
 import 'package:pokefinder/src/4_repository/datasources/abstract/i_pokemon_remote_datasource.dart';
@@ -14,6 +15,9 @@ import 'package:pokefinder/src/4_repository/models/raw_encounter/raw_encounter.d
 import 'package:pokefinder/src/4_repository/models/raw_form_details/raw_form_details.dart';
 import 'package:pokefinder/src/4_repository/models/raw_pokemon/raw_pokemon.dart';
 import 'package:pokefinder/src/4_repository/models/raw_move_detail/raw_move_detail.dart';
+import 'package:pokefinder/src/4_repository/models/raw_pokemon_species/raw_pokemon_species.dart';
+import 'package:pokefinder/src/4_repository/models/raw_evolution_chain/raw_evolution_chain.dart';
+import 'package:pokefinder/src/4_repository/models/raw_ability_detail/raw_ability_detail.dart';
 import 'package:pokefinder/src/4_repository/repositories/data_repository.dart';
 import 'package:pokefinder/src/4_repository/repositories/fetch_strategy.dart';
 
@@ -93,12 +97,7 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
     }
   }
 
-  int _extractIdFromUrl(String url) {
-    final trimmed = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
-    final lastSlashIndex = trimmed.lastIndexOf('/');
-    if (lastSlashIndex == -1) return -1;
-    return int.tryParse(trimmed.substring(lastSlashIndex + 1)) ?? -1;
-  }
+  int _extractIdFromUrl(String url) => PokeApiUrlHelper.extractId(url);
 
   @override
   Future<Either<PokemonFailure, List<PokemonIndexEntry>>> getPokemonIndex({
@@ -180,6 +179,63 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
         maxAge: _kDefaultMaxAge,
       );
       return right(RawMoveDetail.fromJson(response.data));
+    } catch (error) {
+      return left(_mapError(error));
+    }
+  }
+
+  @override
+  Future<Either<PokemonFailure, RawPokemonSpecies>> getPokemonSpecies(
+    String url, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dataRepository.fetchData<Map<String, dynamic>>(
+        url,
+        strategy: FetchStrategy.cacheFirst,
+        maxAge: _kDefaultMaxAge,
+        cancelToken: cancelToken,
+      );
+      return right(RawPokemonSpecies.fromJson(response.data));
+    } catch (error) {
+      return left(_mapError(error));
+    }
+  }
+
+  @override
+  Future<Either<PokemonFailure, RawEvolutionChain>> getEvolutionChain(
+    String url, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await _dataRepository.fetchData<Map<String, dynamic>>(
+        url,
+        strategy: FetchStrategy.cacheFirst,
+        maxAge: _kDefaultMaxAge,
+        cancelToken: cancelToken,
+      );
+      return right(RawEvolutionChain.fromJson(response.data));
+    } catch (error) {
+      return left(_mapError(error));
+    }
+  }
+
+  @override
+  Future<Either<PokemonFailure, RawAbilityDetail>> getAbilityDetail(
+    String name, {
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final url = name.startsWith('http')
+          ? name
+          : 'https://pokeapi.co/api/v2/ability/$name';
+      final response = await _dataRepository.fetchData<Map<String, dynamic>>(
+        url,
+        strategy: FetchStrategy.cacheFirst,
+        maxAge: _kDefaultMaxAge,
+        cancelToken: cancelToken,
+      );
+      return right(RawAbilityDetail.fromJson(response.data));
     } catch (error) {
       return left(_mapError(error));
     }

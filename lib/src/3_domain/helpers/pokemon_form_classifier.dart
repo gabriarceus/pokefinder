@@ -1,6 +1,7 @@
 import 'package:pokefinder/src/3_domain/entities/pokemon_form_category.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_regional_group.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 import 'package:pokefinder/src/3_domain/helpers/canonical_species_data.dart';
 import 'package:pokefinder/src/3_domain/helpers/string_casing_extensions.dart';
 
@@ -392,5 +393,207 @@ class PokemonFormClassifier {
         ? name.substring(prefix.length)
         : name;
     return '$cleanParent (${formPart.replaceAll('-', ' ').toDisplayCase()})';
+  }
+
+  /// Resolves the primary and secondary [PokemonType] for an alternate form,
+  /// falling back to the base species types when form types are identical or unspecialized.
+  static (PokemonType?, PokemonType?) resolveFormTypes({
+    required String formName,
+    PokemonType? baseType1,
+    PokemonType? baseType2,
+  }) {
+    final lower = formName.toLowerCase();
+
+    // 1. Regional forms
+    if (lower.contains('-alola')) {
+      if (lower.contains('rattata') || lower.contains('raticate')) {
+        return (PokemonType.dark, PokemonType.normal);
+      }
+      if (lower.contains('raichu')) {
+        return (PokemonType.electric, PokemonType.psychic);
+      }
+      if (lower.contains('sandshrew') || lower.contains('sandslash')) {
+        return (PokemonType.ice, PokemonType.steel);
+      }
+      if (lower.contains('vulpix')) {
+        return (PokemonType.ice, null);
+      }
+      if (lower.contains('ninetales')) {
+        return (PokemonType.ice, PokemonType.fairy);
+      }
+      if (lower.contains('diglett') || lower.contains('dugtrio')) {
+        return (PokemonType.ground, PokemonType.steel);
+      }
+      if (lower.contains('meowth') || lower.contains('persian')) {
+        return (PokemonType.dark, null);
+      }
+      if (lower.contains('geodude') ||
+          lower.contains('graveler') ||
+          lower.contains('golem')) {
+        return (PokemonType.rock, PokemonType.electric);
+      }
+      if (lower.contains('grimer') || lower.contains('muk')) {
+        return (PokemonType.poison, PokemonType.dark);
+      }
+      if (lower.contains('exeggutor')) {
+        return (PokemonType.grass, PokemonType.dragon);
+      }
+      if (lower.contains('marowak')) {
+        return (PokemonType.fire, PokemonType.ghost);
+      }
+    }
+
+    if (lower.contains('-galar')) {
+      if (lower.contains('meowth')) return (PokemonType.steel, null);
+      if (lower.contains('ponyta')) return (PokemonType.psychic, null);
+      if (lower.contains('rapidash')) {
+        return (PokemonType.psychic, PokemonType.fairy);
+      }
+      if (lower.contains('slowpoke')) return (PokemonType.psychic, null);
+      if (lower.contains('slowbro') || lower.contains('slowking')) {
+        return (PokemonType.poison, PokemonType.psychic);
+      }
+      if (lower.contains('farfetchd')) return (PokemonType.fighting, null);
+      if (lower.contains('weezing')) {
+        return (PokemonType.poison, PokemonType.fairy);
+      }
+      if (lower.contains('mr-mime')) {
+        return (PokemonType.ice, PokemonType.psychic);
+      }
+      if (lower.contains('articuno')) {
+        return (PokemonType.psychic, PokemonType.flying);
+      }
+      if (lower.contains('zapdos')) {
+        return (PokemonType.fighting, PokemonType.flying);
+      }
+      if (lower.contains('moltres')) {
+        return (PokemonType.dark, PokemonType.flying);
+      }
+      if (lower.contains('corsola')) return (PokemonType.ghost, null);
+      if (lower.contains('zigzagoon') || lower.contains('linoone')) {
+        return (PokemonType.dark, PokemonType.normal);
+      }
+      if (lower.contains('darumaka')) return (PokemonType.ice, null);
+      if (lower.contains('darmanitan-galar-zen')) {
+        return (PokemonType.ice, PokemonType.fire);
+      }
+      if (lower.contains('darmanitan')) return (PokemonType.ice, null);
+      if (lower.contains('yamask')) {
+        return (PokemonType.ground, PokemonType.ghost);
+      }
+      if (lower.contains('stunfisk')) {
+        return (PokemonType.ground, PokemonType.steel);
+      }
+    }
+
+    if (lower.contains('-hisui')) {
+      if (lower.contains('growlithe') || lower.contains('arcanine')) {
+        return (PokemonType.fire, PokemonType.rock);
+      }
+      if (lower.contains('voltorb') || lower.contains('electrode')) {
+        return (PokemonType.electric, PokemonType.grass);
+      }
+      if (lower.contains('typhlosion')) {
+        return (PokemonType.fire, PokemonType.ghost);
+      }
+      if (lower.contains('qwilfish')) {
+        return (PokemonType.dark, PokemonType.poison);
+      }
+      if (lower.contains('sneasel')) {
+        return (PokemonType.fighting, PokemonType.poison);
+      }
+      if (lower.contains('samurott')) {
+        return (PokemonType.water, PokemonType.dark);
+      }
+      if (lower.contains('lilligant')) {
+        return (PokemonType.grass, PokemonType.fighting);
+      }
+      if (lower.contains('zorua') || lower.contains('zoroark')) {
+        return (PokemonType.normal, PokemonType.ghost);
+      }
+      if (lower.contains('braviary')) {
+        return (PokemonType.psychic, PokemonType.flying);
+      }
+      if (lower.contains('sliggoo') || lower.contains('goodra')) {
+        return (PokemonType.steel, PokemonType.dragon);
+      }
+      if (lower.contains('avalugg')) return (PokemonType.ice, PokemonType.rock);
+      if (lower.contains('decidueye')) {
+        return (PokemonType.grass, PokemonType.fighting);
+      }
+    }
+
+    if (lower.contains('-paldea')) {
+      if (lower.contains('wooper')) {
+        return (PokemonType.poison, PokemonType.ground);
+      }
+      if (lower.contains('blaze-breed')) {
+        return (PokemonType.fighting, PokemonType.fire);
+      }
+      if (lower.contains('aqua-breed')) {
+        return (PokemonType.fighting, PokemonType.water);
+      }
+      if (lower.contains('tauros')) return (PokemonType.fighting, null);
+    }
+
+    // 2. Megas with type changes
+    if (lower.endsWith('-mega-x') && lower.startsWith('charizard')) {
+      return (PokemonType.fire, PokemonType.dragon);
+    }
+    if (lower.endsWith('-mega-x') && lower.startsWith('mewtwo')) {
+      return (PokemonType.psychic, PokemonType.fighting);
+    }
+    if (lower.contains('pinsir-mega')) {
+      return (PokemonType.bug, PokemonType.flying);
+    }
+    if (lower.contains('gyarados-mega')) {
+      return (PokemonType.water, PokemonType.dark);
+    }
+    if (lower.contains('ampharos-mega')) {
+      return (PokemonType.electric, PokemonType.dragon);
+    }
+    if (lower.contains('sceptile-mega')) {
+      return (PokemonType.grass, PokemonType.dragon);
+    }
+    if (lower.contains('aggron-mega')) {
+      return (PokemonType.steel, null);
+    }
+    if (lower.contains('altaria-mega')) {
+      return (PokemonType.dragon, PokemonType.fairy);
+    }
+    if (lower.contains('lopunny-mega')) {
+      return (PokemonType.normal, PokemonType.fighting);
+    }
+
+    // 3. Rotom forms
+    if (lower.startsWith('rotom-')) {
+      if (lower.endsWith('-wash')) {
+        return (PokemonType.electric, PokemonType.water);
+      }
+      if (lower.endsWith('-heat')) {
+        return (PokemonType.electric, PokemonType.fire);
+      }
+      if (lower.endsWith('-frost')) {
+        return (PokemonType.electric, PokemonType.ice);
+      }
+      if (lower.endsWith('-fan')) {
+        return (PokemonType.electric, PokemonType.flying);
+      }
+      if (lower.endsWith('-mow')) {
+        return (PokemonType.electric, PokemonType.grass);
+      }
+    }
+
+    // 4. Type suffix forms (e.g. arceus-fire, silvally-water)
+    final parts = lower.split('-');
+    if (parts.length > 1) {
+      final suffix = parts.last;
+      final parsedType = PokemonType.fromApiName(suffix);
+      if (parsedType != null) {
+        return (parsedType, null);
+      }
+    }
+
+    return (baseType1, baseType2);
   }
 }

@@ -759,4 +759,253 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clear => 'Clear';
+
+  @override
+  String get genus => 'Category';
+
+  @override
+  String get captureRate => 'Capture Rate';
+
+  @override
+  String get baseHappiness => 'Base Friendship';
+
+  @override
+  String get growthRate => 'Growth Rate';
+
+  @override
+  String get habitat => 'Habitat';
+
+  @override
+  String get eggGroups => 'Egg Groups';
+
+  @override
+  String get flavorText => 'Pokédex Description';
+
+  @override
+  String get evolutionChain => 'Evolution Chain';
+
+  @override
+  String get noEvolutions => 'This Pokémon does not evolve.';
+
+  @override
+  String evolutionTriggerLevel({required int level}) {
+    return 'Lv. $level';
+  }
+
+  @override
+  String evolutionTriggerItem({required String item}) {
+    return 'Use $item';
+  }
+
+  @override
+  String get evolutionTriggerTrade => 'Trade';
+
+  @override
+  String evolutionTriggerTradeItem({required String item}) {
+    return 'Trade holding $item';
+  }
+
+  @override
+  String get evolutionTriggerHappiness => 'High Friendship';
+
+  @override
+  String get evolutionTriggerHappinessDay => 'Friendship (Day)';
+
+  @override
+  String get evolutionTriggerHappinessNight => 'Friendship (Night)';
+
+  @override
+  String evolutionTriggerLocation({required String location}) {
+    return 'Level up at $location';
+  }
+
+  @override
+  String evolutionTriggerMove({required String move}) {
+    return 'Knows $move';
+  }
+
+  @override
+  String get evolutionTriggerOther => 'Special Condition';
+
+  @override
+  String get abilityDetail => 'Ability Info';
+
+  @override
+  String get abilityEffect => 'In-Battle Effect';
+
+  @override
+  String get abilityShortEffect => 'Summary';
+
+  @override
+  String get allGameVersions => 'All Versions';
+
+  @override
+  String get filterByVersion => 'Game Version';
+
+  @override
+  String baseSpeciesDataNotice({required String formName}) {
+    return 'Appearance & types reflect $formName. Stats, moves, and abilities reflect the base species.';
+  }
+
+  @override
+  String get encountersUnavailableForVersion =>
+      'No encounters found for this game version.';
+
+  @override
+  String get heldItemsUnavailableForVersion =>
+      'No held items found for this game version.';
+
+  @override
+  String get movesUnavailableForVersion =>
+      'No moves found for this game version.';
+
+  @override
+  String get errorSpecies => 'Failed to load species information.';
+
+  @override
+  String get errorEvolutionChain => 'Failed to load evolution chain.';
+
+  @override
+  String get errorAbilityDetail => 'Failed to load ability details.';
+
+  @override
+  String evolutionTriggerLevelUpsideDown({required int level}) {
+    return 'Lv. $level (Upside down)';
+  }
+
+  @override
+  String evolutionTriggerLevelRain({required int level}) {
+    return 'Lv. $level (Rain)';
+  }
+
+  @override
+  String evolutionTriggerLevelAtkGtDef({required int level}) {
+    return 'Lv. $level (Atk > Def)';
+  }
+
+  @override
+  String evolutionTriggerLevelDefGtAtk({required int level}) {
+    return 'Lv. $level (Def > Atk)';
+  }
+
+  @override
+  String evolutionTriggerLevelAtkEqDef({required int level}) {
+    return 'Lv. $level (Atk = Def)';
+  }
+
+  @override
+  String evolutionTriggerLevelDay({required int level}) {
+    return 'Lv. $level (Day)';
+  }
+
+  @override
+  String evolutionTriggerLevelNight({required int level}) {
+    return 'Lv. $level (Night)';
+  }
+
+  @override
+  String evolutionTriggerLevelParty({
+    required int level,
+    required String species,
+  }) {
+    return 'Lv. $level (with $species)';
+  }
+
+  @override
+  String evolutionTriggerLevelPartyType({
+    required int level,
+    required String type,
+  }) {
+    return 'Lv. $level ($type in party)';
+  }
+
+  @override
+  String evolutionTriggerLevelGenderFemale({required int level}) {
+    return 'Lv. $level (Female)';
+  }
+
+  @override
+  String evolutionTriggerLevelGenderMale({required int level}) {
+    return 'Lv. $level (Male)';
+  }
+
+  @override
+  String evolutionTriggerTradeSpecies({required String species}) {
+    return 'Trade for $species';
+  }
+
+  @override
+  String get evolutionTriggerShed => 'Empty slot & Poké Ball';
+
+  @override
+  String get evolutionTriggerTurnUpsideDown => 'Turn device upside down';
+
+  @override
+  String get evolutionTriggerRain => 'Rain';
+
+  @override
+  String get alternateForms => 'Alternate Forms';
+
+  @override
+  String get currentForm => 'Current Form';
+
+  @override
+  String get currentPokemon => 'Current Pokémon';
+
+  @override
+  String evolutionTriggerPartySpecies({required String species}) {
+    return 'With $species';
+  }
+
+  @override
+  String evolutionTriggerItemGenderMale({required String item}) {
+    return 'Use $item (Male)';
+  }
+
+  @override
+  String evolutionTriggerItemGenderFemale({required String item}) {
+    return 'Use $item (Female)';
+  }
+
+  @override
+  String evolutionTriggerItemDay({required String item}) {
+    return 'Use $item (Day)';
+  }
+
+  @override
+  String evolutionTriggerItemNight({required String item}) {
+    return 'Use $item (Night)';
+  }
+
+  @override
+  String evolutionTriggerHeldItem({required String item}) {
+    return 'Hold $item';
+  }
+
+  @override
+  String evolutionTriggerHeldItemDay({required String item}) {
+    return 'Hold $item (Day)';
+  }
+
+  @override
+  String evolutionTriggerHeldItemNight({required String item}) {
+    return 'Hold $item (Night)';
+  }
+
+  @override
+  String get evolutionTriggerAffection => 'High Affection';
+
+  @override
+  String get evolutionTriggerBeauty => 'High Beauty';
+
+  @override
+  String evolutionTriggerPartyType({required String type}) {
+    return '$type in party';
+  }
+
+  @override
+  String get evolutionTriggerGenderMale => 'Male';
+
+  @override
+  String get evolutionTriggerGenderFemale => 'Female';
 }
