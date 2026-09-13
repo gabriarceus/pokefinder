@@ -1,10 +1,14 @@
 import 'package:en_logger/en_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:injectable/injectable.dart' hide test;
 import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/main.dart';
 import 'package:pokefinder/src/1_presentation/pages/startup_error/startup_error_page.dart';
 import 'package:pokefinder/src/2_application/application.dart';
+import 'package:pokefinder/src/3_domain/domain.dart';
+import 'package:pokefinder/src/4_repository/repositories/mock_pokemon_repository.dart';
+import 'package:pokefinder/src/4_repository/repositories/pokemon_repository_impl.dart';
 
 void main() {
   group('bootstrap startup and error recovery', () {
@@ -89,6 +93,38 @@ void main() {
         expect(getIt<PreferencesCubit>(), isA<PreferencesCubit>());
         expect(getIt<RecentHistoryCubit>(), isA<RecentHistoryCubit>());
         expect(getIt<MoveDetailCubit>(), isA<MoveDetailCubit>());
+      },
+    );
+
+    test(
+      'Environment.dev configures MockPokemonRepository for dev flavor',
+      () async {
+        ensureHydratedStorage();
+        await configureDependencies(Environment.dev);
+        expect(getIt<IPokemonRepository>(), isA<MockPokemonRepository>());
+      },
+    );
+
+    test(
+      'Environment.prod configures PokemonRepositoryImpl for prod flavor',
+      () async {
+        ensureHydratedStorage();
+        await configureDependencies(Environment.prod);
+        expect(getIt<IPokemonRepository>(), isA<PokemonRepositoryImpl>());
+      },
+    );
+
+    test(
+      'bootstrap respects explicit environment parameter',
+      () async {
+        ensureHydratedStorage();
+        await bootstrap(
+          then: () => const Text('App Started'),
+          initializeStorage: () async {},
+          appRunner: (_) {},
+          environment: Environment.prod,
+        );
+        expect(getIt<IPokemonRepository>(), isA<PokemonRepositoryImpl>());
       },
     );
   });

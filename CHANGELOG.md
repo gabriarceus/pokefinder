@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file, following t
 
 ### Added
 
+- Dedicated in-app About & Legal screen (`AboutPage`, `/about`) accessible from Settings, displaying dynamic app version and build number (`package_info_plus`), PokeAPI attribution, Pokémon non-commercial fan disclaimer, and open source licenses viewer (`showLicensePage`).
+- Production Android adaptive icons (`mipmap-anydpi-v26/ic_launcher.xml`, `mipmap-anydpi-v26/ic_launcher_round.xml`, `drawable/ic_launcher_foreground.xml`, `drawable/ic_launcher_background.xml`) and keystore properties template (`key.properties.example`).
+- Automated release compliance and hardening test suite (`test/release_hardening_test.dart`) covering manifest permissions, iOS plist capabilities, Android adaptive icon drawables, locale-aware number formatting, and logging payload truncation.
+- Automated release scripting test suite (`test/scripts/post_build_test.dart`) verifying dirty worktree rejection and invalid version handling.
+- Pure query log sanitization helper (`sanitizeQueryForLog`) with release mode privacy redaction.
 - Species information and Pokédex flavor text integration (`PokemonSpecies`, `SpeciesCubit`, `GetPokemonSpeciesUseCase`, `RawPokemonSpecies`) displaying localized Pokédex descriptions (with English fallback to the latest canonical game generation), genus, generation, and habitat in the detail view.
 - Text normalization helper (`TextNormalizer.cleanFlavorText`) stripping form feeds, carriage returns, and redundant whitespace artifacts from official Pokédex descriptions.
 - Evolution chain domain entities and tree parser (`EvolutionChain`, `EvolutionNode`, `EvolutionTriggerDetail`, `GetEvolutionChainUseCase`, `RawEvolutionChain`) modeling linear and branching evolution paths.
@@ -77,6 +82,13 @@ All notable changes to this project will be documented in this file, following t
 
 ### Changed
 
+- Replaced template `com.example.pokefinder` identifiers with authentic production identifiers (`com.gabriarceus.pokefinder`) across Android Gradle configuration and iOS project.
+- Automated flavor-to-DI mapping in `bootstrap()`: `--flavor dev` binds `Environment.dev` with `MockPokemonRepository`, while `--flavor prod` binds `Environment.prod` with `PokemonRepositoryImpl`.
+- Hardened release automation script (`scripts/post_build.dart`) to block Git tagging on dirty worktrees and abort immediately with non-zero exit codes on failure.
+- Sanitized production logging: user-entered search queries are redacted in release mode across `HomeBloc` and `PokedexBloc`, and network response payloads are safely truncated in `LoggingInterceptor`.
+- Formatted Pokémon stat min/max and measurement values using `intl` locale-aware formatters instead of hardcoded strings.
+- Polished Italian localization copy (e.g. `Cache svuotata con successo`).
+- Precomputed and cached sorted translation keys in `TranslationExtension` for efficient location lookups.
 - Relocated `EvolutionTriggerFormatter` from `src/3_domain/helpers/` to `src/1_presentation/helpers/` to maintain Clean Architecture compliance by isolating `AppLocalizations` and Flutter UI dependencies from domain code.
 - Consolidated disparate and duplicate PokéAPI URL parsing and asset endpoint formatting in `PokemonRemoteDataSource`, `PokemonRepositoryImpl`, and presentation widgets into `PokeApiUrlHelper`.
 - Updated `PokemonSpecies.flavorTextFor` default fallback to select the latest canonical game version (`lastWhere`) instead of the earliest legacy release.
@@ -107,6 +119,11 @@ All notable changes to this project will be documented in this file, following t
 
 ### Fixed
 
+- Stripped unnecessary iOS capabilities and usage descriptions (`NSMicrophoneUsageDescription`, `NSLocalNetworkUsageDescription`, `NSAllowsArbitraryLoads`, `UIBackgroundModes / audio`) to eliminate App Store compliance rejection risks.
+- Cleaned Android manifest permissions to strictly `android.permission.INTERNET`, removed `android:usesCleartextTraffic="true"`, and linked app labels to flavor string resources (`@string/app_name`).
+- Prevented recursive resource loop in Android adaptive icon definitions by pointing foreground to `@drawable/ic_launcher_foreground`.
+- Handled pending loading states, widget updates, and `launchUrl` failure recovery with user feedback in `AboutPage`.
+- Forced compatible AndroidX dependency versions (`androidx.browser:1.8.0`, `androidx.core:1.15.0`) via Gradle `resolutionStrategy` to resolve AAR metadata conflicts with Android Gradle Plugin.
 - Prevented `DropdownButton` runtime assertion crashes in `DetailGameVersionSelector` when switching between Pokémon with differing available game versions by sanitizing selected versions against available versions and defaulting to all versions.
 - Resolved evolution trigger condition shadowing where item, trade, affection, beauty, and gender requirements were omitted when combined with level thresholds.
 - Added missing screen reader accessibility semantics (`Semantics(button: !isCurrent, selected: isCurrent, label: ...)`) to evolution chain node cards.
@@ -132,6 +149,7 @@ All notable changes to this project will be documented in this file, following t
 
 ### Removed
 
+- Redundant `android.permission.WAKE_LOCK` permission from Android manifest.
 - Ineffective `ensureHydratedStorage()` calls from `PreferencesCubit`, `FavoritesCubit`, and `RecentHistoryCubit` constructor bodies and `createAppRouter()`.
 - Dead fallback and unreachable `try/catch` in `HomeBloc.FetchAllPokemonNamesEvent`.
 - Artificial `@visibleForTesting` constructor `PokemonBloc.withCancelToken`, replacing it with standard event-driven cancellation testing.

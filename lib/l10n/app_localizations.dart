@@ -1933,6 +1933,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Female'**
   String get evolutionTriggerGenderFemale;
+
+  /// No description provided for @aboutPokeFinder.
+  ///
+  /// In en, this message translates to:
+  /// **'About PokéFinder'**
+  String get aboutPokeFinder;
+
+  /// No description provided for @aboutAppDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A lightweight, modern Pokédex app for exploring Pokémon, abilities, moves, and stats.'**
+  String get aboutAppDescription;
+
+  /// No description provided for @aboutVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String aboutVersion({required String version});
+
+  /// No description provided for @aboutBuildNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Build {buildNumber}'**
+  String aboutBuildNumber({required String buildNumber});
+
+  /// No description provided for @aboutDataSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Source'**
+  String get aboutDataSource;
+
+  /// No description provided for @aboutDataSourceDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'All Pokémon data, sprites, and assets are sourced from PokeAPI.'**
+  String get aboutDataSourceDescription;
+
+  /// No description provided for @aboutPokeApiWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'PokeAPI Website'**
+  String get aboutPokeApiWebsite;
+
+  /// No description provided for @aboutDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Disclaimer'**
+  String get aboutDisclaimer;
+
+  /// No description provided for @aboutDisclaimerText.
+  ///
+  /// In en, this message translates to:
+  /// **'PokéFinder is an unofficial, non-commercial fan-made app and is not affiliated with, endorsed, or supported by Nintendo, GAME FREAK, or The Pokémon Company.'**
+  String get aboutDisclaimerText;
+
+  /// No description provided for @aboutOpenSourceLicenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Source Licenses'**
+  String get aboutOpenSourceLicenses;
+
+  /// No description provided for @aboutSourceCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Source Code'**
+  String get aboutSourceCode;
+
+  /// No description provided for @aboutGitHubRepository.
+  ///
+  /// In en, this message translates to:
+  /// **'GitHub Repository'**
+  String get aboutGitHubRepository;
+
+  /// No description provided for @aboutReportIssue.
+  ///
+  /// In en, this message translates to:
+  /// **'Report an Issue'**
+  String get aboutReportIssue;
 }
 
 class _AppLocalizationsDelegate

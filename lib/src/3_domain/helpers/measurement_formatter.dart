@@ -54,4 +54,9 @@ abstract final class MeasurementFormatter {
     }
     return '${format.format(bytes / (1024 * 1024 * 1024))} GB';
   }
+
+  /// Formats an integer value according to [locale].
+  static String formatInteger(int value, {String? locale}) {
+    return NumberFormat.decimalPattern(locale).format(value);
+  }
 }

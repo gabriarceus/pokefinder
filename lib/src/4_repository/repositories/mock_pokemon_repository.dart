@@ -2,7 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
-@LazySingleton(as: IPokemonRepository, env: ['mock'])
+@LazySingleton(as: IPokemonRepository, env: [Environment.dev, 'mock'])
 class MockPokemonRepository implements IPokemonRepository {
   @override
   Future<Either<PokemonFailure, Pokemon>> getPokemon(

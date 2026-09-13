@@ -110,7 +110,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get clearCache => 'Svuota cache';
 
   @override
-  String get cacheClearedSuccessfully => 'Cache svuota con successo';
+  String get cacheClearedSuccessfully => 'Cache svuotata con successo';
 
   @override
   String get tabInfo => 'Info';
@@ -1013,4 +1013,50 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get evolutionTriggerGenderFemale => 'Femmina';
+
+  @override
+  String get aboutPokeFinder => 'Informazioni su PokéFinder';
+
+  @override
+  String get aboutAppDescription =>
+      'Un Pokédex moderno e leggero per esplorare Pokémon, abilità, mosse e statistiche.';
+
+  @override
+  String aboutVersion({required String version}) {
+    return 'Versione $version';
+  }
+
+  @override
+  String aboutBuildNumber({required String buildNumber}) {
+    return 'Build $buildNumber';
+  }
+
+  @override
+  String get aboutDataSource => 'Fonte dati';
+
+  @override
+  String get aboutDataSourceDescription =>
+      'Tutti i dati, gli sprite e le risorse dei Pokémon provengono da PokeAPI.';
+
+  @override
+  String get aboutPokeApiWebsite => 'Sito web PokeAPI';
+
+  @override
+  String get aboutDisclaimer => 'Dichiarazione di non responsabilità';
+
+  @override
+  String get aboutDisclaimerText =>
+      'PokéFinder è un\'applicazione creata da fan non ufficiale e non commerciale, non affiliata, approvata o supportata da Nintendo, GAME FREAK o The Pokémon Company.';
+
+  @override
+  String get aboutOpenSourceLicenses => 'Licenze open source';
+
+  @override
+  String get aboutSourceCode => 'Codice sorgente';
+
+  @override
+  String get aboutGitHubRepository => 'Repository GitHub';
+
+  @override
+  String get aboutReportIssue => 'Segnala un problema';
 }
