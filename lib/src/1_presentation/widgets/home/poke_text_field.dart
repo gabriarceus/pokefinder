@@ -117,6 +117,14 @@ class PokeTextField extends StatelessWidget {
                 itemCount: options.length,
                 itemBuilder: (BuildContext context, int index) {
                   final String option = options.elementAt(index);
+                  PokemonIndexEntry? matchedEntry;
+                  for (final entry in allEntries) {
+                    if (entry.name == option) {
+                      matchedEntry = entry;
+                      break;
+                    }
+                  }
+
                   return InkWell(
                     onTap: () {
                       onSelected(option);
@@ -126,7 +134,36 @@ class PokeTextField extends StatelessWidget {
                       child: Container(
                         alignment: Alignment.centerLeft,
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text(option),
+                        child: Row(
+                          children: [
+                            Expanded(child: Text(option)),
+                            if (matchedEntry != null &&
+                                matchedEntry.isAlternateForm &&
+                                matchedEntry.formBadgeText != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.purple.shade50,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: Colors.purple.shade300,
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Text(
+                                  matchedEntry.formBadgeText!,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.purple.shade900,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   );

@@ -4,9 +4,16 @@ import 'package:pokefinder/l10n/abilities_db.dart';
 import 'package:pokefinder/src/3_domain/entities/damage_class.dart';
 import 'package:pokefinder/l10n/moves_db.dart';
 import 'package:pokefinder/l10n/locations_db.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
 import 'package:pokefinder/src/3_domain/helpers/string_casing_extensions.dart';
 
 extension TranslationExtension on BuildContext {
+  /// Returns the localized display name for [entry].
+  String translatePokemonIndexEntry(PokemonIndexEntry entry) {
+    final locale = Localizations.localeOf(this);
+    return entry.getDisplayName(languageCode: locale.languageCode);
+  }
+
   String translateAbility(String name) {
     final key = name.toLowerCase().trim();
     final locale = Localizations.localeOf(this);

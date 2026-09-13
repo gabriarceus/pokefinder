@@ -242,10 +242,11 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     bool forceRefresh = false,
   }) async {
     try {
-      return await _remoteDataSource.getPokemonIndex(
+      final result = await _remoteDataSource.getPokemonIndex(
         cancelToken: _bridgeToDio(cancelToken),
         forceRefresh: forceRefresh,
       );
+      return result.map(PokemonFormClassifier.enrichEntries);
     } catch (e) {
       return left(_mapRepoError(e));
     }

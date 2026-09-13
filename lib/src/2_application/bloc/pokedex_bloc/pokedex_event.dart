@@ -1,5 +1,6 @@
 part of 'pokedex_bloc.dart';
 
+/// Base event for all Pokédex discovery state transitions.
 @immutable
 sealed class PokedexEvent extends Equatable {
   const PokedexEvent();
@@ -56,6 +57,26 @@ final class PokedexSortOrderChangedEvent extends PokedexEvent {
 
   @override
   List<Object?> get props => [sortOrder];
+}
+
+/// Updates the alternate form category filter mode.
+final class PokedexFormFilterChangedEvent extends PokedexEvent {
+  const PokedexFormFilterChangedEvent(this.formFilter);
+
+  final PokedexFormFilter formFilter;
+
+  @override
+  List<Object?> get props => [formFilter];
+}
+
+/// Toggles inclusion of cosmetic and costume variant forms.
+final class PokedexCosmeticToggleChangedEvent extends PokedexEvent {
+  const PokedexCosmeticToggleChangedEvent(this.includeCosmeticForms);
+
+  final bool includeCosmeticForms;
+
+  @override
+  List<Object?> get props => [includeCosmeticForms];
 }
 
 /// Clears all active filters and resets sort to default.

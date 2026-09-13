@@ -362,5 +362,87 @@ void main() {
         expect(bloc.state.randomPokemonToNavigate, isNull);
       },
     );
+
+    group('Form filtering in PokedexBloc', () {
+      final mixedEntries = [
+        const PokemonIndexEntry(id: 3, name: 'venusaur', detailUrl: ''),
+        const PokemonIndexEntry(
+          id: 10033,
+          name: 'venusaur-mega',
+          detailUrl: '',
+          parentSpeciesId: 3,
+          formCategory: PokemonFormCategory.mega,
+        ),
+        const PokemonIndexEntry(
+          id: 10103,
+          name: 'vulpix-alola',
+          detailUrl: '',
+          parentSpeciesId: 37,
+          formCategory: PokemonFormCategory.regional,
+          regionalGroup: PokemonRegionalGroup.alola,
+        ),
+        const PokemonIndexEntry(
+          id: 10094,
+          name: 'pikachu-original-cap',
+          detailUrl: '',
+          parentSpeciesId: 25,
+          formCategory: PokemonFormCategory.cosmetic,
+        ),
+      ];
+
+      test(
+        'toggles formFilter and updates filteredEntries accordingly',
+        () async {
+          when(
+            () => repository.getPokemonIndex(
+              cancelToken: any(named: 'cancelToken'),
+              forceRefresh: any(named: 'forceRefresh'),
+            ),
+          ).thenAnswer((_) async => Right(mixedEntries));
+
+          bloc.add(const PokedexFetchIndexEvent());
+          await pumpEventQueue();
+
+          // Default: canonical only
+          expect(bloc.state.filteredEntries.map((e) => e.name), ['venusaur']);
+
+          // Switch to all forms
+          bloc.add(const PokedexFormFilterChangedEvent(PokedexFormFilter.all));
+          await pumpEventQueue();
+          expect(bloc.state.filteredEntries.map((e) => e.name), [
+            'venusaur',
+            'venusaur-mega',
+            'vulpix-alola',
+          ]);
+
+          // Switch to Mega only
+          bloc.add(const PokedexFormFilterChangedEvent(PokedexFormFilter.mega));
+          await pumpEventQueue();
+          expect(bloc.state.filteredEntries.map((e) => e.name), [
+            'venusaur-mega',
+          ]);
+
+          // Switch to Regional only
+          bloc.add(
+            const PokedexFormFilterChangedEvent(PokedexFormFilter.regional),
+          );
+          await pumpEventQueue();
+          expect(bloc.state.filteredEntries.map((e) => e.name), [
+            'vulpix-alola',
+          ]);
+
+          // Enable cosmetics toggle
+          bloc.add(const PokedexFormFilterChangedEvent(PokedexFormFilter.all));
+          bloc.add(const PokedexCosmeticToggleChangedEvent(true));
+          await pumpEventQueue();
+          expect(bloc.state.filteredEntries.map((e) => e.name), [
+            'venusaur',
+            'venusaur-mega',
+            'pikachu-original-cap',
+            'vulpix-alola',
+          ]);
+        },
+      );
+    });
   });
 }

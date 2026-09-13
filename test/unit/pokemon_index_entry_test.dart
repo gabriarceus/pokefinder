@@ -220,5 +220,38 @@ void main() {
 
       expect(entry1, equals(entry2));
     });
+
+    test('alternate form properties and formatted dex numbers', () {
+      const canonical = PokemonIndexEntry(
+        id: 6,
+        name: 'charizard',
+        detailUrl: 'https://pokeapi.co/api/v2/pokemon/6/',
+        types: [PokemonType.fire, PokemonType.flying],
+      );
+
+      expect(canonical.isAlternateForm, isFalse);
+      expect(canonical.dexNumberDisplay, '#0006');
+      expect(canonical.formBadgeText, isNull);
+      expect(canonical.effectiveSpeciesGeneration, 1);
+      expect(canonical.effectiveIntroductionGeneration, 1);
+
+      const mega = PokemonIndexEntry(
+        id: 10034,
+        name: 'charizard-mega-x',
+        detailUrl: 'https://pokeapi.co/api/v2/pokemon/10034/',
+        parentSpeciesId: 6,
+        parentSpeciesName: 'charizard',
+        formCategory: PokemonFormCategory.mega,
+        introductionGeneration: 6,
+        speciesGeneration: 1,
+      );
+
+      expect(mega.isAlternateForm, isTrue);
+      expect(mega.dexNumberDisplay, '#0006');
+      expect(mega.formBadgeText, 'MEGA X');
+      expect(mega.effectiveSpeciesGeneration, 1);
+      expect(mega.effectiveIntroductionGeneration, 6);
+      expect(mega.displayName, 'Mega Charizard X');
+    });
   });
 }

@@ -71,6 +71,8 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
     on<PokedexTypeFilterToggledEvent>(_onTypeFilterToggled);
     on<PokedexGenerationFilterChangedEvent>(_onGenerationFilterChanged);
     on<PokedexSortOrderChangedEvent>(_onSortOrderChanged);
+    on<PokedexFormFilterChangedEvent>(_onFormFilterChanged);
+    on<PokedexCosmeticToggleChangedEvent>(_onCosmeticToggleChanged);
     on<PokedexClearFiltersEvent>(_onClearFilters);
     on<PokedexLoadMoreEvent>(_onLoadMore, transformer: droppable());
     on<PokedexSelectRandomPokemonEvent>(_onSelectRandomPokemon);
@@ -126,6 +128,8 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
           selectedTypes: state.selectedTypes,
           typeIdMap: state.typeIdMap,
           sortOrder: state.sortOrder,
+          formFilter: state.formFilter,
+          includeCosmeticForms: state.includeCosmeticForms,
         );
 
         emit(
@@ -157,6 +161,8 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
       selectedTypes: state.selectedTypes,
       typeIdMap: state.typeIdMap,
       sortOrder: state.sortOrder,
+      formFilter: state.formFilter,
+      includeCosmeticForms: state.includeCosmeticForms,
     );
 
     emit(
@@ -217,6 +223,8 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
       selectedTypes: updatedTypes,
       typeIdMap: currentTypeIdMap,
       sortOrder: state.sortOrder,
+      formFilter: state.formFilter,
+      includeCosmeticForms: state.includeCosmeticForms,
     );
 
     emit(
@@ -248,6 +256,8 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
       selectedTypes: state.selectedTypes,
       typeIdMap: state.typeIdMap,
       sortOrder: state.sortOrder,
+      formFilter: state.formFilter,
+      includeCosmeticForms: state.includeCosmeticForms,
     );
 
     emit(
@@ -277,11 +287,75 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
       selectedTypes: state.selectedTypes,
       typeIdMap: state.typeIdMap,
       sortOrder: event.sortOrder,
+      formFilter: state.formFilter,
+      includeCosmeticForms: state.includeCosmeticForms,
     );
 
     emit(
       state.copyWith(
         sortOrder: event.sortOrder,
+        filteredEntries: filtered,
+        visibleEntries: filtered.take(state.pageSize).toList(),
+        currentPage: 1,
+      ),
+    );
+  }
+
+  void _onFormFilterChanged(
+    PokedexFormFilterChangedEvent event,
+    Emitter<PokedexState> emit,
+  ) {
+    if (event.formFilter == state.formFilter) return;
+    _logger.info(
+      'Form filter changed: ${event.formFilter.name}',
+      prefix: _prefix,
+    );
+
+    final filtered = PokemonIndexFilterHelper.filterAndSort(
+      entries: state.allEntries,
+      query: state.searchQuery,
+      generation: state.selectedGeneration,
+      selectedTypes: state.selectedTypes,
+      typeIdMap: state.typeIdMap,
+      sortOrder: state.sortOrder,
+      formFilter: event.formFilter,
+      includeCosmeticForms: state.includeCosmeticForms,
+    );
+
+    emit(
+      state.copyWith(
+        formFilter: event.formFilter,
+        filteredEntries: filtered,
+        visibleEntries: filtered.take(state.pageSize).toList(),
+        currentPage: 1,
+      ),
+    );
+  }
+
+  void _onCosmeticToggleChanged(
+    PokedexCosmeticToggleChangedEvent event,
+    Emitter<PokedexState> emit,
+  ) {
+    if (event.includeCosmeticForms == state.includeCosmeticForms) return;
+    _logger.info(
+      'Cosmetic forms toggle changed: ${event.includeCosmeticForms}',
+      prefix: _prefix,
+    );
+
+    final filtered = PokemonIndexFilterHelper.filterAndSort(
+      entries: state.allEntries,
+      query: state.searchQuery,
+      generation: state.selectedGeneration,
+      selectedTypes: state.selectedTypes,
+      typeIdMap: state.typeIdMap,
+      sortOrder: state.sortOrder,
+      formFilter: state.formFilter,
+      includeCosmeticForms: event.includeCosmeticForms,
+    );
+
+    emit(
+      state.copyWith(
+        includeCosmeticForms: event.includeCosmeticForms,
         filteredEntries: filtered,
         visibleEntries: filtered.take(state.pageSize).toList(),
         currentPage: 1,
@@ -302,6 +376,8 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
       selectedTypes: const {},
       typeIdMap: state.typeIdMap,
       sortOrder: PokedexSortOrder.idAscending,
+      formFilter: PokedexFormFilter.canonicalOnly,
+      includeCosmeticForms: false,
     );
 
     emit(
@@ -310,6 +386,8 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
         selectedTypes: const {},
         selectedGeneration: null,
         sortOrder: PokedexSortOrder.idAscending,
+        formFilter: PokedexFormFilter.canonicalOnly,
+        includeCosmeticForms: false,
         filteredEntries: filtered,
         visibleEntries: filtered.take(state.pageSize).toList(),
         currentPage: 1,

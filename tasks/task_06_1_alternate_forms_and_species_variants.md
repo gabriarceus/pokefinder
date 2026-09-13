@@ -1,6 +1,6 @@
 # Task 06.1: Alternate Forms, Megas & Regional Variants Discovery
 
-- **Status:** Open
+- **Status:** Complete
 - **Roadmap Reference:** [ROADMAP.md §6.1, §6.3, §8.4](file:///C:/Users/gabri/Documents/GitHub/pokefinder/ROADMAP.md#L673-L776), [PR 5 §12](file:///C:/Users/gabri/Documents/GitHub/pokefinder/ROADMAP.md#L1159-L1168)
 - **Target Platforms:** Android & iOS only
 - **Priority:** P1 (Product Discovery & Pokémon Depth)
@@ -107,57 +107,57 @@ Format raw wire identifiers into polished Pokédex titles:
 ## 3. Action Items
 
 ### 3.1 Domain Modeling & Classification Helper
-- [ ] Define `PokemonFormCategory` enum (`canonical`, `mega`, `primal`, `regional`, `gmax`, `battleMode`, `cosmetic`).
-- [ ] Define `PokemonRegionalGroup` enum (`alola`, `galar`, `hisui`, `paldea`).
-- [ ] Create `PokemonFormClassifier` pure domain utility:
+- [x] Define `PokemonFormCategory` enum (`canonical`, `mega`, `primal`, `regional`, `gmax`, `battleMode`, `cosmetic`).
+- [x] Define `PokemonRegionalGroup` enum (`alola`, `galar`, `hisui`, `paldea`).
+- [x] Create `PokemonFormClassifier` pure domain utility:
   - Resolves `parentSpeciesId`, `parentSpeciesName`, `formCategory`, and `regionalGroup` by matching against the 1025 canonical species set.
   - Computes `displayName` with proper title formatting and Italian localization support.
   - Maps `introductionGeneration` for all special forms.
-- [ ] Extend `PokemonIndexEntry` with parent species references, form category, and formatted Dex number (`#0006` with `MEGA X` tag instead of `#10034`).
+- [x] Extend `PokemonIndexEntry` with parent species references, form category, and formatted Dex number (`#0006` with `MEGA X` tag instead of `#10034`).
 
 ### 3.2 Browsable Pokédex Presentation Modes
-- [ ] Update `PokemonIndexFilterHelper` and `PokedexBloc`:
+- [x] Update `PokemonIndexFilterHelper` and `PokedexBloc`:
   - **Default Catalog View:** Displays the 1025 canonical species by default to prevent cluttering the Pokédex with battle variants.
   - **Form Indicators on Base Cards:** Display a subtle badge on base cards (e.g. `⚡ Mega`, `🌍 Regional`, `✨ 2 Forms`) indicating that the species has alternate forms.
   - **Form Grouping in Interleaved Mode:** When alternate forms are enabled, sort them *directly beneath their parent species* (e.g. #0003 Venusaur followed immediately by #0003 Mega Venusaur) rather than appending them at index 10001+.
-- [ ] Add Form Filter controls in `PokedexFilterBottomSheet`:
+- [x] Add Form Filter controls in `PokedexFilterBottomSheet`:
   - Form Category Segmented Picker: `All Forms`, `Canonical Only`, `Mega Evolutions`, `Regional Forms`, `Gigantamax`.
   - Exclusion toggle for cosmetic/totem variants (`-cap`, `-totem`, `-cosplay`).
 
 ### 3.3 Search & Autocomplete Enrichment
-- [ ] Update `filterPrefixSuggestions` and `PokeTextField`:
+- [x] Update `filterPrefixSuggestions` and `PokeTextField`:
   - Support natural searches: typing `"mega"` shows all Mega Evolutions; typing `"alola"` shows all Alolan forms.
   - Searching a Pokémon name (e.g. `"charizard"`) groups the base form and its Mega/G-Max forms together with distinct form badges.
 
 ### 3.4 Canonical Navigation & Detail Integration
-- [ ] Ensure tapping any form card navigates to the canonical `/pokemon/:nameOrId` route with the form pre-selected or directly displays the form's detail.
-- [ ] Provide seamless transition to [Task 08: Species, Evolution Depth and Form Consistency](file:///C:/Users/gabri/Documents/GitHub/pokefinder/tasks/task_08_species_and_evolution_depth.md#L64-L68).
+- [x] Ensure tapping any form card navigates to the canonical `/pokemon/:nameOrId` route with the form pre-selected or directly displays the form's detail.
+- [x] Provide seamless transition to [Task 08: Species, Evolution Depth and Form Consistency](file:///C:/Users/gabri/Documents/GitHub/pokefinder/tasks/task_08_species_and_evolution_depth.md#L64-L68).
 
 ---
 
 ## 4. Acceptance Criteria
 
-- [ ] By default, the Pokédex browse page displays a clean, chronological National Pokédex (#0001 to #1025).
-- [ ] Pokémon cards with alternate forms show a clear visual indicator/badge (e.g., `Mega`, `Regional`, `G-Max`).
-- [ ] Enabling alternate forms in the filter sheet interleaves forms alongside their parent species with correct `#0001–#1025` numbering and form pills.
-- [ ] Filtering by Generation respects both the parent species generation and the form's debut generation.
-- [ ] Filtering by "Mega Evolutions" or "Regional Forms" instantly isolates those categories across all generations.
-- [ ] Raw wire strings like `charizard-mega-y` or `vulpix-alola` are cleanly localized (e.g., `Mega Charizard Y`, `Alolan Vulpix` in EN; `Vulpix di Alola` in IT).
-- [ ] Cosmetic forms (costumes, battle totems) do not pollute the primary Pokédex list.
-- [ ] All classification and parent mapping executes client-side with 0 additional network requests.
+- [x] By default, the Pokédex browse page displays a clean, chronological National Pokédex (#0001 to #1025).
+- [x] Pokémon cards with alternate forms show a clear visual indicator/badge (e.g., `Mega`, `Regional`, `G-Max`).
+- [x] Enabling alternate forms in the filter sheet interleaves forms alongside their parent species with correct `#0001–#1025` numbering and form pills.
+- [x] Filtering by Generation respects both the parent species generation and the form's debut generation.
+- [x] Filtering by "Mega Evolutions" or "Regional Forms" instantly isolates those categories across all generations.
+- [x] Raw wire strings like `charizard-mega-y` or `vulpix-alola` are cleanly localized (e.g., `Mega Charizard Y`, `Alolan Vulpix` in EN; `Vulpix di Alola` in IT).
+- [x] Cosmetic forms (costumes, battle totems) do not pollute the primary Pokédex list.
+- [x] All classification and parent mapping executes client-side with 0 additional network requests.
 
 ---
 
 ## 5. Testing & Verification Plan
 
-- [ ] **Unit Tests:**
+- [x] **Unit Tests:**
   - `PokemonFormClassifierTest`: Verify parsing for all major categories (Megas, Primals, Alolan, Galarian, Hisuian, Paldean, G-Max, battle modes, cosmetics).
   - Verify O(1) parent species resolution against the 1025 canonical species table.
   - Verify localized title generation in English and Italian.
   - Verify dual generation bounds.
-- [ ] **BLoC Tests:**
+- [x] **BLoC Tests:**
   - `PokedexBloc`: Form category filter toggles, interleaved sorting verification, cosmetic suppression.
-- [ ] **Widget Tests:**
+- [x] **Widget Tests:**
   - `PokemonCard`: Renders form badges and canonical number tag.
   - `PokedexFilterBottomSheet`: Form category chip selection and reset.
   - `PokedexBrowsePage`: Verifies interleaved ordering (Venusaur -> Mega Venusaur -> Charmander).

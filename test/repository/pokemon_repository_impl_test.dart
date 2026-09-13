@@ -632,7 +632,8 @@ void main() {
         ).thenAnswer((_) async => right(sampleEntries));
 
         final result = await repository.getPokemonIndex(forceRefresh: true);
-        expect(result, right(sampleEntries));
+        expect(result.isRight(), isTrue);
+        expect(result.getOrElse(() => []), equals(sampleEntries));
         verify(
           () => dataSource.getPokemonIndex(
             cancelToken: any(named: 'cancelToken'),

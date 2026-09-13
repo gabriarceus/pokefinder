@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file, following t
 
 ### Added
 
+- First-class discovery and classification for alternate forms, Mega Evolutions, Primal Reversions, Regional variants (Alola, Galar, Hisui, Paldea), Gigantamax forms, and battle mode shifts (`PokemonFormCategory`, `PokemonRegionalGroup`).
+- Pure domain helper `PokemonFormClassifier` enabling deterministic O(1) canonical parent species mapping, franchise debut generation resolution, and localized titles (`Mega Charizard X`, `Alolan Vulpix` / `Vulpix di Alola`) with zero additional network requests.
+- Form category filter segmented control (`PokedexFormFilter`: All Forms, Canonical Only, Mega Evolutions, Regional Forms, Gigantamax) and cosmetic/costume form toggle in `PokedexFilterBottomSheet`.
+- Dual generation context support matching both canonical parent species generation and form debut generation (e.g. Gen 7 matches Alolan forms).
+- Interleaved browse ordering in the Pokédex grid placing alternate forms directly beneath their canonical parent species with official `#0001–#1025` numbering and form pills.
+- Visual form indicator badges (`⚡ Mega`, `🌍 Regional`, `💥 G-Max`, `✨ Forms`) on base cards with full English and Italian localization and screen reader accessibility announcements.
+- Natural search and autocomplete support for form categories and regional keywords (`"mega"`, `"primal"`, `"gmax"`, `"regional"`, `"alola"`, `"galar"`, `"hisui"`, `"paldea"`).
+- Unit, BLoC, and widget test suites covering form classification, localized titles, dual generation bounds, interleaved sorting, form filter controls, and base card accessibility semantics.
 - Browsable Pokédex discovery route `/pokedex` with responsive layouts for mobile and tablets, pull-to-refresh (`RefreshIndicator`), infinite scroll pagination, and shimmer skeleton loading states.
 - Domain model `PokemonIndexEntry` capturing numeric Pokédex ID, name, details URL, generation (Gen 1-9), and official artwork URLs.
 - Mobile filtering bottom sheet (`PokedexFilterBottomSheet`) supporting multi-type intersection filtering across 18 Pokémon types, Generation 1-9 selection, and 4-way sorting (ID / Name ascending & descending).
@@ -49,6 +57,8 @@ All notable changes to this project will be documented in this file, following t
 
 ### Changed
 
+- Removed redundant catalog re-enrichment pass in `PokedexBloc._onFetchIndex`, relying directly on the repository's enriched domain entities.
+- Equipped `PokemonCard` form badge containers with `Flexible` and text ellipsis to prevent horizontal overflow in compact layouts and dynamic typography.
 - Consolidated autocomplete suggestions in `PokeTextField` around structured `PokemonIndexEntry` items, removing the redundant `allNames` parameter.
 - Moved search text controller synchronization out of `PokedexBrowsePage` builder into `_onBlocListener` to avoid mutating external state during widget builds.
 - Equipped `PokedexLoadMoreEvent` with `droppable()` concurrency transformer to eliminate premature multi-page loading during inertial fling gestures.
@@ -70,6 +80,11 @@ All notable changes to this project will be documented in this file, following t
 
 ### Fixed
 
+- Prevented false-positive autocomplete and search matches across all canonical species when queries match substrings of the internal `'canonical'` category name (e.g. `"ca"`, `"on"`, `"an"`).
+- Corrected elemental type filtering for alternate forms by checking form IDs directly rather than falling back to parent species types.
+- Fixed `PokemonFormClassifier.classifyCategory` returning `battleMode` for canonical species when called without an explicit `id` parameter.
+- Localized hardcoded English badge text on base cards for Italian locale (`🌍 Regionali`, `✨ Forme`, `💥 Gigamax`).
+- Restored missing screen reader accessibility announcements on base cards possessing alternate forms.
 - Silent filter bypass and false-positive matches in `PokemonIndexFilterHelper` when type ID sets are missing or unresolved from the cache map.
 - Unpropagated type fetch failures in `PokedexBloc._onTypeFilterToggled` by emitting `state.failure` on repository errors.
 - Unhandled `StateError` on pull-to-refresh completion when navigating away or unmounting `PokedexBrowsePage` by providing an `orElse` fallback to `firstWhere`.
