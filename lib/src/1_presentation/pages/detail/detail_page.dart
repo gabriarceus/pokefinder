@@ -3,8 +3,7 @@ import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 import 'package:pokefinder/src/2_application/application.dart';
-import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
-import 'package:pokefinder/src/3_domain/services/cry_audio_controller.dart';
+import 'package:pokefinder/src/3_domain/domain.dart';
 
 import '_app_bar.dart';
 import '_bloc.dart';
@@ -18,9 +17,10 @@ export '_bloc.dart';
 
 /// Detail screen displaying data for a single Pokémon, identified by [pokemonName].
 class Detail extends StatefulWidget {
-  const Detail({super.key, required this.pokemonName});
+  const Detail({super.key, required this.pokemonName, this.searchQuery});
 
   final String pokemonName;
+  final String? searchQuery;
 
   @override
   State<Detail> createState() => _DetailState();
@@ -29,6 +29,7 @@ class Detail extends StatefulWidget {
 class _DetailState extends State<Detail> {
   final CryAudioController _audioController = getIt<CryAudioController>();
   bool _showShiny = false;
+  bool _hasRecordedSearch = false;
 
   @override
   void dispose() {
@@ -71,13 +72,59 @@ class _DetailState extends State<Detail> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: PokemonBlocBuilder(
-        onInitial: (_, _) => Center(child: Text(context.t().noData)),
-        onLoading: (_, _) => const DetailLoading(),
-        onFailure: (_, failure) =>
-            DetailFailure(state: failure, pokemonName: widget.pokemonName),
-        onSuccess: _buildSuccess,
+    return BlocListener<PokemonBloc, PokemonBlocState>(
+      listener: (context, state) {
+        if (state is PokemonBlocSuccess) {
+          try {
+            final formDetails = state.selectedFormDetails;
+            final spriteUrl =
+                formDetails?.spriteDefault ?? state.pokemon.sprite;
+            final types = <PokemonType>[
+              if (formDetails?.type1 != null)
+                formDetails!.type1!
+              else if (state.pokemon.type1 != null)
+                state.pokemon.type1!,
+              if (formDetails?.type2 != null)
+                formDetails!.type2!
+              else if (state.pokemon.type2 != null)
+                state.pokemon.type2!,
+            ];
+            context.read<RecentHistoryCubit>().addRecentPokemon(
+              id: state.pokemon.id,
+              name: state.pokemon.name,
+              spriteUrl: spriteUrl,
+              types: types,
+            );
+          } catch (_) {}
+
+          if (!_hasRecordedSearch &&
+              widget.searchQuery != null &&
+              widget.searchQuery!.trim().isNotEmpty) {
+            _hasRecordedSearch = true;
+            try {
+              context.read<RecentHistoryCubit>().addRecentSearch(
+                widget.searchQuery!.trim(),
+              );
+            } catch (_) {}
+          }
+
+          try {
+            final preferences = context.read<PreferencesCubit>().state;
+            if (preferences.autoPlayCry && state.pokemon.cry.isNotEmpty) {
+              _audioController.setVolume(preferences.cryVolume);
+              _audioController.play(state.pokemon.cry);
+            }
+          } catch (_) {}
+        }
+      },
+      child: Scaffold(
+        body: PokemonBlocBuilder(
+          onInitial: (_, _) => Center(child: Text(context.t().noData)),
+          onLoading: (_, _) => const DetailLoading(),
+          onFailure: (_, failure) =>
+              DetailFailure(state: failure, pokemonName: widget.pokemonName),
+          onSuccess: _buildSuccess,
+        ),
       ),
     );
   }
@@ -85,6 +132,13 @@ class _DetailState extends State<Detail> {
   Widget _buildSuccess(BuildContext context, PokemonBlocSuccess success) {
     final pokemon = success.pokemon;
     final formDetails = success.formDetails;
+
+    bool isFavorite = false;
+    try {
+      isFavorite = context.select<FavoritesCubit, bool>(
+        (cubit) => cubit.isFavorite(pokemon.id),
+      );
+    } catch (_) {}
 
     final backgroundHelper = TypeColorScheme(
       type1: formDetails.type1,
@@ -102,6 +156,30 @@ class _DetailState extends State<Detail> {
           backgroundColor: Colors.transparent,
           showShiny: _showShiny,
           isStale: pokemon.isStale,
+          isFavorite: isFavorite,
+          onToggleFavorite: () {
+            try {
+              final spriteUrl = formDetails.spriteDefault.isNotEmpty
+                  ? formDetails.spriteDefault
+                  : pokemon.sprite;
+              final types = <PokemonType>[
+                if (formDetails.type1 != null)
+                  formDetails.type1!
+                else if (pokemon.type1 != null)
+                  pokemon.type1!,
+                if (formDetails.type2 != null)
+                  formDetails.type2!
+                else if (pokemon.type2 != null)
+                  pokemon.type2!,
+              ];
+              context.read<FavoritesCubit>().toggleFavorite(
+                id: pokemon.id,
+                name: pokemon.name,
+                spriteUrl: spriteUrl,
+                types: types,
+              );
+            } catch (_) {}
+          },
           onToggleShiny: () {
             setState(() {
               _showShiny = !_showShiny;
@@ -248,8 +326,7 @@ class _DetailContentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tabTextColor =
-        Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
+    final tabTextColor = Theme.of(context).colorScheme.onSurface;
 
     return Container(
       decoration: BoxDecoration(
@@ -322,6 +399,11 @@ class _DetailTabBar extends StatelessWidget {
           .withLightness((hsl.lightness - 0.3).clamp(0.0, 1.0))
           .withSaturation((hsl.saturation + 0.2).clamp(0.0, 1.0))
           .toColor();
+    } else if (brightness == Brightness.dark && luminance < 0.2) {
+      final hsl = HSLColor.fromColor(typeColor);
+      return hsl
+          .withLightness((hsl.lightness + 0.35).clamp(0.0, 1.0))
+          .toColor();
     }
     return typeColor;
   }
@@ -349,7 +431,7 @@ class _DetailTabBar extends StatelessWidget {
         labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
         unselectedLabelColor: Theme.of(
           context,
-        ).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
+        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
         unselectedLabelStyle: const TextStyle(fontSize: 11),
         tabs: [
           Tab(text: context.t().tabInfo, icon: const Icon(Icons.info_outline)),

@@ -1,7 +1,10 @@
 export 'damage_class.dart';
+export 'favorite_pokemon.dart';
 export 'language.dart';
 export 'move_detail.dart';
 export 'pokemon.dart';
 export 'pokemon_index_entry.dart';
 export 'pokemon_type.dart';
 export 'pokedex_sort_order.dart';
+export 'recent_pokemon.dart';
+export 'unit_system.dart';

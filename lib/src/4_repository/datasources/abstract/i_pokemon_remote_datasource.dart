@@ -34,4 +34,5 @@ abstract class IPokemonRemoteDataSource {
   Future<Either<PokemonFailure, List<String>>> getAllPokemonNames();
   Future<Either<PokemonFailure, RawMoveDetail>> getMoveDetail(String name);
   Future<Either<PokemonFailure, Unit>> clearCache();
+  Future<Either<PokemonFailure, int>> getCacheSize();
 }

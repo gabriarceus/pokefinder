@@ -44,6 +44,7 @@ void main() {
     when(() => player.stop()).thenAnswer((_) async {});
     when(() => player.seek(any())).thenAnswer((_) async {});
     when(() => player.play()).thenAnswer((_) async {});
+    when(() => player.setVolume(any())).thenAnswer((_) async {});
     when(() => player.dispose()).thenAnswer((_) async {});
 
     controller = JustAudioCryController.withPlayer(logger, player);
@@ -171,6 +172,31 @@ void main() {
 
       verify(() => player.stop()).called(1);
       verify(() => player.setAudioSource(any(), preload: true)).called(1);
+    });
+
+    test('setVolume clamps volume and delegates to player', () async {
+      await controller.setVolume(0.8);
+      verify(() => player.setVolume(0.8)).called(1);
+
+      await controller.setVolume(1.5);
+      verify(() => player.setVolume(1.0)).called(1);
+
+      await controller.setVolume(-0.5);
+      verify(() => player.setVolume(0.0)).called(1);
+    });
+
+    test('play re-plays current url from start without reloading', () async {
+      when(
+        () => player.setAudioSource(any(), preload: any(named: 'preload')),
+      ).thenAnswer((_) async => const Duration(seconds: 1));
+
+      await controller.play(testUrl);
+      verify(() => player.play()).called(1);
+
+      // Play same url again -> seeks to zero and plays
+      await controller.play(testUrl);
+      verify(() => player.seek(Duration.zero)).called(1);
+      verify(() => player.play()).called(1);
     });
 
     test(

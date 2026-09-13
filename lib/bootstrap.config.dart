@@ -18,15 +18,21 @@ import 'package:injectable/injectable.dart' as _i526;
 
 import 'bootstrap.dart' as _i261;
 import 'src/2_application/bloc/detail_bloc/detail_bloc.dart' as _i1067;
+import 'src/2_application/bloc/favorites_cubit/favorites_cubit.dart' as _i716;
 import 'src/2_application/bloc/home_bloc/home_bloc.dart' as _i56;
 import 'src/2_application/bloc/move_detail_cubit/move_detail_cubit.dart'
     as _i539;
 import 'src/2_application/bloc/pokedex_bloc/pokedex_bloc.dart' as _i820;
+import 'src/2_application/bloc/preferences_cubit/preferences_cubit.dart'
+    as _i361;
+import 'src/2_application/bloc/recent_history_cubit/recent_history_cubit.dart'
+    as _i991;
 import 'src/2_application/hydrated_bloc/language_storage.dart' as _i1056;
 import 'src/3_domain/domain.dart' as _i341;
 import 'src/3_domain/repositories/i_pokemon_repository.dart' as _i768;
 import 'src/3_domain/services/cry_audio_controller.dart' as _i814;
 import 'src/3_domain/usecases/clear_cache_usecase.dart' as _i289;
+import 'src/3_domain/usecases/get_cache_size_usecase.dart' as _i981;
 import 'src/3_domain/usecases/get_pokemon_encounters_usecase.dart' as _i656;
 import 'src/3_domain/usecases/get_pokemon_form_details_usecase.dart' as _i476;
 import 'src/3_domain/usecases/get_pokemon_usecase.dart' as _i694;
@@ -70,13 +76,23 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i740.MockPokemonRepository(),
       registerFor: {_mock},
     );
-    gh.factory<_i1056.LanguageCubit>(
+    gh.lazySingleton<_i1056.LanguageCubit>(
       () => _i1056.LanguageCubit(gh<_i463.EnLogger>()),
     );
     gh.lazySingleton<_i13.ApiClient>(
       () => _i876.DioApiClient(dio: gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i361.Dio>(() => registerModule.dio(gh<_i463.EnLogger>()));
+    gh.lazySingleton<_i716.FavoritesCubit>(
+      () =>
+          _i716.FavoritesCubit(gh<_i463.EnLogger>(), clock: gh<_i454.Clock>()),
+    );
+    gh.lazySingleton<_i991.RecentHistoryCubit>(
+      () => _i991.RecentHistoryCubit(
+        gh<_i463.EnLogger>(),
+        clock: gh<_i454.Clock>(),
+      ),
+    );
     gh.lazySingleton<_i477.LocalStorage>(
       () => _i222.HiveLocalStorage(clock: gh<_i454.Clock>()),
     );
@@ -98,6 +114,13 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i907.PokemonRepositoryImpl(gh<_i579.IPokemonRemoteDataSource>()),
       registerFor: {_prod},
     );
+    gh.factoryParam<_i820.PokedexBloc, Duration?, dynamic>(
+      (searchDebounceDuration, _) => _i820.PokedexBloc(
+        gh<_i341.IPokemonRepository>(),
+        gh<_i463.EnLogger>(),
+        searchDebounceDuration: searchDebounceDuration,
+      ),
+    );
     gh.factory<_i539.MoveDetailCubit>(
       () => _i539.MoveDetailCubit(
         gh<_i768.IPokemonRepository>(),
@@ -107,6 +130,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i289.ClearCacheUseCase>(
       () => _i289.ClearCacheUseCase(gh<_i768.IPokemonRepository>()),
     );
+    gh.lazySingleton<_i981.GetCacheSizeUseCase>(
+      () => _i981.GetCacheSizeUseCase(gh<_i768.IPokemonRepository>()),
+    );
     gh.lazySingleton<_i656.GetPokemonEncountersUseCase>(
       () => _i656.GetPokemonEncountersUseCase(gh<_i768.IPokemonRepository>()),
     );
@@ -115,12 +141,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i694.GetPokemonUseCase>(
       () => _i694.GetPokemonUseCase(gh<_i768.IPokemonRepository>()),
-    );
-    gh.factory<_i820.PokedexBloc>(
-      () => _i820.PokedexBloc(
-        gh<_i341.IPokemonRepository>(),
-        gh<_i463.EnLogger>(),
-      ),
     );
     gh.factory<_i1067.PokemonBloc>(
       () => _i1067.PokemonBloc(
@@ -135,6 +155,13 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i341.IPokemonRepository>(),
         gh<_i341.ClearCacheUseCase>(),
         gh<_i463.EnLogger>(),
+      ),
+    );
+    gh.lazySingleton<_i361.PreferencesCubit>(
+      () => _i361.PreferencesCubit(
+        gh<_i463.EnLogger>(),
+        gh<_i341.GetCacheSizeUseCase>(),
+        gh<_i341.ClearCacheUseCase>(),
       ),
     );
     return this;

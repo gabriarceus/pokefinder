@@ -33,4 +33,5 @@ abstract class IPokemonRepository {
   Future<Either<PokemonFailure, List<String>>> getAllPokemonNames();
   Future<Either<PokemonFailure, MoveDetail>> getMoveDetail(String name);
   Future<Either<PokemonFailure, Unit>> clearCache();
+  Future<Either<PokemonFailure, int>> getCacheSize();
 }

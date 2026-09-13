@@ -61,12 +61,14 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
   PokedexBloc(
     this._pokemonRepository,
     this._logger, {
-    Duration searchDebounceDuration = const Duration(milliseconds: 250),
+    @factoryParam Duration? searchDebounceDuration,
   }) : super(PokedexState.initial()) {
+    final debounce =
+        searchDebounceDuration ?? const Duration(milliseconds: 250);
     on<PokedexFetchIndexEvent>(_onFetchIndex);
     on<PokedexSearchQueryChangedEvent>(
       _onSearchQueryChanged,
-      transformer: _debounceSearch(searchDebounceDuration),
+      transformer: _debounceSearch(debounce),
     );
     on<PokedexTypeFilterToggledEvent>(_onTypeFilterToggled);
     on<PokedexGenerationFilterChangedEvent>(_onGenerationFilterChanged);

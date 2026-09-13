@@ -71,6 +71,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get about => 'Informazioni';
 
   @override
+  String get language => 'Lingua';
+
+  @override
   String get weight => 'Peso';
 
   @override
@@ -662,4 +665,101 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get hasAlternateFormsSemantics => 'forme alternative disponibili';
+
+  @override
+  String get favorites => 'Preferiti';
+
+  @override
+  String get favoritesEmptyTitle => 'Nessun preferito';
+
+  @override
+  String get favoritesEmptyMessage =>
+      'Tocca l\'icona del cuore su un Pokémon per aggiungerlo ai tuoi preferiti.';
+
+  @override
+  String get addToFavorites => 'Aggiungi ai preferiti';
+
+  @override
+  String get removeFromFavorites => 'Rimuovi dai preferiti';
+
+  @override
+  String get removeFromHistory => 'Rimuovi dalla cronologia';
+
+  @override
+  String get sortRecentlyAdded => 'Aggiunti di recente';
+
+  @override
+  String get recentlyViewed => 'Visti di recente';
+
+  @override
+  String get recentSearches => 'Ricerche recenti';
+
+  @override
+  String get clearHistory => 'Cancella cronologia';
+
+  @override
+  String get clearHistoryConfirmation =>
+      'Sei sicuro di voler cancellare la cronologia delle ricerche e visualizzazioni?';
+
+  @override
+  String get historyEnabled => 'Salva cronologia';
+
+  @override
+  String get historyEnabledInfo =>
+      'Registra i Pokémon visualizzati e le ricerche effettuate.';
+
+  @override
+  String get theme => 'Tema';
+
+  @override
+  String get themeSystem => 'Sistema';
+
+  @override
+  String get themeLight => 'Chiaro';
+
+  @override
+  String get themeDark => 'Scuro';
+
+  @override
+  String get unitSystem => 'Unità di misura';
+
+  @override
+  String get unitSystemMetric => 'Metrico (m, kg)';
+
+  @override
+  String get unitSystemImperial => 'Imperiale (ft, lbs)';
+
+  @override
+  String get audioSettings => 'Audio';
+
+  @override
+  String get autoPlayCry => 'Riproduci verso all\'apertura';
+
+  @override
+  String get autoPlayCryInfo =>
+      'Riproduce automaticamente il verso del Pokémon all\'apertura dei dettagli.';
+
+  @override
+  String get cryVolume => 'Volume verso';
+
+  @override
+  String get storageAndCache => 'Memoria e Cache';
+
+  @override
+  String cacheSize({required String size}) {
+    return 'Dimensione cache: $size';
+  }
+
+  @override
+  String get clearCacheConfirmation =>
+      'Sei sicuro di voler svuotare la cache? I dati e le immagini salvati dovranno essere scaricati di nuovo.';
+
+  @override
+  String get cancel => 'Annulla';
+
+  @override
+  String get confirm => 'Conferma';
+
+  @override
+  String get clear => 'Svuota';
 }

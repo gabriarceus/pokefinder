@@ -36,7 +36,7 @@ class LanguageState extends Equatable {
   List<Object?> get props => [languageId, lastManualLanguageId];
 }
 
-@injectable
+@lazySingleton
 class LanguageCubit extends HydratedCubit<LanguageState> {
   LanguageCubit(this._logger)
     : super(

@@ -195,6 +195,16 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
     }
   }
 
+  @override
+  Future<Either<PokemonFailure, int>> getCacheSize() async {
+    try {
+      final size = await _dataRepository.getCacheSize();
+      return Right(size);
+    } catch (error) {
+      return left(_mapError(error));
+    }
+  }
+
   /// Translates a low-level error into a typed [PokemonFailure].
   PokemonFailure _mapError(Object error) {
     if (error is PokemonFailure) return error;

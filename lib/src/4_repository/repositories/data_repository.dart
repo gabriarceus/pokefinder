@@ -117,6 +117,9 @@ class DataRepository {
     await _localStorage.clear();
   }
 
+  /// Returns the approximate size of cached data in bytes.
+  Future<int> getCacheSize() => _localStorage.getByteSize();
+
   /// Removes a single cached entry identified by [key].
   Future<void> invalidate(String key) async {
     _logger.debug('Invalidating cache for: $key', prefix: prefix);

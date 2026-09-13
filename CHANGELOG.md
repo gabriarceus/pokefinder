@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file, following t
 
 ### Added
 
+- Persistent Favorites management (`FavoritePokemon`, `FavoritesCubit`, `FavoriteSortOrder`) with toggle buttons in detail app bar and Pokédex cards, reactive synchronization across screens, and dedicated Favorites route `/favorites` featuring 3-way sorting (ID, Name, Date Added) and empty state illustration.
+- Bounded Recently Viewed and Search History (`RecentPokemon`, `RecentHistoryCubit`) with deduplication, capacity limit eviction (20 Pokémon, 10 searches), quick-access horizontal shelf and search chips on Home, and pause/clear controls.
+- Expanded User Preferences (`PreferencesCubit`, `UnitSystem`, `MeasurementFormatter`) persisted via durable storage:
+  - System / Light / Dark theme mode with instantaneous reactive update across all screens.
+  - Metric (m, kg) vs Imperial (ft/in, lbs) units toggle with locale-aware `intl` formatting on Pokémon detail screens.
+  - Audio preferences: auto-play cry on detail open toggle and volume control integrated into `CryAudioController`.
+  - Approximate storage/cache size calculation (`GetCacheSizeUseCase`, `LocalStorage.getByteSize()`) and confirmation dialog before cache purge.
+- Dedicated Settings route `/settings` accessible from navigation drawer and home app bar.
+- Full localization in English and Italian for all new settings, units, history controls, and empty states.
 - First-class discovery and classification for alternate forms, Mega Evolutions, Primal Reversions, Regional variants (Alola, Galar, Hisui, Paldea), Gigantamax forms, and battle mode shifts (`PokemonFormCategory`, `PokemonRegionalGroup`).
 - Pure domain helper `PokemonFormClassifier` enabling deterministic O(1) canonical parent species mapping, franchise debut generation resolution, and localized titles (`Mega Charizard X`, `Alolan Vulpix` / `Vulpix di Alola`) with zero additional network requests.
 - Form category filter segmented control (`PokedexFormFilter`: All Forms, Canonical Only, Mega Evolutions, Regional Forms, Gigantamax) and cosmetic/costume form toggle in `PokedexFilterBottomSheet`.
@@ -77,9 +86,16 @@ All notable changes to this project will be documented in this file, following t
 - Relocated tooling dependencies (`path`, `yaml`) from runtime dependencies to `dev_dependencies`.
 - Replaced `bc` dependency in `scripts/coverage.sh` with pure `awk` floating-point comparison for cross-platform portability.
 - Restricted CI workflow `cancel-in-progress` concurrency to pull requests and non-`main` branches to preserve build verification history on `main`.
+- Extracted shared confirmation dialog helper (`showConfirmationDialog`, `showClearCacheConfirmationDialog`) to eliminate duplicate cache purge dialogs in `SettingsPage` and `HomeDrawer`.
+- Flattened canonical router hierarchy in `createAppRouter()` by removing redundant nested `ShellRoute` and its duplicate `MultiBlocProvider`.
+- Capitalized recent history items using pure domain `capitalize()` extension rather than ad-hoc string slicing.
 
 ### Fixed
 
+- Prevented unverified or failed searches from polluting recent search history by deferring search query persistence until successful Pokémon resolution on detail view (`PokemonBlocSuccess`).
+- Exposed favorite toggle button semantics to screen readers on `PokemonCard` by decoupling its accessibility node from the card body's `excludeSemantics` boundary.
+- Expanded touch target dimensions to WCAG 2.5.5 / Material Design 48×48 dp minimum on `PokemonCard` favorite toggle and recent history card close buttons.
+- Corrected misleading "About" section header on `SettingsPage` to "Language" with localized keys in English and Italian.
 - Prevented false-positive autocomplete and search matches across all canonical species when queries match substrings of the internal `'canonical'` category name (e.g. `"ca"`, `"on"`, `"an"`).
 - Corrected elemental type filtering for alternate forms by checking form IDs directly rather than falling back to parent species types.
 - Fixed `PokemonFormClassifier.classifyCategory` returning `battleMode` for canonical species when called without an explicit `id` parameter.
@@ -97,6 +113,7 @@ All notable changes to this project will be documented in this file, following t
 
 ### Removed
 
+- Ineffective `ensureHydratedStorage()` calls from `PreferencesCubit`, `FavoritesCubit`, and `RecentHistoryCubit` constructor bodies and `createAppRouter()`.
 - Dead fallback and unreachable `try/catch` in `HomeBloc.FetchAllPokemonNamesEvent`.
 - Artificial `@visibleForTesting` constructor `PokemonBloc.withCancelToken`, replacing it with standard event-driven cancellation testing.
 - Unused runtime dependencies: `flutter_animate`, `gap`, `pokeball_widget`, and `flutter_gen`.

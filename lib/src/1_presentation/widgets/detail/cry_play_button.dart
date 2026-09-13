@@ -75,7 +75,9 @@ class CryPlayButton extends StatelessWidget {
               child: SurfaceCard(
                 borderRadius: 24,
                 margin: EdgeInsets.zero,
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.12),
                 child: InkWell(
                   onTap: mode == CryButtonMode.loading
                       ? null
@@ -102,7 +104,7 @@ class CryPlayButton extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                               color: mode == CryButtonMode.unavailable
                                   ? Theme.of(context).disabledColor
-                                  : Theme.of(context).primaryColor,
+                                  : Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ),
@@ -126,7 +128,7 @@ class _ModeIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).primaryColor;
+    final primary = Theme.of(context).colorScheme.primary;
     return switch (mode) {
       CryButtonMode.loading => SizedBox(
         width: 16,

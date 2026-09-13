@@ -200,4 +200,9 @@ class MockPokemonRepository implements IPokemonRepository {
   Future<Either<PokemonFailure, Unit>> clearCache() async {
     return const Right(unit);
   }
+
+  @override
+  Future<Either<PokemonFailure, int>> getCacheSize() async {
+    return const Right(512 * 1024);
+  }
 }

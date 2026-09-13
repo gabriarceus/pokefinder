@@ -14,6 +14,7 @@ import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/route_error/route_error_page.dart';
 import 'package:pokefinder/src/1_presentation/router/app_router.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/move_detail_bottom_sheet.dart';
+import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/cancellation_token.dart';
 import 'package:pokefinder/src/3_domain/entities/damage_class.dart';
 import 'package:pokefinder/src/3_domain/entities/move_detail.dart';
@@ -119,6 +120,9 @@ void main() {
     when(
       () => repository.clearCache(),
     ).thenAnswer((_) async => const Right(unit));
+    when(
+      () => repository.getCacheSize(),
+    ).thenAnswer((_) async => const Right(1024));
   });
 
   Future<void> pumpAppWithRouter(
@@ -176,6 +180,10 @@ void main() {
       expect(find.byType(Detail), findsOneWidget);
       expect(find.text('Pikachu'), findsOneWidget);
       expect(find.text('#025'), findsOneWidget);
+      expect(
+        getIt<RecentHistoryCubit>().state.recentSearches,
+        contains('pikachu'),
+      );
     });
   });
 
@@ -223,6 +231,7 @@ void main() {
         expect(find.byType(HomePage), findsOneWidget);
         final textField = tester.widget<TextField>(find.byType(TextField));
         expect(textField.controller?.text, 'missingno');
+        expect(getIt<RecentHistoryCubit>().state.recentSearches, isEmpty);
       },
     );
 
@@ -630,6 +639,15 @@ void main() {
       await tester.tap(clearCacheBtn);
       await tester.pumpAndSettle();
 
+      final confirmBtn = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.widgetWithText(ElevatedButton, 'Clear'),
+      );
+      if (confirmBtn.evaluate().isNotEmpty) {
+        await tester.tap(confirmBtn);
+        await tester.pumpAndSettle();
+      }
+
       // Verifies drawer closed and a single success snackbar displayed
       expect(find.byType(Drawer), findsNothing);
       expect(find.byType(SnackBar), findsOneWidget);
@@ -654,6 +672,15 @@ void main() {
         );
         await tester.tap(clearCacheBtn);
         await tester.pumpAndSettle();
+
+        final confirmBtn = find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.widgetWithText(ElevatedButton, 'Clear'),
+        );
+        if (confirmBtn.evaluate().isNotEmpty) {
+          await tester.tap(confirmBtn);
+          await tester.pumpAndSettle();
+        }
 
         expect(find.byType(Drawer), findsNothing);
         expect(

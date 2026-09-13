@@ -203,22 +203,21 @@ class _EncountersSection extends StatelessWidget {
               spacing: 4,
               runSpacing: 4,
               children: encounter.versions.map((version) {
+                final primary = Theme.of(context).colorScheme.primary;
                 return Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 6,
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).primaryColor.withValues(alpha: 0.1),
+                    color: primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     context.translateGameVersion(version).toUpperCase(),
                     style: TextStyle(
                       fontSize: 10,
-                      color: Theme.of(context).primaryColor,
+                      color: primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -288,7 +287,7 @@ class _HeldItemsSection extends StatelessWidget {
                     '${item.rarity}%',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ),

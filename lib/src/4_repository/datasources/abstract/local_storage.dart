@@ -55,4 +55,7 @@ abstract class LocalStorage {
 
   /// Removes all stored entries.
   Future<void> clear();
+
+  /// Returns the approximate storage size in bytes.
+  Future<int> getByteSize();
 }

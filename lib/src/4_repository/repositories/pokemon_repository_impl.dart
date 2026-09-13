@@ -342,6 +342,15 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       return left(_mapRepoError(e));
     }
   }
+
+  @override
+  Future<Either<PokemonFailure, int>> getCacheSize() async {
+    try {
+      return await _remoteDataSource.getCacheSize();
+    } catch (e) {
+      return left(_mapRepoError(e));
+    }
+  }
 }
 
 /// Bridges a domain [CancellationToken] to Dio's [CancelToken].

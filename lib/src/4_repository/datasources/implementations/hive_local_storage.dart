@@ -187,4 +187,14 @@ class HiveLocalStorage implements LocalStorage {
     final box = await _getBox();
     await box.clear();
   }
+
+  @override
+  Future<int> getByteSize() async {
+    final box = await _getBox();
+    var totalBytes = 0;
+    for (final value in box.values) {
+      totalBytes += utf8.encode(value).length;
+    }
+    return totalBytes;
+  }
 }

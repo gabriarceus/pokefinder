@@ -21,4 +21,32 @@ abstract final class AppPalette {
 
   /// Color for a stat value at or below the medium threshold.
   static const Color statLow = Colors.red;
+
+  /// Light theme configuration for the application.
+  static ThemeData get lightTheme {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: brandRed,
+      brightness: Brightness.light,
+    );
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      colorScheme: colorScheme,
+      primaryColor: colorScheme.primary,
+    );
+  }
+
+  /// Dark theme configuration for the application.
+  static ThemeData get darkTheme {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: brandRed,
+      brightness: Brightness.dark,
+    );
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: colorScheme,
+      primaryColor: colorScheme.primary,
+    );
+  }
 }

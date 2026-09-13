@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
-import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 import 'package:pokefinder/src/1_presentation/presentation.dart';
 import 'package:pokefinder/src/1_presentation/widgets/home/home_widgets.dart';
 import 'package:pokefinder/src/2_application/application.dart';
@@ -86,7 +85,9 @@ class _HomePageState extends State<HomePage> {
       final nameOrId = state.userInput.trim();
       context.read<HomeBloc>().add(NavigationDoneEvent());
       try {
-        await context.push('/pokemon/${Uri.encodeComponent(nameOrId)}');
+        await context.push(
+          '/pokemon/${Uri.encodeComponent(nameOrId)}?search=${Uri.encodeQueryComponent(nameOrId)}',
+        );
       } finally {
         if (mounted) {
           setState(() {
@@ -214,6 +215,12 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                           ),
+                        ),
+                        RecentHistoryShelf(
+                          onSelectQuery: (query) {
+                            _controller.text = query;
+                            _submitSearch(context, query);
+                          },
                         ),
                         SizedBox(
                           height: (constraints.maxHeight * 0.08).clamp(

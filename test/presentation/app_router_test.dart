@@ -4,12 +4,17 @@ import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/favorites/favorites_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/pokedex_browse/pokedex_browse_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/route_error/route_error_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/settings/settings_page.dart';
 import 'package:pokefinder/src/1_presentation/router/app_router.dart';
+import 'package:pokefinder/src/2_application/application.dart';
 
 void main() {
   setUpAll(() async {
+    ensureHydratedStorage();
     await configureDependencies('mock');
   });
 
@@ -18,11 +23,23 @@ void main() {
     Locale locale = const Locale('en'),
   }) {
     final router = createAppRouter(initialLocation: initialLocation);
-    return MaterialApp.router(
-      routerConfig: router,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: locale,
+    return MultiBlocProvider(
+      providers: [
+        if (getIt.isRegistered<LanguageCubit>())
+          BlocProvider.value(value: getIt<LanguageCubit>()),
+        if (getIt.isRegistered<PreferencesCubit>())
+          BlocProvider.value(value: getIt<PreferencesCubit>()),
+        if (getIt.isRegistered<FavoritesCubit>())
+          BlocProvider.value(value: getIt<FavoritesCubit>()),
+        if (getIt.isRegistered<RecentHistoryCubit>())
+          BlocProvider.value(value: getIt<RecentHistoryCubit>()),
+      ],
+      child: MaterialApp.router(
+        routerConfig: router,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: locale,
+      ),
     );
   }
 
@@ -156,5 +173,34 @@ void main() {
         });
       },
     );
+
+    testWidgets('navigating to /favorites loads FavoritesPage', (tester) async {
+      await mockNetworkImagesFor(() async {
+        await tester.pumpWidget(createRouterApp('/favorites'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(FavoritesPage), findsOneWidget);
+      });
+    });
+
+    testWidgets('navigating to /pokedex loads PokedexBrowsePage', (
+      tester,
+    ) async {
+      await mockNetworkImagesFor(() async {
+        await tester.pumpWidget(createRouterApp('/pokedex'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(PokedexBrowsePage), findsOneWidget);
+      });
+    });
+
+    testWidgets('navigating to /settings loads SettingsPage', (tester) async {
+      await mockNetworkImagesFor(() async {
+        await tester.pumpWidget(createRouterApp('/settings'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(SettingsPage), findsOneWidget);
+      });
+    });
   });
 }

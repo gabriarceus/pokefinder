@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/favorites/favorites_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/pokedex_browse/pokedex_browse_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/route_error/route_error_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/settings/settings_page.dart';
 import 'package:pokefinder/src/3_domain/helpers/pokemon_route_param_parser.dart';
 
 /// Global application router instance.
@@ -31,9 +33,10 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
               if (validated == null) {
                 return RouteErrorPage(rawParam: rawParam);
               }
+              final searchQuery = state.uri.queryParameters['search'];
               return PokemonBlocProvider(
                 pokemonName: validated,
-                child: Detail(pokemonName: validated),
+                child: Detail(pokemonName: validated, searchQuery: searchQuery),
               );
             },
           ),
@@ -44,6 +47,20 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
         name: 'pokedex_browse',
         builder: (BuildContext context, GoRouterState state) {
           return const PokedexBrowsePageProvider(child: PokedexBrowsePage());
+        },
+      ),
+      GoRoute(
+        path: '/favorites',
+        name: 'favorites',
+        builder: (BuildContext context, GoRouterState state) {
+          return const FavoritesPage();
+        },
+      ),
+      GoRoute(
+        path: '/settings',
+        name: 'settings',
+        builder: (BuildContext context, GoRouterState state) {
+          return const SettingsPage();
         },
       ),
     ],

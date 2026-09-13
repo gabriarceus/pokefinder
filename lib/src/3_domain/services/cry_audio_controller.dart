@@ -15,6 +15,12 @@ abstract class CryAudioController {
   /// source, restarts it when completed, and stops it when it is playing.
   Future<void> toggle(String url);
 
+  /// Plays [url] from the beginning, loading it first if necessary.
+  Future<void> play(String url);
+
+  /// Sets the audio playback volume from 0.0 to 1.0.
+  Future<void> setVolume(double volume);
+
   /// Releases the player and any subscriptions. Must be called by the owner.
   Future<void> dispose();
 }
