@@ -18,6 +18,8 @@ final class PokedexState extends Equatable {
     required this.selectedGeneration,
     required this.sortOrder,
     required this.typeIdMap,
+    this.formFilter = PokedexFormFilter.canonicalOnly,
+    this.includeCosmeticForms = false,
     this.failure,
     this.randomPokemonToNavigate,
   });
@@ -36,6 +38,8 @@ final class PokedexState extends Equatable {
       selectedGeneration: null,
       sortOrder: PokedexSortOrder.idAscending,
       typeIdMap: {},
+      formFilter: PokedexFormFilter.canonicalOnly,
+      includeCosmeticForms: false,
       failure: null,
       randomPokemonToNavigate: null,
     );
@@ -53,6 +57,8 @@ final class PokedexState extends Equatable {
   final int? selectedGeneration;
   final PokedexSortOrder sortOrder;
   final Map<PokemonType, Set<int>> typeIdMap;
+  final PokedexFormFilter formFilter;
+  final bool includeCosmeticForms;
   final PokemonFailure? failure;
   final PokemonIndexEntry? randomPokemonToNavigate;
 
@@ -61,12 +67,16 @@ final class PokedexState extends Equatable {
   int get activeFilterCount =>
       (selectedTypes.isNotEmpty ? selectedTypes.length : 0) +
       (selectedGeneration != null ? 1 : 0) +
-      (sortOrder != PokedexSortOrder.idAscending ? 1 : 0);
+      (sortOrder != PokedexSortOrder.idAscending ? 1 : 0) +
+      (formFilter != PokedexFormFilter.canonicalOnly ? 1 : 0) +
+      (includeCosmeticForms ? 1 : 0);
   bool get hasActiveFilters =>
       searchQuery.isNotEmpty ||
       selectedTypes.isNotEmpty ||
       selectedGeneration != null ||
-      sortOrder != PokedexSortOrder.idAscending;
+      sortOrder != PokedexSortOrder.idAscending ||
+      formFilter != PokedexFormFilter.canonicalOnly ||
+      includeCosmeticForms;
 
   static const _unset = Object();
 
@@ -83,6 +93,8 @@ final class PokedexState extends Equatable {
     Object? selectedGeneration = _unset,
     PokedexSortOrder? sortOrder,
     Map<PokemonType, Set<int>>? typeIdMap,
+    PokedexFormFilter? formFilter,
+    bool? includeCosmeticForms,
     Object? failure = _unset,
     Object? randomPokemonToNavigate = _unset,
   }) {
@@ -101,6 +113,8 @@ final class PokedexState extends Equatable {
           : selectedGeneration as int?,
       sortOrder: sortOrder ?? this.sortOrder,
       typeIdMap: typeIdMap ?? this.typeIdMap,
+      formFilter: formFilter ?? this.formFilter,
+      includeCosmeticForms: includeCosmeticForms ?? this.includeCosmeticForms,
       failure: identical(failure, _unset)
           ? this.failure
           : failure as PokemonFailure?,
@@ -124,6 +138,8 @@ final class PokedexState extends Equatable {
     selectedGeneration,
     sortOrder,
     typeIdMap,
+    formFilter,
+    includeCosmeticForms,
     failure,
     randomPokemonToNavigate,
   ];

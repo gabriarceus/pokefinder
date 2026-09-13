@@ -1297,6 +1297,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Browsing offline cached Pokédex'**
   String get offlineIndexNotice;
+
+  /// No description provided for @forms.
+  ///
+  /// In en, this message translates to:
+  /// **'Forms'**
+  String get forms;
+
+  /// No description provided for @formFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All Forms'**
+  String get formFilterAll;
+
+  /// No description provided for @formFilterCanonicalOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Canonical Only'**
+  String get formFilterCanonicalOnly;
+
+  /// No description provided for @formFilterMega.
+  ///
+  /// In en, this message translates to:
+  /// **'Mega Evolutions'**
+  String get formFilterMega;
+
+  /// No description provided for @formFilterRegional.
+  ///
+  /// In en, this message translates to:
+  /// **'Regional Forms'**
+  String get formFilterRegional;
+
+  /// No description provided for @formFilterGmax.
+  ///
+  /// In en, this message translates to:
+  /// **'Gigantamax'**
+  String get formFilterGmax;
+
+  /// No description provided for @includeCosmeticForms.
+  ///
+  /// In en, this message translates to:
+  /// **'Include cosmetic & costume forms'**
+  String get includeCosmeticForms;
+
+  /// No description provided for @formBadgeMegaIndicator.
+  ///
+  /// In en, this message translates to:
+  /// **'⚡ Mega'**
+  String get formBadgeMegaIndicator;
+
+  /// No description provided for @formBadgeRegionalIndicator.
+  ///
+  /// In en, this message translates to:
+  /// **'🌍 Regional'**
+  String get formBadgeRegionalIndicator;
+
+  /// No description provided for @formBadgeGmaxIndicator.
+  ///
+  /// In en, this message translates to:
+  /// **'💥 G-Max'**
+  String get formBadgeGmaxIndicator;
+
+  /// No description provided for @formBadgeFormsIndicator.
+  ///
+  /// In en, this message translates to:
+  /// **'✨ Forms'**
+  String get formBadgeFormsIndicator;
+
+  /// No description provided for @hasAlternateFormsSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'alternate forms available'**
+  String get hasAlternateFormsSemantics;
 }
 
 class _AppLocalizationsDelegate

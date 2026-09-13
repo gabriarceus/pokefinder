@@ -4,8 +4,7 @@ import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/type_color_scheme.dart';
 import 'package:pokefinder/src/2_application/bloc/pokedex_bloc/pokedex_bloc.dart';
-import 'package:pokefinder/src/3_domain/entities/pokedex_sort_order.dart';
-import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
+import 'package:pokefinder/src/3_domain/domain.dart';
 
 /// Modal bottom sheet allowing users to filter by types, generation, and sort order.
 class PokedexFilterBottomSheet extends StatelessWidget {
@@ -132,6 +131,106 @@ class PokedexFilterBottomSheet extends StatelessWidget {
                     controller: scrollController,
                     padding: const EdgeInsets.all(16),
                     children: [
+                      // Forms Section
+                      Text(
+                        t.forms,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          ChoiceChip(
+                            label: Text(t.formFilterCanonicalOnly),
+                            selected:
+                                state.formFilter ==
+                                PokedexFormFilter.canonicalOnly,
+                            onSelected: (selected) {
+                              if (selected) {
+                                context.read<PokedexBloc>().add(
+                                  const PokedexFormFilterChangedEvent(
+                                    PokedexFormFilter.canonicalOnly,
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                          ChoiceChip(
+                            label: Text(t.formFilterAll),
+                            selected: state.formFilter == PokedexFormFilter.all,
+                            onSelected: (selected) {
+                              if (selected) {
+                                context.read<PokedexBloc>().add(
+                                  const PokedexFormFilterChangedEvent(
+                                    PokedexFormFilter.all,
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                          ChoiceChip(
+                            label: Text(t.formFilterMega),
+                            selected:
+                                state.formFilter == PokedexFormFilter.mega,
+                            onSelected: (selected) {
+                              if (selected) {
+                                context.read<PokedexBloc>().add(
+                                  const PokedexFormFilterChangedEvent(
+                                    PokedexFormFilter.mega,
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                          ChoiceChip(
+                            label: Text(t.formFilterRegional),
+                            selected:
+                                state.formFilter == PokedexFormFilter.regional,
+                            onSelected: (selected) {
+                              if (selected) {
+                                context.read<PokedexBloc>().add(
+                                  const PokedexFormFilterChangedEvent(
+                                    PokedexFormFilter.regional,
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                          ChoiceChip(
+                            label: Text(t.formFilterGmax),
+                            selected:
+                                state.formFilter == PokedexFormFilter.gmax,
+                            onSelected: (selected) {
+                              if (selected) {
+                                context.read<PokedexBloc>().add(
+                                  const PokedexFormFilterChangedEvent(
+                                    PokedexFormFilter.gmax,
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      SwitchListTile.adaptive(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          t.includeCosmeticForms,
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                        value: state.includeCosmeticForms,
+                        onChanged: (value) {
+                          context.read<PokedexBloc>().add(
+                            PokedexCosmeticToggleChangedEvent(value),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 20),
+
                       // Types Section
                       Text(
                         t.types,

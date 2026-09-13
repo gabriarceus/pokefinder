@@ -232,6 +232,18 @@
   "apply": "Apply",
   "reset": "Reset",
   "searchPokedexPlaceholder": "Search by name or number...",
-  "offlineIndexNotice": "Browsing offline cached Pokédex"
+  "offlineIndexNotice": "Browsing offline cached Pokédex",
+  "forms": "Forms",
+  "formFilterAll": "All Forms",
+  "formFilterCanonicalOnly": "Canonical Only",
+  "formFilterMega": "Mega Evolutions",
+  "formFilterRegional": "Regional Forms",
+  "formFilterGmax": "Gigantamax",
+  "includeCosmeticForms": "Include cosmetic & costume forms",
+  "formBadgeMegaIndicator": "⚡ Mega",
+  "formBadgeRegionalIndicator": "🌍 Regional",
+  "formBadgeGmaxIndicator": "💥 G-Max",
+  "formBadgeFormsIndicator": "✨ Forms",
+  "hasAlternateFormsSemantics": "alternate forms available"
 }
 

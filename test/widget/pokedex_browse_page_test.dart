@@ -240,5 +240,70 @@ void main() {
         });
       },
     );
+
+    testWidgets(
+      'renders interleaved ordering for forms (Venusaur -> Mega Venusaur -> Charmander)',
+      (tester) async {
+        await mockNetworkImagesFor(() async {
+          final interleavedEntries = [
+            const PokemonIndexEntry(
+              id: 3,
+              name: 'venusaur',
+              detailUrl: 'https://pokeapi.co/api/v2/pokemon/3/',
+              types: [PokemonType.grass, PokemonType.poison],
+            ),
+            const PokemonIndexEntry(
+              id: 10033,
+              name: 'venusaur-mega',
+              detailUrl: 'https://pokeapi.co/api/v2/pokemon/10033/',
+              parentSpeciesId: 3,
+              parentSpeciesName: 'venusaur',
+              formCategory: PokemonFormCategory.mega,
+              types: [PokemonType.grass, PokemonType.poison],
+            ),
+            const PokemonIndexEntry(
+              id: 4,
+              name: 'charmander',
+              detailUrl: 'https://pokeapi.co/api/v2/pokemon/4/',
+              types: [PokemonType.fire],
+            ),
+          ];
+
+          when(() => bloc.state).thenReturn(
+            PokedexState.initial().copyWith(
+              status: PokedexStatus.success,
+              allEntries: interleavedEntries,
+              filteredEntries: interleavedEntries,
+              visibleEntries: interleavedEntries,
+              formFilter: PokedexFormFilter.all,
+            ),
+          );
+
+          await tester.pumpWidget(buildTestableWidget(const Size(400, 800)));
+          await tester.pump();
+
+          final cardTitles = find
+              .descendant(
+                of: find.byType(PokemonCard),
+                matching: find.byType(Text),
+              )
+              .evaluate()
+              .map((element) => (element.widget as Text).data)
+              .whereType<String>()
+              .toList();
+
+          expect(cardTitles.contains('Venusaur'), isTrue);
+          expect(cardTitles.contains('Mega Venusaur'), isTrue);
+          expect(cardTitles.contains('Charmander'), isTrue);
+
+          final venusaurIndex = cardTitles.indexOf('Venusaur');
+          final megaVenusaurIndex = cardTitles.indexOf('Mega Venusaur');
+          final charmanderIndex = cardTitles.indexOf('Charmander');
+
+          expect(venusaurIndex, lessThan(megaVenusaurIndex));
+          expect(megaVenusaurIndex, lessThan(charmanderIndex));
+        });
+      },
+    );
   });
 }

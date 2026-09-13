@@ -85,6 +85,13 @@ void main() {
     testWidgets(
       'selecting a generation chip dispatches PokedexGenerationFilterChangedEvent',
       (tester) async {
+        tester.view.physicalSize = const Size(800, 1400);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
         when(() => bloc.state).thenReturn(PokedexState.initial());
 
         await tester.pumpWidget(buildTestableWidget());
@@ -139,6 +146,62 @@ void main() {
         await tester.pump();
 
         verify(() => bloc.add(const PokedexClearFiltersEvent())).called(1);
+      },
+    );
+
+    testWidgets(
+      'selecting form category chip dispatches PokedexFormFilterChangedEvent',
+      (tester) async {
+        tester.view.physicalSize = const Size(800, 1400);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        when(() => bloc.state).thenReturn(PokedexState.initial());
+
+        await tester.pumpWidget(buildTestableWidget());
+        await tester.pump();
+
+        expect(find.text('Forms'), findsOneWidget);
+        expect(find.text('Mega Evolutions'), findsOneWidget);
+
+        await tester.tap(find.text('Mega Evolutions'));
+        await tester.pump();
+
+        verify(
+          () => bloc.add(
+            const PokedexFormFilterChangedEvent(PokedexFormFilter.mega),
+          ),
+        ).called(1);
+      },
+    );
+
+    testWidgets(
+      'toggling cosmetic forms switch dispatches PokedexCosmeticToggleChangedEvent',
+      (tester) async {
+        tester.view.physicalSize = const Size(800, 1400);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        when(() => bloc.state).thenReturn(PokedexState.initial());
+
+        await tester.pumpWidget(buildTestableWidget());
+        await tester.pump();
+
+        final switchFinder = find.byType(Switch);
+        expect(switchFinder, findsOneWidget);
+
+        await tester.tap(switchFinder);
+        await tester.pump();
+
+        verify(
+          () => bloc.add(const PokedexCosmeticToggleChangedEvent(true)),
+        ).called(1);
       },
     );
   });

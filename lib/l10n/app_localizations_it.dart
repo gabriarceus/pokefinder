@@ -626,4 +626,40 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get offlineIndexNotice => 'Consultazione Pokédex offline';
+
+  @override
+  String get forms => 'Forme';
+
+  @override
+  String get formFilterAll => 'Tutte le forme';
+
+  @override
+  String get formFilterCanonicalOnly => 'Solo canoniche';
+
+  @override
+  String get formFilterMega => 'Megaevoluzioni';
+
+  @override
+  String get formFilterRegional => 'Forme regionali';
+
+  @override
+  String get formFilterGmax => 'Gigamax';
+
+  @override
+  String get includeCosmeticForms => 'Includi forme estetiche e costumi';
+
+  @override
+  String get formBadgeMegaIndicator => '⚡ Mega';
+
+  @override
+  String get formBadgeRegionalIndicator => '🌍 Regionali';
+
+  @override
+  String get formBadgeGmaxIndicator => '💥 Gigamax';
+
+  @override
+  String get formBadgeFormsIndicator => '✨ Forme';
+
+  @override
+  String get hasAlternateFormsSemantics => 'forme alternative disponibili';
 }
