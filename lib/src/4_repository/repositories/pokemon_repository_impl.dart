@@ -4,23 +4,19 @@ import 'package:injectable/injectable.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 import 'package:pokefinder/src/4_repository/repository.dart';
 
-const _kSpritesRoot =
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/';
-
 /// Form-name suffix marking the vestigial "???". Such forms have
 /// no type sprite and are excluded from the exposed form list.
 const _kUnknownFormSuffix = '-unknown';
 
 /// Builds the type-icon sprite URL for the given [type], or an empty string
 /// when [type] is null — unknown/unsupported types have no sprite in this set.
-String _typeSpriteUrl(PokemonType? type) => type == null
-    ? ''
-    : '${_kSpritesRoot}types/generation-viii/sword-shield/${type.id}.png';
+String _typeSpriteUrl(PokemonType? type) =>
+    type == null ? '' : PokeApiUrlHelper.typeSpriteUrl(type.id);
 
 /// Builds the official-artwork URL for the Pokémon with the given [id],
 /// returning the shiny variant when [shiny] is true.
 String _officialArtworkUrl(int id, {bool shiny = false}) =>
-    '${_kSpritesRoot}pokemon/other/official-artwork/${shiny ? 'shiny/' : ''}$id.png';
+    PokeApiUrlHelper.officialArtworkUrl(id, shiny: shiny);
 
 @LazySingleton(as: IPokemonRepository, env: [Environment.prod])
 class PokemonRepositoryImpl implements IPokemonRepository {
@@ -140,7 +136,22 @@ class PokemonRepositoryImpl implements IPokemonRepository {
         cryLegacy: rawPokemon.cries.legacy,
         forms: rawPokemon.forms
             .where((f) => !f.name.endsWith(_kUnknownFormSuffix))
-            .map((f) => PokemonForm(name: f.name, url: f.url))
+            .map((f) {
+              final (
+                formType1,
+                formType2,
+              ) = PokemonFormClassifier.resolveFormTypes(
+                formName: f.name,
+                baseType1: type1,
+                baseType2: type2,
+              );
+              return PokemonForm(
+                name: f.name,
+                url: f.url,
+                type1: formType1,
+                type2: formType2,
+              );
+            })
             .toList(),
         gameIndices: rawPokemon.gameIndices
             .map((gi) => gi.version.name)
@@ -306,6 +317,154 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     }
   }
 
+  @override
+  Future<Either<PokemonFailure, PokemonSpecies>> getPokemonSpecies(
+    String url, {
+    CancellationToken? cancelToken,
+  }) async {
+    try {
+      final result = await _remoteDataSource.getPokemonSpecies(
+        url,
+        cancelToken: _bridgeToDio(cancelToken),
+      );
+      return result.map((raw) {
+        final flavorTexts = raw.flavorTextEntries
+            .map(
+              (entry) => PokemonSpeciesFlavorText(
+                text: TextNormalizer.cleanPokeApiText(entry.flavorText),
+                language: entry.language.name,
+                version: entry.version?.name ?? '',
+              ),
+            )
+            .toList();
+
+        final genera = <String, String>{
+          for (final g in raw.genera) g.language.name: g.genus,
+        };
+
+        return PokemonSpecies(
+          id: raw.id,
+          name: raw.name,
+          flavorTexts: flavorTexts,
+          genera: genera,
+          generation: raw.generation?.name,
+          habitat: raw.habitat?.name,
+          captureRate: raw.captureRate,
+          baseHappiness: raw.baseHappiness,
+          growthRate: raw.growthRate?.name,
+          genderRate: raw.genderRate,
+          eggGroups: raw.eggGroups.map((e) => e.name).toList(),
+          evolutionChainUrl: raw.evolutionChain?.url,
+          isBaby: raw.isBaby,
+          isLegendary: raw.isLegendary,
+          isMythical: raw.isMythical,
+        );
+      });
+    } catch (e) {
+      return left(_mapRepoError(e));
+    }
+  }
+
+  @override
+  Future<Either<PokemonFailure, EvolutionChain>> getEvolutionChain(
+    String url, {
+    CancellationToken? cancelToken,
+  }) async {
+    try {
+      final result = await _remoteDataSource.getEvolutionChain(
+        url,
+        cancelToken: _bridgeToDio(cancelToken),
+      );
+      return result.map((raw) {
+        return EvolutionChain(id: raw.id, root: _toEvolutionNode(raw.chain));
+      });
+    } catch (e) {
+      return left(_mapRepoError(e));
+    }
+  }
+
+  EvolutionNode _toEvolutionNode(RawChainLink link) {
+    final id = _idFromUrl(link.species.url);
+    final spriteUrl = _officialArtworkUrl(id);
+    final triggers = link.evolutionDetails.map((d) {
+      return EvolutionTriggerDetail(
+        triggerType: EvolutionTriggerType.fromApiName(d.trigger?.name),
+        minLevel: d.minLevel,
+        item: d.item?.name,
+        heldItem: d.heldItem?.name,
+        minHappiness: d.minHappiness,
+        timeOfDay: d.timeOfDay,
+        location: d.location?.name,
+        knownMove: d.knownMove?.name,
+        knownMoveType: d.knownMoveType?.name,
+        turnUpsideDown: d.turnUpsideDown,
+        tradeSpecies: d.tradeSpecies?.name,
+        relativePhysicalStats: d.relativePhysicalStats,
+        needsRain: d.needsOverworldRain,
+        gender: d.gender,
+        partySpecies: d.partySpecies?.name,
+        partyType: d.partyType?.name,
+        minBeauty: d.minBeauty,
+        minAffection: d.minAffection,
+      );
+    }).toList();
+
+    return EvolutionNode(
+      speciesId: id,
+      speciesName: link.species.name,
+      speciesUrl: link.species.url,
+      spriteUrl: spriteUrl,
+      triggers: triggers,
+      evolvesTo: link.evolvesTo.map(_toEvolutionNode).toList(),
+    );
+  }
+
+  @override
+  Future<Either<PokemonFailure, AbilityDetail>> getAbilityDetail(
+    String name, {
+    CancellationToken? cancelToken,
+  }) async {
+    try {
+      final result = await _remoteDataSource.getAbilityDetail(
+        name,
+        cancelToken: _bridgeToDio(cancelToken),
+      );
+      return result.map((raw) {
+        final flavorTexts = <String, String>{};
+        for (final entry in raw.flavorTextEntries) {
+          if (!flavorTexts.containsKey(entry.language.name)) {
+            flavorTexts[entry.language.name] = TextNormalizer.cleanPokeApiText(
+              entry.flavorText,
+            );
+          }
+        }
+
+        final effects = <String, String>{};
+        final shortEffects = <String, String>{};
+        for (final entry in raw.effectEntries) {
+          effects[entry.language.name] = TextNormalizer.cleanPokeApiText(
+            entry.effect,
+          );
+          shortEffects[entry.language.name] = TextNormalizer.cleanPokeApiText(
+            entry.shortEffect,
+          );
+        }
+
+        return AbilityDetail(
+          id: raw.id,
+          name: raw.name,
+          flavorTexts: flavorTexts,
+          effects: effects,
+          shortEffects: shortEffects,
+        );
+      });
+    } catch (e) {
+      return left(_mapRepoError(e));
+    }
+  }
+
+  int _idFromUrl(String url) => PokeApiUrlHelper.extractId(url);
+
   PokemonFailure _mapRepoError(Object e) {
     if (e is PokemonFailure) return e;
     if (e is TypeError ||
@@ -320,19 +479,7 @@ class PokemonRepositoryImpl implements IPokemonRepository {
   /// Resolves the [PokemonType] referenced by a PokeAPI type [typeUrl], or
   /// null when the URL points to a type outside the known set.
   PokemonType? _typeFromUrl(String typeUrl) =>
-      _typeFromId(_getTypeFromUrl(typeUrl));
-
-  /// Maps a raw numeric type id (extracted from a type URL) to its
-  /// [PokemonType], or null when the id is outside the known set.
-  PokemonType? _typeFromId(String rawId) =>
-      PokemonType.fromId(int.tryParse(rawId) ?? -1);
-
-  String _getTypeFromUrl(String typeUrl) {
-    final lastSlashIndex = typeUrl.lastIndexOf('/');
-    final trimmed = typeUrl.substring(0, lastSlashIndex);
-    final previousSlashIndex = trimmed.lastIndexOf('/');
-    return trimmed.substring(previousSlashIndex + 1);
-  }
+      PokemonType.fromId(PokeApiUrlHelper.extractId(typeUrl));
 
   @override
   Future<Either<PokemonFailure, Unit>> clearCache() async {

@@ -282,6 +282,206 @@
   "clearCacheConfirmation": "Are you sure you want to clear the cache? Downloaded data and images will need to be reloaded.",
   "cancel": "Cancel",
   "confirm": "Confirm",
-  "clear": "Clear"
+  "clear": "Clear",
+  "genus": "Category",
+  "captureRate": "Capture Rate",
+  "baseHappiness": "Base Friendship",
+  "growthRate": "Growth Rate",
+  "habitat": "Habitat",
+  "eggGroups": "Egg Groups",
+  "flavorText": "Pokédex Description",
+  "evolutionChain": "Evolution Chain",
+  "noEvolutions": "This Pokémon does not evolve.",
+  "evolutionTriggerLevel": "Lv. {level}",
+  "@evolutionTriggerLevel": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerItem": "Use {item}",
+  "@evolutionTriggerItem": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerTrade": "Trade",
+  "evolutionTriggerTradeItem": "Trade holding {item}",
+  "@evolutionTriggerTradeItem": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerHappiness": "High Friendship",
+  "evolutionTriggerHappinessDay": "Friendship (Day)",
+  "evolutionTriggerHappinessNight": "Friendship (Night)",
+  "evolutionTriggerLocation": "Level up at {location}",
+  "@evolutionTriggerLocation": {
+    "placeholders": {
+      "location": { "type": "String" }
+    }
+  },
+  "evolutionTriggerMove": "Knows {move}",
+  "@evolutionTriggerMove": {
+    "placeholders": {
+      "move": { "type": "String" }
+    }
+  },
+  "evolutionTriggerOther": "Special Condition",
+  "abilityDetail": "Ability Info",
+  "abilityEffect": "In-Battle Effect",
+  "abilityShortEffect": "Summary",
+  "allGameVersions": "All Versions",
+  "filterByVersion": "Game Version",
+  "baseSpeciesDataNotice": "Appearance & types reflect {formName}. Stats, moves, and abilities reflect the base species.",
+  "@baseSpeciesDataNotice": {
+    "placeholders": {
+      "formName": { "type": "String" }
+    }
+  },
+  "encountersUnavailableForVersion": "No encounters found for this game version.",
+  "heldItemsUnavailableForVersion": "No held items found for this game version.",
+  "movesUnavailableForVersion": "No moves found for this game version.",
+  "errorSpecies": "Failed to load species information.",
+  "errorEvolutionChain": "Failed to load evolution chain.",
+  "errorAbilityDetail": "Failed to load ability details.",
+  "evolutionTriggerLevelUpsideDown": "Lv. {level} (Upside down)",
+  "@evolutionTriggerLevelUpsideDown": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerLevelRain": "Lv. {level} (Rain)",
+  "@evolutionTriggerLevelRain": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerLevelAtkGtDef": "Lv. {level} (Atk > Def)",
+  "@evolutionTriggerLevelAtkGtDef": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerLevelDefGtAtk": "Lv. {level} (Def > Atk)",
+  "@evolutionTriggerLevelDefGtAtk": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerLevelAtkEqDef": "Lv. {level} (Atk = Def)",
+  "@evolutionTriggerLevelAtkEqDef": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerLevelDay": "Lv. {level} (Day)",
+  "@evolutionTriggerLevelDay": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerLevelNight": "Lv. {level} (Night)",
+  "@evolutionTriggerLevelNight": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerLevelParty": "Lv. {level} (with {species})",
+  "@evolutionTriggerLevelParty": {
+    "placeholders": {
+      "level": { "type": "int" },
+      "species": { "type": "String" }
+    }
+  },
+  "evolutionTriggerLevelPartyType": "Lv. {level} ({type} in party)",
+  "@evolutionTriggerLevelPartyType": {
+    "placeholders": {
+      "level": { "type": "int" },
+      "type": { "type": "String" }
+    }
+  },
+  "evolutionTriggerLevelGenderFemale": "Lv. {level} (Female)",
+  "@evolutionTriggerLevelGenderFemale": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerLevelGenderMale": "Lv. {level} (Male)",
+  "@evolutionTriggerLevelGenderMale": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerTradeSpecies": "Trade for {species}",
+  "@evolutionTriggerTradeSpecies": {
+    "placeholders": {
+      "species": { "type": "String" }
+    }
+  },
+  "evolutionTriggerShed": "Empty slot & Poké Ball",
+  "evolutionTriggerTurnUpsideDown": "Turn device upside down",
+  "evolutionTriggerRain": "Rain",
+  "alternateForms": "Alternate Forms",
+  "currentForm": "Current Form",
+  "currentPokemon": "Current Pokémon",
+  "evolutionTriggerPartySpecies": "With {species}",
+  "@evolutionTriggerPartySpecies": {
+    "placeholders": {
+      "species": { "type": "String" }
+    }
+  },
+  "evolutionTriggerItemGenderMale": "Use {item} (Male)",
+  "@evolutionTriggerItemGenderMale": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerItemGenderFemale": "Use {item} (Female)",
+  "@evolutionTriggerItemGenderFemale": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerItemDay": "Use {item} (Day)",
+  "@evolutionTriggerItemDay": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerItemNight": "Use {item} (Night)",
+  "@evolutionTriggerItemNight": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerHeldItem": "Hold {item}",
+  "@evolutionTriggerHeldItem": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerHeldItemDay": "Hold {item} (Day)",
+  "@evolutionTriggerHeldItemDay": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerHeldItemNight": "Hold {item} (Night)",
+  "@evolutionTriggerHeldItemNight": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerAffection": "High Affection",
+  "evolutionTriggerBeauty": "High Beauty",
+  "evolutionTriggerPartyType": "{type} in party",
+  "@evolutionTriggerPartyType": {
+    "placeholders": {
+      "type": { "type": "String" }
+    }
+  },
+  "evolutionTriggerGenderMale": "Male",
+  "evolutionTriggerGenderFemale": "Female"
 }
+
 

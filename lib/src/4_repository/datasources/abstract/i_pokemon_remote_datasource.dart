@@ -2,10 +2,13 @@ import 'package:dartz/dartz.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
 import 'package:dio/dio.dart' show CancelToken;
+import 'package:pokefinder/src/4_repository/models/raw_ability_detail/raw_ability_detail.dart';
 import 'package:pokefinder/src/4_repository/models/raw_encounter/raw_encounter.dart';
+import 'package:pokefinder/src/4_repository/models/raw_evolution_chain/raw_evolution_chain.dart';
 import 'package:pokefinder/src/4_repository/models/raw_form_details/raw_form_details.dart';
 import 'package:pokefinder/src/4_repository/models/raw_pokemon/raw_pokemon.dart';
 import 'package:pokefinder/src/4_repository/models/raw_move_detail/raw_move_detail.dart';
+import 'package:pokefinder/src/4_repository/models/raw_pokemon_species/raw_pokemon_species.dart';
 
 import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
@@ -33,6 +36,18 @@ abstract class IPokemonRemoteDataSource {
   });
   Future<Either<PokemonFailure, List<String>>> getAllPokemonNames();
   Future<Either<PokemonFailure, RawMoveDetail>> getMoveDetail(String name);
+  Future<Either<PokemonFailure, RawPokemonSpecies>> getPokemonSpecies(
+    String url, {
+    CancelToken? cancelToken,
+  });
+  Future<Either<PokemonFailure, RawEvolutionChain>> getEvolutionChain(
+    String url, {
+    CancelToken? cancelToken,
+  });
+  Future<Either<PokemonFailure, RawAbilityDetail>> getAbilityDetail(
+    String name, {
+    CancelToken? cancelToken,
+  });
   Future<Either<PokemonFailure, Unit>> clearCache();
   Future<Either<PokemonFailure, int>> getCacheSize();
 }

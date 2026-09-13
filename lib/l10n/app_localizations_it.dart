@@ -762,4 +762,255 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get clear => 'Svuota';
+
+  @override
+  String get genus => 'Categoria';
+
+  @override
+  String get captureRate => 'Tasso di cattura';
+
+  @override
+  String get baseHappiness => 'Amicizia base';
+
+  @override
+  String get growthRate => 'Crescita';
+
+  @override
+  String get habitat => 'Habitat';
+
+  @override
+  String get eggGroups => 'Gruppi uovo';
+
+  @override
+  String get flavorText => 'Descrizione Pokédex';
+
+  @override
+  String get evolutionChain => 'Catena Evolutiva';
+
+  @override
+  String get noEvolutions => 'Questo Pokémon non si evolve.';
+
+  @override
+  String evolutionTriggerLevel({required int level}) {
+    return 'Liv. $level';
+  }
+
+  @override
+  String evolutionTriggerItem({required String item}) {
+    return 'Usa $item';
+  }
+
+  @override
+  String get evolutionTriggerTrade => 'Scambio';
+
+  @override
+  String evolutionTriggerTradeItem({required String item}) {
+    return 'Scambio con $item';
+  }
+
+  @override
+  String get evolutionTriggerHappiness => 'Amicizia alta';
+
+  @override
+  String get evolutionTriggerHappinessDay => 'Amicizia (Giorno)';
+
+  @override
+  String get evolutionTriggerHappinessNight => 'Amicizia (Notte)';
+
+  @override
+  String evolutionTriggerLocation({required String location}) {
+    return 'Sali di livello a $location';
+  }
+
+  @override
+  String evolutionTriggerMove({required String move}) {
+    return 'Conosce $move';
+  }
+
+  @override
+  String get evolutionTriggerOther => 'Condizione speciale';
+
+  @override
+  String get abilityDetail => 'Info Abilità';
+
+  @override
+  String get abilityEffect => 'Effetto in Battaglia';
+
+  @override
+  String get abilityShortEffect => 'Riepilogo';
+
+  @override
+  String get allGameVersions => 'Tutte le versioni';
+
+  @override
+  String get filterByVersion => 'Versione gioco';
+
+  @override
+  String baseSpeciesDataNotice({required String formName}) {
+    return 'Aspetto e tipi riflettono $formName. Statistiche, mosse e abilità riflettono la specie base.';
+  }
+
+  @override
+  String get encountersUnavailableForVersion =>
+      'Nessun incontro trovato per questa versione.';
+
+  @override
+  String get heldItemsUnavailableForVersion =>
+      'Nessuno strumento trovato per questa versione.';
+
+  @override
+  String get movesUnavailableForVersion =>
+      'Nessuna mossa trovata per questa versione.';
+
+  @override
+  String get errorSpecies =>
+      'Impossibile caricare le informazioni sulla specie.';
+
+  @override
+  String get errorEvolutionChain => 'Impossibile caricare la catena evolutiva.';
+
+  @override
+  String get errorAbilityDetail =>
+      'Impossibile caricare i dettagli dell\'abilità.';
+
+  @override
+  String evolutionTriggerLevelUpsideDown({required int level}) {
+    return 'Liv. $level (Sottosopra)';
+  }
+
+  @override
+  String evolutionTriggerLevelRain({required int level}) {
+    return 'Liv. $level (Con pioggia)';
+  }
+
+  @override
+  String evolutionTriggerLevelAtkGtDef({required int level}) {
+    return 'Liv. $level (Att > Dif)';
+  }
+
+  @override
+  String evolutionTriggerLevelDefGtAtk({required int level}) {
+    return 'Liv. $level (Dif > Att)';
+  }
+
+  @override
+  String evolutionTriggerLevelAtkEqDef({required int level}) {
+    return 'Liv. $level (Att = Dif)';
+  }
+
+  @override
+  String evolutionTriggerLevelDay({required int level}) {
+    return 'Liv. $level (Giorno)';
+  }
+
+  @override
+  String evolutionTriggerLevelNight({required int level}) {
+    return 'Liv. $level (Notte)';
+  }
+
+  @override
+  String evolutionTriggerLevelParty({
+    required int level,
+    required String species,
+  }) {
+    return 'Liv. $level (con $species)';
+  }
+
+  @override
+  String evolutionTriggerLevelPartyType({
+    required int level,
+    required String type,
+  }) {
+    return 'Liv. $level (tipo $type in squadra)';
+  }
+
+  @override
+  String evolutionTriggerLevelGenderFemale({required int level}) {
+    return 'Liv. $level (Femmina)';
+  }
+
+  @override
+  String evolutionTriggerLevelGenderMale({required int level}) {
+    return 'Liv. $level (Maschio)';
+  }
+
+  @override
+  String evolutionTriggerTradeSpecies({required String species}) {
+    return 'Scambio per $species';
+  }
+
+  @override
+  String get evolutionTriggerShed => 'Spazio libero e Poké Ball';
+
+  @override
+  String get evolutionTriggerTurnUpsideDown => 'Gira la console sottosopra';
+
+  @override
+  String get evolutionTriggerRain => 'Con pioggia';
+
+  @override
+  String get alternateForms => 'Forme alternative';
+
+  @override
+  String get currentForm => 'Forma attuale';
+
+  @override
+  String get currentPokemon => 'Pokémon attuale';
+
+  @override
+  String evolutionTriggerPartySpecies({required String species}) {
+    return 'Con $species';
+  }
+
+  @override
+  String evolutionTriggerItemGenderMale({required String item}) {
+    return 'Usa $item (Maschio)';
+  }
+
+  @override
+  String evolutionTriggerItemGenderFemale({required String item}) {
+    return 'Usa $item (Femmina)';
+  }
+
+  @override
+  String evolutionTriggerItemDay({required String item}) {
+    return 'Usa $item (Giorno)';
+  }
+
+  @override
+  String evolutionTriggerItemNight({required String item}) {
+    return 'Usa $item (Notte)';
+  }
+
+  @override
+  String evolutionTriggerHeldItem({required String item}) {
+    return 'Tiene $item';
+  }
+
+  @override
+  String evolutionTriggerHeldItemDay({required String item}) {
+    return 'Tiene $item (Giorno)';
+  }
+
+  @override
+  String evolutionTriggerHeldItemNight({required String item}) {
+    return 'Tiene $item (Notte)';
+  }
+
+  @override
+  String get evolutionTriggerAffection => 'Affetto elevato';
+
+  @override
+  String get evolutionTriggerBeauty => 'Bellezza elevata';
+
+  @override
+  String evolutionTriggerPartyType({required String type}) {
+    return '$type in squadra';
+  }
+
+  @override
+  String get evolutionTriggerGenderMale => 'Maschio';
+
+  @override
+  String get evolutionTriggerGenderFemale => 'Femmina';
 }

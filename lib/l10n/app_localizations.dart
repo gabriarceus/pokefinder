@@ -1555,6 +1555,384 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear'**
   String get clear;
+
+  /// No description provided for @genus.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get genus;
+
+  /// No description provided for @captureRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture Rate'**
+  String get captureRate;
+
+  /// No description provided for @baseHappiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Base Friendship'**
+  String get baseHappiness;
+
+  /// No description provided for @growthRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Growth Rate'**
+  String get growthRate;
+
+  /// No description provided for @habitat.
+  ///
+  /// In en, this message translates to:
+  /// **'Habitat'**
+  String get habitat;
+
+  /// No description provided for @eggGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'Egg Groups'**
+  String get eggGroups;
+
+  /// No description provided for @flavorText.
+  ///
+  /// In en, this message translates to:
+  /// **'Pokédex Description'**
+  String get flavorText;
+
+  /// No description provided for @evolutionChain.
+  ///
+  /// In en, this message translates to:
+  /// **'Evolution Chain'**
+  String get evolutionChain;
+
+  /// No description provided for @noEvolutions.
+  ///
+  /// In en, this message translates to:
+  /// **'This Pokémon does not evolve.'**
+  String get noEvolutions;
+
+  /// No description provided for @evolutionTriggerLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lv. {level}'**
+  String evolutionTriggerLevel({required int level});
+
+  /// No description provided for @evolutionTriggerItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Use {item}'**
+  String evolutionTriggerItem({required String item});
+
+  /// No description provided for @evolutionTriggerTrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Trade'**
+  String get evolutionTriggerTrade;
+
+  /// No description provided for @evolutionTriggerTradeItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Trade holding {item}'**
+  String evolutionTriggerTradeItem({required String item});
+
+  /// No description provided for @evolutionTriggerHappiness.
+  ///
+  /// In en, this message translates to:
+  /// **'High Friendship'**
+  String get evolutionTriggerHappiness;
+
+  /// No description provided for @evolutionTriggerHappinessDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Friendship (Day)'**
+  String get evolutionTriggerHappinessDay;
+
+  /// No description provided for @evolutionTriggerHappinessNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Friendship (Night)'**
+  String get evolutionTriggerHappinessNight;
+
+  /// No description provided for @evolutionTriggerLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Level up at {location}'**
+  String evolutionTriggerLocation({required String location});
+
+  /// No description provided for @evolutionTriggerMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Knows {move}'**
+  String evolutionTriggerMove({required String move});
+
+  /// No description provided for @evolutionTriggerOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Special Condition'**
+  String get evolutionTriggerOther;
+
+  /// No description provided for @abilityDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Ability Info'**
+  String get abilityDetail;
+
+  /// No description provided for @abilityEffect.
+  ///
+  /// In en, this message translates to:
+  /// **'In-Battle Effect'**
+  String get abilityEffect;
+
+  /// No description provided for @abilityShortEffect.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get abilityShortEffect;
+
+  /// No description provided for @allGameVersions.
+  ///
+  /// In en, this message translates to:
+  /// **'All Versions'**
+  String get allGameVersions;
+
+  /// No description provided for @filterByVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Game Version'**
+  String get filterByVersion;
+
+  /// No description provided for @baseSpeciesDataNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance & types reflect {formName}. Stats, moves, and abilities reflect the base species.'**
+  String baseSpeciesDataNotice({required String formName});
+
+  /// No description provided for @encountersUnavailableForVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'No encounters found for this game version.'**
+  String get encountersUnavailableForVersion;
+
+  /// No description provided for @heldItemsUnavailableForVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'No held items found for this game version.'**
+  String get heldItemsUnavailableForVersion;
+
+  /// No description provided for @movesUnavailableForVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'No moves found for this game version.'**
+  String get movesUnavailableForVersion;
+
+  /// No description provided for @errorSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load species information.'**
+  String get errorSpecies;
+
+  /// No description provided for @errorEvolutionChain.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load evolution chain.'**
+  String get errorEvolutionChain;
+
+  /// No description provided for @errorAbilityDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load ability details.'**
+  String get errorAbilityDetail;
+
+  /// No description provided for @evolutionTriggerLevelUpsideDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Lv. {level} (Upside down)'**
+  String evolutionTriggerLevelUpsideDown({required int level});
+
+  /// No description provided for @evolutionTriggerLevelRain.
+  ///
+  /// In en, this message translates to:
+  /// **'Lv. {level} (Rain)'**
+  String evolutionTriggerLevelRain({required int level});
+
+  /// No description provided for @evolutionTriggerLevelAtkGtDef.
+  ///
+  /// In en, this message translates to:
+  /// **'Lv. {level} (Atk > Def)'**
+  String evolutionTriggerLevelAtkGtDef({required int level});
+
+  /// No description provided for @evolutionTriggerLevelDefGtAtk.
+  ///
+  /// In en, this message translates to:
+  /// **'Lv. {level} (Def > Atk)'**
+  String evolutionTriggerLevelDefGtAtk({required int level});
+
+  /// No description provided for @evolutionTriggerLevelAtkEqDef.
+  ///
+  /// In en, this message translates to:
+  /// **'Lv. {level} (Atk = Def)'**
+  String evolutionTriggerLevelAtkEqDef({required int level});
+
+  /// No description provided for @evolutionTriggerLevelDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Lv. {level} (Day)'**
+  String evolutionTriggerLevelDay({required int level});
+
+  /// No description provided for @evolutionTriggerLevelNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Lv. {level} (Night)'**
+  String evolutionTriggerLevelNight({required int level});
+
+  /// No description provided for @evolutionTriggerLevelParty.
+  ///
+  /// In en, this message translates to:
+  /// **'Lv. {level} (with {species})'**
+  String evolutionTriggerLevelParty({
+    required int level,
+    required String species,
+  });
+
+  /// No description provided for @evolutionTriggerLevelPartyType.
+  ///
+  /// In en, this message translates to:
+  /// **'Lv. {level} ({type} in party)'**
+  String evolutionTriggerLevelPartyType({
+    required int level,
+    required String type,
+  });
+
+  /// No description provided for @evolutionTriggerLevelGenderFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Lv. {level} (Female)'**
+  String evolutionTriggerLevelGenderFemale({required int level});
+
+  /// No description provided for @evolutionTriggerLevelGenderMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Lv. {level} (Male)'**
+  String evolutionTriggerLevelGenderMale({required int level});
+
+  /// No description provided for @evolutionTriggerTradeSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'Trade for {species}'**
+  String evolutionTriggerTradeSpecies({required String species});
+
+  /// No description provided for @evolutionTriggerShed.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty slot & Poké Ball'**
+  String get evolutionTriggerShed;
+
+  /// No description provided for @evolutionTriggerTurnUpsideDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn device upside down'**
+  String get evolutionTriggerTurnUpsideDown;
+
+  /// No description provided for @evolutionTriggerRain.
+  ///
+  /// In en, this message translates to:
+  /// **'Rain'**
+  String get evolutionTriggerRain;
+
+  /// No description provided for @alternateForms.
+  ///
+  /// In en, this message translates to:
+  /// **'Alternate Forms'**
+  String get alternateForms;
+
+  /// No description provided for @currentForm.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Form'**
+  String get currentForm;
+
+  /// No description provided for @currentPokemon.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Pokémon'**
+  String get currentPokemon;
+
+  /// No description provided for @evolutionTriggerPartySpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'With {species}'**
+  String evolutionTriggerPartySpecies({required String species});
+
+  /// No description provided for @evolutionTriggerItemGenderMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Use {item} (Male)'**
+  String evolutionTriggerItemGenderMale({required String item});
+
+  /// No description provided for @evolutionTriggerItemGenderFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Use {item} (Female)'**
+  String evolutionTriggerItemGenderFemale({required String item});
+
+  /// No description provided for @evolutionTriggerItemDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Use {item} (Day)'**
+  String evolutionTriggerItemDay({required String item});
+
+  /// No description provided for @evolutionTriggerItemNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Use {item} (Night)'**
+  String evolutionTriggerItemNight({required String item});
+
+  /// No description provided for @evolutionTriggerHeldItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold {item}'**
+  String evolutionTriggerHeldItem({required String item});
+
+  /// No description provided for @evolutionTriggerHeldItemDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold {item} (Day)'**
+  String evolutionTriggerHeldItemDay({required String item});
+
+  /// No description provided for @evolutionTriggerHeldItemNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold {item} (Night)'**
+  String evolutionTriggerHeldItemNight({required String item});
+
+  /// No description provided for @evolutionTriggerAffection.
+  ///
+  /// In en, this message translates to:
+  /// **'High Affection'**
+  String get evolutionTriggerAffection;
+
+  /// No description provided for @evolutionTriggerBeauty.
+  ///
+  /// In en, this message translates to:
+  /// **'High Beauty'**
+  String get evolutionTriggerBeauty;
+
+  /// No description provided for @evolutionTriggerPartyType.
+  ///
+  /// In en, this message translates to:
+  /// **'{type} in party'**
+  String evolutionTriggerPartyType({required String type});
+
+  /// No description provided for @evolutionTriggerGenderMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get evolutionTriggerGenderMale;
+
+  /// No description provided for @evolutionTriggerGenderFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get evolutionTriggerGenderFemale;
 }
 
 class _AppLocalizationsDelegate

@@ -157,13 +157,20 @@ class PokemonMove extends Equatable {
 }
 
 class PokemonForm extends Equatable {
-  const PokemonForm({required this.name, required this.url});
+  const PokemonForm({
+    required this.name,
+    required this.url,
+    this.type1,
+    this.type2,
+  });
 
   final String name;
   final String url;
+  final PokemonType? type1;
+  final PokemonType? type2;
 
   @override
-  List<Object?> get props => [name, url];
+  List<Object?> get props => [name, url, type1, type2];
 }
 
 class PokemonFormDetails extends Equatable {

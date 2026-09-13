@@ -197,6 +197,120 @@ class MockPokemonRepository implements IPokemonRepository {
   }
 
   @override
+  Future<Either<PokemonFailure, PokemonSpecies>> getPokemonSpecies(
+    String url, {
+    CancellationToken? cancelToken,
+  }) async {
+    return const Right(
+      PokemonSpecies(
+        id: 1,
+        name: 'bulbasaur',
+        flavorTexts: [
+          PokemonSpeciesFlavorText(
+            text:
+                'A strange seed was planted on its back at birth. The plant sprouts and grows with this POKéMON.',
+            language: 'en',
+            version: 'red',
+          ),
+          PokemonSpeciesFlavorText(
+            text:
+                'Alla nascita gli è stato piantato un seme strano sul dorso. Il seme cresce insieme al corpo.',
+            language: 'it',
+            version: 'sword',
+          ),
+        ],
+        genera: {'en': 'Seed Pokémon', 'it': 'Pokémon Seme'},
+        generation: 'generation-i',
+        habitat: 'grassland',
+        captureRate: 45,
+        baseHappiness: 50,
+        growthRate: 'medium-slow',
+        genderRate: 1,
+        eggGroups: ['monster', 'plant'],
+        evolutionChainUrl: 'https://pokeapi.co/api/v2/evolution-chain/1/',
+      ),
+    );
+  }
+
+  @override
+  Future<Either<PokemonFailure, EvolutionChain>> getEvolutionChain(
+    String url, {
+    CancellationToken? cancelToken,
+  }) async {
+    return const Right(
+      EvolutionChain(
+        id: 1,
+        root: EvolutionNode(
+          speciesId: 1,
+          speciesName: 'bulbasaur',
+          speciesUrl: 'https://pokeapi.co/api/v2/pokemon-species/1/',
+          spriteUrl:
+              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png',
+          evolvesTo: [
+            EvolutionNode(
+              speciesId: 2,
+              speciesName: 'ivysaur',
+              speciesUrl: 'https://pokeapi.co/api/v2/pokemon-species/2/',
+              spriteUrl:
+                  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/2.png',
+              triggers: [
+                EvolutionTriggerDetail(
+                  triggerType: EvolutionTriggerType.levelUp,
+                  minLevel: 16,
+                ),
+              ],
+              evolvesTo: [
+                EvolutionNode(
+                  speciesId: 3,
+                  speciesName: 'venusaur',
+                  speciesUrl: 'https://pokeapi.co/api/v2/pokemon-species/3/',
+                  spriteUrl:
+                      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/3.png',
+                  triggers: [
+                    EvolutionTriggerDetail(
+                      triggerType: EvolutionTriggerType.levelUp,
+                      minLevel: 32,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Future<Either<PokemonFailure, AbilityDetail>> getAbilityDetail(
+    String name, {
+    CancellationToken? cancelToken,
+  }) async {
+    return const Right(
+      AbilityDetail(
+        id: 65,
+        name: 'overgrow',
+        flavorTexts: {
+          'en': 'Ups GRASS moves in a pinch.',
+          'it': 'Potenzia le mosse di tipo Erba in situazioni critiche.',
+        },
+        effects: {
+          'en':
+              'When this Pokémon has 1/3 or less of its HP remaining, its Grass-type moves inflict 1.5× as much regular damage.',
+          'it':
+              'Quando i PS sono a 1/3 o meno, la potenza delle mosse di tipo Erba aumenta del 50%.',
+        },
+        shortEffects: {
+          'en':
+              'Strengthens Grass moves to inflict 1.5× damage at 1/3 max HP or less.',
+          'it':
+              'Potenzia le mosse di tipo Erba quando i PS scendono sotto 1/3.',
+        },
+      ),
+    );
+  }
+
+  @override
   Future<Either<PokemonFailure, Unit>> clearCache() async {
     return const Right(unit);
   }

@@ -11,6 +11,8 @@ import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
 import 'package:pokefinder/src/4_repository/datasources/abstract/i_pokemon_remote_datasource.dart';
 import 'package:pokefinder/src/4_repository/models/raw_encounter/raw_encounter.dart';
 import 'package:pokefinder/src/4_repository/models/raw_form_details/raw_form_details.dart';
+import 'package:pokefinder/src/3_domain/entities/evolution_chain.dart';
+import 'package:pokefinder/src/4_repository/models/raw_evolution_chain/raw_evolution_chain.dart';
 import 'package:pokefinder/src/4_repository/models/raw_move_detail/raw_move_detail.dart';
 import 'package:pokefinder/src/4_repository/models/raw_pokemon/raw_pokemon.dart';
 import 'package:pokefinder/src/4_repository/repositories/pokemon_repository_impl.dart';
@@ -701,6 +703,78 @@ void main() {
           (failure) => expect(failure, isA<UnexpectedFailure>()),
           (_) => fail('expected left'),
         );
+      },
+    );
+  });
+
+  group('getEvolutionChain', () {
+    test(
+      'maps raw evolution chain with compound trigger details to domain entity',
+      () async {
+        final raw = RawEvolutionChain.fromJson({
+          'id': 352,
+          'chain': {
+            'species': {
+              'name': 'inkay',
+              'url': 'https://pokeapi.co/api/v2/pokemon-species/686/',
+            },
+            'evolution_details': <Map<String, dynamic>>[],
+            'evolves_to': [
+              {
+                'species': {
+                  'name': 'malamar',
+                  'url': 'https://pokeapi.co/api/v2/pokemon-species/687/',
+                },
+                'evolution_details': [
+                  {
+                    'trigger': {'name': 'level-up', 'url': ''},
+                    'min_level': 30,
+                    'turn_upside_down': true,
+                    'needs_overworld_rain': false,
+                    'relative_physical_stats': null,
+                    'gender': 1,
+                    'party_species': {'name': 'remoraid', 'url': ''},
+                    'party_type': {'name': 'dark', 'url': ''},
+                    'trade_species': {'name': 'shelmet', 'url': ''},
+                  },
+                ],
+                'evolves_to': <Map<String, dynamic>>[],
+              },
+            ],
+          },
+        });
+
+        when(
+          () => dataSource.getEvolutionChain(
+            any(),
+            cancelToken: any(named: 'cancelToken'),
+          ),
+        ).thenAnswer((_) async => Right(raw));
+
+        final result = await repository.getEvolutionChain('chain/352/');
+
+        expect(result.isRight(), isTrue);
+        result.fold((_) => fail('expected right'), (chain) {
+          expect(chain.id, 352);
+          expect(chain.root.speciesName, 'inkay');
+          expect(chain.root.speciesId, 686);
+          expect(chain.root.evolvesTo.length, 1);
+
+          final malamarNode = chain.root.evolvesTo.first;
+          expect(malamarNode.speciesName, 'malamar');
+          expect(malamarNode.speciesId, 687);
+          expect(malamarNode.triggers.length, 1);
+
+          final trigger = malamarNode.triggers.first;
+          expect(trigger.triggerType, EvolutionTriggerType.levelUp);
+          expect(trigger.minLevel, 30);
+          expect(trigger.turnUpsideDown, isTrue);
+          expect(trigger.needsRain, isFalse);
+          expect(trigger.gender, 1);
+          expect(trigger.partySpecies, 'remoraid');
+          expect(trigger.partyType, 'dark');
+          expect(trigger.tradeSpecies, 'shelmet');
+        });
       },
     );
   });

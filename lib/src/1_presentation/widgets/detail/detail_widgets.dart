@@ -10,3 +10,7 @@ export "surface_card.dart";
 export "type_color_scheme.dart";
 export "type_chip.dart";
 export "type_image.dart";
+export "ability_detail_bottom_sheet.dart";
+export "evolution_chain_widget.dart";
+export "detail_game_version_selector.dart";
+export "alternate_forms_widget.dart";

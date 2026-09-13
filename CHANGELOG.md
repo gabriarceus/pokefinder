@@ -6,6 +6,17 @@ All notable changes to this project will be documented in this file, following t
 
 ### Added
 
+- Species information and Pokédex flavor text integration (`PokemonSpecies`, `SpeciesCubit`, `GetPokemonSpeciesUseCase`, `RawPokemonSpecies`) displaying localized Pokédex descriptions (with English fallback to the latest canonical game generation), genus, generation, and habitat in the detail view.
+- Text normalization helper (`TextNormalizer.cleanFlavorText`) stripping form feeds, carriage returns, and redundant whitespace artifacts from official Pokédex descriptions.
+- Evolution chain domain entities and tree parser (`EvolutionChain`, `EvolutionNode`, `EvolutionTriggerDetail`, `GetEvolutionChainUseCase`, `RawEvolutionChain`) modeling linear and branching evolution paths.
+- Interactive branching evolution chain visualization widget (`EvolutionChainWidget`, `EvolutionCubit`) with tap-to-navigate route transitions to `/pokemon/:nameOrId` and accessible semantic labels.
+- On-demand ability detail modal (`AbilityDetailBottomSheet`, `AbilityDetailCubit`, `GetAbilityDetailUseCase`, `AbilityDetail`, `RawAbilityDetail`) presenting localized summaries, short descriptions, and in-depth battle effect breakdowns with caching and retry states.
+- Unified game version selector (`DetailGameVersionSelector`, `DetailGameVersionCubit`, `GameVersionMappings`) synchronizing moves, encounters, and held items across tabs with chronological franchise version sorting.
+- Inline alternate forms gallery (`AlternateFormsWidget`) embedded in the detail Info tab displaying form sprites, localized titles, and primary/secondary elemental type badges with instant tap-to-switch capability.
+- Pure domain helper `PokeApiUrlHelper` consolidating sprite, official artwork, and type icon URL generation and entity ID extraction across repository and presentation layers.
+- Comprehensive evolution trigger localization and formatting (`EvolutionTriggerFormatter`) supporting item, trade, happiness, level, upside-down, overworld rain, physical stat relationships, party species, party type, affection, beauty, time of day, and gender requirements across English and Italian.
+- Deterministic regional and special form type resolution (`PokemonFormClassifier.resolveFormTypes`) providing offline O(1) primary and secondary types for Alolan, Galarian, Hisuian, Paldean, Mega, and Rotom variants.
+
 - Persistent Favorites management (`FavoritePokemon`, `FavoritesCubit`, `FavoriteSortOrder`) with toggle buttons in detail app bar and Pokédex cards, reactive synchronization across screens, and dedicated Favorites route `/favorites` featuring 3-way sorting (ID, Name, Date Added) and empty state illustration.
 - Bounded Recently Viewed and Search History (`RecentPokemon`, `RecentHistoryCubit`) with deduplication, capacity limit eviction (20 Pokémon, 10 searches), quick-access horizontal shelf and search chips on Home, and pause/clear controls.
 - Expanded User Preferences (`PreferencesCubit`, `UnitSystem`, `MeasurementFormatter`) persisted via durable storage:
@@ -66,6 +77,10 @@ All notable changes to this project will be documented in this file, following t
 
 ### Changed
 
+- Relocated `EvolutionTriggerFormatter` from `src/3_domain/helpers/` to `src/1_presentation/helpers/` to maintain Clean Architecture compliance by isolating `AppLocalizations` and Flutter UI dependencies from domain code.
+- Consolidated disparate and duplicate PokéAPI URL parsing and asset endpoint formatting in `PokemonRemoteDataSource`, `PokemonRepositoryImpl`, and presentation widgets into `PokeApiUrlHelper`.
+- Updated `PokemonSpecies.flavorTextFor` default fallback to select the latest canonical game version (`lastWhere`) instead of the earliest legacy release.
+
 - Removed redundant catalog re-enrichment pass in `PokedexBloc._onFetchIndex`, relying directly on the repository's enriched domain entities.
 - Equipped `PokemonCard` form badge containers with `Flexible` and text ellipsis to prevent horizontal overflow in compact layouts and dynamic typography.
 - Consolidated autocomplete suggestions in `PokeTextField` around structured `PokemonIndexEntry` items, removing the redundant `allNames` parameter.
@@ -91,6 +106,10 @@ All notable changes to this project will be documented in this file, following t
 - Capitalized recent history items using pure domain `capitalize()` extension rather than ad-hoc string slicing.
 
 ### Fixed
+
+- Prevented `DropdownButton` runtime assertion crashes in `DetailGameVersionSelector` when switching between Pokémon with differing available game versions by sanitizing selected versions against available versions and defaulting to all versions.
+- Resolved evolution trigger condition shadowing where item, trade, affection, beauty, and gender requirements were omitted when combined with level thresholds.
+- Added missing screen reader accessibility semantics (`Semantics(button: !isCurrent, selected: isCurrent, label: ...)`) to evolution chain node cards.
 
 - Prevented unverified or failed searches from polluting recent search history by deferring search query persistence until successful Pokémon resolution on detail view (`PokemonBlocSuccess`).
 - Exposed favorite toggle button semantics to screen readers on `PokemonCard` by decoupling its accessibility node from the card body's `excludeSemantics` boundary.
