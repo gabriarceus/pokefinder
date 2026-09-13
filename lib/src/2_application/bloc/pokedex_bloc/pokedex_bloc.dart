@@ -7,6 +7,7 @@ import 'package:en_logger/en_logger.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
 import 'package:meta/meta.dart';
+import 'package:pokefinder/src/2_application/helpers/log_sanitizer.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
 part 'pokedex_event.dart';
@@ -154,7 +155,8 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
     Emitter<PokedexState> emit,
   ) {
     if (event.query == state.searchQuery) return;
-    _logger.info('Search query changed: ${event.query}', prefix: _prefix);
+    final queryLog = sanitizeQueryForLog(event.query);
+    _logger.info('Search query changed: $queryLog', prefix: _prefix);
 
     final filtered = PokemonIndexFilterHelper.filterAndSort(
       entries: state.allEntries,

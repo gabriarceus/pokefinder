@@ -1008,4 +1008,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get evolutionTriggerGenderFemale => 'Female';
+
+  @override
+  String get aboutPokeFinder => 'About PokéFinder';
+
+  @override
+  String get aboutAppDescription =>
+      'A lightweight, modern Pokédex app for exploring Pokémon, abilities, moves, and stats.';
+
+  @override
+  String aboutVersion({required String version}) {
+    return 'Version $version';
+  }
+
+  @override
+  String aboutBuildNumber({required String buildNumber}) {
+    return 'Build $buildNumber';
+  }
+
+  @override
+  String get aboutDataSource => 'Data Source';
+
+  @override
+  String get aboutDataSourceDescription =>
+      'All Pokémon data, sprites, and assets are sourced from PokeAPI.';
+
+  @override
+  String get aboutPokeApiWebsite => 'PokeAPI Website';
+
+  @override
+  String get aboutDisclaimer => 'Disclaimer';
+
+  @override
+  String get aboutDisclaimerText =>
+      'PokéFinder is an unofficial, non-commercial fan-made app and is not affiliated with, endorsed, or supported by Nintendo, GAME FREAK, or The Pokémon Company.';
+
+  @override
+  String get aboutOpenSourceLicenses => 'Open Source Licenses';
+
+  @override
+  String get aboutSourceCode => 'Source Code';
+
+  @override
+  String get aboutGitHubRepository => 'GitHub Repository';
+
+  @override
+  String get aboutReportIssue => 'Report an Issue';
 }

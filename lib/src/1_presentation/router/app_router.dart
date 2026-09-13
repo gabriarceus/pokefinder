@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pokefinder/src/1_presentation/pages/about/about_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/favorites/favorites_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
@@ -62,6 +63,15 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
         builder: (BuildContext context, GoRouterState state) {
           return const SettingsPage();
         },
+        routes: <RouteBase>[
+          GoRoute(
+            path: 'about',
+            name: 'about',
+            builder: (BuildContext context, GoRouterState state) {
+              return const AboutPage();
+            },
+          ),
+        ],
       ),
     ],
     errorBuilder: (BuildContext context, GoRouterState state) {

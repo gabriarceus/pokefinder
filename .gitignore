@@ -56,3 +56,8 @@ app.*.map.json
 # Headroom related
 .headroom*
 .serena/
+
+# Android signing keys and keystore properties
+**/key.properties
+*.jks
+*.keystore

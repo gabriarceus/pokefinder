@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show appFlavor;
 import 'package:injectable/injectable.dart';
 import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/src/1_presentation/presentation.dart';
@@ -10,6 +11,11 @@ void main() {
   bootstrap(then: () => const MyApp());
 }
 
+/// Optional compile-time override for mock repository usage passed via `--dart-define=USE_MOCK=true|false`.
+const bool? _kUseMock = bool.hasEnvironment('USE_MOCK')
+    ? bool.fromEnvironment('USE_MOCK')
+    : null;
+
 /// Executes mobile application startup with isolated storage initialization.
 ///
 /// If storage or dependency setup fails, renders [StartupErrorApp] with a retry action
@@ -18,6 +24,7 @@ Future<void> bootstrap({
   required Widget Function() then,
   Future<void> Function()? initializeStorage,
   void Function(Widget)? appRunner,
+  String? environment,
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
   final run = appRunner ?? runApp;
@@ -29,7 +36,12 @@ Future<void> bootstrap({
       await initializeMobileStorage();
     }
 
-    await configureDependencies(Environment.prod);
+    final resolvedEnv =
+        environment ??
+        (_kUseMock != null
+            ? (_kUseMock! ? Environment.dev : Environment.prod)
+            : (appFlavor == 'dev' ? Environment.dev : Environment.prod));
+    await configureDependencies(resolvedEnv);
     run(then());
   } catch (error) {
     run(
@@ -38,6 +50,7 @@ Future<void> bootstrap({
           then: then,
           initializeStorage: initializeStorage,
           appRunner: appRunner,
+          environment: environment,
         ),
         errorMessage: kDebugMode ? error.toString() : null,
       ),

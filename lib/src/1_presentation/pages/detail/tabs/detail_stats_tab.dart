@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/3_domain/helpers/stat_calculator.dart';
+import 'package:pokefinder/src/3_domain/helpers/measurement_formatter.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 
@@ -151,6 +152,20 @@ class DetailStatsTab extends StatelessWidget {
     final minVal = StatCalculator.calculateMinStat(kind, value);
     final maxVal = StatCalculator.calculateMaxStat(kind, value);
 
+    final locale = Localizations.localeOf(context).languageCode;
+    final formattedValue = MeasurementFormatter.formatInteger(
+      value,
+      locale: locale,
+    );
+    final formattedMinVal = MeasurementFormatter.formatInteger(
+      minVal,
+      locale: locale,
+    );
+    final formattedMaxVal = MeasurementFormatter.formatInteger(
+      maxVal,
+      locale: locale,
+    );
+
     final progressBar = TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: value / 255.0),
       duration: const Duration(milliseconds: 600),
@@ -170,7 +185,8 @@ class DetailStatsTab extends StatelessWidget {
       },
     );
 
-    final semanticLabel = '$label: $value, min $minVal, max $maxVal';
+    final semanticLabel =
+        '$label: $formattedValue, min $formattedMinVal, max $formattedMaxVal';
 
     if (isCompact) {
       return Semantics(
@@ -189,7 +205,7 @@ class DetailStatsTab extends StatelessWidget {
             ),
             const SizedBox(height: 2),
             Text(
-              '${context.t().statsBase}: $value | ${context.t().statsMin}: $minVal | ${context.t().statsMax}: $maxVal',
+              '${context.t().statsBase}: $formattedValue | ${context.t().statsMin}: $formattedMinVal | ${context.t().statsMax}: $formattedMaxVal',
               style: TextStyle(
                 fontSize: 12,
                 color: textColor.withValues(alpha: 0.8),
@@ -225,7 +241,7 @@ class DetailStatsTab extends StatelessWidget {
           SizedBox(
             width: 40,
             child: Text(
-              value.toString(),
+              formattedValue,
               textAlign: TextAlign.right,
               style: TextStyle(
                 fontSize: 13,
@@ -238,7 +254,7 @@ class DetailStatsTab extends StatelessWidget {
           SizedBox(
             width: 40,
             child: Text(
-              minVal.toString(),
+              formattedMinVal,
               textAlign: TextAlign.right,
               style: TextStyle(
                 fontSize: 13,
@@ -250,7 +266,7 @@ class DetailStatsTab extends StatelessWidget {
           SizedBox(
             width: 40,
             child: Text(
-              maxVal.toString(),
+              formattedMaxVal,
               textAlign: TextAlign.right,
               style: TextStyle(
                 fontSize: 13,

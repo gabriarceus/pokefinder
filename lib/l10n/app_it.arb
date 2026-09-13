@@ -32,7 +32,7 @@
   "statSpeed": "Velocità",
   "statsNotAvailable": "Statistiche non disponibili",
   "clearCache": "Svuota cache",
-  "cacheClearedSuccessfully": "Cache svuota con successo",
+  "cacheClearedSuccessfully": "Cache svuotata con successo",
   "tabInfo": "Info",
   "tabStats": "Statistiche",
   "tabMoves": "Mosse",
@@ -304,7 +304,20 @@
   "evolutionTriggerBeauty": "Bellezza elevata",
   "evolutionTriggerPartyType": "{type} in squadra",
   "evolutionTriggerGenderMale": "Maschio",
-  "evolutionTriggerGenderFemale": "Femmina"
+  "evolutionTriggerGenderFemale": "Femmina",
+  "aboutPokeFinder": "Informazioni su PokéFinder",
+  "aboutAppDescription": "Un Pokédex moderno e leggero per esplorare Pokémon, abilità, mosse e statistiche.",
+  "aboutVersion": "Versione {version}",
+  "aboutBuildNumber": "Build {buildNumber}",
+  "aboutDataSource": "Fonte dati",
+  "aboutDataSourceDescription": "Tutti i dati, gli sprite e le risorse dei Pokémon provengono da PokeAPI.",
+  "aboutPokeApiWebsite": "Sito web PokeAPI",
+  "aboutDisclaimer": "Dichiarazione di non responsabilità",
+  "aboutDisclaimerText": "PokéFinder è un'applicazione creata da fan non ufficiale e non commerciale, non affiliata, approvata o supportata da Nintendo, GAME FREAK o The Pokémon Company.",
+  "aboutOpenSourceLicenses": "Licenze open source",
+  "aboutSourceCode": "Codice sorgente",
+  "aboutGitHubRepository": "Repository GitHub",
+  "aboutReportIssue": "Segnala un problema"
 }
 
 

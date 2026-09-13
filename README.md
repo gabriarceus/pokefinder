@@ -48,10 +48,9 @@ Two build flavors are configured, `dev` and `prod` (Android product flavors and
 matching Xcode schemes), differing in application id suffix and display name. Every
 `flutter run` and `flutter build` invocation must pass one of them.
 
-Dependency injection has a separate notion of environment: `Environment.prod` wires the
-real PokeAPI repository, `'mock'` wires `MockPokemonRepository`. `bootstrap()` currently
-selects `Environment.prod` unconditionally, so the build flavor does not change which
-data source is used.
+Dependency injection environments are mapped to the build flavor: `--flavor dev`
+binds `Environment.dev` with `MockPokemonRepository` for deterministic offline development,
+while `--flavor prod` binds `Environment.prod` with `PokemonRepositoryImpl` for live PokeAPI data.
 
 ## Getting started
 

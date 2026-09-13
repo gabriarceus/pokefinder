@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 import 'package:pokefinder/src/1_presentation/widgets/dialogs/confirmation_dialog.dart';
@@ -303,6 +304,26 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               child: Text(t.clear),
             ),
+          ),
+          const Divider(height: 1),
+
+          // Section: About & Attribution
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              t.aboutPokeFinder,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.info_outline_rounded),
+            title: Text(t.aboutPokeFinder),
+            subtitle: Text(t.aboutAppDescription),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => context.go('/settings/about'),
           ),
         ],
       ),

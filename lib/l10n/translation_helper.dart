@@ -239,6 +239,10 @@ extension TranslationExtension on BuildContext {
     };
   }
 
+  static final List<String> _sortedLocationKeys = List.unmodifiable(
+    locationsDb.keys.toList()..sort((a, b) => b.length.compareTo(a.length)),
+  );
+
   String _translateLocationToItalian(String rawName) {
     String name = rawName.toLowerCase().trim();
 
@@ -258,10 +262,8 @@ extension TranslationExtension on BuildContext {
 
     // 2. Lookup other locations using length-descending order to avoid partial matches
     String translated = name;
-    final sortedKeys = locationsDb.keys.toList()
-      ..sort((a, b) => b.length.compareTo(a.length));
 
-    for (final key in sortedKeys) {
+    for (final key in _sortedLocationKeys) {
       if (translated.contains(key)) {
         final replacement = locationsDb[key]!;
         translated = translated.replaceFirst(key, '##$replacement##');

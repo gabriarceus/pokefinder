@@ -481,7 +481,30 @@
     }
   },
   "evolutionTriggerGenderMale": "Male",
-  "evolutionTriggerGenderFemale": "Female"
+  "evolutionTriggerGenderFemale": "Female",
+  "aboutPokeFinder": "About PokéFinder",
+  "aboutAppDescription": "A lightweight, modern Pokédex app for exploring Pokémon, abilities, moves, and stats.",
+  "aboutVersion": "Version {version}",
+  "@aboutVersion": {
+    "placeholders": {
+      "version": { "type": "String" }
+    }
+  },
+  "aboutBuildNumber": "Build {buildNumber}",
+  "@aboutBuildNumber": {
+    "placeholders": {
+      "buildNumber": { "type": "String" }
+    }
+  },
+  "aboutDataSource": "Data Source",
+  "aboutDataSourceDescription": "All Pokémon data, sprites, and assets are sourced from PokeAPI.",
+  "aboutPokeApiWebsite": "PokeAPI Website",
+  "aboutDisclaimer": "Disclaimer",
+  "aboutDisclaimerText": "PokéFinder is an unofficial, non-commercial fan-made app and is not affiliated with, endorsed, or supported by Nintendo, GAME FREAK, or The Pokémon Company.",
+  "aboutOpenSourceLicenses": "Open Source Licenses",
+  "aboutSourceCode": "Source Code",
+  "aboutGitHubRepository": "GitHub Repository",
+  "aboutReportIssue": "Report an Issue"
 }
 
 

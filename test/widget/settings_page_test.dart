@@ -80,6 +80,7 @@ void main() {
       expect(find.text('Audio'), findsOneWidget);
       expect(find.text('Recently Viewed'), findsOneWidget);
       expect(find.text('Storage & Cache'), findsOneWidget);
+      expect(find.text('About PokéFinder'), findsWidgets);
     });
 
     testWidgets('changes theme mode via segmented button', (tester) async {

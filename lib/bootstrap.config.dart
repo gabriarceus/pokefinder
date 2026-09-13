@@ -60,6 +60,7 @@ import 'src/4_repository/repository.dart' as _i579;
 import 'src/4_repository/services/cry_audio_controller_impl.dart' as _i883;
 import 'src/4_repository/services/request_deduplicator.dart' as _i432;
 
+const String _dev = 'dev';
 const String _mock = 'mock';
 const String _prod = 'prod';
 
@@ -79,10 +80,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i814.CryAudioController>(
       () => _i883.JustAudioCryController(gh<_i463.EnLogger>()),
     );
-    gh.lazySingleton<_i341.IPokemonRepository>(
-      () => _i740.MockPokemonRepository(),
-      registerFor: {_mock},
-    );
     gh.lazySingleton<_i1056.LanguageCubit>(
       () => _i1056.LanguageCubit(gh<_i463.EnLogger>()),
     );
@@ -90,6 +87,10 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i876.DioApiClient(dio: gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i361.Dio>(() => registerModule.dio(gh<_i463.EnLogger>()));
+    gh.lazySingleton<_i341.IPokemonRepository>(
+      () => _i740.MockPokemonRepository(),
+      registerFor: {_dev, _mock},
+    );
     gh.lazySingleton<_i716.FavoritesCubit>(
       () =>
           _i716.FavoritesCubit(gh<_i463.EnLogger>(), clock: gh<_i454.Clock>()),
