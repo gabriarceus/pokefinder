@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
+import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/src/1_presentation/extensions/form_name_formatter.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
@@ -46,8 +46,7 @@ class DetailInfoTab extends StatelessWidget {
     final effectiveColor = _visibleTypeColor(context);
 
     return BlocProvider(
-      create: (context) =>
-          getIt<SpeciesCubit>()..fetchSpecies(pokemon.speciesUrl),
+      create: (context) => createSpeciesCubit(pokemon.speciesUrl),
       child: _DetailInfoTabContent(
         pokemon: pokemon,
         textColor: textColor,
@@ -313,7 +312,7 @@ class _DetailInfoTabContent extends StatelessWidget {
                               const Divider(),
                               LabelValueRow(
                                 label: context.t().generation,
-                                value: species.generation!.toUpperCase(),
+                                value: species.generation!.toDisplayCase(),
                                 textColor: textColor,
                               ),
                             ],

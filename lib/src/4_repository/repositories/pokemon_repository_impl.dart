@@ -288,9 +288,15 @@ class PokemonRepositoryImpl implements IPokemonRepository {
   }
 
   @override
-  Future<Either<PokemonFailure, MoveDetail>> getMoveDetail(String name) async {
+  Future<Either<PokemonFailure, MoveDetail>> getMoveDetail(
+    String name, {
+    CancellationToken? cancelToken,
+  }) async {
     try {
-      final result = await _remoteDataSource.getMoveDetail(name);
+      final result = await _remoteDataSource.getMoveDetail(
+        name,
+        cancelToken: _bridgeToDio(cancelToken),
+      );
       return result.map((raw) {
         final flavorTexts = <String, String>{};
         for (final entry in raw.flavorTextEntries) {

@@ -35,7 +35,10 @@ abstract class IPokemonRemoteDataSource {
     CancelToken? cancelToken,
   });
   Future<Either<PokemonFailure, List<String>>> getAllPokemonNames();
-  Future<Either<PokemonFailure, RawMoveDetail>> getMoveDetail(String name);
+  Future<Either<PokemonFailure, RawMoveDetail>> getMoveDetail(
+    String name, {
+    CancelToken? cancelToken,
+  });
   Future<Either<PokemonFailure, RawPokemonSpecies>> getPokemonSpecies(
     String url, {
     CancelToken? cancelToken,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pokefinder/bootstrap.dart';
+import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/src/2_application/bloc/home_bloc/home_bloc.dart';
 
 class HomePageProvider extends StatelessWidget {
@@ -19,16 +19,7 @@ class HomePageProvider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) {
-        final bloc = getIt<HomeBloc>()..add(FetchAllPokemonNamesEvent());
-        if (userInput.isNotEmpty) {
-          bloc.add(UserInputEvent(userInput));
-        }
-        return bloc;
-      },
-      child: child,
-    );
+    return BlocProvider(create: (_) => createHomeBloc(userInput), child: child);
   }
 }
 

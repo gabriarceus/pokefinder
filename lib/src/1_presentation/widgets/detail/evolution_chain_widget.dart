@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pokefinder/bootstrap.dart';
+import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
 import 'package:pokefinder/src/1_presentation/helpers/evolution_trigger_formatter.dart';
@@ -32,8 +32,7 @@ class EvolutionChainWidget extends StatelessWidget {
     }
 
     return BlocProvider(
-      create: (context) =>
-          getIt<EvolutionCubit>()..fetchEvolutionChain(evolutionChainUrl!),
+      create: (context) => createEvolutionCubit(evolutionChainUrl!),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

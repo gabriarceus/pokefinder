@@ -31,6 +31,12 @@ searching, browsing, and exploring Pokémon. Data comes from the public
 
 Invalid parameters fall back to a route error page.
 
+The detail screen offers a copy-link action that copies the canonical path
+(`/pokemon/:nameOrId`) to the clipboard; the same path is reachable as a
+cold-start deep link (`pokefinder:///pokemon/:nameOrId`, declared via an
+Android intent filter and an iOS URL type). Copy uses the platform clipboard
+only — no share-sheet plugin, no new permissions on either OS.
+
 ## Tools used
 
 - **[Flutter](https://flutter.dev) + [fvm](https://fvm.app)** — UI toolkit, SDK pinned in `.fvmrc`
@@ -60,6 +66,19 @@ lib/src/
 └── 4_repository/     data sources, repository implementations, API models
 ```
 
+### Bloc construction and use cases
+
+Presentation widgets never call `getIt` directly. Blocs and cubits with
+static dependencies are `@injectable` and are obtained exclusively through
+`lib/src/1_presentation/di/presentation_bloc_factory.dart`, the single
+documented construction point (it also builds the non-injectable,
+runtime-data `DetailMovesCubit`). The only other sanctioned `getIt` call
+sites are the app-lifetime singletons provided at the app root
+(`lib/main.dart`). Every repository flow is fronted by a use case
+(`GetPokemonSpeciesUseCase`, `GetEvolutionChainUseCase`,
+`GetAbilityDetailUseCase`, `GetMoveDetailUseCase`, …) — cubits depend on
+the use case, never on `IPokemonRepository` directly.
+
 ### Flavors and DI environments
 
 Two build flavors are configured, `dev` and `prod` (Android product flavors and
@@ -74,7 +93,8 @@ while `--flavor prod` binds `Environment.prod` with `PokemonRepositoryImpl` for 
 
 - PokeAPI v2 over Dio; responses cached in Hive via a feature-agnostic `DataRepository` with `cacheFirst`, `networkFirst`, and `networkOnly` fetch strategies.
 - Durable user state (language, theme, favorites, history) lives in documents storage; disposable API cache lives in temporary storage.
-- UI strings: `lib/l10n/app_en.arb` + `app_it.arb` → `AppLocalizations`. Bulk data translations (abilities, moves, locations) live in `lib/l10n/*_db.dart`, keyed by API value.
+- UI strings: `lib/l10n/app_en.arb` + `app_it.arb` → `AppLocalizations`. Bulk data translations (abilities, moves, items, locations) live in `lib/l10n/*_db.dart`, keyed by API value — see `docs/localization_policy.md`.
+- Logging redacts user queries at release level and truncates payloads — see `docs/logging_policy.md`.
 
 ## Getting started
 

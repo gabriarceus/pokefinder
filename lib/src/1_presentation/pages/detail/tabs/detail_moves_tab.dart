@@ -1,8 +1,8 @@
-import 'package:en_logger/en_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pokefinder/bootstrap.dart';
+import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/src/3_domain/entities/learn_method.dart';
+import 'package:pokefinder/src/3_domain/helpers/string_casing_extensions.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_game_version_cubit/detail_game_version_cubit.dart';
@@ -32,10 +32,7 @@ class DetailMovesTab extends StatelessWidget {
 
     return BlocProvider(
       create: (_) {
-        final cubit = DetailMovesCubit(
-          moves: pokemon.moves,
-          logger: getIt<EnLogger>(),
-        );
+        final cubit = createDetailMovesCubit(moves: pokemon.moves);
         final gvState = gameVersionCubit?.state;
         if (gvState != null && !gvState.isAllVersions) {
           final targetGroup = GameVersionMappings.versionGroupFor(
@@ -158,7 +155,7 @@ class _DetailMovesTabContent extends StatelessWidget {
                           LearnMethod.machine => context.t().movesFilterMachine,
                           LearnMethod.tutor => context.t().movesFilterTutor,
                           LearnMethod.egg => context.t().movesFilterEgg,
-                          null => method,
+                          null => method.toDisplayCase(),
                         };
 
                   return Padding(
@@ -212,7 +209,7 @@ class _DetailMovesTabContent extends StatelessWidget {
                           LearnMethod.machine => context.t().movesFilterMachine,
                           LearnMethod.tutor => context.t().moveBadgeTutor,
                           LearnMethod.egg => context.t().movesFilterEgg,
-                          null => move.learnMethod,
+                          null => move.learnMethod.toDisplayCase(),
                         };
 
                         return SurfaceCard(

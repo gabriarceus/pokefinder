@@ -6,6 +6,18 @@ All notable changes to this project will be documented in this file, following t
 
 ### Added
 
+- Detail share action: copies the canonical `/pokemon/:nameOrId` link for the
+  displayed Pokémon/form to the clipboard (clipboard only, no new permissions);
+  `pokefinder:///pokemon/:nameOrId` deep links on Android and iOS resolve to the
+  canonical route with the router error fallback for invalid values.
+- Italian item-name database (`lib/l10n/items_db.dart`, generated from PokeAPI)
+  with `translateItem` title-case fallback, plus `translation_coverage_test`
+  failing CI on raw-slug or ALL-CAPS rendering.
+- `GetMoveDetailUseCase` with cancellation support, mirroring the
+  species/evolution/ability flows.
+- `docs/logging_policy.md` (redaction, truncation, debug vs release) and
+  `docs/localization_policy.md` (canonical vs localized names, fallback rule).
+
 - Browsable Pokédex `/pokedex`: paginated grid, pull-to-refresh, skeleton loaders, scroll/filter restore, multi-type (18) / generation (1-9) / sort (ID, Name) filters, contains + numeric-ID search, Random Pokémon.
 - Detail depth: species flavor text (IT with EN fallback), genus, generation, habitat; branching evolution chain with full trigger badges and tap-to-navigate; on-demand ability sheet; unified game-version selector syncing moves, encounters, items; inline forms gallery with tap-to-switch.
 - First-class alternate forms: Mega / Primal / Regional (Alola, Galar, Hisui, Paldea) / G-Max / battle-mode classification with O(1) parent mapping, interleaved ordering under parent species, form badges, localized titles (`Mega Charizard X`, `Alolan Vulpix` / `Vulpix di Alola`), keyword search (`mega`, `alola`, …), dual generation context.
@@ -17,12 +29,22 @@ All notable changes to this project will be documented in this file, following t
 
 ### Changed
 
+- Presentation blocs/cubits resolve exclusively through
+  `lib/src/1_presentation/di/presentation_bloc_factory.dart` (single documented
+  construction point); no raw `getIt` calls remain in `1_presentation/`.
+- `MoveDetailCubit` goes through `GetMoveDetailUseCase` like the
+  species/evolution/ability flows; the move-detail repository path accepts
+  cancellation tokens end to end.
+- Evolution trigger badges localize embedded item/move/type names in Italian;
+  unknown learn methods and generation codes fall back to title case.
 - Applied tall-style formatter; moved `path`, `yaml` to `dev_dependencies`; upgraded dependencies; replaced `com.example` IDs with production IDs; `post_build.dart` aborts on dirty worktree / failure.
 - Decoupled `HomeBloc` via `ClearCacheUseCase`; consolidated URL / asset helpers into `PokeApiUrlHelper`; flavor-to-DI mapping (`dev` → mock, `prod` → live).
 - Production logging redacted (queries) and truncated (payloads); measurements and stats use locale-aware `intl` formatting; Italian copy polish.
 
 ### Fixed
 
+- Held items rendered as ALL-CAPS raw API slugs; they now show localized names
+  with title-case fallback.
 - Accessibility and UI: redundant / missing screen-reader announcements, 48dp touch targets, Italian badge localization, Hive LRU bloat and jank.
 - Crashes and logic: version-selector assertion on Pokémon switch, evolution trigger shadowing (item / trade / gender lost with level), form type filtering, autocomplete false positives on `canonical`, pull-to-refresh unmount crash, cancelled-request surfacing as failure.
 - Store compliance: Android INTERNET-only, no cleartext traffic, flavor labels, adaptive icons; iOS plist stripped (mic, local network, arbitrary loads, background audio).

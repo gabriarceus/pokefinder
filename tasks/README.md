@@ -17,7 +17,7 @@ safe to delete the old folder and roadmap file; only the work below remains.
 
 | #      | Document                                                                                                                    | Priority |   Status   |
 | ------ | --------------------------------------------------------------------------------------------------------------------------- | -------- | :--------: |
-| **10** | [Task 10: Share Links, Localization Gaps and Architecture Consistency](task_10_share_localization_and_architecture_gaps.md) | P1       | `[ ]` Open |
+| **10** | [Task 10: Share Links, Localization Gaps and Architecture Consistency](task_10_share_localization_and_architecture_gaps.md) | P1       | `[x]` Complete |
 | **11** | [Task 11: Gallery, Comparison, Matchup Calculator and Local Teams](task_11_gallery_comparison_matchup_and_local_teams.md)   | P2       | `[ ]` Open |
 | **12** | [Task 12: Accounts, Cloud Sync and Social (Future Epic, Do Not Build Yet)](task_12_accounts_cloud_sync_and_social.md)       | P3       | `[ ]` Open |
 

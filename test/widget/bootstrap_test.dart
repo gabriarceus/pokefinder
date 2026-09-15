@@ -114,18 +114,15 @@ void main() {
       },
     );
 
-    test(
-      'bootstrap respects explicit environment parameter',
-      () async {
-        ensureHydratedStorage();
-        await bootstrap(
-          then: () => const Text('App Started'),
-          initializeStorage: () async {},
-          appRunner: (_) {},
-          environment: Environment.prod,
-        );
-        expect(getIt<IPokemonRepository>(), isA<PokemonRepositoryImpl>());
-      },
-    );
+    test('bootstrap respects explicit environment parameter', () async {
+      ensureHydratedStorage();
+      await bootstrap(
+        then: () => const Text('App Started'),
+        initializeStorage: () async {},
+        appRunner: (_) {},
+        environment: Environment.prod,
+      );
+      expect(getIt<IPokemonRepository>(), isA<PokemonRepositoryImpl>());
+    });
   });
 }

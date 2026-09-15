@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/l10n/abilities_db.dart';
+import 'package:pokefinder/l10n/items_db.dart';
+import 'package:pokefinder/l10n/translation_fallback.dart';
 import 'package:pokefinder/src/3_domain/entities/damage_class.dart';
 import 'package:pokefinder/l10n/moves_db.dart';
 import 'package:pokefinder/l10n/locations_db.dart';
@@ -19,7 +21,7 @@ extension TranslationExtension on BuildContext {
     final locale = Localizations.localeOf(this);
 
     if (locale.languageCode == 'it') {
-      final translation = abilitiesDb[key];
+      final translation = usableTranslationOrNull(abilitiesDb[key]);
       if (translation != null) {
         return translation;
       }
@@ -32,7 +34,24 @@ extension TranslationExtension on BuildContext {
     final locale = Localizations.localeOf(this);
 
     if (locale.languageCode == 'it') {
-      final translation = movesDb[key];
+      final translation = usableTranslationOrNull(movesDb[key]);
+      if (translation != null) {
+        return translation;
+      }
+    }
+    return name.toDisplayCase();
+  }
+
+  /// Returns the localized display name for a held/evolution [item] slug.
+  ///
+  /// Italian names come from [itemsDb]; every other case falls back to
+  /// title case, never to a raw UPPER-CASED slug.
+  String translateItem(String name) {
+    final key = name.toLowerCase().trim();
+    final locale = Localizations.localeOf(this);
+
+    if (locale.languageCode == 'it') {
+      final translation = usableTranslationOrNull(itemsDb[key]);
       if (translation != null) {
         return translation;
       }
@@ -173,54 +192,7 @@ extension TranslationExtension on BuildContext {
   /// Returns the localized name of the Pokémon [typeName], or null when the
   /// value is not a recognized type.
   String? translateTypeOrNull(String typeName) {
-    final t = AppLocalizations.of(this);
-    final key = typeName.toLowerCase().trim();
-    switch (key) {
-      case 'normal':
-        return t.typeNormal;
-      case 'fire':
-        return t.typeFire;
-      case 'water':
-        return t.typeWater;
-      case 'grass':
-        return t.typeGrass;
-      case 'electric':
-        return t.typeElectric;
-      case 'ice':
-        return t.typeIce;
-      case 'fighting':
-        return t.typeFighting;
-      case 'poison':
-        return t.typePoison;
-      case 'ground':
-        return t.typeGround;
-      case 'flying':
-        return t.typeFlying;
-      case 'psychic':
-        return t.typePsychic;
-      case 'bug':
-        return t.typeBug;
-      case 'rock':
-        return t.typeRock;
-      case 'ghost':
-        return t.typeGhost;
-      case 'dragon':
-        return t.typeDragon;
-      case 'steel':
-        return t.typeSteel;
-      case 'fairy':
-        return t.typeFairy;
-      case 'dark':
-        return t.typeDark;
-      case 'stellar':
-        return t.typeStellar;
-      case 'shadow':
-        return t.typeShadow;
-      case 'unknown':
-        return t.typeUnknown;
-      default:
-        return null;
-    }
+    return AppLocalizations.of(this).translateTypeOrNull(typeName);
   }
 
   /// Returns the localized name of the Pokémon [typeName], falling back to a

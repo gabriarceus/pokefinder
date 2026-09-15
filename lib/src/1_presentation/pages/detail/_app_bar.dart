@@ -11,6 +11,7 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onToggleShiny,
     this.isFavorite = false,
     this.onToggleFavorite,
+    this.onShare,
   });
 
   final Color? backgroundColor;
@@ -19,6 +20,7 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onToggleShiny;
   final bool isFavorite;
   final VoidCallback? onToggleFavorite;
+  final VoidCallback? onShare;
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +60,15 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
             tooltip: t.spriteToggleShiny,
             onPressed: onToggleShiny,
+          ),
+        if (onShare != null)
+          IconButton(
+            style: const ButtonStyle(
+              minimumSize: WidgetStatePropertyAll(Size(48, 48)),
+            ),
+            icon: Icon(Icons.link_rounded, color: itemsColor),
+            tooltip: t.shareLink,
+            onPressed: onShare,
           ),
         if (onToggleFavorite != null)
           IconButton(

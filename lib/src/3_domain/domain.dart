@@ -39,3 +39,5 @@ export 'entities/ability_detail.dart';
 export 'usecases/get_pokemon_species_usecase.dart';
 export 'usecases/get_evolution_chain_usecase.dart';
 export 'usecases/get_ability_detail_usecase.dart';
+export 'usecases/get_move_detail_usecase.dart';
+export 'helpers/pokemon_share_link.dart';

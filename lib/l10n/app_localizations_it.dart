@@ -1059,4 +1059,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get aboutReportIssue => 'Segnala un problema';
+
+  @override
+  String get shareLink => 'Copia link';
+
+  @override
+  String get shareLinkCopied => 'Link copiato negli appunti';
 }

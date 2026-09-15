@@ -2011,6 +2011,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Report an Issue'**
   String get aboutReportIssue;
+
+  /// No description provided for @shareLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get shareLink;
+
+  /// No description provided for @shareLinkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied to clipboard'**
+  String get shareLinkCopied;
 }
 
 class _AppLocalizationsDelegate

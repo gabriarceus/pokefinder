@@ -453,7 +453,12 @@ void main() {
 
   group('getMoveDetail', () {
     test('keeps the first flavor text per language', () async {
-      when(() => dataSource.getMoveDetail(any())).thenAnswer(
+      when(
+        () => dataSource.getMoveDetail(
+          any(),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).thenAnswer(
         (_) async => right(
           RawMoveDetail.fromJson({
             'id': 33,
@@ -502,7 +507,12 @@ void main() {
     });
 
     test('an unrecognized damage class maps to null', () async {
-      when(() => dataSource.getMoveDetail(any())).thenAnswer(
+      when(
+        () => dataSource.getMoveDetail(
+          any(),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).thenAnswer(
         (_) async => right(
           RawMoveDetail.fromJson({
             'id': 1,
