@@ -14,6 +14,7 @@ searching, browsing, and exploring Pokémon. Data comes from the public
 - Detail screen with tabs (info, stats, moves, items & games), species flavor text, branching evolution chain, ability sheets, unified game-version selector, and inline forms gallery
 - Favorites and Recently Viewed / Recent Searches with reactive sync
 - Side-by-side comparison of up to 2 Pokémon (base/min/max stats, types, height/weight) from Pokédex cards or the detail screen
+- Offline type matchup calculator: 1–2 defending types, grouped weaknesses / resistances / immunities (4×, 2×, ½×, ¼×, 0×), via drawer or tappable detail type chips
 - Settings: language (English / Italian / system), theme (System / Light / Dark), Metric / Imperial units, cry autoplay + volume, cache size + purge
 - About screen with app version, PokeAPI credit, trademark disclaimer, and licenses
 - Offline support via cached index and details, with stale indicator and Retry / Edit Search recovery
@@ -27,6 +28,7 @@ searching, browsing, and exploring Pokémon. Data comes from the public
 | `/pokemon/:nameOrId` | Detail (name or numeric ID, deep-linkable) |
 | `/pokedex`           | Browsable Pokédex                          |
 | `/compare`           | Side-by-side Pokémon comparison (max 2)    |
+| `/matchups`          | Offline type matchup calculator (1–2 defending types, `?types=` preset) |
 | `/favorites`         | Favorites                                  |
 | `/settings`          | Settings                                   |
 | `/settings/about`    | About & Legal                              |

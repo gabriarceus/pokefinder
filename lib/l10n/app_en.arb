@@ -531,7 +531,19 @@
   "compareFull": "Comparison is full (2 max)",
   "compareAdded": "Added to comparison",
   "compareView": "View",
-  "compareTotal": "Total"
+  "compareTotal": "Total",
+  "matchupTitle": "Type matchups",
+  "matchupDefendingTypes": "Defending types",
+  "matchupDefendingHint": "Select up to 2 types",
+  "matchupEmptyTitle": "No defending type selected",
+  "matchupEmptyMessage": "Select 1 or 2 defending types to see weaknesses, resistances and immunities.",
+  "matchupGroup4x": "4× weak to",
+  "matchupGroup2x": "2× weak to",
+  "matchupGroupHalf": "½× resistant to",
+  "matchupGroupQuarter": "¼× resistant to",
+  "matchupGroupImmune": "Immune to",
+  "matchupClearSelection": "Clear selection",
+  "matchupViewMatchups": "View matchups"
 }
 
 

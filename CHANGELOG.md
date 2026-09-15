@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file, following t
 
 ### Added
 
+- Offline type matchup calculator `/matchups` (Gen VI onward 18-type chart):
+  pure-domain `TypeMatchupChart` with all 324 attack/defense multipliers,
+  dual-type multiplication (4×, ¼×, immunity override), and grouped results
+  (4×, 2×, ½×, ¼×, 0×) with localized type names. Select 1–2 defending types
+  with 48dp targets and screen-reader announcements; empty state included.
+  Entry via drawer tool and tappable detail type chips (preset with the
+  Pokémon's 1–2 types, `?types=` query), EN + IT strings, no network.
 - Side-by-side Pokémon comparison `/compare` (max 2, in-memory): pick entries
   from Pokédex card compare action / long-press or the detail compare action;
   dual entries render in one shared card with side-by-side headers, sprites,

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
+import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/extensions/form_name_formatter.dart';
+import 'package:pokefinder/src/1_presentation/pages/matchups/matchup_page.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 
@@ -39,16 +42,45 @@ class DetailHeader extends StatelessWidget {
     final displayFormName = formatFormName(context, selectedFormName);
     final shinyLabel = showShiny ? t.formSelectorShiny : t.defaultForm;
 
+    // Tapping either chip presets the calculator with this Pokémon's full
+    // 1–2 defending types, so the defensive profile stays intact.
+    String matchupPath() {
+      final defending = [type1, type2].whereType<PokemonType>().toList();
+      return buildMatchupPath(defending);
+    }
+
+    Widget tappableChip(PokemonType type, String imageUrl) {
+      final typeName = context.translateType(type.apiName);
+      return Semantics(
+        button: true,
+        label: '$typeName, ${t.matchupViewMatchups}',
+        excludeSemantics: true,
+        child: Tooltip(
+          message: t.matchupViewMatchups,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => context.push(matchupPath()),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              child: Center(
+                child: TypeChip(type: type, imageUrl: imageUrl),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     final typeChips = Wrap(
       spacing: 8,
       runSpacing: 6,
       children: [
         if (type1 != null)
-          TypeChip(type: type1!, imageUrl: typeImage1)
+          tappableChip(type1!, typeImage1)
         else if (typeImage1.isNotEmpty)
           TypeImage(type: typeImage1),
         if (type2 != null)
-          TypeChip(type: type2!, imageUrl: typeImage2)
+          tappableChip(type2!, typeImage2)
         else if (typeImage2.isNotEmpty)
           TypeImage(type: typeImage2),
       ],

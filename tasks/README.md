@@ -20,7 +20,7 @@ safe to delete the old folder and roadmap file; only the work below remains.
 | **10**   | [Task 10: Share Links, Localization Gaps and Architecture Consistency](task_10_share_localization_and_architecture_gaps.md) | P1       | `[x]` Complete |
 | **11.1** | [Task 11.1: Artwork & Sprite-Variant Gallery](task_11_1_artwork_sprite_gallery.md)                                          | P2       | `[x]` Complete |
 | **11.2** | [Task 11.2: Pokémon Comparison (Side-by-Side)](task_11_2_pokemon_comparison.md)                                             | P2       | `[x]` Complete |
-| **11.3** | [Task 11.3: Type Matchup Calculator (Offline)](task_11_3_type_matchup_calculator.md)                                        | P2       |   `[ ]` Open   |
+| **11.3** | [Task 11.3: Type Matchup Calculator (Offline)](task_11_3_type_matchup_calculator.md)                                        | P2       | `[x]` Complete |
 | **11.4** | [Task 11.4: Local Team Builder (No Cloud)](task_11_4_local_team_builder.md)                                                 | P2       |   `[ ]` Open   |
 | **12**   | [Task 12: Accounts, Cloud Sync and Social (Future Epic, Do Not Build Yet)](task_12_accounts_cloud_sync_and_social.md)       | P3       |   `[ ]` Open   |
 

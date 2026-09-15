@@ -100,6 +100,17 @@ class HomeDrawer extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(
+              Icons.table_chart_rounded,
+              color: AppPalette.brandRed,
+            ),
+            title: Text(t.matchupTitle),
+            onTap: () {
+              Navigator.of(context).pop();
+              context.push('/matchups');
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.tune_rounded, color: AppPalette.brandRed),
             title: Text(t.settings),
             onTap: () {

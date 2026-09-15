@@ -1136,4 +1136,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get compareTotal => 'Total';
+
+  @override
+  String get matchupTitle => 'Type matchups';
+
+  @override
+  String get matchupDefendingTypes => 'Defending types';
+
+  @override
+  String get matchupDefendingHint => 'Select up to 2 types';
+
+  @override
+  String get matchupEmptyTitle => 'No defending type selected';
+
+  @override
+  String get matchupEmptyMessage =>
+      'Select 1 or 2 defending types to see weaknesses, resistances and immunities.';
+
+  @override
+  String get matchupGroup4x => '4× weak to';
+
+  @override
+  String get matchupGroup2x => '2× weak to';
+
+  @override
+  String get matchupGroupHalf => '½× resistant to';
+
+  @override
+  String get matchupGroupQuarter => '¼× resistant to';
+
+  @override
+  String get matchupGroupImmune => 'Immune to';
+
+  @override
+  String get matchupClearSelection => 'Clear selection';
+
+  @override
+  String get matchupViewMatchups => 'View matchups';
 }
