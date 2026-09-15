@@ -234,6 +234,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String get spriteTitle => 'Sprite Gallery';
 
   @override
+  String get galleryArtworkDefault => 'Official artwork';
+
+  @override
+  String get galleryArtworkShiny => 'Official artwork (shiny)';
+
+  @override
+  String get galleryFrontDefault => 'Front (default)';
+
+  @override
+  String get galleryBackDefault => 'Back (default)';
+
+  @override
+  String get galleryFrontShiny => 'Front (shiny)';
+
+  @override
+  String get galleryBackShiny => 'Back (shiny)';
+
+  @override
+  String get galleryFrontFemale => 'Front (female)';
+
+  @override
+  String get galleryBackFemale => 'Back (female)';
+
+  @override
+  String get galleryFrontShinyFemale => 'Front (shiny, female)';
+
+  @override
+  String get galleryBackShinyFemale => 'Back (shiny, female)';
+
+  @override
+  String get galleryHomeDefault => 'Home (default)';
+
+  @override
+  String get galleryHomeFemale => 'Home (female)';
+
+  @override
+  String get galleryHomeShiny => 'Home (shiny)';
+
+  @override
+  String get galleryHomeShinyFemale => 'Home (shiny, female)';
+
+  @override
   String get statsBase => 'Base';
 
   @override

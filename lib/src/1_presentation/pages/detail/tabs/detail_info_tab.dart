@@ -422,6 +422,10 @@ class _DetailInfoTabContent extends StatelessWidget {
             const SizedBox(height: 20),
           ],
 
+          // 2.2 Artwork & sprite-variant gallery (Task 11.1)
+          SpriteGalleryWidget(pokemon: pokemon, textColor: textColor),
+          const SizedBox(height: 20),
+
           // 3. Abilities with tap-to-inspect (§8.3)
           Text(
             context.t().abilities,

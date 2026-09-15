@@ -536,6 +536,90 @@ abstract class AppLocalizations {
   /// **'Sprite Gallery'**
   String get spriteTitle;
 
+  /// No description provided for @galleryArtworkDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Official artwork'**
+  String get galleryArtworkDefault;
+
+  /// No description provided for @galleryArtworkShiny.
+  ///
+  /// In en, this message translates to:
+  /// **'Official artwork (shiny)'**
+  String get galleryArtworkShiny;
+
+  /// No description provided for @galleryFrontDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Front (default)'**
+  String get galleryFrontDefault;
+
+  /// No description provided for @galleryBackDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Back (default)'**
+  String get galleryBackDefault;
+
+  /// No description provided for @galleryFrontShiny.
+  ///
+  /// In en, this message translates to:
+  /// **'Front (shiny)'**
+  String get galleryFrontShiny;
+
+  /// No description provided for @galleryBackShiny.
+  ///
+  /// In en, this message translates to:
+  /// **'Back (shiny)'**
+  String get galleryBackShiny;
+
+  /// No description provided for @galleryFrontFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Front (female)'**
+  String get galleryFrontFemale;
+
+  /// No description provided for @galleryBackFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Back (female)'**
+  String get galleryBackFemale;
+
+  /// No description provided for @galleryFrontShinyFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Front (shiny, female)'**
+  String get galleryFrontShinyFemale;
+
+  /// No description provided for @galleryBackShinyFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Back (shiny, female)'**
+  String get galleryBackShinyFemale;
+
+  /// No description provided for @galleryHomeDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Home (default)'**
+  String get galleryHomeDefault;
+
+  /// No description provided for @galleryHomeFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Home (female)'**
+  String get galleryHomeFemale;
+
+  /// No description provided for @galleryHomeShiny.
+  ///
+  /// In en, this message translates to:
+  /// **'Home (shiny)'**
+  String get galleryHomeShiny;
+
+  /// No description provided for @galleryHomeShinyFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Home (shiny, female)'**
+  String get galleryHomeShinyFemale;
+
   /// No description provided for @statsBase.
   ///
   /// In en, this message translates to:

@@ -3,6 +3,8 @@ export 'entities/damage_class.dart';
 export 'entities/language.dart';
 export 'entities/move_detail.dart';
 export 'entities/pokemon.dart';
+export 'entities/sprite_variant.dart';
+export 'helpers/sprite_gallery_helper.dart';
 export 'entities/pokemon_index_entry.dart';
 export 'entities/pokemon_type.dart';
 export 'entities/pokedex_sort_order.dart';

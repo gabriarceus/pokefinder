@@ -14,3 +14,4 @@ export "ability_detail_bottom_sheet.dart";
 export "evolution_chain_widget.dart";
 export "detail_game_version_selector.dart";
 export "alternate_forms_widget.dart";
+export "sprite_gallery_widget.dart";

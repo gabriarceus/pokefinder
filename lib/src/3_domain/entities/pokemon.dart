@@ -25,10 +25,19 @@ class Pokemon extends Equatable {
     required this.speciesName,
     required this.speciesUrl,
     required this.spriteBackDefault,
+    required this.spriteFrontDefault,
     required this.spriteFrontShiny,
     required this.spriteBackShiny,
+    required this.spriteFrontFemale,
+    required this.spriteBackFemale,
+    required this.spriteFrontShinyFemale,
+    required this.spriteBackShinyFemale,
     required this.officialArtworkDefault,
     required this.officialArtworkShiny,
+    required this.homeDefault,
+    required this.homeFemale,
+    required this.homeShiny,
+    required this.homeShinyFemale,
     required this.abilities,
     required this.heldItems,
     required this.moves,
@@ -66,10 +75,19 @@ class Pokemon extends Equatable {
   final String speciesName;
   final String speciesUrl;
   final String? spriteBackDefault;
+  final String? spriteFrontDefault;
   final String? spriteFrontShiny;
   final String? spriteBackShiny;
+  final String? spriteFrontFemale;
+  final String? spriteBackFemale;
+  final String? spriteFrontShinyFemale;
+  final String? spriteBackShinyFemale;
   final String? officialArtworkDefault;
   final String? officialArtworkShiny;
+  final String? homeDefault;
+  final String? homeFemale;
+  final String? homeShiny;
+  final String? homeShinyFemale;
   final List<PokemonAbility> abilities;
   final List<PokemonHeldItem> heldItems;
   final List<PokemonMove> moves;
@@ -98,10 +116,19 @@ class Pokemon extends Equatable {
     speciesName,
     speciesUrl,
     spriteBackDefault,
+    spriteFrontDefault,
     spriteFrontShiny,
     spriteBackShiny,
+    spriteFrontFemale,
+    spriteBackFemale,
+    spriteFrontShinyFemale,
+    spriteBackShinyFemale,
     officialArtworkDefault,
     officialArtworkShiny,
+    homeDefault,
+    homeFemale,
+    homeShiny,
+    homeShinyFemale,
     abilities,
     heldItems,
     moves,
