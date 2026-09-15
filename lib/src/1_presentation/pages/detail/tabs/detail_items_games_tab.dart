@@ -313,15 +313,12 @@ class _HeldItemsSection extends StatelessWidget {
             itemCount: displayedHeldItems.length,
             itemBuilder: (context, index) {
               final item = displayedHeldItems[index];
-              final capitalizedItem = item.name
-                  .replaceAll('-', ' ')
-                  .toUpperCase();
               return SurfaceCard(
                 borderRadius: 12,
                 child: ListTile(
                   leading: const Icon(Icons.gif_box_outlined),
                   title: Text(
-                    capitalizedItem,
+                    context.translateItem(item.name),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Text(

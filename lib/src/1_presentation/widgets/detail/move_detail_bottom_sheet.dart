@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pokefinder/bootstrap.dart';
+import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
@@ -39,7 +39,7 @@ class MoveDetailBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<MoveDetailCubit>()..fetchMoveDetail(moveName),
+      create: (context) => createMoveDetailCubit(moveName),
       child: SafeArea(
         child: SingleChildScrollView(
           child: Padding(

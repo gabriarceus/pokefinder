@@ -21,10 +21,19 @@ backed by PokeAPI v2.
   `models/` (`Raw*` JSON DTOs), `services/` (domain service impls), interceptors.
 
 ## State management
-- Blocs/cubits with static deps are `@injectable` → resolve via `getIt<T>()`.
-- Cubits needing runtime data (e.g. `DetailMovesCubit(moves: ...)`) are created inline
-  with `BlocProvider` — intentionally **not** injectable. `MoveDetailCubit` takes only
-  static deps, so it *is* `@injectable`.
+- Blocs/cubits with static deps are `@injectable` → obtained in presentation
+  exclusively through `lib/src/1_presentation/di/presentation_bloc_factory.dart`
+  (the single documented construction point; raw `getIt` in presentation is
+  banned). App-lifetime singletons provided at the app root (`lib/main.dart`)
+  are the only other sanctioned `getIt` call sites.
+- Every repository flow is fronted by a use case (`GetPokemonSpeciesUseCase`,
+  `GetEvolutionChainUseCase`, `GetAbilityDetailUseCase`,
+  `GetMoveDetailUseCase`, …) — cubits depend on the use case, never on
+  `IPokemonRepository` directly.
+- Cubits needing runtime data (e.g. `DetailMovesCubit(moves: ...)`) are created
+  inline via the factory with `BlocProvider` — intentionally **not**
+  injectable. `MoveDetailCubit` takes only static deps, so it *is*
+  `@injectable`.
 - States extend `Equatable`; failures surface through emitted state.
 
 ## DI (get_it + injectable)
@@ -46,8 +55,9 @@ backed by PokeAPI v2.
   optional `maxAge`. Add data sources on top of it — don't reimplement caching.
 - UI strings: gen_l10n ARB — `lib/l10n/app_en.arb` (template) + `app_it.arb` →
   `AppLocalizations`. No ALL-CAPS in ARB (uppercase in Dart).
-- Bulk data translations (abilities/moves/locations) live in `lib/l10n/*_db.dart`, keyed
-  by API value — not ARB.
+- Bulk data translations (abilities/moves/items/locations) live in `lib/l10n/*_db.dart`, keyed
+  by API value — not ARB. Unknown slugs fall back to title case, never raw/UPPER
+  (see `docs/localization_policy.md`; enforced by `translation_coverage_test`).
 
 ## Tooling — no melos; use fvm (Flutter pinned in `.fvmrc`)
 - All gates at once: `./scripts/verify.sh` (format check + analyze + tests)

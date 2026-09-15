@@ -34,7 +34,10 @@ abstract class IPokemonRepository {
     CancellationToken? cancelToken,
   });
   Future<Either<PokemonFailure, List<String>>> getAllPokemonNames();
-  Future<Either<PokemonFailure, MoveDetail>> getMoveDetail(String name);
+  Future<Either<PokemonFailure, MoveDetail>> getMoveDetail(
+    String name, {
+    CancellationToken? cancelToken,
+  });
   Future<Either<PokemonFailure, PokemonSpecies>> getPokemonSpecies(
     String url, {
     CancellationToken? cancelToken,

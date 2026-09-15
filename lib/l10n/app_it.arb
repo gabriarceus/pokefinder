@@ -317,7 +317,9 @@
   "aboutOpenSourceLicenses": "Licenze open source",
   "aboutSourceCode": "Codice sorgente",
   "aboutGitHubRepository": "Repository GitHub",
-  "aboutReportIssue": "Segnala un problema"
+  "aboutReportIssue": "Segnala un problema",
+  "shareLink": "Copia link",
+  "shareLinkCopied": "Link copiato negli appunti"
 }
 
 

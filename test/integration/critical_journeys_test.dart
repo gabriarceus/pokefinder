@@ -499,7 +499,10 @@ void main() {
         ),
       ).thenAnswer((_) async => Right(bulbasaur));
       when(
-        () => repository.getMoveDetail('tackle'),
+        () => repository.getMoveDetail(
+          'tackle',
+          cancelToken: any(named: 'cancelToken'),
+        ),
       ).thenAnswer((_) async => const Right(_tackleMoveDetail));
 
       await pumpAppWithRouter(tester, initialLocation: '/pokemon/bulbasaur');
@@ -546,7 +549,12 @@ void main() {
         ).thenAnswer((_) async => Right(bulbasaur));
 
         var moveCalls = 0;
-        when(() => repository.getMoveDetail('tackle')).thenAnswer((_) async {
+        when(
+          () => repository.getMoveDetail(
+            'tackle',
+            cancelToken: any(named: 'cancelToken'),
+          ),
+        ).thenAnswer((_) async {
           moveCalls++;
           return moveCalls == 1
               ? const Left(NetworkUnavailableFailure())

@@ -39,6 +39,7 @@ import 'src/3_domain/usecases/clear_cache_usecase.dart' as _i289;
 import 'src/3_domain/usecases/get_ability_detail_usecase.dart' as _i307;
 import 'src/3_domain/usecases/get_cache_size_usecase.dart' as _i981;
 import 'src/3_domain/usecases/get_evolution_chain_usecase.dart' as _i438;
+import 'src/3_domain/usecases/get_move_detail_usecase.dart' as _i985;
 import 'src/3_domain/usecases/get_pokemon_encounters_usecase.dart' as _i656;
 import 'src/3_domain/usecases/get_pokemon_form_details_usecase.dart' as _i476;
 import 'src/3_domain/usecases/get_pokemon_species_usecase.dart' as _i357;
@@ -129,12 +130,6 @@ extension GetItInjectableX on _i174.GetIt {
         searchDebounceDuration: searchDebounceDuration,
       ),
     );
-    gh.factory<_i539.MoveDetailCubit>(
-      () => _i539.MoveDetailCubit(
-        gh<_i768.IPokemonRepository>(),
-        gh<_i463.EnLogger>(),
-      ),
-    );
     gh.lazySingleton<_i289.ClearCacheUseCase>(
       () => _i289.ClearCacheUseCase(gh<_i768.IPokemonRepository>()),
     );
@@ -146,6 +141,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i438.GetEvolutionChainUseCase>(
       () => _i438.GetEvolutionChainUseCase(gh<_i768.IPokemonRepository>()),
+    );
+    gh.lazySingleton<_i985.GetMoveDetailUseCase>(
+      () => _i985.GetMoveDetailUseCase(gh<_i768.IPokemonRepository>()),
     );
     gh.lazySingleton<_i656.GetPokemonEncountersUseCase>(
       () => _i656.GetPokemonEncountersUseCase(gh<_i768.IPokemonRepository>()),
@@ -162,6 +160,12 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i18.SpeciesCubit>(
       () => _i18.SpeciesCubit(
         gh<_i357.GetPokemonSpeciesUseCase>(),
+        gh<_i463.EnLogger>(),
+      ),
+    );
+    gh.factory<_i539.MoveDetailCubit>(
+      () => _i539.MoveDetailCubit(
+        gh<_i985.GetMoveDetailUseCase>(),
         gh<_i463.EnLogger>(),
       ),
     );

@@ -504,7 +504,9 @@
   "aboutOpenSourceLicenses": "Open Source Licenses",
   "aboutSourceCode": "Source Code",
   "aboutGitHubRepository": "GitHub Repository",
-  "aboutReportIssue": "Report an Issue"
+  "aboutReportIssue": "Report an Issue",
+  "shareLink": "Copy link",
+  "shareLinkCopied": "Link copied to clipboard"
 }
 
 

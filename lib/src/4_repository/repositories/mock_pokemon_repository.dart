@@ -178,7 +178,10 @@ class MockPokemonRepository implements IPokemonRepository {
   }
 
   @override
-  Future<Either<PokemonFailure, MoveDetail>> getMoveDetail(String name) async {
+  Future<Either<PokemonFailure, MoveDetail>> getMoveDetail(
+    String name, {
+    CancellationToken? cancelToken,
+  }) async {
     return Right(
       MoveDetail(
         id: 1,

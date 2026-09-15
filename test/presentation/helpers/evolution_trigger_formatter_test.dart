@@ -321,17 +321,17 @@ void main() {
 
       const dawnStoneMale = EvolutionTriggerDetail(
         triggerType: EvolutionTriggerType.useItem,
-        item: 'pietra-aurora',
+        item: 'dawn-stone',
         gender: 2,
       );
       expect(
         EvolutionTriggerFormatter.format(dawnStoneMale, l10n: l10n),
-        'Usa Pietra Aurora (Maschio)',
+        'Usa Pietralbore (Maschio)',
       );
 
       const razorFangNight = EvolutionTriggerDetail(
         triggerType: EvolutionTriggerType.levelUp,
-        heldItem: 'affilodente',
+        heldItem: 'razor-fang',
         timeOfDay: 'night',
       );
       expect(

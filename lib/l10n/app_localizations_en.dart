@@ -1054,4 +1054,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutReportIssue => 'Report an Issue';
+
+  @override
+  String get shareLink => 'Copy link';
+
+  @override
+  String get shareLinkCopied => 'Link copied to clipboard';
 }

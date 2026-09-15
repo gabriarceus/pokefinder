@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pokefinder/bootstrap.dart';
+import 'package:flutter/services.dart';
+import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 import 'package:pokefinder/src/2_application/application.dart';
@@ -27,7 +28,7 @@ class Detail extends StatefulWidget {
 }
 
 class _DetailState extends State<Detail> {
-  final CryAudioController _audioController = getIt<CryAudioController>();
+  final CryAudioController _audioController = resolveCryAudioController();
   bool _showShiny = false;
   bool _hasRecordedSearch = false;
 
@@ -68,6 +69,22 @@ class _DetailState extends State<Detail> {
         );
       },
     );
+  }
+
+  /// Copies the canonical link for the displayed Pokémon/form to the clipboard.
+  void _sharePokemonLink(
+    BuildContext context,
+    PokemonBlocSuccess success,
+  ) async {
+    final formName = success.formDetails.name;
+    final identifier = formName.isNotEmpty ? formName : success.pokemon.name;
+    final link = buildPokemonCanonicalPath(identifier);
+    if (link == null) return;
+    await Clipboard.setData(ClipboardData(text: link));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(context.t().shareLinkCopied)));
   }
 
   @override
@@ -204,6 +221,7 @@ class _DetailState extends State<Detail> {
                   _showShiny = !_showShiny;
                 });
               },
+              onShare: () => _sharePokemonLink(context, success),
             ),
             body: Container(
               decoration: backgroundHelper.getBackgroundDecoration(),

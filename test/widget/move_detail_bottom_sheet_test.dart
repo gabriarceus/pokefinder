@@ -7,35 +7,34 @@ import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/move_detail_bottom_sheet.dart';
 import 'package:pokefinder/src/2_application/bloc/move_detail_cubit/move_detail_cubit.dart';
-import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
-import 'package:pokefinder/src/3_domain/repositories/i_pokemon_repository.dart';
+import 'package:pokefinder/src/3_domain/domain.dart';
 
-class _MockPokemonRepository extends Mock implements IPokemonRepository {}
+class _MockGetMoveDetailUseCase extends Mock implements GetMoveDetailUseCase {}
 
 class _MockEnLogger extends Mock implements EnLogger {}
 
 void main() {
-  late _MockPokemonRepository repository;
+  late _MockGetMoveDetailUseCase useCase;
   late _MockEnLogger logger;
 
   setUp(() {
-    repository = _MockPokemonRepository();
+    useCase = _MockGetMoveDetailUseCase();
     logger = _MockEnLogger();
 
     final getIt = GetIt.instance;
-    if (getIt.isRegistered<IPokemonRepository>()) {
-      getIt.unregister<IPokemonRepository>();
-    }
     if (getIt.isRegistered<EnLogger>()) {
       getIt.unregister<EnLogger>();
+    }
+    if (getIt.isRegistered<GetMoveDetailUseCase>()) {
+      getIt.unregister<GetMoveDetailUseCase>();
     }
     if (getIt.isRegistered<MoveDetailCubit>()) {
       getIt.unregister<MoveDetailCubit>();
     }
-    getIt.registerSingleton<IPokemonRepository>(repository);
     getIt.registerSingleton<EnLogger>(logger);
+    getIt.registerSingleton<GetMoveDetailUseCase>(useCase);
     getIt.registerFactory<MoveDetailCubit>(
-      () => MoveDetailCubit(repository, logger),
+      () => MoveDetailCubit(useCase, logger),
     );
   });
 
@@ -44,8 +43,8 @@ void main() {
     if (getIt.isRegistered<MoveDetailCubit>()) {
       getIt.unregister<MoveDetailCubit>();
     }
-    if (getIt.isRegistered<IPokemonRepository>()) {
-      getIt.unregister<IPokemonRepository>();
+    if (getIt.isRegistered<GetMoveDetailUseCase>()) {
+      getIt.unregister<GetMoveDetailUseCase>();
     }
     if (getIt.isRegistered<EnLogger>()) {
       getIt.unregister<EnLogger>();
@@ -57,7 +56,7 @@ void main() {
     (tester) async {
       const failure = NetworkUnavailableFailure();
       when(
-        () => repository.getMoveDetail('tackle'),
+        () => useCase(any(), cancelToken: any(named: 'cancelToken')),
       ).thenAnswer((_) async => left(failure));
 
       await tester.pumpWidget(
@@ -80,13 +79,15 @@ void main() {
         findsOneWidget,
       );
 
-      // Verify Retry button is rendered and tapping it calls getMoveDetail again
+      // Verify Retry button is rendered and tapping it calls the use case again
       final retryFinder = find.widgetWithText(OutlinedButton, 'Retry');
       expect(retryFinder, findsOneWidget);
       await tester.tap(retryFinder);
       await tester.pumpAndSettle();
 
-      verify(() => repository.getMoveDetail('tackle')).called(2);
+      verify(
+        () => useCase('tackle', cancelToken: any(named: 'cancelToken')),
+      ).called(2);
     },
   );
 }

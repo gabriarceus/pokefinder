@@ -170,13 +170,15 @@ class PokemonRemoteDataSource implements IPokemonRemoteDataSource {
 
   @override
   Future<Either<PokemonFailure, RawMoveDetail>> getMoveDetail(
-    String name,
-  ) async {
+    String name, {
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await _dataRepository.fetchData<Map<String, dynamic>>(
         'https://pokeapi.co/api/v2/move/$name',
         strategy: FetchStrategy.cacheFirst,
         maxAge: _kDefaultMaxAge,
+        cancelToken: cancelToken,
       );
       return right(RawMoveDetail.fromJson(response.data));
     } catch (error) {
