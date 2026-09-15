@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/src/1_presentation/pages/about/about_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/comparison/comparison_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/favorites/favorites_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
@@ -48,6 +49,13 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
         name: 'pokedex_browse',
         builder: (BuildContext context, GoRouterState state) {
           return const PokedexBrowsePageProvider(child: PokedexBrowsePage());
+        },
+      ),
+      GoRoute(
+        path: '/compare',
+        name: 'comparison',
+        builder: (BuildContext context, GoRouterState state) {
+          return const ComparisonPage();
         },
       ),
       GoRoute(

@@ -77,6 +77,8 @@ class MyApp extends StatelessWidget {
           BlocProvider.value(value: getIt<FavoritesCubit>()),
         if (getIt.isRegistered<RecentHistoryCubit>())
           BlocProvider.value(value: getIt<RecentHistoryCubit>()),
+        if (getIt.isRegistered<ComparisonCubit>())
+          BlocProvider.value(value: getIt<ComparisonCubit>()),
       ],
       child: BlocBuilder<PreferencesCubit, PreferencesState>(
         builder: (context, prefState) {

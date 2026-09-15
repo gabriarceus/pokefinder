@@ -307,6 +307,7 @@ void main() {
                   entry: entry,
                   isFavorite: false,
                   showFavoriteButton: true,
+                  showCompareButton: false,
                 ),
               ),
             ),
@@ -329,6 +330,7 @@ void main() {
                   entry: entry,
                   isFavorite: true,
                   showFavoriteButton: true,
+                  showCompareButton: false,
                 ),
               ),
             ),
@@ -370,6 +372,49 @@ void main() {
 
         expect(find.byIcon(Icons.favorite), findsNothing);
         expect(find.byIcon(Icons.favorite_border), findsNothing);
+      });
+    });
+
+    testWidgets('compare button exposes tooltip matching selection state', (
+      tester,
+    ) async {
+      await mockNetworkImagesFor(() async {
+        const entry = PokemonIndexEntry(
+          id: 25,
+          name: 'pikachu',
+          detailUrl: '',
+          types: [PokemonType.electric],
+        );
+
+        await tester.pumpWidget(
+          buildTestableWidget(
+            const SizedBox(
+              width: 160,
+              height: 180,
+              child: PokemonCard(
+                entry: entry,
+                isInComparison: false,
+                showFavoriteButton: false,
+              ),
+            ),
+          ),
+        );
+        expect(find.byTooltip('Add to comparison'), findsOneWidget);
+
+        await tester.pumpWidget(
+          buildTestableWidget(
+            const SizedBox(
+              width: 160,
+              height: 180,
+              child: PokemonCard(
+                entry: entry,
+                isInComparison: true,
+                showFavoriteButton: false,
+              ),
+            ),
+          ),
+        );
+        expect(find.byTooltip('Remove from comparison'), findsOneWidget);
       });
     });
   });

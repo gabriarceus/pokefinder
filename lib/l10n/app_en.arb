@@ -520,7 +520,18 @@
   "aboutGitHubRepository": "GitHub Repository",
   "aboutReportIssue": "Report an Issue",
   "shareLink": "Copy link",
-  "shareLinkCopied": "Link copied to clipboard"
+  "shareLinkCopied": "Link copied to clipboard",
+  "compareTitle": "Compare",
+  "compareAdd": "Add to comparison",
+  "compareRemove": "Remove from comparison",
+  "compareClear": "Clear comparison",
+  "compareEmptyTitle": "No Pokémon to compare",
+  "compareEmptyMessage": "Add up to 2 Pokémon from the Pokédex cards or the detail screen to compare them side by side.",
+  "compareAddSecond": "Add a second Pokémon to compare",
+  "compareFull": "Comparison is full (2 max)",
+  "compareAdded": "Added to comparison",
+  "compareView": "View",
+  "compareTotal": "Total"
 }
 
 

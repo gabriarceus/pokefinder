@@ -1,6 +1,6 @@
 # Task 11.2: Pokémon Comparison (Side-by-Side)
 
-- **Status:** Open
+- **Status:** Complete
 - **Priority:** P2 (next product value; offline-first, no backend)
 - **Target Platforms:** Android & iOS only
 - **Context:** Split from Task 11 (Gallery, Comparison, Matchup Calculator and
@@ -21,48 +21,52 @@ Hive cache.
 
 ### Action items
 
-- [ ] Add a comparison flow: pick 2 Pokémon (cap at 2 for v1) from browse
+- [x] Add a comparison flow: pick 2 Pokémon (cap at 2 for v1) from browse
       cards and/or detail screen; compare base/min/max stats side by side,
       plus types, height/weight (respecting the metric/imperial preference with
       `intl` formatting).
-- [ ] Reuse existing stat-bar and type-chip components; share-link each
+- [x] Reuse existing stat-bar and type-chip components; share-link each
       compared entry via the Task 10 canonical link pattern.
-- [ ] Entry points: long-press / compare action on `PokemonCard`, compare
+- [x] Entry points: long-press / compare action on `PokemonCard`, compare
       action on detail. Clear-all + remove-one controls; empty state explains
       how to add entries.
-- [ ] Persist nothing remotely; in-memory for v1 (optionally restore last
+- [x] Persist nothing remotely; in-memory for v1 (optionally restore last
       comparison from durable storage — decide during implementation, keep it
       lightweight index refs only).
 
 ### Acceptance criteria
 
-- [ ] Two valid Pokémon render aligned stat rows with correct values even
+- [x] Two valid Pokémon render aligned stat rows with correct values even
       when API stat arrays arrive reordered (existing by-name mapping).
-- [ ] Invalid/failed entries never enter the comparison; failure shows retry
+- [x] Invalid/failed entries never enter the comparison; failure shows retry
       without destroying the valid side.
 
 ### Tests
 
-- [ ] Unit: stat alignment, unit conversion reuse, max-2 enforcement.
-- [ ] Widget: add/remove/clear flows, empty state, error state.
+- [x] Unit: stat alignment, unit conversion reuse, max-2 enforcement.
+- [x] Widget: add/remove/clear flows, empty state, error state.
 
 ---
 
 ## Open questions (carried over, not resolved in split)
 
-- [ ] Persistence: in-memory for v1 vs. optionally restoring last comparison
+- [x] Persistence: in-memory for v1 vs. optionally restoring last comparison
       from durable storage (lightweight index refs only) — decide during
-      implementation.
-- [ ] Entry UX: long-press vs. explicit compare action on `PokemonCard` —
-      both listed, final choice open.
-- [ ] Depends on the Task 10 canonical link pattern landing first for
-      per-entry share links.
+      implementation. **Decided: in-memory `@lazySingleton ComparisonCubit`,
+      session-scoped, no persistence.**
+- [x] Entry UX: long-press vs. explicit compare action on `PokemonCard` —
+      both listed, final choice open. **Decided: both — explicit 48×48 compare
+      button (accessible) plus long-press shortcut; detail screen gets a
+      compare action in the app bar.**
+- [x] Depends on the Task 10 canonical link pattern landing first for
+      per-entry share links. **Done: per-entry share reuses
+      `buildPokemonCanonicalPath` + clipboard pattern.**
 
 ---
 
 ## Verification
 
-- [ ] Meets the global Definition of Done in `tasks/README.md` (states,
+- [x] Meets the global Definition of Done in `tasks/README.md` (states,
       retry, EN+IT, responsive/a11y, tests).
-- [ ] `fvm dart format lib test`, `fvm flutter analyze` (0 issues),
+- [x] `fvm dart format lib test`, `fvm flutter analyze` (0 issues),
       `fvm flutter test` pass. `CHANGELOG.md` updated.

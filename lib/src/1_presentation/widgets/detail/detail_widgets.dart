@@ -1,4 +1,5 @@
 export "bold_label_value.dart";
+export "compact_stat_row.dart";
 export "contrasting_text_color.dart";
 export "cry_play_button.dart";
 export "game_version_color.dart";

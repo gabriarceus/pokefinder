@@ -8,6 +8,7 @@ import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 import 'package:pokefinder/src/1_presentation/widgets/pokedex/pokedex_filter_bottom_sheet.dart';
 import 'package:pokefinder/src/1_presentation/widgets/pokedex/pokemon_card.dart';
 import 'package:pokefinder/src/1_presentation/widgets/pokedex/pokemon_card_skeleton.dart';
+import 'package:pokefinder/src/2_application/bloc/comparison_cubit/comparison_cubit.dart';
 import 'package:pokefinder/src/2_application/bloc/pokedex_bloc/pokedex_bloc.dart';
 
 /// Scope provider that ensures the [PokedexBloc] instance survives detail navigation
@@ -86,6 +87,45 @@ class _PokedexBrowsePageState extends State<PokedexBrowsePage> {
           backgroundColor: AppPalette.brandRed,
           iconTheme: const IconThemeData(color: Colors.white),
           actions: [
+            BlocBuilder<ComparisonCubit, ComparisonState>(
+              buildWhen: (previous, current) =>
+                  previous.entries.length != current.entries.length,
+              builder: (context, comparison) {
+                final count = comparison.entries.length;
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    IconButton(
+                      tooltip: t.compareTitle,
+                      icon: const Icon(Icons.compare_arrows_rounded),
+                      onPressed: () => context.push('/compare'),
+                    ),
+                    if (count > 0)
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: IgnorePointer(
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.amber,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              count.toString(),
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
             IconButton(
               tooltip: t.randomPokemon,
               icon: const Icon(Icons.shuffle_rounded),

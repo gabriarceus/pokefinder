@@ -1102,4 +1102,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareLinkCopied => 'Link copied to clipboard';
+
+  @override
+  String get compareTitle => 'Compare';
+
+  @override
+  String get compareAdd => 'Add to comparison';
+
+  @override
+  String get compareRemove => 'Remove from comparison';
+
+  @override
+  String get compareClear => 'Clear comparison';
+
+  @override
+  String get compareEmptyTitle => 'No Pokémon to compare';
+
+  @override
+  String get compareEmptyMessage =>
+      'Add up to 2 Pokémon from the Pokédex cards or the detail screen to compare them side by side.';
+
+  @override
+  String get compareAddSecond => 'Add a second Pokémon to compare';
+
+  @override
+  String get compareFull => 'Comparison is full (2 max)';
+
+  @override
+  String get compareAdded => 'Added to comparison';
+
+  @override
+  String get compareView => 'View';
+
+  @override
+  String get compareTotal => 'Total';
 }

@@ -87,17 +87,10 @@ class DetailStatsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
               ],
-              _buildStatRow(
-                context,
-                context.t().statHp,
-                StatKind.hp,
-                pokemon.stats[0],
-                isCompact,
-              ),
+              _buildStatRow(context, StatKind.hp, pokemon.stats[0], isCompact),
               const SizedBox(height: 12),
               _buildStatRow(
                 context,
-                context.t().statAttack,
                 StatKind.attack,
                 pokemon.stats[1],
                 isCompact,
@@ -105,7 +98,6 @@ class DetailStatsTab extends StatelessWidget {
               const SizedBox(height: 12),
               _buildStatRow(
                 context,
-                context.t().statDefense,
                 StatKind.defense,
                 pokemon.stats[2],
                 isCompact,
@@ -113,7 +105,6 @@ class DetailStatsTab extends StatelessWidget {
               const SizedBox(height: 12),
               _buildStatRow(
                 context,
-                context.t().statSpAtk,
                 StatKind.specialAttack,
                 pokemon.stats[3],
                 isCompact,
@@ -121,7 +112,6 @@ class DetailStatsTab extends StatelessWidget {
               const SizedBox(height: 12),
               _buildStatRow(
                 context,
-                context.t().statSpDef,
                 StatKind.specialDefense,
                 pokemon.stats[4],
                 isCompact,
@@ -129,7 +119,6 @@ class DetailStatsTab extends StatelessWidget {
               const SizedBox(height: 12),
               _buildStatRow(
                 context,
-                context.t().statSpeed,
                 StatKind.speed,
                 pokemon.stats[5],
                 isCompact,
@@ -143,16 +132,33 @@ class DetailStatsTab extends StatelessWidget {
 
   Widget _buildStatRow(
     BuildContext context,
-    String label,
     StatKind kind,
     int value,
     bool isCompact,
   ) {
+    final locale = Localizations.localeOf(context).languageCode;
+    if (isCompact) {
+      return CompactStatRow(
+        kind: kind,
+        value: value,
+        locale: locale,
+        textColor: textColor,
+      );
+    }
+
+    final t = context.t();
+    final label = switch (kind) {
+      StatKind.hp => t.statHp,
+      StatKind.attack => t.statAttack,
+      StatKind.defense => t.statDefense,
+      StatKind.specialAttack => t.statSpAtk,
+      StatKind.specialDefense => t.statSpDef,
+      StatKind.speed => t.statSpeed,
+    };
     final statColor = statBarColor(value);
     final minVal = StatCalculator.calculateMinStat(kind, value);
     final maxVal = StatCalculator.calculateMaxStat(kind, value);
 
-    final locale = Localizations.localeOf(context).languageCode;
     final formattedValue = MeasurementFormatter.formatInteger(
       value,
       locale: locale,
@@ -187,37 +193,6 @@ class DetailStatsTab extends StatelessWidget {
 
     final semanticLabel =
         '$label: $formattedValue, min $formattedMinVal, max $formattedMaxVal';
-
-    if (isCompact) {
-      return Semantics(
-        label: semanticLabel,
-        excludeSemantics: true,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                color: textColor.withValues(alpha: 0.8),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              '${context.t().statsBase}: $formattedValue | ${context.t().statsMin}: $formattedMinVal | ${context.t().statsMax}: $formattedMaxVal',
-              style: TextStyle(
-                fontSize: 12,
-                color: textColor.withValues(alpha: 0.8),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 6),
-            progressBar,
-          ],
-        ),
-      );
-    }
 
     return Semantics(
       label: semanticLabel,

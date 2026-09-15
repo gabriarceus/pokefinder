@@ -12,6 +12,8 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.isFavorite = false,
     this.onToggleFavorite,
     this.onShare,
+    this.isInComparison = false,
+    this.onCompare,
   });
 
   final Color? backgroundColor;
@@ -21,6 +23,8 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isFavorite;
   final VoidCallback? onToggleFavorite;
   final VoidCallback? onShare;
+  final bool isInComparison;
+  final VoidCallback? onCompare;
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +73,18 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
             icon: Icon(Icons.link_rounded, color: itemsColor),
             tooltip: t.shareLink,
             onPressed: onShare,
+          ),
+        if (onCompare != null)
+          IconButton(
+            style: const ButtonStyle(
+              minimumSize: WidgetStatePropertyAll(Size(48, 48)),
+            ),
+            icon: Icon(
+              Icons.compare_arrows_rounded,
+              color: isInComparison ? Colors.lightBlueAccent : itemsColor,
+            ),
+            tooltip: isInComparison ? t.compareRemove : t.compareAdd,
+            onPressed: onCompare,
           ),
         if (onToggleFavorite != null)
           IconButton(
