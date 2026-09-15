@@ -5,6 +5,7 @@ import 'package:pokefinder/src/1_presentation/pages/comparison/comparison_page.d
 import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/favorites/favorites_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/matchups/matchup_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/pokedex_browse/pokedex_browse_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/route_error/route_error_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/settings/settings_page.dart';
@@ -56,6 +57,16 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
         name: 'comparison',
         builder: (BuildContext context, GoRouterState state) {
           return const ComparisonPage();
+        },
+      ),
+      GoRoute(
+        path: '/matchups',
+        name: 'matchups',
+        builder: (BuildContext context, GoRouterState state) {
+          final initial = parseMatchupTypesParam(
+            state.uri.queryParameters['types'],
+          );
+          return MatchupPage(initialDefending: initial);
         },
       ),
       GoRoute(

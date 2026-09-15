@@ -1141,4 +1141,41 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get compareTotal => 'Totale';
+
+  @override
+  String get matchupTitle => 'Affinità di tipo';
+
+  @override
+  String get matchupDefendingTypes => 'Tipi in difesa';
+
+  @override
+  String get matchupDefendingHint => 'Seleziona fino a 2 tipi';
+
+  @override
+  String get matchupEmptyTitle => 'Nessun tipo in difesa';
+
+  @override
+  String get matchupEmptyMessage =>
+      'Seleziona 1 o 2 tipi in difesa per vedere debolezze, resistenze e immunità.';
+
+  @override
+  String get matchupGroup4x => 'Debole 4× a';
+
+  @override
+  String get matchupGroup2x => 'Debole 2× a';
+
+  @override
+  String get matchupGroupHalf => 'Resiste ½× a';
+
+  @override
+  String get matchupGroupQuarter => 'Resiste ¼× a';
+
+  @override
+  String get matchupGroupImmune => 'Immune a';
+
+  @override
+  String get matchupClearSelection => 'Cancella selezione';
+
+  @override
+  String get matchupViewMatchups => 'Vedi affinità';
 }

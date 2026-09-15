@@ -44,3 +44,4 @@ export 'usecases/get_ability_detail_usecase.dart';
 export 'usecases/get_move_detail_usecase.dart';
 export 'helpers/pokemon_share_link.dart';
 export 'helpers/comparison_helper.dart';
+export 'helpers/type_matchup_chart.dart';

@@ -2173,6 +2173,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total'**
   String get compareTotal;
+
+  /// No description provided for @matchupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Type matchups'**
+  String get matchupTitle;
+
+  /// No description provided for @matchupDefendingTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Defending types'**
+  String get matchupDefendingTypes;
+
+  /// No description provided for @matchupDefendingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select up to 2 types'**
+  String get matchupDefendingHint;
+
+  /// No description provided for @matchupEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No defending type selected'**
+  String get matchupEmptyTitle;
+
+  /// No description provided for @matchupEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Select 1 or 2 defending types to see weaknesses, resistances and immunities.'**
+  String get matchupEmptyMessage;
+
+  /// No description provided for @matchupGroup4x.
+  ///
+  /// In en, this message translates to:
+  /// **'4× weak to'**
+  String get matchupGroup4x;
+
+  /// No description provided for @matchupGroup2x.
+  ///
+  /// In en, this message translates to:
+  /// **'2× weak to'**
+  String get matchupGroup2x;
+
+  /// No description provided for @matchupGroupHalf.
+  ///
+  /// In en, this message translates to:
+  /// **'½× resistant to'**
+  String get matchupGroupHalf;
+
+  /// No description provided for @matchupGroupQuarter.
+  ///
+  /// In en, this message translates to:
+  /// **'¼× resistant to'**
+  String get matchupGroupQuarter;
+
+  /// No description provided for @matchupGroupImmune.
+  ///
+  /// In en, this message translates to:
+  /// **'Immune to'**
+  String get matchupGroupImmune;
+
+  /// No description provided for @matchupClearSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear selection'**
+  String get matchupClearSelection;
+
+  /// No description provided for @matchupViewMatchups.
+  ///
+  /// In en, this message translates to:
+  /// **'View matchups'**
+  String get matchupViewMatchups;
 }
 
 class _AppLocalizationsDelegate

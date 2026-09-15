@@ -9,6 +9,7 @@ import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/failure.dart';
 import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/matchups/matchup_page.dart';
 import 'package:pokefinder/src/1_presentation/router/app_router.dart';
 import 'package:pokefinder/src/1_presentation/widgets/home/pokeball_widget.dart';
 import 'package:pokefinder/src/1_presentation/widgets/home/poke_text_field.dart';
@@ -572,6 +573,22 @@ void main() {
       final size = tester.getSize(find.byType(ElevatedButton));
       expect(size.height, greaterThanOrEqualTo(48.0));
       expect(size.width, greaterThanOrEqualTo(48.0));
+    });
+
+    testWidgets('drawer type matchups tile navigates to /matchups', (
+      tester,
+    ) async {
+      await pumpHomePage(tester);
+
+      await tester.tap(find.widgetWithIcon(IconButton, Icons.menu));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Type matchups'), findsOneWidget);
+
+      await tester.tap(find.text('Type matchups'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MatchupPage), findsOneWidget);
     });
   });
 }

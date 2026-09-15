@@ -344,7 +344,19 @@
   "compareFull": "Confronto pieno (max 2)",
   "compareAdded": "Aggiunto al confronto",
   "compareView": "Visualizza",
-  "compareTotal": "Totale"
+  "compareTotal": "Totale",
+  "matchupTitle": "Affinità di tipo",
+  "matchupDefendingTypes": "Tipi in difesa",
+  "matchupDefendingHint": "Seleziona fino a 2 tipi",
+  "matchupEmptyTitle": "Nessun tipo in difesa",
+  "matchupEmptyMessage": "Seleziona 1 o 2 tipi in difesa per vedere debolezze, resistenze e immunità.",
+  "matchupGroup4x": "Debole 4× a",
+  "matchupGroup2x": "Debole 2× a",
+  "matchupGroupHalf": "Resiste ½× a",
+  "matchupGroupQuarter": "Resiste ¼× a",
+  "matchupGroupImmune": "Immune a",
+  "matchupClearSelection": "Cancella selezione",
+  "matchupViewMatchups": "Vedi affinità"
 }
 
 
