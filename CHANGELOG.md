@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file, following t
 
 ### Added
 
+- Detail artwork & sprite-variant gallery (Info tab): grid of available
+  variants (official artwork, front/back, shiny, female, Home) with localized
+  labels (EN + IT), tap-to-preview dialog, placeholder icons on missing or
+  failed images, and screen-reader variant names. Records URLs + fallback
+  order only (official artwork → front default → others); image bytes stay in
+  the platform cache. Raw sprite DTOs now model female variants and
+  `other/home` as nullable.
 - Detail share action: copies the canonical `/pokemon/:nameOrId` link for the
   displayed Pokémon/form to the clipboard (clipboard only, no new permissions);
   `pokefinder:///pokemon/:nameOrId` deep links on Android and iOS resolve to the
@@ -43,6 +50,10 @@ All notable changes to this project will be documented in this file, following t
 
 ### Fixed
 
+- Sprite gallery duplicated official artwork under "Front (default)": the
+  front pixel sprite is now retained as `spriteFrontDefault` and shown as its
+  own variant; preview dialog scrolls on compact landscape and large text
+  scaling; gallery tiles expose a single screen-reader announcement.
 - Held items rendered as ALL-CAPS raw API slugs; they now show localized names
   with title-case fallback.
 - Accessibility and UI: redundant / missing screen-reader announcements, 48dp touch targets, Italian badge localization, Hive LRU bloat and jank.

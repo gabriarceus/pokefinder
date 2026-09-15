@@ -46,14 +46,26 @@ class MockPokemonRepository implements IPokemonRepository {
         speciesUrl: 'https://pokeapi.co/api/v2/pokemon-species/1/',
         spriteBackDefault:
             'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/1.png',
+        spriteFrontDefault:
+            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png',
         spriteFrontShiny:
             'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/1.png',
         spriteBackShiny:
             'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/shiny/1.png',
+        spriteFrontFemale: null,
+        spriteBackFemale: null,
+        spriteFrontShinyFemale: null,
+        spriteBackShinyFemale: null,
         officialArtworkDefault:
             'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png',
         officialArtworkShiny:
             'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/1.png',
+        homeDefault:
+            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/1.png',
+        homeFemale: null,
+        homeShiny:
+            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/1.png',
+        homeShinyFemale: null,
         abilities: [
           PokemonAbility(name: 'overgrow', isHidden: false, slot: 1),
           PokemonAbility(name: 'chlorophyll', isHidden: true, slot: 3),

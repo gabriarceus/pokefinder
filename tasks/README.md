@@ -15,25 +15,35 @@ safe to delete the old folder and roadmap file; only the work below remains.
 
 ## Task index
 
-| #      | Document                                                                                                                    | Priority |   Status   |
-| ------ | --------------------------------------------------------------------------------------------------------------------------- | -------- | :--------: |
-| **10** | [Task 10: Share Links, Localization Gaps and Architecture Consistency](task_10_share_localization_and_architecture_gaps.md) | P1       | `[x]` Complete |
-| **11** | [Task 11: Gallery, Comparison, Matchup Calculator and Local Teams](task_11_gallery_comparison_matchup_and_local_teams.md)   | P2       | `[ ]` Open |
-| **12** | [Task 12: Accounts, Cloud Sync and Social (Future Epic, Do Not Build Yet)](task_12_accounts_cloud_sync_and_social.md)       | P3       | `[ ]` Open |
+| #        | Document                                                                                                                    | Priority |     Status     |
+| -------- | --------------------------------------------------------------------------------------------------------------------------- | -------- | :------------: |
+| **10**   | [Task 10: Share Links, Localization Gaps and Architecture Consistency](task_10_share_localization_and_architecture_gaps.md) | P1       | `[x]` Complete |
+| **11.1** | [Task 11.1: Artwork & Sprite-Variant Gallery](task_11_1_artwork_sprite_gallery.md)                                          | P2       | `[x]` Complete |
+| **11.2** | [Task 11.2: Pokémon Comparison (Side-by-Side)](task_11_2_pokemon_comparison.md)                                             | P2       |   `[ ]` Open   |
+| **11.3** | [Task 11.3: Type Matchup Calculator (Offline)](task_11_3_type_matchup_calculator.md)                                        | P2       |   `[ ]` Open   |
+| **11.4** | [Task 11.4: Local Team Builder (No Cloud)](task_11_4_local_team_builder.md)                                                 | P2       |   `[ ]` Open   |
+| **12**   | [Task 12: Accounts, Cloud Sync and Social (Future Epic, Do Not Build Yet)](task_12_accounts_cloud_sync_and_social.md)       | P3       |   `[ ]` Open   |
 
 ## Execution order
 
 ```mermaid
 graph TD
-    T10[Task 10: Hardening gaps] --> T11[Task 11: Product tools + local teams]
-    T11 --> T12[Task 12: Accounts/cloud/social - decision only]
+    T10[Task 10: Hardening gaps] --> T111[Task 11.1: Gallery]
+    T10 --> T112[Task 11.2: Comparison]
+    T10 --> T113[Task 11.3: Matchup calculator]
+    T10 --> T114[Task 11.4: Local teams]
+    T111 --> T12[Task 12: Accounts/cloud/social - decision only]
+    T112 --> T12
+    T113 --> T12
+    T114 --> T12
 ```
 
-Task 10 first (small, closes out the shipped app). Task 11 after (new
-product value, offline-first). Task 12 is a decision/spike epic — do not
-implement until demand, backend, privacy, and cost are validated.
+Task 10 first (small, closes out the shipped app). Tasks 11.1–11.4 after
+(new product value, offline-first, independent of each other — any order).
+Task 12 is a decision/spike epic — do not implement until demand, backend,
+privacy, and cost are validated.
 
-## Global Definition of Done (applies to Tasks 10–11; Task 12 is exempt)
+## Global Definition of Done (applies to Tasks 10–11.4; Task 12 is exempt)
 
 - [ ] Loading, empty, partial, stale, success, and failure states handled; recoverable failures have retry.
 - [ ] User-visible strings localized in English (`app_en.arb`) and Italian (`app_it.arb`); no ALL-CAPS in ARB or UI slugs.

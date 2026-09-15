@@ -318,6 +318,113 @@ void main() {
         expect(pokemon.officialArtworkShiny, isNull);
       },
     );
+
+    test(
+      'maps the full sprite payload including female and home variants',
+      () async {
+        final pokemon = await mapPokemon(
+          rawPokemonJson(
+            sprites: {
+              'front_default': 'front.png',
+              'back_default': 'back.png',
+              'front_shiny': 'front-shiny.png',
+              'back_shiny': 'back-shiny.png',
+              'front_female': 'front-female.png',
+              'back_female': 'back-female.png',
+              'front_shiny_female': 'front-shiny-female.png',
+              'back_shiny_female': 'back-shiny-female.png',
+              'other': {
+                'official-artwork': {
+                  'front_default': 'artwork.png',
+                  'front_shiny': 'artwork-shiny.png',
+                },
+                'home': {
+                  'front_default': 'home.png',
+                  'front_female': 'home-female.png',
+                  'front_shiny': 'home-shiny.png',
+                  'front_shiny_female': 'home-shiny-female.png',
+                },
+              },
+            },
+          ),
+        );
+
+        expect(pokemon.sprite, 'artwork.png');
+        expect(pokemon.spriteFrontDefault, 'front.png');
+        expect(pokemon.spriteBackDefault, 'back.png');
+        expect(pokemon.spriteFrontShiny, 'front-shiny.png');
+        expect(pokemon.spriteBackShiny, 'back-shiny.png');
+        expect(pokemon.spriteFrontFemale, 'front-female.png');
+        expect(pokemon.spriteBackFemale, 'back-female.png');
+        expect(pokemon.spriteFrontShinyFemale, 'front-shiny-female.png');
+        expect(pokemon.spriteBackShinyFemale, 'back-shiny-female.png');
+        expect(pokemon.officialArtworkDefault, 'artwork.png');
+        expect(pokemon.officialArtworkShiny, 'artwork-shiny.png');
+        expect(pokemon.homeDefault, 'home.png');
+        expect(pokemon.homeFemale, 'home-female.png');
+        expect(pokemon.homeShiny, 'home-shiny.png');
+        expect(pokemon.homeShinyFemale, 'home-shiny-female.png');
+      },
+    );
+
+    test(
+      'leaves female and home variants null for a partial payload',
+      () async {
+        final pokemon = await mapPokemon(
+          rawPokemonJson(
+            sprites: {
+              'front_default': 'front.png',
+              'back_default': null,
+              'front_shiny': null,
+              'back_shiny': null,
+              'front_female': null,
+              'back_female': null,
+              'front_shiny_female': null,
+              'back_shiny_female': null,
+              'other': {
+                'official-artwork': {
+                  'front_default': 'artwork.png',
+                  'front_shiny': null,
+                },
+                'home': null,
+              },
+            },
+          ),
+        );
+
+        expect(pokemon.sprite, 'artwork.png');
+        expect(pokemon.spriteFrontFemale, isNull);
+        expect(pokemon.spriteBackFemale, isNull);
+        expect(pokemon.spriteFrontShinyFemale, isNull);
+        expect(pokemon.spriteBackShinyFemale, isNull);
+        expect(pokemon.homeDefault, isNull);
+        expect(pokemon.homeFemale, isNull);
+        expect(pokemon.homeShiny, isNull);
+        expect(pokemon.homeShinyFemale, isNull);
+      },
+    );
+
+    test('empty sprite payload yields an empty primary sprite', () async {
+      final pokemon = await mapPokemon(
+        rawPokemonJson(
+          sprites: {
+            'front_default': null,
+            'back_default': null,
+            'front_shiny': null,
+            'back_shiny': null,
+            'front_female': null,
+            'back_female': null,
+            'front_shiny_female': null,
+            'back_shiny_female': null,
+            'other': null,
+          },
+        ),
+      );
+
+      expect(pokemon.sprite, isEmpty);
+      expect(pokemon.officialArtworkDefault, isNull);
+      expect(pokemon.homeDefault, isNull);
+    });
   });
 
   group('getPokemon failures', () {

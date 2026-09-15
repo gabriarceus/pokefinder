@@ -398,6 +398,8 @@ void main() {
         'Select Form & Appearance',
       );
       expect(formsButton, findsOneWidget);
+      await tester.ensureVisible(formsButton);
+      await tester.pumpAndSettle();
       await tester.tap(formsButton);
       await tester.pumpAndSettle();
 
@@ -454,6 +456,8 @@ void main() {
         FilledButton,
         'Select Form & Appearance',
       );
+      await tester.ensureVisible(formsButton);
+      await tester.pumpAndSettle();
       await tester.tap(formsButton);
       await tester.pumpAndSettle();
 

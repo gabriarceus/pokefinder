@@ -108,13 +108,14 @@ class PokemonRepositoryImpl implements IPokemonRepository {
         rawPokemon.sprites.other?.officialArtwork?.frontDefault;
     final officialArtworkShiny =
         rawPokemon.sprites.other?.officialArtwork?.frontShiny;
+    final home = rawPokemon.sprites.other?.home;
 
-    final sprite =
-        officialArtworkDefault ??
-        rawPokemon.sprites.frontDefault ??
-        rawPokemon.sprites.frontShiny ??
-        rawPokemon.sprites.backDefault ??
-        '';
+    final sprite = SpriteGalleryHelper.resolvePrimarySprite(
+      artworkDefault: officialArtworkDefault,
+      frontDefault: rawPokemon.sprites.frontDefault,
+      frontShiny: rawPokemon.sprites.frontShiny,
+      backDefault: rawPokemon.sprites.backDefault,
+    );
 
     return right(
       Pokemon(
@@ -159,10 +160,19 @@ class PokemonRepositoryImpl implements IPokemonRepository {
         speciesName: rawPokemon.species.name,
         speciesUrl: rawPokemon.species.url,
         spriteBackDefault: rawPokemon.sprites.backDefault,
+        spriteFrontDefault: rawPokemon.sprites.frontDefault,
         spriteFrontShiny: rawPokemon.sprites.frontShiny,
         spriteBackShiny: rawPokemon.sprites.backShiny,
+        spriteFrontFemale: rawPokemon.sprites.frontFemale,
+        spriteBackFemale: rawPokemon.sprites.backFemale,
+        spriteFrontShinyFemale: rawPokemon.sprites.frontShinyFemale,
+        spriteBackShinyFemale: rawPokemon.sprites.backShinyFemale,
         officialArtworkDefault: officialArtworkDefault,
         officialArtworkShiny: officialArtworkShiny,
+        homeDefault: home?.frontDefault,
+        homeFemale: home?.frontFemale,
+        homeShiny: home?.frontShiny,
+        homeShinyFemale: home?.frontShinyFemale,
         abilities: abilities,
         heldItems: heldItems,
         moves: moves,
