@@ -13,6 +13,7 @@ searching, browsing, and exploring Pokémon. Data comes from the public
 - Alternate forms: Mega, Primal, Regional (Alola, Galar, Hisui, Paldea), G-Max and battle modes, with badges, localized titles, and keyword search
 - Detail screen with tabs (info, stats, moves, items & games), species flavor text, branching evolution chain, ability sheets, unified game-version selector, and inline forms gallery
 - Favorites and Recently Viewed / Recent Searches with reactive sync
+- Side-by-side comparison of up to 2 Pokémon (base/min/max stats, types, height/weight) from Pokédex cards or the detail screen
 - Settings: language (English / Italian / system), theme (System / Light / Dark), Metric / Imperial units, cry autoplay + volume, cache size + purge
 - About screen with app version, PokeAPI credit, trademark disclaimer, and licenses
 - Offline support via cached index and details, with stale indicator and Retry / Edit Search recovery
@@ -25,6 +26,7 @@ searching, browsing, and exploring Pokémon. Data comes from the public
 | `/`                  | Home / search                              |
 | `/pokemon/:nameOrId` | Detail (name or numeric ID, deep-linkable) |
 | `/pokedex`           | Browsable Pokédex                          |
+| `/compare`           | Side-by-side Pokémon comparison (max 2)    |
 | `/favorites`         | Favorites                                  |
 | `/settings`          | Settings                                   |
 | `/settings/about`    | About & Legal                              |

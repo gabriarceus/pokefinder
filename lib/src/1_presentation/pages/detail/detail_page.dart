@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
@@ -87,6 +88,54 @@ class _DetailState extends State<Detail> {
       ..showSnackBar(SnackBar(content: Text(context.t().shareLinkCopied)));
   }
 
+  /// Toggles the displayed Pokémon in the side-by-side comparison selection.
+  void _toggleComparison(
+    BuildContext context,
+    Pokemon pokemon,
+    PokemonFormDetails formDetails,
+  ) {
+    try {
+      final types = <PokemonType>[
+        if (formDetails.type1 != null)
+          formDetails.type1!
+        else if (pokemon.type1 != null)
+          pokemon.type1!,
+        if (formDetails.type2 != null)
+          formDetails.type2!
+        else if (pokemon.type2 != null)
+          pokemon.type2!,
+      ];
+      final entry = PokemonIndexEntry(
+        id: pokemon.id,
+        name: pokemon.name,
+        detailUrl: '',
+        types: types,
+      );
+      final cubit = context.read<ComparisonCubit>();
+      final wasSelected = cubit.isSelected(pokemon.id);
+      final nowSelected = cubit.toggleEntry(entry);
+      if (!context.mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      if (nowSelected) {
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(context.t().compareAdded),
+              action: SnackBarAction(
+                label: context.t().compareView,
+                onPressed: () => context.push('/compare'),
+              ),
+            ),
+          );
+      } else if (!wasSelected) {
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(context.t().compareFull)));
+      }
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<PokemonBloc, PokemonBlocState>(
@@ -157,6 +206,13 @@ class _DetailState extends State<Detail> {
       );
     } catch (_) {}
 
+    bool isInComparison = false;
+    try {
+      isInComparison = context.select<ComparisonCubit, bool>(
+        (cubit) => cubit.isSelected(pokemon.id),
+      );
+    } catch (_) {}
+
     final backgroundHelper = TypeColorScheme(
       type1: formDetails.type1,
       type2: formDetails.type2,
@@ -222,6 +278,8 @@ class _DetailState extends State<Detail> {
                 });
               },
               onShare: () => _sharePokemonLink(context, success),
+              isInComparison: isInComparison,
+              onCompare: () => _toggleComparison(context, pokemon, formDetails),
             ),
             body: Container(
               decoration: backgroundHelper.getBackgroundDecoration(),

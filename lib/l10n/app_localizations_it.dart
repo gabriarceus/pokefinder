@@ -1107,4 +1107,38 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get shareLinkCopied => 'Link copiato negli appunti';
+
+  @override
+  String get compareTitle => 'Confronta';
+
+  @override
+  String get compareAdd => 'Aggiungi al confronto';
+
+  @override
+  String get compareRemove => 'Rimuovi dal confronto';
+
+  @override
+  String get compareClear => 'Svuota confronto';
+
+  @override
+  String get compareEmptyTitle => 'Nessun Pokémon da confrontare';
+
+  @override
+  String get compareEmptyMessage =>
+      'Aggiungi fino a 2 Pokémon dalle schede del Pokédex o dalla schermata dei dettagli per confrontarli fianco a fianco.';
+
+  @override
+  String get compareAddSecond => 'Aggiungi un secondo Pokémon da confrontare';
+
+  @override
+  String get compareFull => 'Confronto pieno (max 2)';
+
+  @override
+  String get compareAdded => 'Aggiunto al confronto';
+
+  @override
+  String get compareView => 'Visualizza';
+
+  @override
+  String get compareTotal => 'Totale';
 }

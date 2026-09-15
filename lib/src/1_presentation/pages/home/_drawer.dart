@@ -89,6 +89,17 @@ class HomeDrawer extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(
+              Icons.compare_arrows_rounded,
+              color: AppPalette.brandRed,
+            ),
+            title: Text(t.compareTitle),
+            onTap: () {
+              Navigator.of(context).pop();
+              context.push('/compare');
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.tune_rounded, color: AppPalette.brandRed),
             title: Text(t.settings),
             onTap: () {

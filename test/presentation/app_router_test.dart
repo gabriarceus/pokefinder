@@ -4,6 +4,7 @@ import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/comparison/comparison_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/favorites/favorites_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/pokedex_browse/pokedex_browse_page.dart';
@@ -33,6 +34,8 @@ void main() {
           BlocProvider.value(value: getIt<FavoritesCubit>()),
         if (getIt.isRegistered<RecentHistoryCubit>())
           BlocProvider.value(value: getIt<RecentHistoryCubit>()),
+        if (getIt.isRegistered<ComparisonCubit>())
+          BlocProvider.value(value: getIt<ComparisonCubit>()),
       ],
       child: MaterialApp.router(
         routerConfig: router,
@@ -191,6 +194,16 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byType(PokedexBrowsePage), findsOneWidget);
+      });
+    });
+
+    testWidgets('navigating to /compare loads ComparisonPage', (tester) async {
+      await mockNetworkImagesFor(() async {
+        getIt<ComparisonCubit>().clear();
+        await tester.pumpWidget(createRouterApp('/compare'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(ComparisonPage), findsOneWidget);
       });
     });
 

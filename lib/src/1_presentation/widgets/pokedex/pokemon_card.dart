@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/type_color_scheme.dart';
+import 'package:pokefinder/src/2_application/bloc/comparison_cubit/comparison_cubit.dart';
 import 'package:pokefinder/src/2_application/bloc/favorites_cubit/favorites_cubit.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_form_category.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
@@ -17,6 +18,9 @@ class PokemonCard extends StatelessWidget {
     this.isFavorite,
     this.onFavoriteToggle,
     this.showFavoriteButton = true,
+    this.isInComparison,
+    this.onCompareToggle,
+    this.showCompareButton = true,
   });
 
   final PokemonIndexEntry entry;
@@ -24,6 +28,9 @@ class PokemonCard extends StatelessWidget {
   final bool? isFavorite;
   final VoidCallback? onFavoriteToggle;
   final bool showFavoriteButton;
+  final bool? isInComparison;
+  final VoidCallback? onCompareToggle;
+  final bool showCompareButton;
 
   static Color _resolveFormBadgeColor(
     PokemonFormCategory category,
@@ -135,11 +142,55 @@ class PokemonCard extends StatelessWidget {
     } catch (_) {}
   }
 
+  bool _resolveIsInComparison(BuildContext context) {
+    if (isInComparison != null) return isInComparison!;
+    try {
+      return context.select<ComparisonCubit, bool>(
+        (cubit) => cubit.isSelected(entry.id),
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void _handleCompareToggle(BuildContext context) {
+    if (onCompareToggle != null) {
+      onCompareToggle!();
+      return;
+    }
+    try {
+      final cubit = context.read<ComparisonCubit>();
+      final wasSelected = cubit.isSelected(entry.id);
+      final nowSelected = cubit.toggleEntry(entry);
+      if (!context.mounted) return;
+      final l10n = AppLocalizations.of(context);
+      final messenger = ScaffoldMessenger.of(context);
+      if (nowSelected) {
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(l10n.compareAdded),
+              action: SnackBarAction(
+                label: l10n.compareView,
+                onPressed: () => context.push('/compare'),
+              ),
+            ),
+          );
+      } else if (!wasSelected) {
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(l10n.compareFull)));
+      }
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final isFav = _resolveIsFavorite(context);
+    final isComparing = _resolveIsInComparison(context);
     final displayName = context.translatePokemonIndexEntry(entry);
     final primaryType = entry.types.isNotEmpty ? entry.types.first : null;
     final accentColor = primaryType != null
@@ -175,6 +226,7 @@ class PokemonCard extends StatelessWidget {
             excludeSemantics: true,
             child: InkWell(
               onTap: onTap ?? () => context.push('/pokemon/${entry.name}'),
+              onLongPress: () => _handleCompareToggle(context),
               borderRadius: BorderRadius.circular(16),
               child: Ink(
                 decoration: BoxDecoration(
@@ -343,6 +395,7 @@ class PokemonCard extends StatelessWidget {
                             Padding(
                               padding: EdgeInsets.only(
                                 right: showFavoriteButton ? 28 : 0,
+                                left: showCompareButton ? 28 : 0,
                               ),
                               child: Wrap(
                                 spacing: 4,
@@ -389,6 +442,36 @@ class PokemonCard extends StatelessWidget {
               ),
             ),
           ),
+          if (showCompareButton)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              child: Semantics(
+                button: true,
+                label: isComparing ? l10n.compareRemove : l10n.compareAdd,
+                child: SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: IconButton(
+                    iconSize: 20,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
+                    tooltip: isComparing ? l10n.compareRemove : l10n.compareAdd,
+                    onPressed: () => _handleCompareToggle(context),
+                    icon: Icon(
+                      Icons.compare_arrows_rounded,
+                      size: 20,
+                      color: isComparing
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.outline,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           if (showFavoriteButton)
             Positioned(
               bottom: 0,

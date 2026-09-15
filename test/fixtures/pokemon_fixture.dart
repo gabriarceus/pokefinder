@@ -29,6 +29,7 @@ Pokemon buildPokemon({
   String? homeShiny,
   String? homeShinyFemale,
   bool isStale = false,
+  List<int> stats = const [45, 49, 49, 65, 65, 45],
 }) {
   return Pokemon(
     id: id,
@@ -41,7 +42,7 @@ Pokemon buildPokemon({
     type1: type1,
     type2: type2,
     cry: 'cry.ogg',
-    stats: const [45, 49, 49, 65, 65, 45],
+    stats: stats,
     baseExperience: 64,
     isDefault: true,
     order: 1,

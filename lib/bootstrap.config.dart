@@ -19,6 +19,7 @@ import 'package:injectable/injectable.dart' as _i526;
 import 'bootstrap.dart' as _i261;
 import 'src/2_application/bloc/ability_detail_cubit/ability_detail_cubit.dart'
     as _i473;
+import 'src/2_application/bloc/comparison_cubit/comparison_cubit.dart' as _i199;
 import 'src/2_application/bloc/detail_bloc/detail_bloc.dart' as _i1067;
 import 'src/2_application/bloc/evolution_cubit/evolution_cubit.dart' as _i338;
 import 'src/2_application/bloc/favorites_cubit/favorites_cubit.dart' as _i716;
@@ -80,6 +81,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i814.CryAudioController>(
       () => _i883.JustAudioCryController(gh<_i463.EnLogger>()),
+    );
+    gh.lazySingleton<_i199.ComparisonCubit>(
+      () => _i199.ComparisonCubit(gh<_i463.EnLogger>()),
     );
     gh.lazySingleton<_i1056.LanguageCubit>(
       () => _i1056.LanguageCubit(gh<_i463.EnLogger>()),

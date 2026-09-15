@@ -6,6 +6,18 @@ All notable changes to this project will be documented in this file, following t
 
 ### Added
 
+- Side-by-side Pokémon comparison `/compare` (max 2, in-memory): pick entries
+  from Pokédex card compare action / long-press or the detail compare action;
+  dual entries render in one shared card with side-by-side headers, sprites,
+  type chips, and localized metric/imperial height/weight that stay side by
+  side on phone portrait, plus an aligned `[first] <stat> [second]` stat table
+  driven by `buildComparisonStatRows` with leader highlighting and a shared
+  total row. Single entries reuse the shared `CompactStatRow` with the detail
+  screen. Each side fetches through its own detail bloc, so a failure shows
+  inline retry without destroying the valid side; per-entry canonical share
+  links, guarded sprite placeholders, compare-button tooltips, remove-one,
+  clear-all, empty state, EN + IT strings, and Pokédex badge navigation
+  included.
 - Detail artwork & sprite-variant gallery (Info tab): grid of available
   variants (official artwork, front/back, shiny, female, Home) with localized
   labels (EN + IT), tap-to-preview dialog, placeholder icons on missing or

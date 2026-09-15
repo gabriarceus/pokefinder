@@ -2107,6 +2107,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Link copied to clipboard'**
   String get shareLinkCopied;
+
+  /// No description provided for @compareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare'**
+  String get compareTitle;
+
+  /// No description provided for @compareAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to comparison'**
+  String get compareAdd;
+
+  /// No description provided for @compareRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from comparison'**
+  String get compareRemove;
+
+  /// No description provided for @compareClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear comparison'**
+  String get compareClear;
+
+  /// No description provided for @compareEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No Pokémon to compare'**
+  String get compareEmptyTitle;
+
+  /// No description provided for @compareEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add up to 2 Pokémon from the Pokédex cards or the detail screen to compare them side by side.'**
+  String get compareEmptyMessage;
+
+  /// No description provided for @compareAddSecond.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a second Pokémon to compare'**
+  String get compareAddSecond;
+
+  /// No description provided for @compareFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Comparison is full (2 max)'**
+  String get compareFull;
+
+  /// No description provided for @compareAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to comparison'**
+  String get compareAdded;
+
+  /// No description provided for @compareView.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get compareView;
+
+  /// No description provided for @compareTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get compareTotal;
 }
 
 class _AppLocalizationsDelegate

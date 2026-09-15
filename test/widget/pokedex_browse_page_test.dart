@@ -3,19 +3,27 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:network_image_mock/network_image_mock.dart';
+import 'package:en_logger/en_logger.dart';
+import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
+import 'package:pokefinder/src/1_presentation/pages/comparison/comparison_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/pokedex_browse/pokedex_browse_page.dart';
 import 'package:pokefinder/src/1_presentation/widgets/pokedex/pokemon_card.dart';
 import 'package:pokefinder/src/1_presentation/widgets/pokedex/pokemon_card_skeleton.dart';
+import 'package:pokefinder/src/2_application/bloc/comparison_cubit/comparison_cubit.dart';
 import 'package:pokefinder/src/2_application/bloc/pokedex_bloc/pokedex_bloc.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
 class _MockPokedexBloc extends Mock implements PokedexBloc {}
 
+class _MockEnLogger extends Mock implements EnLogger {}
+
 void main() {
   late _MockPokedexBloc bloc;
+  late ComparisonCubit comparisonCubit;
   late StreamController<PokedexState> streamController;
 
   final sampleEntries = [
@@ -41,6 +49,7 @@ void main() {
 
   setUp(() {
     bloc = _MockPokedexBloc();
+    comparisonCubit = ComparisonCubit(_MockEnLogger());
     streamController = StreamController<PokedexState>.broadcast();
     when(() => bloc.stream).thenAnswer((_) => streamController.stream);
   });
@@ -56,8 +65,11 @@ void main() {
       supportedLocales: AppLocalizations.supportedLocales,
       home: MediaQuery(
         data: MediaQueryData(size: screenSize),
-        child: BlocProvider<PokedexBloc>.value(
-          value: bloc,
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider<PokedexBloc>.value(value: bloc),
+            BlocProvider<ComparisonCubit>.value(value: comparisonCubit),
+          ],
           child: const PokedexBrowsePage(),
         ),
       ),
@@ -305,5 +317,81 @@ void main() {
         });
       },
     );
+
+    testWidgets('shows comparison badge count when entries are selected', (
+      tester,
+    ) async {
+      await mockNetworkImagesFor(() async {
+        when(() => bloc.state).thenReturn(
+          PokedexState.initial().copyWith(
+            status: PokedexStatus.success,
+            allEntries: sampleEntries,
+            filteredEntries: sampleEntries,
+            visibleEntries: sampleEntries,
+          ),
+        );
+
+        comparisonCubit.addEntry(sampleEntries[0]);
+        comparisonCubit.addEntry(sampleEntries[1]);
+
+        await tester.pumpWidget(buildTestableWidget(const Size(400, 800)));
+        await tester.pump();
+
+        expect(find.text('2'), findsOneWidget);
+        expect(find.byTooltip('Compare'), findsOneWidget);
+      });
+    });
+
+    testWidgets('tapping compare action navigates to /compare', (tester) async {
+      await mockNetworkImagesFor(() async {
+        await configureDependencies('mock');
+        when(() => bloc.state).thenReturn(
+          PokedexState.initial().copyWith(
+            status: PokedexStatus.success,
+            allEntries: sampleEntries,
+            filteredEntries: sampleEntries,
+            visibleEntries: sampleEntries,
+          ),
+        );
+
+        final router = GoRouter(
+          initialLocation: '/pokedex',
+          routes: [
+            GoRoute(
+              path: '/pokedex',
+              builder: (context, state) => MultiBlocProvider(
+                providers: [
+                  BlocProvider<PokedexBloc>.value(value: bloc),
+                  BlocProvider<ComparisonCubit>.value(value: comparisonCubit),
+                ],
+                child: const PokedexBrowsePage(),
+              ),
+            ),
+            GoRoute(
+              path: '/compare',
+              builder: (context, state) => BlocProvider<ComparisonCubit>.value(
+                value: comparisonCubit,
+                child: const ComparisonPage(),
+              ),
+            ),
+          ],
+        );
+
+        await tester.pumpWidget(
+          MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('en'),
+          ),
+        );
+        await tester.pump();
+
+        await tester.tap(find.byTooltip('Compare'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(ComparisonPage), findsOneWidget);
+      });
+    });
   });
 }
