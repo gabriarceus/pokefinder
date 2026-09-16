@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
+import 'package:pokefinder/src/1_presentation/pages/teams/add_to_team_sheet.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
@@ -86,6 +87,40 @@ class _DetailState extends State<Detail> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(context.t().shareLinkCopied)));
+  }
+
+  /// Adds the displayed Pokémon/form to a local team as a distinct member.
+  void _addToTeam(
+    BuildContext context,
+    Pokemon pokemon,
+    PokemonFormDetails formDetails,
+  ) {
+    final formName = formDetails.name.isNotEmpty
+        ? formDetails.name
+        : pokemon.name;
+    final spriteUrl = formDetails.spriteDefault.isNotEmpty
+        ? formDetails.spriteDefault
+        : pokemon.sprite;
+    final types = <PokemonType>[
+      if (formDetails.type1 != null)
+        formDetails.type1!
+      else if (pokemon.type1 != null)
+        pokemon.type1!,
+      if (formDetails.type2 != null)
+        formDetails.type2!
+      else if (pokemon.type2 != null)
+        pokemon.type2!,
+    ];
+    showAddToTeamSheet(
+      context,
+      PokemonIndexEntry(
+        id: pokemon.id,
+        name: formName,
+        detailUrl: '',
+        types: types,
+        customSpriteUrl: spriteUrl.isNotEmpty ? spriteUrl : null,
+      ),
+    );
   }
 
   /// Toggles the displayed Pokémon in the side-by-side comparison selection.
@@ -280,6 +315,7 @@ class _DetailState extends State<Detail> {
               onShare: () => _sharePokemonLink(context, success),
               isInComparison: isInComparison,
               onCompare: () => _toggleComparison(context, pokemon, formDetails),
+              onTeam: () => _addToTeam(context, pokemon, formDetails),
             ),
             body: Container(
               decoration: backgroundHelper.getBackgroundDecoration(),

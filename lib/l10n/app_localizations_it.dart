@@ -1178,4 +1178,103 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get matchupViewMatchups => 'Vedi affinità';
+
+  @override
+  String get teamsTitle => 'Squadre';
+
+  @override
+  String get teamsEmptyTitle => 'Nessuna squadra';
+
+  @override
+  String get teamsEmptyMessage =>
+      'Crea una squadra fino a 6 Pokémon per seguire copertura tipi e statistiche base.';
+
+  @override
+  String get teamCreate => 'Nuova squadra';
+
+  @override
+  String get teamCreateTitle => 'Crea squadra';
+
+  @override
+  String get teamNameLabel => 'Nome squadra';
+
+  @override
+  String get teamNameHint => 'Es. Partenza Kanto';
+
+  @override
+  String get teamNameEmpty => 'Inserisci un nome';
+
+  @override
+  String get teamRename => 'Rinomina squadra';
+
+  @override
+  String get teamDelete => 'Elimina squadra';
+
+  @override
+  String get teamDeleteTitle => 'Eliminare la squadra?';
+
+  @override
+  String teamDeleteMessage({required String name}) {
+    return 'Sei sicuro di voler eliminare $name?';
+  }
+
+  @override
+  String get teamAddMember => 'Aggiungi alla squadra';
+
+  @override
+  String get teamRemoveMember => 'Rimuovi dalla squadra';
+
+  @override
+  String get teamFull => 'Squadra al completo (max 6)';
+
+  @override
+  String teamAddedTo({required String team}) {
+    return 'Aggiunto a $team';
+  }
+
+  @override
+  String get teamDuplicateWarning => 'Pokémon duplicato in squadra';
+
+  @override
+  String get teamDuplicateMessage =>
+      'Questa squadra contiene lo stesso Pokémon più di una volta.';
+
+  @override
+  String teamMembersCount({required int count}) {
+    return '$count di 6';
+  }
+
+  @override
+  String get teamTypeCoverage => 'Copertura tipi';
+
+  @override
+  String get teamStatsSum => 'Totale (somma)';
+
+  @override
+  String get teamStatsAverage => 'Media';
+
+  @override
+  String get teamSummary => 'Riepilogo squadra';
+
+  @override
+  String get teamMembers => 'Membri';
+
+  @override
+  String get teamMoveToTop => 'Sposta in cima';
+
+  @override
+  String get teamEmptyMembersTitle => 'Nessun membro';
+
+  @override
+  String get teamEmptyMembersMessage =>
+      'Aggiungi fino a 6 Pokémon dalle schede del Pokédex o dalla schermata dei dettagli.';
+
+  @override
+  String get teamPickTitle => 'Scegli una squadra';
+
+  @override
+  String get teamPickEmpty => 'Nessuna squadra — creane prima una.';
+
+  @override
+  String get teamView => 'Visualizza';
 }

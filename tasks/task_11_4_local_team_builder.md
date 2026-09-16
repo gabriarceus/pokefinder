@@ -1,6 +1,6 @@
 # Task 11.4: Local Team Builder (No Cloud)
 
-- **Status:** Open
+- **Status:** Complete
 - **Priority:** P2 (next product value; offline-first, no backend)
 - **Target Platforms:** Android & iOS only
 - **Context:** Split from Task 11 (Gallery, Comparison, Matchup Calculator and
@@ -20,47 +20,50 @@ Hive cache.
 
 ### Action items
 
-- [ ] Teams of up to 6 stored locally in durable storage as lightweight
+- [x] Teams of up to 6 stored locally in durable storage as lightweight
       index refs (`id`, `name`, timestamp) — never duplicate full API payloads.
-- [ ] Team list screen + team detail: add/remove from detail and browse
+- [x] Team list screen + team detail: add/remove from detail and browse
       cards, reorder (or move-to-top), rename team, delete team with confirm.
-- [ ] Team summary: type coverage of the 6 members + summed/average base
+- [x] Team summary: type coverage of the 6 members + summed/average base
       stats (reuse comparison components). Warn on duplicates; allow forms as
       distinct members with distinct labels (reuse form-classifier display
       names).
-- [ ] Empty states explain how to build a team. All strings EN + IT.
+- [x] Empty states explain how to build a team. All strings EN + IT.
 
 ### Acceptance criteria
 
-- [ ] Teams survive restart; 7th member is rejected with guidance; corrupt
+- [x] Teams survive restart; 7th member is rejected with guidance; corrupt
       team records are evicted without crashing the list.
-- [ ] Team detail deep-links each member via the canonical
+- [x] Team detail deep-links each member via the canonical
       `/pokemon/:nameOrId` route.
 
 ### Tests
 
-- [ ] Unit: CRUD, 6-member cap, dedup/form-member rules, corrupt-record
+- [x] Unit: CRUD, 6-member cap, dedup/form-member rules, corrupt-record
       eviction, coverage summary.
-- [ ] Widget: create/rename/delete with confirm, add/remove flows, empty
+- [x] Widget: create/rename/delete with confirm, add/remove flows, empty
       states.
 
 ---
 
-## Open questions (carried over, not resolved in split)
+## Open questions (resolved during implementation)
 
-- [ ] Durable-storage mechanism not pinned (presumably Hive via the existing
-      `LocalStorage` pattern like favorites, but not stated).
-- [ ] Reorder vs. move-to-top undecided.
-- [ ] Team summary formula undecided (summed vs. average base stats); duplicate
-      warning vs. hard-block wording open.
-- [ ] Corrupt-record eviction policy needs definition (silent evict vs. log;
-      never crash is the only stated rule).
+- [x] Durable-storage mechanism: hydrated `TeamsCubit` (same pattern as
+  favorites) — survives restart via documents storage.
+- [x] Reorder vs. move-to-top: both — drag-reorder via `ReorderableListView`
+  plus a per-row move-to-top action.
+- [x] Team summary formula: both — per-stat summed and average rows plus
+  summed and average totals, reusing comparison components.
+- [x] Duplicate warning vs. hard-block: warn, don't block — duplicates stay
+  allowed with an inline banner; forms (distinct slugs) are distinct members.
+- [x] Corrupt-record eviction policy: log via `EnLogger` and skip the record
+  (per team, per member); never crash.
 
 ---
 
 ## Verification
 
-- [ ] Meets the global Definition of Done in `tasks/README.md` (states,
+- [x] Meets the global Definition of Done in `tasks/README.md` (states,
       retry, EN+IT, responsive/a11y, tests).
-- [ ] `fvm dart format lib test`, `fvm flutter analyze` (0 issues),
+- [x] `fvm dart format lib test`, `fvm flutter analyze` (0 issues),
       `fvm flutter test` pass. `CHANGELOG.md` updated.

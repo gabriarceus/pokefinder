@@ -10,6 +10,7 @@ import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/failure.dart';
 import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/matchups/matchup_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/teams/teams_list_page.dart';
 import 'package:pokefinder/src/1_presentation/router/app_router.dart';
 import 'package:pokefinder/src/1_presentation/widgets/home/pokeball_widget.dart';
 import 'package:pokefinder/src/1_presentation/widgets/home/poke_text_field.dart';
@@ -263,6 +264,8 @@ void main() {
                 BlocProvider.value(value: getIt<FavoritesCubit>()),
               if (getIt.isRegistered<RecentHistoryCubit>())
                 BlocProvider.value(value: getIt<RecentHistoryCubit>()),
+              if (getIt.isRegistered<TeamsCubit>())
+                BlocProvider.value(value: getIt<TeamsCubit>()),
             ],
             child: MaterialApp.router(
               routerConfig: router,
@@ -589,6 +592,20 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(MatchupPage), findsOneWidget);
+    });
+
+    testWidgets('drawer teams tile navigates to /teams', (tester) async {
+      await pumpHomePage(tester);
+
+      await tester.tap(find.widgetWithIcon(IconButton, Icons.menu));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Teams'), findsOneWidget);
+
+      await tester.tap(find.text('Teams'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TeamsListPage), findsOneWidget);
     });
   });
 }
