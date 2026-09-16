@@ -66,97 +66,117 @@ class HomeDrawer extends StatelessWidget {
               ),
             ),
           ),
-          ListTile(
-            leading: const Icon(
-              Icons.catching_pokemon,
-              color: AppPalette.brandRed,
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                ListTile(
+                  leading: const Icon(
+                    Icons.catching_pokemon,
+                    color: AppPalette.brandRed,
+                  ),
+                  title: Text(t.browsePokedex),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    context.push('/pokedex');
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.favorite_rounded,
+                    color: AppPalette.brandRed,
+                  ),
+                  title: Text(t.favorites),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    context.push('/favorites');
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.compare_arrows_rounded,
+                    color: AppPalette.brandRed,
+                  ),
+                  title: Text(t.compareTitle),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    context.push('/compare');
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.table_chart_rounded,
+                    color: AppPalette.brandRed,
+                  ),
+                  title: Text(t.matchupTitle),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    context.push('/matchups');
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.groups_rounded,
+                    color: AppPalette.brandRed,
+                  ),
+                  title: Text(t.teamsTitle),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    context.push('/teams');
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.tune_rounded,
+                    color: AppPalette.brandRed,
+                  ),
+                  title: Text(t.settings),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    context.push('/settings');
+                  },
+                ),
+                const Divider(height: 1),
+                // "Use device language" toggle
+                SwitchListTile(
+                  title: Text(context.t().useDeviceLanguage),
+                  subtitle: Text(
+                    context.t().useDeviceLanguageInfo,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  value: isSystemLanguage,
+                  activeTrackColor: AppPalette.brandRed,
+                  onChanged: (bool value) {
+                    if (value) {
+                      context.read<LanguageCubit>().enableSystemLanguage();
+                    } else {
+                      context.read<LanguageCubit>().disableSystemLanguage();
+                    }
+                  },
+                ),
+                const Divider(height: 1),
+                // Language list – shown only when system language is off
+                if (!isSystemLanguage)
+                  RadioGroup<int>(
+                    groupValue: currentLanguageId,
+                    onChanged: (int? value) {
+                      if (value != null) {
+                        context.read<LanguageCubit>().setLanguage(value);
+                      }
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: Language.selectable.map((language) {
+                        return RadioListTile<int>(
+                          title: Text(language.nativeName),
+                          value: language.id,
+                        );
+                      }).toList(),
+                    ),
+                  ),
+              ],
             ),
-            title: Text(t.browsePokedex),
-            onTap: () {
-              Navigator.of(context).pop();
-              context.push('/pokedex');
-            },
           ),
-          ListTile(
-            leading: const Icon(
-              Icons.favorite_rounded,
-              color: AppPalette.brandRed,
-            ),
-            title: Text(t.favorites),
-            onTap: () {
-              Navigator.of(context).pop();
-              context.push('/favorites');
-            },
-          ),
-          ListTile(
-            leading: const Icon(
-              Icons.compare_arrows_rounded,
-              color: AppPalette.brandRed,
-            ),
-            title: Text(t.compareTitle),
-            onTap: () {
-              Navigator.of(context).pop();
-              context.push('/compare');
-            },
-          ),
-          ListTile(
-            leading: const Icon(
-              Icons.table_chart_rounded,
-              color: AppPalette.brandRed,
-            ),
-            title: Text(t.matchupTitle),
-            onTap: () {
-              Navigator.of(context).pop();
-              context.push('/matchups');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.tune_rounded, color: AppPalette.brandRed),
-            title: Text(t.settings),
-            onTap: () {
-              Navigator.of(context).pop();
-              context.push('/settings');
-            },
-          ),
-          const Divider(height: 1),
-          // "Use device language" toggle
-          SwitchListTile(
-            title: Text(context.t().useDeviceLanguage),
-            subtitle: Text(
-              context.t().useDeviceLanguageInfo,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            value: isSystemLanguage,
-            activeTrackColor: AppPalette.brandRed,
-            onChanged: (bool value) {
-              if (value) {
-                context.read<LanguageCubit>().enableSystemLanguage();
-              } else {
-                context.read<LanguageCubit>().disableSystemLanguage();
-              }
-            },
-          ),
-          const Divider(height: 1),
-          // Language list – shown only when system language is off
-          if (!isSystemLanguage)
-            RadioGroup<int>(
-              groupValue: currentLanguageId,
-              onChanged: (int? value) {
-                if (value != null) {
-                  context.read<LanguageCubit>().setLanguage(value);
-                }
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: Language.selectable.map((language) {
-                  return RadioListTile<int>(
-                    title: Text(language.nativeName),
-                    value: language.id,
-                  );
-                }).toList(),
-              ),
-            ),
-          const Spacer(),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(

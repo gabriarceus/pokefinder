@@ -2245,6 +2245,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View matchups'**
   String get matchupViewMatchups;
+
+  /// No description provided for @teamsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Teams'**
+  String get teamsTitle;
+
+  /// No description provided for @teamsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No teams yet'**
+  String get teamsEmptyTitle;
+
+  /// No description provided for @teamsEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a team of up to 6 Pokémon to track type coverage and base stats.'**
+  String get teamsEmptyMessage;
+
+  /// No description provided for @teamCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'New team'**
+  String get teamCreate;
+
+  /// No description provided for @teamCreateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create team'**
+  String get teamCreateTitle;
+
+  /// No description provided for @teamNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Team name'**
+  String get teamNameLabel;
+
+  /// No description provided for @teamNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'E.g. Kanto starters'**
+  String get teamNameHint;
+
+  /// No description provided for @teamNameEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a team name'**
+  String get teamNameEmpty;
+
+  /// No description provided for @teamRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename team'**
+  String get teamRename;
+
+  /// No description provided for @teamDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete team'**
+  String get teamDelete;
+
+  /// No description provided for @teamDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete team?'**
+  String get teamDeleteTitle;
+
+  /// No description provided for @teamDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete {name}?'**
+  String teamDeleteMessage({required String name});
+
+  /// No description provided for @teamAddMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to team'**
+  String get teamAddMember;
+
+  /// No description provided for @teamRemoveMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from team'**
+  String get teamRemoveMember;
+
+  /// No description provided for @teamFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Team is full (6 max)'**
+  String get teamFull;
+
+  /// No description provided for @teamAddedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to {team}'**
+  String teamAddedTo({required String team});
+
+  /// No description provided for @teamDuplicateWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate Pokémon in team'**
+  String get teamDuplicateWarning;
+
+  /// No description provided for @teamDuplicateMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This team contains the same Pokémon more than once.'**
+  String get teamDuplicateMessage;
+
+  /// No description provided for @teamMembersCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of 6'**
+  String teamMembersCount({required int count});
+
+  /// No description provided for @teamTypeCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Type coverage'**
+  String get teamTypeCoverage;
+
+  /// No description provided for @teamStatsSum.
+  ///
+  /// In en, this message translates to:
+  /// **'Total (sum)'**
+  String get teamStatsSum;
+
+  /// No description provided for @teamStatsAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get teamStatsAverage;
+
+  /// No description provided for @teamSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Team summary'**
+  String get teamSummary;
+
+  /// No description provided for @teamMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'Members'**
+  String get teamMembers;
+
+  /// No description provided for @teamMoveToTop.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to top'**
+  String get teamMoveToTop;
+
+  /// No description provided for @teamEmptyMembersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No members yet'**
+  String get teamEmptyMembersTitle;
+
+  /// No description provided for @teamEmptyMembersMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add up to 6 Pokémon from the Pokédex cards or the detail screen.'**
+  String get teamEmptyMembersMessage;
+
+  /// No description provided for @teamPickTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a team'**
+  String get teamPickTitle;
+
+  /// No description provided for @teamPickEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No teams yet — create one first.'**
+  String get teamPickEmpty;
+
+  /// No description provided for @teamView.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get teamView;
 }
 
 class _AppLocalizationsDelegate

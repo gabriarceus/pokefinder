@@ -15,6 +15,7 @@ searching, browsing, and exploring Pokémon. Data comes from the public
 - Favorites and Recently Viewed / Recent Searches with reactive sync
 - Side-by-side comparison of up to 2 Pokémon (base/min/max stats, types, height/weight) from Pokédex cards or the detail screen
 - Offline type matchup calculator: 1–2 defending types, grouped weaknesses / resistances / immunities (4×, 2×, ½×, ¼×, 0×), via drawer or tappable detail type chips
+- Local teams (offline, no cloud): teams of up to 6 with type coverage and summed/average base stats, reorder, rename, per-member detail deep links, from Pokédex cards, the detail screen, or the drawer
 - Settings: language (English / Italian / system), theme (System / Light / Dark), Metric / Imperial units, cry autoplay + volume, cache size + purge
 - About screen with app version, PokeAPI credit, trademark disclaimer, and licenses
 - Offline support via cached index and details, with stale indicator and Retry / Edit Search recovery
@@ -30,6 +31,8 @@ searching, browsing, and exploring Pokémon. Data comes from the public
 | `/compare`           | Side-by-side Pokémon comparison (max 2)    |
 | `/matchups`          | Offline type matchup calculator (1–2 defending types, `?types=` preset) |
 | `/favorites`         | Favorites                                  |
+| `/teams`             | Local teams                                |
+| `/teams/:teamId`     | Team detail (members, coverage, stat summary) |
 | `/settings`          | Settings                                   |
 | `/settings/about`    | About & Legal                              |
 
@@ -44,7 +47,7 @@ only — no share-sheet plugin, no new permissions on either OS.
 ## Tools used
 
 - **[Flutter](https://flutter.dev) + [fvm](https://fvm.app)** — UI toolkit, SDK pinned in `.fvmrc`
-- **[flutter_bloc](https://pub.dev/packages/flutter_bloc) / [hydrated_bloc](https://pub.dev/packages/hydrated_bloc)** — state management, with persisted language, theme, favorites, and history
+- **[flutter_bloc](https://pub.dev/packages/flutter_bloc) / [hydrated_bloc](https://pub.dev/packages/hydrated_bloc)** — state management, with persisted language, theme, favorites, teams, and history
 - **[get_it](https://pub.dev/packages/get_it) + [injectable](https://pub.dev/packages/injectable)** — dependency injection; swaps real and mock data sources per flavor
 - **[go_router](https://pub.dev/packages/go_router)** — navigation between screens
 - **[dio](https://pub.dev/packages/dio)** — HTTP client for PokeAPI, with logging interceptor
@@ -96,7 +99,7 @@ while `--flavor prod` binds `Environment.prod` with `PokemonRepositoryImpl` for 
 ## Data, caching, and i18n
 
 - PokeAPI v2 over Dio; responses cached in Hive via a feature-agnostic `DataRepository` with `cacheFirst`, `networkFirst`, and `networkOnly` fetch strategies.
-- Durable user state (language, theme, favorites, history) lives in documents storage; disposable API cache lives in temporary storage.
+- Durable user state (language, theme, favorites, teams, history) lives in documents storage; disposable API cache lives in temporary storage.
 - UI strings: `lib/l10n/app_en.arb` + `app_it.arb` → `AppLocalizations`. Bulk data translations (abilities, moves, items, locations) live in `lib/l10n/*_db.dart`, keyed by API value — see `docs/localization_policy.md`.
 - Logging redacts user queries at release level and truncates payloads — see `docs/logging_policy.md`.
 

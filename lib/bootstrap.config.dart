@@ -32,6 +32,7 @@ import 'src/2_application/bloc/preferences_cubit/preferences_cubit.dart'
 import 'src/2_application/bloc/recent_history_cubit/recent_history_cubit.dart'
     as _i991;
 import 'src/2_application/bloc/species_cubit/species_cubit.dart' as _i18;
+import 'src/2_application/bloc/teams_cubit/teams_cubit.dart' as _i238;
 import 'src/2_application/hydrated_bloc/language_storage.dart' as _i1056;
 import 'src/3_domain/domain.dart' as _i341;
 import 'src/3_domain/repositories/i_pokemon_repository.dart' as _i768;
@@ -105,6 +106,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i463.EnLogger>(),
         clock: gh<_i454.Clock>(),
       ),
+    );
+    gh.lazySingleton<_i238.TeamsCubit>(
+      () => _i238.TeamsCubit(gh<_i463.EnLogger>(), clock: gh<_i454.Clock>()),
     );
     gh.lazySingleton<_i477.LocalStorage>(
       () => _i222.HiveLocalStorage(clock: gh<_i454.Clock>()),

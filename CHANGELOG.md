@@ -6,6 +6,19 @@ All notable changes to this project will be documented in this file, following t
 
 ### Added
 
+- Local team builder `/teams` (offline, no cloud): teams of up to 6 stored
+  durably as lightweight index refs (id, name, timestamp) via a hydrated
+  `TeamsCubit`, surviving restart. Team list with create/rename/delete
+  (delete confirmed), team detail with add/remove from Pokédex cards and the
+  detail screen, drag-reorder plus move-to-top, and per-member deep links to
+  the canonical `/pokemon/:nameOrId` route. Team summary shows type coverage
+  plus summed and average base stats, reusing the comparison stat components;
+  each member fetches through its own detail bloc (offline cache) so one
+  failure shows inline retry without destroying the summary. Duplicate slugs
+  warn inline but stay allowed, so forms (distinct slugs, classifier display
+  names) remain distinct members; the 7th member is rejected with guidance;
+  corrupt records are evicted with a log and never crash the list. Entry via
+  drawer, EN + IT strings, empty states included.
 - Offline type matchup calculator `/matchups` (Gen VI onward 18-type chart):
   pure-domain `TypeMatchupChart` with all 324 attack/defense multipliers,
   dual-type multiplication (4×, ¼×, immunity override), and grouped results

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
+import 'package:pokefinder/src/1_presentation/pages/teams/add_to_team_sheet.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/type_color_scheme.dart';
 import 'package:pokefinder/src/2_application/bloc/comparison_cubit/comparison_cubit.dart';
 import 'package:pokefinder/src/2_application/bloc/favorites_cubit/favorites_cubit.dart';
@@ -21,6 +22,8 @@ class PokemonCard extends StatelessWidget {
     this.isInComparison,
     this.onCompareToggle,
     this.showCompareButton = true,
+    this.onTeamPressed,
+    this.showTeamButton = true,
   });
 
   final PokemonIndexEntry entry;
@@ -31,6 +34,8 @@ class PokemonCard extends StatelessWidget {
   final bool? isInComparison;
   final VoidCallback? onCompareToggle;
   final bool showCompareButton;
+  final VoidCallback? onTeamPressed;
+  final bool showTeamButton;
 
   static Color _resolveFormBadgeColor(
     PokemonFormCategory category,
@@ -185,6 +190,14 @@ class PokemonCard extends StatelessWidget {
     } catch (_) {}
   }
 
+  void _handleTeamPressed(BuildContext context) {
+    if (onTeamPressed != null) {
+      onTeamPressed!();
+      return;
+    }
+    showAddToTeamSheet(context, entry);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -266,82 +279,102 @@ class PokemonCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                idDisplay,
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              if (entry.isAlternateForm &&
-                                  entry.formBadgeText != null)
+                          Padding(
+                            padding: EdgeInsets.only(
+                              right: showTeamButton ? 40 : 0,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
                                 Flexible(
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: _resolveFormBadgeColor(
-                                        entry.formCategory,
-                                        theme,
+                                  child: Text(
+                                    idDisplay,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.labelMedium
+                                        ?.copyWith(
+                                          color: theme
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                if (entry.isAlternateForm &&
+                                    entry.formBadgeText != null)
+                                  Flexible(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      entry.formBadgeText!,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: theme.textTheme.labelSmall
-                                          ?.copyWith(
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.bold,
-                                            color: _resolveFormBadgeTextColor(
-                                              entry.formCategory,
-                                              theme,
+                                      decoration: BoxDecoration(
+                                        color: _resolveFormBadgeColor(
+                                          entry.formCategory,
+                                          theme,
+                                        ),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        entry.formBadgeText!,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                              color: _resolveFormBadgeTextColor(
+                                                entry.formCategory,
+                                                theme,
+                                              ),
                                             ),
-                                          ),
+                                      ),
                                     ),
-                                  ),
-                                )
-                              else if (!entry.isAlternateForm &&
-                                  entry.hasAlternateForms)
-                                Flexible(
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
+                                  )
+                                else if (!entry.isAlternateForm &&
+                                    entry.hasAlternateForms)
+                                  Flexible(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: theme
+                                            .colorScheme
+                                            .primaryContainer
+                                            .withValues(alpha: 0.6),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        _resolveBaseCardIndicator(l10n, entry),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                              color: theme.colorScheme.primary,
+                                            ),
+                                      ),
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: theme.colorScheme.primaryContainer
-                                          .withValues(alpha: 0.6),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
+                                  )
+                                else if (genNumber > 0)
+                                  Flexible(
                                     child: Text(
-                                      _resolveBaseCardIndicator(l10n, entry),
+                                      'Gen $genNumber',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.right,
                                       style: theme.textTheme.labelSmall
                                           ?.copyWith(
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.bold,
-                                            color: theme.colorScheme.primary,
+                                            color: theme.colorScheme.outline,
                                           ),
                                     ),
                                   ),
-                                )
-                              else if (genNumber > 0)
-                                Text(
-                                  'Gen $genNumber',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.outline,
-                                  ),
-                                ),
-                            ],
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -442,6 +475,34 @@ class PokemonCard extends StatelessWidget {
               ),
             ),
           ),
+          if (showTeamButton)
+            Positioned(
+              top: 0,
+              right: 0,
+              child: Semantics(
+                button: true,
+                label: l10n.teamAddMember,
+                child: SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: IconButton(
+                    iconSize: 20,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
+                    tooltip: l10n.teamAddMember,
+                    onPressed: () => _handleTeamPressed(context),
+                    icon: Icon(
+                      Icons.group_add_rounded,
+                      size: 20,
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           if (showCompareButton)
             Positioned(
               bottom: 0,

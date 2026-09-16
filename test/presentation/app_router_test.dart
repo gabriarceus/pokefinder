@@ -10,6 +10,8 @@ import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/pokedex_browse/pokedex_browse_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/route_error/route_error_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/settings/settings_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/teams/team_detail_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/teams/teams_list_page.dart';
 import 'package:pokefinder/src/1_presentation/router/app_router.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 
@@ -36,6 +38,8 @@ void main() {
           BlocProvider.value(value: getIt<RecentHistoryCubit>()),
         if (getIt.isRegistered<ComparisonCubit>())
           BlocProvider.value(value: getIt<ComparisonCubit>()),
+        if (getIt.isRegistered<TeamsCubit>())
+          BlocProvider.value(value: getIt<TeamsCubit>()),
       ],
       child: MaterialApp.router(
         routerConfig: router,
@@ -213,6 +217,28 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byType(SettingsPage), findsOneWidget);
+      });
+    });
+
+    testWidgets('navigating to /teams loads TeamsListPage', (tester) async {
+      await mockNetworkImagesFor(() async {
+        await tester.pumpWidget(createRouterApp('/teams'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(TeamsListPage), findsOneWidget);
+      });
+    });
+
+    testWidgets('navigating to /teams/:teamId loads TeamDetailPage', (
+      tester,
+    ) async {
+      await mockNetworkImagesFor(() async {
+        final teamId = getIt<TeamsCubit>().createTeam('Router Team');
+        await tester.pumpWidget(createRouterApp('/teams/$teamId'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(TeamDetailPage), findsOneWidget);
+        expect(find.text('Router Team'), findsOneWidget);
       });
     });
   });
