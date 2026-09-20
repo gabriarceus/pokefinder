@@ -146,3 +146,7 @@ Every PR to `main` runs the same gates in GitHub Actions (`.github/workflows/ci.
 ## Attribution
 
 Pokémon data and sprites by [PokeAPI](https://pokeapi.co/). Pokémon © Nintendo / Creatures Inc. / GAME FREAK inc. PokéFinder is an unofficial non-commercial fan project, not affiliated with or endorsed by the rights holders.
+
+## License
+
+This project is licensed under the MIT License — see [LICENSE.md](LICENSE.md).

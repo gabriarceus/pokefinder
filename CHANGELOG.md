@@ -56,6 +56,9 @@ All notable changes to this project will be documented in this file, following t
   species/evolution/ability flows.
 - `docs/logging_policy.md` (redaction, truncation, debug vs release) and
   `docs/localization_policy.md` (canonical vs localized names, fallback rule).
+- MIT license (`LICENSE.md`) covering the project source.
+- AI contributor docs consolidated under `docs/ai/` (`context.md`
+  superseding `CLAUDE.md`, plus skills guide).
 
 - Browsable Pokédex `/pokedex`: paginated grid, pull-to-refresh, skeleton loaders, scroll/filter restore, multi-type (18) / generation (1-9) / sort (ID, Name) filters, contains + numeric-ID search, Random Pokémon.
 - Detail depth: species flavor text (IT with EN fallback), genus, generation, habitat; branching evolution chain with full trigger badges and tap-to-navigate; on-demand ability sheet; unified game-version selector syncing moves, encounters, items; inline forms gallery with tap-to-switch.
