@@ -1,4 +1,5 @@
 export "bold_label_value.dart";
+export "compact_stat_row.dart";
 export "contrasting_text_color.dart";
 export "cry_play_button.dart";
 export "game_version_color.dart";
@@ -8,4 +9,10 @@ export "sprite_box_image.dart";
 export "stat_bar_color.dart";
 export "surface_card.dart";
 export "type_color_scheme.dart";
+export "type_chip.dart";
 export "type_image.dart";
+export "ability_detail_bottom_sheet.dart";
+export "evolution_chain_widget.dart";
+export "detail_game_version_selector.dart";
+export "alternate_forms_widget.dart";
+export "sprite_gallery_widget.dart";

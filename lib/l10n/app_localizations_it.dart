@@ -24,6 +24,31 @@ class AppLocalizationsIt extends AppLocalizations {
   String get errorUnexpected => 'Si è verificato un errore imprevisto.';
 
   @override
+  String get errorPokemonNotFound => 'Pokémon non trovato.';
+
+  @override
+  String get errorNetworkUnavailable =>
+      'Nessuna connessione a Internet. Verifica la tua rete.';
+
+  @override
+  String get errorRequestTimeout => 'La richiesta è scaduta. Riprova.';
+
+  @override
+  String get errorRateLimited =>
+      'Troppe richieste. Attendi un momento e riprova.';
+
+  @override
+  String get errorServer =>
+      'Si è verificato un errore del server. Riprova più tardi.';
+
+  @override
+  String get errorInvalidResponse =>
+      'Ricevuta una risposta non valida dal server.';
+
+  @override
+  String get errorStorage => 'Si è verificato un errore di memoria. Riprova.';
+
+  @override
   String get loading => 'Caricamento...';
 
   @override
@@ -44,6 +69,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get about => 'Informazioni';
+
+  @override
+  String get language => 'Lingua';
 
   @override
   String get weight => 'Peso';
@@ -82,7 +110,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get clearCache => 'Svuota cache';
 
   @override
-  String get cacheClearedSuccessfully => 'Cache svuota con successo';
+  String get cacheClearedSuccessfully => 'Cache svuotata con successo';
 
   @override
   String get tabInfo => 'Info';
@@ -205,6 +233,48 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get spriteTitle => 'Galleria Sprite';
+
+  @override
+  String get galleryArtworkDefault => 'Artwork ufficiale';
+
+  @override
+  String get galleryArtworkShiny => 'Artwork ufficiale (shiny)';
+
+  @override
+  String get galleryFrontDefault => 'Fronte (normale)';
+
+  @override
+  String get galleryBackDefault => 'Retro (normale)';
+
+  @override
+  String get galleryFrontShiny => 'Fronte (shiny)';
+
+  @override
+  String get galleryBackShiny => 'Retro (shiny)';
+
+  @override
+  String get galleryFrontFemale => 'Fronte (femmina)';
+
+  @override
+  String get galleryBackFemale => 'Retro (femmina)';
+
+  @override
+  String get galleryFrontShinyFemale => 'Fronte (shiny, femmina)';
+
+  @override
+  String get galleryBackShinyFemale => 'Retro (shiny, femmina)';
+
+  @override
+  String get galleryHomeDefault => 'Home (normale)';
+
+  @override
+  String get galleryHomeFemale => 'Home (femmina)';
+
+  @override
+  String get galleryHomeShiny => 'Home (shiny)';
+
+  @override
+  String get galleryHomeShinyFemale => 'Home (shiny, femmina)';
 
   @override
   String get statsBase => 'Base';
@@ -471,4 +541,740 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gameGroupScarletViolet => 'Scarlatto/Violetto';
+
+  @override
+  String get startupErrorTitle => 'Avvio non riuscito';
+
+  @override
+  String get startupErrorMessage =>
+      'Si è verificato un errore durante l\'inizializzazione della memoria. Riprova.';
+
+  @override
+  String get retryButton => 'Riprova';
+
+  @override
+  String get routeNotFoundTitle => 'Pagina non trovata';
+
+  @override
+  String get routeNotFoundMessage =>
+      'Il Pokémon o la pagina richiesta non è stata trovata.';
+
+  @override
+  String get goHome => 'Torna alla Home';
+
+  @override
+  String get editSearchButton => 'Modifica ricerca';
+
+  @override
+  String get errorEncounters => 'Impossibile caricare gli incontri.';
+
+  @override
+  String get errorFormDetails => 'Impossibile caricare i dettagli della forma.';
+
+  @override
+  String get errorMoveDetails => 'Impossibile caricare i dettagli della mossa.';
+
+  @override
+  String get defaultFormRollback => 'Ripristina forma predefinita';
+
+  @override
+  String get errorSuggestions => 'Impossibile caricare i suggerimenti.';
+
+  @override
+  String get cryPlayTooltip => 'Riproduci verso';
+
+  @override
+  String get cryStopTooltip => 'Interrompi verso';
+
+  @override
+  String get cryReplayTooltip => 'Riascolta verso';
+
+  @override
+  String get cryLoadingTooltip => 'Caricamento verso...';
+
+  @override
+  String get cryUnavailableTooltip =>
+      'Verso non disponibile. Tocca per riprovare';
+
+  @override
+  String cryPlayFor({required String pokemon}) {
+    return 'Riproduci verso di $pokemon';
+  }
+
+  @override
+  String get staleDataNotice => 'Dati memorizzati offline';
+
+  @override
+  String get browsePokedex => 'Esplora Pokédex';
+
+  @override
+  String get pokedexTitle => 'Pokédex';
+
+  @override
+  String get filter => 'Filtra';
+
+  @override
+  String get filters => 'Filtri';
+
+  @override
+  String filterCount({required int count}) {
+    return '$count attivi';
+  }
+
+  @override
+  String get types => 'Tipi';
+
+  @override
+  String get generation => 'Generazione';
+
+  @override
+  String get generationAll => 'Tutte le generazioni';
+
+  @override
+  String generationNum({required int number}) {
+    return 'Gen $number';
+  }
+
+  @override
+  String get sortBy => 'Ordina per';
+
+  @override
+  String get sortIdAscending => 'Numero: Minore';
+
+  @override
+  String get sortIdDescending => 'Numero: Maggiore';
+
+  @override
+  String get sortNameAscending => 'Nome: A - Z';
+
+  @override
+  String get sortNameDescending => 'Nome: Z - A';
+
+  @override
+  String get randomPokemon => 'Pokémon casuale';
+
+  @override
+  String get noPokemonFound =>
+      'Nessun Pokémon trovato con i filtri selezionati';
+
+  @override
+  String get clearFilters => 'Reimposta filtri';
+
+  @override
+  String get apply => 'Applica';
+
+  @override
+  String get reset => 'Reimposta';
+
+  @override
+  String get searchPokedexPlaceholder => 'Cerca per nome o numero...';
+
+  @override
+  String get offlineIndexNotice => 'Consultazione Pokédex offline';
+
+  @override
+  String get forms => 'Forme';
+
+  @override
+  String get formFilterAll => 'Tutte le forme';
+
+  @override
+  String get formFilterCanonicalOnly => 'Solo canoniche';
+
+  @override
+  String get formFilterMega => 'Megaevoluzioni';
+
+  @override
+  String get formFilterRegional => 'Forme regionali';
+
+  @override
+  String get formFilterGmax => 'Gigamax';
+
+  @override
+  String get includeCosmeticForms => 'Includi forme estetiche e costumi';
+
+  @override
+  String get formBadgeMegaIndicator => '⚡ Mega';
+
+  @override
+  String get formBadgeRegionalIndicator => '🌍 Regionali';
+
+  @override
+  String get formBadgeGmaxIndicator => '💥 Gigamax';
+
+  @override
+  String get formBadgeFormsIndicator => '✨ Forme';
+
+  @override
+  String get hasAlternateFormsSemantics => 'forme alternative disponibili';
+
+  @override
+  String get favorites => 'Preferiti';
+
+  @override
+  String get favoritesEmptyTitle => 'Nessun preferito';
+
+  @override
+  String get favoritesEmptyMessage =>
+      'Tocca l\'icona del cuore su un Pokémon per aggiungerlo ai tuoi preferiti.';
+
+  @override
+  String get addToFavorites => 'Aggiungi ai preferiti';
+
+  @override
+  String get removeFromFavorites => 'Rimuovi dai preferiti';
+
+  @override
+  String get removeFromHistory => 'Rimuovi dalla cronologia';
+
+  @override
+  String get sortRecentlyAdded => 'Aggiunti di recente';
+
+  @override
+  String get recentlyViewed => 'Visti di recente';
+
+  @override
+  String get recentSearches => 'Ricerche recenti';
+
+  @override
+  String get clearHistory => 'Cancella cronologia';
+
+  @override
+  String get clearHistoryConfirmation =>
+      'Sei sicuro di voler cancellare la cronologia delle ricerche e visualizzazioni?';
+
+  @override
+  String get historyEnabled => 'Salva cronologia';
+
+  @override
+  String get historyEnabledInfo =>
+      'Registra i Pokémon visualizzati e le ricerche effettuate.';
+
+  @override
+  String get theme => 'Tema';
+
+  @override
+  String get themeSystem => 'Sistema';
+
+  @override
+  String get themeLight => 'Chiaro';
+
+  @override
+  String get themeDark => 'Scuro';
+
+  @override
+  String get unitSystem => 'Unità di misura';
+
+  @override
+  String get unitSystemMetric => 'Metrico (m, kg)';
+
+  @override
+  String get unitSystemImperial => 'Imperiale (ft, lbs)';
+
+  @override
+  String get audioSettings => 'Audio';
+
+  @override
+  String get autoPlayCry => 'Riproduci verso all\'apertura';
+
+  @override
+  String get autoPlayCryInfo =>
+      'Riproduce automaticamente il verso del Pokémon all\'apertura dei dettagli.';
+
+  @override
+  String get cryVolume => 'Volume verso';
+
+  @override
+  String get storageAndCache => 'Memoria e Cache';
+
+  @override
+  String cacheSize({required String size}) {
+    return 'Dimensione cache: $size';
+  }
+
+  @override
+  String get clearCacheConfirmation =>
+      'Sei sicuro di voler svuotare la cache? I dati e le immagini salvati dovranno essere scaricati di nuovo.';
+
+  @override
+  String get cancel => 'Annulla';
+
+  @override
+  String get confirm => 'Conferma';
+
+  @override
+  String get clear => 'Svuota';
+
+  @override
+  String get genus => 'Categoria';
+
+  @override
+  String get captureRate => 'Tasso di cattura';
+
+  @override
+  String get baseHappiness => 'Amicizia base';
+
+  @override
+  String get growthRate => 'Crescita';
+
+  @override
+  String get habitat => 'Habitat';
+
+  @override
+  String get eggGroups => 'Gruppi uovo';
+
+  @override
+  String get flavorText => 'Descrizione Pokédex';
+
+  @override
+  String get evolutionChain => 'Catena Evolutiva';
+
+  @override
+  String get noEvolutions => 'Questo Pokémon non si evolve.';
+
+  @override
+  String evolutionTriggerLevel({required int level}) {
+    return 'Liv. $level';
+  }
+
+  @override
+  String evolutionTriggerItem({required String item}) {
+    return 'Usa $item';
+  }
+
+  @override
+  String get evolutionTriggerTrade => 'Scambio';
+
+  @override
+  String evolutionTriggerTradeItem({required String item}) {
+    return 'Scambio con $item';
+  }
+
+  @override
+  String get evolutionTriggerHappiness => 'Amicizia alta';
+
+  @override
+  String get evolutionTriggerHappinessDay => 'Amicizia (Giorno)';
+
+  @override
+  String get evolutionTriggerHappinessNight => 'Amicizia (Notte)';
+
+  @override
+  String evolutionTriggerLocation({required String location}) {
+    return 'Sali di livello a $location';
+  }
+
+  @override
+  String evolutionTriggerMove({required String move}) {
+    return 'Conosce $move';
+  }
+
+  @override
+  String get evolutionTriggerOther => 'Condizione speciale';
+
+  @override
+  String get abilityDetail => 'Info Abilità';
+
+  @override
+  String get abilityEffect => 'Effetto in Battaglia';
+
+  @override
+  String get abilityShortEffect => 'Riepilogo';
+
+  @override
+  String get allGameVersions => 'Tutte le versioni';
+
+  @override
+  String get filterByVersion => 'Versione gioco';
+
+  @override
+  String baseSpeciesDataNotice({required String formName}) {
+    return 'Aspetto e tipi riflettono $formName. Statistiche, mosse e abilità riflettono la specie base.';
+  }
+
+  @override
+  String get encountersUnavailableForVersion =>
+      'Nessun incontro trovato per questa versione.';
+
+  @override
+  String get heldItemsUnavailableForVersion =>
+      'Nessuno strumento trovato per questa versione.';
+
+  @override
+  String get movesUnavailableForVersion =>
+      'Nessuna mossa trovata per questa versione.';
+
+  @override
+  String get errorSpecies =>
+      'Impossibile caricare le informazioni sulla specie.';
+
+  @override
+  String get errorEvolutionChain => 'Impossibile caricare la catena evolutiva.';
+
+  @override
+  String get errorAbilityDetail =>
+      'Impossibile caricare i dettagli dell\'abilità.';
+
+  @override
+  String evolutionTriggerLevelUpsideDown({required int level}) {
+    return 'Liv. $level (Sottosopra)';
+  }
+
+  @override
+  String evolutionTriggerLevelRain({required int level}) {
+    return 'Liv. $level (Con pioggia)';
+  }
+
+  @override
+  String evolutionTriggerLevelAtkGtDef({required int level}) {
+    return 'Liv. $level (Att > Dif)';
+  }
+
+  @override
+  String evolutionTriggerLevelDefGtAtk({required int level}) {
+    return 'Liv. $level (Dif > Att)';
+  }
+
+  @override
+  String evolutionTriggerLevelAtkEqDef({required int level}) {
+    return 'Liv. $level (Att = Dif)';
+  }
+
+  @override
+  String evolutionTriggerLevelDay({required int level}) {
+    return 'Liv. $level (Giorno)';
+  }
+
+  @override
+  String evolutionTriggerLevelNight({required int level}) {
+    return 'Liv. $level (Notte)';
+  }
+
+  @override
+  String evolutionTriggerLevelParty({
+    required int level,
+    required String species,
+  }) {
+    return 'Liv. $level (con $species)';
+  }
+
+  @override
+  String evolutionTriggerLevelPartyType({
+    required int level,
+    required String type,
+  }) {
+    return 'Liv. $level (tipo $type in squadra)';
+  }
+
+  @override
+  String evolutionTriggerLevelGenderFemale({required int level}) {
+    return 'Liv. $level (Femmina)';
+  }
+
+  @override
+  String evolutionTriggerLevelGenderMale({required int level}) {
+    return 'Liv. $level (Maschio)';
+  }
+
+  @override
+  String evolutionTriggerTradeSpecies({required String species}) {
+    return 'Scambio per $species';
+  }
+
+  @override
+  String get evolutionTriggerShed => 'Spazio libero e Poké Ball';
+
+  @override
+  String get evolutionTriggerTurnUpsideDown => 'Gira la console sottosopra';
+
+  @override
+  String get evolutionTriggerRain => 'Con pioggia';
+
+  @override
+  String get alternateForms => 'Forme alternative';
+
+  @override
+  String get currentForm => 'Forma attuale';
+
+  @override
+  String get currentPokemon => 'Pokémon attuale';
+
+  @override
+  String evolutionTriggerPartySpecies({required String species}) {
+    return 'Con $species';
+  }
+
+  @override
+  String evolutionTriggerItemGenderMale({required String item}) {
+    return 'Usa $item (Maschio)';
+  }
+
+  @override
+  String evolutionTriggerItemGenderFemale({required String item}) {
+    return 'Usa $item (Femmina)';
+  }
+
+  @override
+  String evolutionTriggerItemDay({required String item}) {
+    return 'Usa $item (Giorno)';
+  }
+
+  @override
+  String evolutionTriggerItemNight({required String item}) {
+    return 'Usa $item (Notte)';
+  }
+
+  @override
+  String evolutionTriggerHeldItem({required String item}) {
+    return 'Tiene $item';
+  }
+
+  @override
+  String evolutionTriggerHeldItemDay({required String item}) {
+    return 'Tiene $item (Giorno)';
+  }
+
+  @override
+  String evolutionTriggerHeldItemNight({required String item}) {
+    return 'Tiene $item (Notte)';
+  }
+
+  @override
+  String get evolutionTriggerAffection => 'Affetto elevato';
+
+  @override
+  String get evolutionTriggerBeauty => 'Bellezza elevata';
+
+  @override
+  String evolutionTriggerPartyType({required String type}) {
+    return '$type in squadra';
+  }
+
+  @override
+  String get evolutionTriggerGenderMale => 'Maschio';
+
+  @override
+  String get evolutionTriggerGenderFemale => 'Femmina';
+
+  @override
+  String get aboutPokeFinder => 'Informazioni su PokéFinder';
+
+  @override
+  String get aboutAppDescription =>
+      'Un Pokédex moderno e leggero per esplorare Pokémon, abilità, mosse e statistiche.';
+
+  @override
+  String aboutVersion({required String version}) {
+    return 'Versione $version';
+  }
+
+  @override
+  String aboutBuildNumber({required String buildNumber}) {
+    return 'Build $buildNumber';
+  }
+
+  @override
+  String get aboutDataSource => 'Fonte dati';
+
+  @override
+  String get aboutDataSourceDescription =>
+      'Tutti i dati, gli sprite e le risorse dei Pokémon provengono da PokeAPI.';
+
+  @override
+  String get aboutPokeApiWebsite => 'Sito web PokeAPI';
+
+  @override
+  String get aboutDisclaimer => 'Dichiarazione di non responsabilità';
+
+  @override
+  String get aboutDisclaimerText =>
+      'PokéFinder è un\'applicazione creata da fan non ufficiale e non commerciale, non affiliata, approvata o supportata da Nintendo, GAME FREAK o The Pokémon Company.';
+
+  @override
+  String get aboutOpenSourceLicenses => 'Licenze open source';
+
+  @override
+  String get aboutSourceCode => 'Codice sorgente';
+
+  @override
+  String get aboutGitHubRepository => 'Repository GitHub';
+
+  @override
+  String get aboutReportIssue => 'Segnala un problema';
+
+  @override
+  String get shareLink => 'Copia link';
+
+  @override
+  String get shareLinkCopied => 'Link copiato negli appunti';
+
+  @override
+  String get compareTitle => 'Confronta';
+
+  @override
+  String get compareAdd => 'Aggiungi al confronto';
+
+  @override
+  String get compareRemove => 'Rimuovi dal confronto';
+
+  @override
+  String get compareClear => 'Svuota confronto';
+
+  @override
+  String get compareEmptyTitle => 'Nessun Pokémon da confrontare';
+
+  @override
+  String get compareEmptyMessage =>
+      'Aggiungi fino a 2 Pokémon dalle schede del Pokédex o dalla schermata dei dettagli per confrontarli fianco a fianco.';
+
+  @override
+  String get compareAddSecond => 'Aggiungi un secondo Pokémon da confrontare';
+
+  @override
+  String get compareFull => 'Confronto pieno (max 2)';
+
+  @override
+  String get compareAdded => 'Aggiunto al confronto';
+
+  @override
+  String get compareView => 'Visualizza';
+
+  @override
+  String get compareTotal => 'Totale';
+
+  @override
+  String get matchupTitle => 'Affinità di tipo';
+
+  @override
+  String get matchupDefendingTypes => 'Tipi in difesa';
+
+  @override
+  String get matchupDefendingHint => 'Seleziona fino a 2 tipi';
+
+  @override
+  String get matchupEmptyTitle => 'Nessun tipo in difesa';
+
+  @override
+  String get matchupEmptyMessage =>
+      'Seleziona 1 o 2 tipi in difesa per vedere debolezze, resistenze e immunità.';
+
+  @override
+  String get matchupGroup4x => 'Debole 4× a';
+
+  @override
+  String get matchupGroup2x => 'Debole 2× a';
+
+  @override
+  String get matchupGroupHalf => 'Resiste ½× a';
+
+  @override
+  String get matchupGroupQuarter => 'Resiste ¼× a';
+
+  @override
+  String get matchupGroupImmune => 'Immune a';
+
+  @override
+  String get matchupClearSelection => 'Cancella selezione';
+
+  @override
+  String get matchupViewMatchups => 'Vedi affinità';
+
+  @override
+  String get teamsTitle => 'Squadre';
+
+  @override
+  String get teamsEmptyTitle => 'Nessuna squadra';
+
+  @override
+  String get teamsEmptyMessage =>
+      'Crea una squadra fino a 6 Pokémon per seguire copertura tipi e statistiche base.';
+
+  @override
+  String get teamCreate => 'Nuova squadra';
+
+  @override
+  String get teamCreateTitle => 'Crea squadra';
+
+  @override
+  String get teamNameLabel => 'Nome squadra';
+
+  @override
+  String get teamNameHint => 'Es. Partenza Kanto';
+
+  @override
+  String get teamNameEmpty => 'Inserisci un nome';
+
+  @override
+  String get teamRename => 'Rinomina squadra';
+
+  @override
+  String get teamDelete => 'Elimina squadra';
+
+  @override
+  String get teamDeleteTitle => 'Eliminare la squadra?';
+
+  @override
+  String teamDeleteMessage({required String name}) {
+    return 'Sei sicuro di voler eliminare $name?';
+  }
+
+  @override
+  String get teamAddMember => 'Aggiungi alla squadra';
+
+  @override
+  String get teamRemoveMember => 'Rimuovi dalla squadra';
+
+  @override
+  String get teamFull => 'Squadra al completo (max 6)';
+
+  @override
+  String teamAddedTo({required String team}) {
+    return 'Aggiunto a $team';
+  }
+
+  @override
+  String get teamDuplicateWarning => 'Pokémon duplicato in squadra';
+
+  @override
+  String get teamDuplicateMessage =>
+      'Questa squadra contiene lo stesso Pokémon più di una volta.';
+
+  @override
+  String teamMembersCount({required int count}) {
+    return '$count di 6';
+  }
+
+  @override
+  String get teamTypeCoverage => 'Copertura tipi';
+
+  @override
+  String get teamStatsSum => 'Totale (somma)';
+
+  @override
+  String get teamStatsAverage => 'Media';
+
+  @override
+  String get teamSummary => 'Riepilogo squadra';
+
+  @override
+  String get teamMembers => 'Membri';
+
+  @override
+  String get teamMoveToTop => 'Sposta in cima';
+
+  @override
+  String get teamEmptyMembersTitle => 'Nessun membro';
+
+  @override
+  String get teamEmptyMembersMessage =>
+      'Aggiungi fino a 6 Pokémon dalle schede del Pokédex o dalla schermata dei dettagli.';
+
+  @override
+  String get teamPickTitle => 'Scegli una squadra';
+
+  @override
+  String get teamPickEmpty => 'Nessuna squadra — creane prima una.';
+
+  @override
+  String get teamView => 'Visualizza';
 }

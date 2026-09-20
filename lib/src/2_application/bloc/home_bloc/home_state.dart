@@ -7,8 +7,10 @@ final class HomeBlocState extends Equatable {
     required this.navigateToDetail,
     required this.cacheCleared,
     required this.allPokemonNames,
-    required this.searchSuggestions,
+    this.pokemonIndex = const [],
+    this.isIndexLoading = false,
     this.failure,
+    this.nameIndexFailure,
   });
 
   factory HomeBlocState.initial() {
@@ -17,33 +19,45 @@ final class HomeBlocState extends Equatable {
       navigateToDetail: false,
       cacheCleared: false,
       allPokemonNames: [],
-      searchSuggestions: [],
+      pokemonIndex: [],
+      isIndexLoading: false,
       failure: null,
+      nameIndexFailure: null,
     );
   }
+
+  static const _unset = Object();
 
   final String userInput;
   final bool navigateToDetail;
   final bool cacheCleared;
   final List<String> allPokemonNames;
-  final List<String> searchSuggestions;
+  final List<PokemonIndexEntry> pokemonIndex;
+  final bool isIndexLoading;
   final PokemonFailure? failure;
+  final PokemonFailure? nameIndexFailure;
 
   HomeBlocState copyWith({
     String? userInput,
     bool? navigateToDetail,
     bool? cacheCleared,
     List<String>? allPokemonNames,
-    List<String>? searchSuggestions,
+    List<PokemonIndexEntry>? pokemonIndex,
+    bool? isIndexLoading,
     PokemonFailure? failure,
+    Object? nameIndexFailure = _unset,
   }) {
     return HomeBlocState(
       userInput: userInput ?? this.userInput,
       navigateToDetail: navigateToDetail ?? this.navigateToDetail,
       cacheCleared: cacheCleared ?? this.cacheCleared,
       allPokemonNames: allPokemonNames ?? this.allPokemonNames,
-      searchSuggestions: searchSuggestions ?? this.searchSuggestions,
+      pokemonIndex: pokemonIndex ?? this.pokemonIndex,
+      isIndexLoading: isIndexLoading ?? this.isIndexLoading,
       failure: failure, // Let it be null if passed as null
+      nameIndexFailure: identical(nameIndexFailure, _unset)
+          ? this.nameIndexFailure
+          : nameIndexFailure as PokemonFailure?,
     );
   }
 
@@ -53,7 +67,9 @@ final class HomeBlocState extends Equatable {
     navigateToDetail,
     cacheCleared,
     allPokemonNames,
-    searchSuggestions,
+    pokemonIndex,
+    isIndexLoading,
     failure,
+    nameIndexFailure,
   ];
 }

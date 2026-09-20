@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:pokefinder/bootstrap.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
+import 'package:pokefinder/src/1_presentation/pages/teams/add_to_team_sheet.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 import 'package:pokefinder/src/2_application/application.dart';
-import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
-import 'package:pokefinder/src/3_domain/services/cry_audio_controller.dart';
+import 'package:pokefinder/src/3_domain/domain.dart';
 
 import '_app_bar.dart';
 import '_bloc.dart';
@@ -18,17 +20,19 @@ export '_bloc.dart';
 
 /// Detail screen displaying data for a single Pokémon, identified by [pokemonName].
 class Detail extends StatefulWidget {
-  const Detail({super.key, required this.pokemonName});
+  const Detail({super.key, required this.pokemonName, this.searchQuery});
 
   final String pokemonName;
+  final String? searchQuery;
 
   @override
   State<Detail> createState() => _DetailState();
 }
 
 class _DetailState extends State<Detail> {
-  final CryAudioController _audioController = getIt<CryAudioController>();
+  final CryAudioController _audioController = resolveCryAudioController();
   bool _showShiny = false;
+  bool _hasRecordedSearch = false;
 
   @override
   void dispose() {
@@ -45,6 +49,7 @@ class _DetailState extends State<Detail> {
     final bloc = context.read<PokemonBloc>();
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -68,14 +73,159 @@ class _DetailState extends State<Detail> {
     );
   }
 
+  /// Copies the canonical link for the displayed Pokémon/form to the clipboard.
+  void _sharePokemonLink(
+    BuildContext context,
+    PokemonBlocSuccess success,
+  ) async {
+    final formName = success.formDetails.name;
+    final identifier = formName.isNotEmpty ? formName : success.pokemon.name;
+    final link = buildPokemonCanonicalPath(identifier);
+    if (link == null) return;
+    await Clipboard.setData(ClipboardData(text: link));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(context.t().shareLinkCopied)));
+  }
+
+  /// Adds the displayed Pokémon/form to a local team as a distinct member.
+  void _addToTeam(
+    BuildContext context,
+    Pokemon pokemon,
+    PokemonFormDetails formDetails,
+  ) {
+    final formName = formDetails.name.isNotEmpty
+        ? formDetails.name
+        : pokemon.name;
+    final spriteUrl = formDetails.spriteDefault.isNotEmpty
+        ? formDetails.spriteDefault
+        : pokemon.sprite;
+    final types = <PokemonType>[
+      if (formDetails.type1 != null)
+        formDetails.type1!
+      else if (pokemon.type1 != null)
+        pokemon.type1!,
+      if (formDetails.type2 != null)
+        formDetails.type2!
+      else if (pokemon.type2 != null)
+        pokemon.type2!,
+    ];
+    showAddToTeamSheet(
+      context,
+      PokemonIndexEntry(
+        id: pokemon.id,
+        name: formName,
+        detailUrl: '',
+        types: types,
+        customSpriteUrl: spriteUrl.isNotEmpty ? spriteUrl : null,
+      ),
+    );
+  }
+
+  /// Toggles the displayed Pokémon in the side-by-side comparison selection.
+  void _toggleComparison(
+    BuildContext context,
+    Pokemon pokemon,
+    PokemonFormDetails formDetails,
+  ) {
+    try {
+      final types = <PokemonType>[
+        if (formDetails.type1 != null)
+          formDetails.type1!
+        else if (pokemon.type1 != null)
+          pokemon.type1!,
+        if (formDetails.type2 != null)
+          formDetails.type2!
+        else if (pokemon.type2 != null)
+          pokemon.type2!,
+      ];
+      final entry = PokemonIndexEntry(
+        id: pokemon.id,
+        name: pokemon.name,
+        detailUrl: '',
+        types: types,
+      );
+      final cubit = context.read<ComparisonCubit>();
+      final wasSelected = cubit.isSelected(pokemon.id);
+      final nowSelected = cubit.toggleEntry(entry);
+      if (!context.mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      if (nowSelected) {
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(context.t().compareAdded),
+              action: SnackBarAction(
+                label: context.t().compareView,
+                onPressed: () => context.push('/compare'),
+              ),
+            ),
+          );
+      } else if (!wasSelected) {
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(context.t().compareFull)));
+      }
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: PokemonBlocBuilder(
-        onInitial: (_, _) => Center(child: Text(context.t().noData)),
-        onLoading: (_, _) => const DetailLoading(),
-        onFailure: (_, failure) => DetailFailure(state: failure),
-        onSuccess: _buildSuccess,
+    return BlocListener<PokemonBloc, PokemonBlocState>(
+      listener: (context, state) {
+        if (state is PokemonBlocSuccess) {
+          try {
+            final formDetails = state.selectedFormDetails;
+            final spriteUrl =
+                formDetails?.spriteDefault ?? state.pokemon.sprite;
+            final types = <PokemonType>[
+              if (formDetails?.type1 != null)
+                formDetails!.type1!
+              else if (state.pokemon.type1 != null)
+                state.pokemon.type1!,
+              if (formDetails?.type2 != null)
+                formDetails!.type2!
+              else if (state.pokemon.type2 != null)
+                state.pokemon.type2!,
+            ];
+            context.read<RecentHistoryCubit>().addRecentPokemon(
+              id: state.pokemon.id,
+              name: state.pokemon.name,
+              spriteUrl: spriteUrl,
+              types: types,
+            );
+          } catch (_) {}
+
+          if (!_hasRecordedSearch &&
+              widget.searchQuery != null &&
+              widget.searchQuery!.trim().isNotEmpty) {
+            _hasRecordedSearch = true;
+            try {
+              context.read<RecentHistoryCubit>().addRecentSearch(
+                widget.searchQuery!.trim(),
+              );
+            } catch (_) {}
+          }
+
+          try {
+            final preferences = context.read<PreferencesCubit>().state;
+            if (preferences.autoPlayCry && state.pokemon.cry.isNotEmpty) {
+              _audioController.setVolume(preferences.cryVolume);
+              _audioController.play(state.pokemon.cry);
+            }
+          } catch (_) {}
+        }
+      },
+      child: Scaffold(
+        body: PokemonBlocBuilder(
+          onInitial: (_, _) => Center(child: Text(context.t().noData)),
+          onLoading: (_, _) => const DetailLoading(),
+          onFailure: (_, failure) =>
+              DetailFailure(state: failure, pokemonName: widget.pokemonName),
+          onSuccess: _buildSuccess,
+        ),
       ),
     );
   }
@@ -83,6 +233,20 @@ class _DetailState extends State<Detail> {
   Widget _buildSuccess(BuildContext context, PokemonBlocSuccess success) {
     final pokemon = success.pokemon;
     final formDetails = success.formDetails;
+
+    bool isFavorite = false;
+    try {
+      isFavorite = context.select<FavoritesCubit, bool>(
+        (cubit) => cubit.isFavorite(pokemon.id),
+      );
+    } catch (_) {}
+
+    bool isInComparison = false;
+    try {
+      isInComparison = context.select<ComparisonCubit, bool>(
+        (cubit) => cubit.isSelected(pokemon.id),
+      );
+    } catch (_) {}
 
     final backgroundHelper = TypeColorScheme(
       type1: formDetails.type1,
@@ -92,49 +256,186 @@ class _DetailState extends State<Detail> {
     final typeColor = backgroundHelper.colorFromType();
     final textColor = contrastingTextColor(typeColor);
 
-    return DefaultTabController(
-      length: 4,
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: const DetailAppBar(backgroundColor: Colors.transparent),
-        body: Container(
-          decoration: backgroundHelper.getBackgroundDecoration(),
-          child: Column(
-            children: [
-              SizedBox(
-                height: MediaQuery.of(context).padding.top + kToolbarHeight,
+    return BlocProvider<DetailGameVersionCubit>(
+      create: (_) =>
+          DetailGameVersionCubit()
+            ..initialize(pokemon, encounters: success.encounters),
+      child: BlocListener<PokemonBloc, PokemonBlocState>(
+        listenWhen: (prev, curr) {
+          if (prev is PokemonBlocSuccess && curr is PokemonBlocSuccess) {
+            return prev.encounters != curr.encounters;
+          }
+          return false;
+        },
+        listener: (context, state) {
+          if (state is PokemonBlocSuccess) {
+            context.read<DetailGameVersionCubit>().initialize(
+              state.pokemon,
+              encounters: state.encounters,
+            );
+          }
+        },
+        child: DefaultTabController(
+          length: 4,
+          child: Scaffold(
+            extendBodyBehindAppBar: true,
+            appBar: DetailAppBar(
+              backgroundColor: Colors.transparent,
+              showShiny: _showShiny,
+              isStale: pokemon.isStale,
+              isFavorite: isFavorite,
+              onToggleFavorite: () {
+                try {
+                  final spriteUrl = formDetails.spriteDefault.isNotEmpty
+                      ? formDetails.spriteDefault
+                      : pokemon.sprite;
+                  final types = <PokemonType>[
+                    if (formDetails.type1 != null)
+                      formDetails.type1!
+                    else if (pokemon.type1 != null)
+                      pokemon.type1!,
+                    if (formDetails.type2 != null)
+                      formDetails.type2!
+                    else if (pokemon.type2 != null)
+                      pokemon.type2!,
+                  ];
+                  context.read<FavoritesCubit>().toggleFavorite(
+                    id: pokemon.id,
+                    name: pokemon.name,
+                    spriteUrl: spriteUrl,
+                    types: types,
+                  );
+                } catch (_) {}
+              },
+              onToggleShiny: () {
+                setState(() {
+                  _showShiny = !_showShiny;
+                });
+              },
+              onShare: () => _sharePokemonLink(context, success),
+              isInComparison: isInComparison,
+              onCompare: () => _toggleComparison(context, pokemon, formDetails),
+              onTeam: () => _addToTeam(context, pokemon, formDetails),
+            ),
+            body: Container(
+              decoration: backgroundHelper.getBackgroundDecoration(),
+              child: OrientationBuilder(
+                builder: (context, orientation) {
+                  final isLandscape = orientation == Orientation.landscape;
+                  final topPadding =
+                      MediaQuery.of(context).padding.top + kToolbarHeight;
+
+                  if (isLandscape) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(
+                          width: 280,
+                          child: Column(
+                            children: [
+                              SizedBox(height: topPadding),
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  child: DetailHeader(
+                                    selectedFormName: formDetails.name,
+                                    pokemonId: pokemon.id,
+                                    type1: formDetails.type1,
+                                    type2: formDetails.type2,
+                                    typeImage1: formDetails.typeImage1,
+                                    typeImage2: formDetails.typeImage2,
+                                    textColor: textColor,
+                                    showShiny: _showShiny,
+                                    isLandscape: true,
+                                    spriteWidget: AnimatedCrossFade(
+                                      duration: const Duration(
+                                        milliseconds: 300,
+                                      ),
+                                      crossFadeState: _showShiny
+                                          ? CrossFadeState.showSecond
+                                          : CrossFadeState.showFirst,
+                                      firstChild: SpriteBoxImage(
+                                        sprite: formDetails.spriteDefault,
+                                      ),
+                                      secondChild: SpriteBoxImage(
+                                        sprite: formDetails.spriteShiny,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.only(top: topPadding),
+                            child: _DetailContentCard(
+                              typeColor: typeColor,
+                              pokemon: pokemon,
+                              audioController: _audioController,
+                              success: success,
+                              showShiny: _showShiny,
+                              selectedFormName: formDetails.name,
+                              onFormTap: () => _showFormSelectionBottomSheet(
+                                context,
+                                pokemon,
+                                typeColor,
+                                textColor,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+
+                  return Column(
+                    children: [
+                      SizedBox(height: topPadding),
+                      DetailHeader(
+                        selectedFormName: formDetails.name,
+                        pokemonId: pokemon.id,
+                        type1: formDetails.type1,
+                        type2: formDetails.type2,
+                        typeImage1: formDetails.typeImage1,
+                        typeImage2: formDetails.typeImage2,
+                        textColor: textColor,
+                        showShiny: _showShiny,
+                        isLandscape: false,
+                        spriteWidget: AnimatedCrossFade(
+                          duration: const Duration(milliseconds: 300),
+                          crossFadeState: _showShiny
+                              ? CrossFadeState.showSecond
+                              : CrossFadeState.showFirst,
+                          firstChild: SpriteBoxImage(
+                            sprite: formDetails.spriteDefault,
+                          ),
+                          secondChild: SpriteBoxImage(
+                            sprite: formDetails.spriteShiny,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: _DetailContentCard(
+                          typeColor: typeColor,
+                          pokemon: pokemon,
+                          audioController: _audioController,
+                          success: success,
+                          showShiny: _showShiny,
+                          selectedFormName: formDetails.name,
+                          onFormTap: () => _showFormSelectionBottomSheet(
+                            context,
+                            pokemon,
+                            typeColor,
+                            textColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
-              DetailHeader(
-                selectedFormName: formDetails.name,
-                pokemonId: pokemon.id,
-                typeImage1: formDetails.typeImage1,
-                typeImage2: formDetails.typeImage2,
-                textColor: textColor,
-                spriteWidget: AnimatedCrossFade(
-                  duration: const Duration(milliseconds: 300),
-                  crossFadeState: _showShiny
-                      ? CrossFadeState.showSecond
-                      : CrossFadeState.showFirst,
-                  firstChild: SpriteBoxImage(sprite: formDetails.spriteDefault),
-                  secondChild: SpriteBoxImage(sprite: formDetails.spriteShiny),
-                ),
-              ),
-              Expanded(
-                child: _DetailContentCard(
-                  typeColor: typeColor,
-                  pokemon: pokemon,
-                  audioController: _audioController,
-                  success: success,
-                  showShiny: _showShiny,
-                  onFormTap: () => _showFormSelectionBottomSheet(
-                    context,
-                    pokemon,
-                    typeColor,
-                    textColor,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -151,6 +452,7 @@ class _DetailContentCard extends StatelessWidget {
     required this.success,
     required this.showShiny,
     required this.onFormTap,
+    this.selectedFormName,
   });
 
   final Color typeColor;
@@ -159,11 +461,11 @@ class _DetailContentCard extends StatelessWidget {
   final PokemonBlocSuccess success;
   final bool showShiny;
   final VoidCallback onFormTap;
+  final String? selectedFormName;
 
   @override
   Widget build(BuildContext context) {
-    final tabTextColor =
-        Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
+    final tabTextColor = Theme.of(context).colorScheme.onSurface;
 
     return Container(
       decoration: BoxDecoration(
@@ -184,13 +486,10 @@ class _DetailContentCard extends StatelessWidget {
         children: [
           const SizedBox(height: 16),
           _DetailTabBar(typeColor: typeColor),
+          DetailGameVersionSelector(typeColor: typeColor),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(
-                top: 16.0,
-                left: 24.0,
-                right: 24.0,
-              ),
+              padding: const EdgeInsets.only(top: 8.0, left: 24.0, right: 24.0),
               child: TabBarView(
                 children: [
                   DetailInfoTab(
@@ -199,6 +498,7 @@ class _DetailContentCard extends StatelessWidget {
                     audioController: audioController,
                     typeColor: typeColor,
                     onFormTap: onFormTap,
+                    selectedFormName: selectedFormName,
                   ),
                   DetailStatsTab(pokemon: pokemon, textColor: tabTextColor),
                   DetailMovesTab(pokemon: pokemon, textColor: tabTextColor),
@@ -236,6 +536,11 @@ class _DetailTabBar extends StatelessWidget {
           .withLightness((hsl.lightness - 0.3).clamp(0.0, 1.0))
           .withSaturation((hsl.saturation + 0.2).clamp(0.0, 1.0))
           .toColor();
+    } else if (brightness == Brightness.dark && luminance < 0.2) {
+      final hsl = HSLColor.fromColor(typeColor);
+      return hsl
+          .withLightness((hsl.lightness + 0.35).clamp(0.0, 1.0))
+          .toColor();
     }
     return typeColor;
   }
@@ -247,7 +552,8 @@ class _DetailTabBar extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: TabBar(
-        isScrollable: false,
+        isScrollable: true,
+        tabAlignment: TabAlignment.start,
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
         splashBorderRadius: BorderRadius.circular(24),
@@ -262,7 +568,7 @@ class _DetailTabBar extends StatelessWidget {
         labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
         unselectedLabelColor: Theme.of(
           context,
-        ).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
+        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
         unselectedLabelStyle: const TextStyle(fontSize: 11),
         tabs: [
           Tab(text: context.t().tabInfo, icon: const Icon(Icons.info_outline)),

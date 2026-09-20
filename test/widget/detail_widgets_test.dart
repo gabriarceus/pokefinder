@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:network_image_mock/network_image_mock.dart';
+import 'package:pokefinder/l10n/app_localizations.dart';
+import 'package:pokefinder/src/1_presentation/pages/detail/_app_bar.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/bold_label_value.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/type_image.dart';
 
 void main() {
   Future<void> pumpInApp(WidgetTester tester, Widget child) {
     return mockNetworkImagesFor(
-      () => tester.pumpWidget(MaterialApp(home: Scaffold(body: child))),
+      () => tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: child),
+        ),
+      ),
     );
   }
 
@@ -55,6 +63,33 @@ void main() {
 
       expect(find.text('Ability 1: '), findsOneWidget);
       expect(find.text('Overgrow'), findsOneWidget);
+    });
+  });
+
+  group('DetailAppBar stale indicator', () {
+    testWidgets('displays cloud_off icon and tooltip when isStale is true', (
+      tester,
+    ) async {
+      await pumpInApp(
+        tester,
+        const Scaffold(
+          appBar: DetailAppBar(backgroundColor: Colors.blue, isStale: true),
+        ),
+      );
+
+      expect(find.byIcon(Icons.cloud_off_rounded), findsOneWidget);
+      expect(find.byTooltip('Offline cached data'), findsOneWidget);
+    });
+
+    testWidgets('hides cloud_off icon when isStale is false', (tester) async {
+      await pumpInApp(
+        tester,
+        const Scaffold(
+          appBar: DetailAppBar(backgroundColor: Colors.blue, isStale: false),
+        ),
+      );
+
+      expect(find.byIcon(Icons.cloud_off_rounded), findsNothing);
     });
   });
 }

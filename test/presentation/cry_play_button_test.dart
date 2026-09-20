@@ -7,6 +7,23 @@ void main() {
     const url = 'cry-a';
     const otherUrl = 'cry-b';
 
+    test('unavailable when url is empty', () {
+      expect(
+        cryButtonModeFor(const CryPlaybackState(), ''),
+        CryButtonMode.unavailable,
+      );
+    });
+
+    test('unavailable when this url has unavailable state', () {
+      expect(
+        cryButtonModeFor(
+          const CryPlaybackState(currentUrl: url, unavailable: true),
+          url,
+        ),
+        CryButtonMode.unavailable,
+      );
+    });
+
     test('play when this url is not the current source', () {
       expect(
         cryButtonModeFor(const CryPlaybackState(), url),

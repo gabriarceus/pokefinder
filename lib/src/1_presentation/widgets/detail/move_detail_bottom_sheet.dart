@@ -1,9 +1,9 @@
-import 'package:en_logger/en_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pokefinder/bootstrap.dart';
+import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
+import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
 import 'package:pokefinder/src/2_application/bloc/move_detail_cubit/move_detail_cubit.dart';
 import 'package:pokefinder/src/2_application/bloc/move_detail_cubit/move_detail_state.dart';
 import 'package:pokefinder/src/3_domain/entities/move_detail.dart';
@@ -39,52 +39,80 @@ class MoveDetailBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          MoveDetailCubit(getIt(), getIt<EnLogger>())
-            ..fetchMoveDetail(moveName),
+      create: (context) => createMoveDetailCubit(moveName),
       child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                capitalizedName,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  capitalizedName,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              BlocBuilder<MoveDetailCubit, MoveDetailState>(
-                builder: (context, state) {
-                  if (state is MoveDetailLoading ||
-                      state is MoveDetailInitial) {
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(32.0),
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  } else if (state is MoveDetailError) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32.0),
-                        child: Text(
-                          state.message,
-                          style: const TextStyle(color: Colors.red),
+                const SizedBox(height: 24),
+                BlocBuilder<MoveDetailCubit, MoveDetailState>(
+                  builder: (context, state) {
+                    if (state is MoveDetailLoading ||
+                        state is MoveDetailInitial) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: CircularProgressIndicator(),
                         ),
-                      ),
-                    );
-                  } else if (state is MoveDetailLoaded) {
-                    return _MoveDetailContent(moveDetail: state.moveDetail);
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-            ],
+                      );
+                    } else if (state is MoveDetailError) {
+                      final errorMessage = state.failure != null
+                          ? state.failure!.localizedMessage(context)
+                          : state.message;
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.error_outline_rounded,
+                                color: Theme.of(context).colorScheme.error,
+                                size: 40,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                errorMessage,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  context
+                                      .read<MoveDetailCubit>()
+                                      .fetchMoveDetail(moveName);
+                                },
+                                icon: const Icon(Icons.refresh_rounded),
+                                label: Text(context.t().retryButton),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    } else if (state is MoveDetailLoaded) {
+                      return _MoveDetailContent(moveDetail: state.moveDetail);
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -165,6 +193,7 @@ class _StatBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     return Column(
       children: [
         Text(
@@ -179,15 +208,12 @@ class _StatBadge extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+            color: primary.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
             value,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).primaryColor,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold, color: primary),
           ),
         ),
       ],

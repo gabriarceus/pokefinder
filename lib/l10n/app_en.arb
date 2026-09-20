@@ -5,6 +5,13 @@
   "errorBadRequest": "Bad request. Please try again.",
   "errorUnauthorized": "Unauthorized access.",
   "errorUnexpected": "An unexpected error occurred.",
+  "errorPokemonNotFound": "Pokémon not found.",
+  "errorNetworkUnavailable": "No internet connection. Please check your network.",
+  "errorRequestTimeout": "The request timed out. Please try again.",
+  "errorRateLimited": "Too many requests. Please wait a moment and try again.",
+  "errorServer": "Server error occurred. Please try again later.",
+  "errorInvalidResponse": "Received an invalid response from the server.",
+  "errorStorage": "A storage error occurred. Please try again.",
   "loading": "Loading...",
   "details": "Details",
   "backButton": "Back",
@@ -12,6 +19,7 @@
   "useDeviceLanguage": "Use device language",
   "useDeviceLanguageInfo": "If enabled, the app will use your device's language.",
   "about": "About",
+  "language": "Language",
   "weight": "Weight",
   "height": "Height",
   "pokemonCry": "Pokemon Cry",
@@ -72,6 +80,20 @@
   "gameIndices": "Game Versions",
   "spriteToggleShiny": "Toggle Shiny View",
   "spriteTitle": "Sprite Gallery",
+  "galleryArtworkDefault": "Official artwork",
+  "galleryArtworkShiny": "Official artwork (shiny)",
+  "galleryFrontDefault": "Front (default)",
+  "galleryBackDefault": "Back (default)",
+  "galleryFrontShiny": "Front (shiny)",
+  "galleryBackShiny": "Back (shiny)",
+  "galleryFrontFemale": "Front (female)",
+  "galleryBackFemale": "Back (female)",
+  "galleryFrontShinyFemale": "Front (shiny, female)",
+  "galleryBackShinyFemale": "Back (shiny, female)",
+  "galleryHomeDefault": "Home (default)",
+  "galleryHomeFemale": "Home (female)",
+  "galleryHomeShiny": "Home (shiny)",
+  "galleryHomeShinyFemale": "Home (shiny, female)",
   "statsBase": "Base",
   "statsMin": "Min",
   "statsMax": "Max",
@@ -164,5 +186,409 @@
   "gameGroupUltraSunUltraMoon": "Ultra Sun/Ultra Moon",
   "gameGroupLetsGoPikachuLetsGoEevee": "Let's Go, Pikachu/Eevee",
   "gameGroupSwordShield": "Sword/Shield",
-  "gameGroupScarletViolet": "Scarlet/Violet"
+  "gameGroupScarletViolet": "Scarlet/Violet",
+  "startupErrorTitle": "Startup Failed",
+  "startupErrorMessage": "An error occurred while initializing app storage. Please try again.",
+  "retryButton": "Retry",
+  "routeNotFoundTitle": "Page Not Found",
+  "routeNotFoundMessage": "The requested Pokémon or page could not be found.",
+  "goHome": "Go to Home",
+  "editSearchButton": "Edit Search",
+  "errorEncounters": "Failed to load encounters.",
+  "errorFormDetails": "Failed to load form details.",
+  "errorMoveDetails": "Failed to load move details.",
+  "defaultFormRollback": "Reset to default form",
+  "errorSuggestions": "Failed to load suggestions.",
+  "cryPlayTooltip": "Play cry",
+  "cryStopTooltip": "Stop cry",
+  "cryReplayTooltip": "Replay cry",
+  "cryLoadingTooltip": "Loading cry...",
+  "cryUnavailableTooltip": "Cry unavailable. Tap to retry",
+  "cryPlayFor": "Play cry for {pokemon}",
+  "@cryPlayFor": {
+    "placeholders": {
+      "pokemon": {
+        "type": "String"
+      }
+    }
+  },
+  "staleDataNotice": "Offline cached data",
+  "browsePokedex": "Browse Pokédex",
+  "pokedexTitle": "Pokédex",
+  "filter": "Filter",
+  "filters": "Filters",
+  "filterCount": "{count} active",
+  "@filterCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "types": "Types",
+  "generation": "Generation",
+  "generationAll": "All Generations",
+  "generationNum": "Gen {number}",
+  "@generationNum": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "sortBy": "Sort By",
+  "sortIdAscending": "Number: Lowest first",
+  "sortIdDescending": "Number: Highest first",
+  "sortNameAscending": "Name: A - Z",
+  "sortNameDescending": "Name: Z - A",
+  "randomPokemon": "Random Pokémon",
+  "noPokemonFound": "No Pokémon found matching your filters",
+  "clearFilters": "Clear Filters",
+  "apply": "Apply",
+  "reset": "Reset",
+  "searchPokedexPlaceholder": "Search by name or number...",
+  "offlineIndexNotice": "Browsing offline cached Pokédex",
+  "forms": "Forms",
+  "formFilterAll": "All Forms",
+  "formFilterCanonicalOnly": "Canonical Only",
+  "formFilterMega": "Mega Evolutions",
+  "formFilterRegional": "Regional Forms",
+  "formFilterGmax": "Gigantamax",
+  "includeCosmeticForms": "Include cosmetic & costume forms",
+  "formBadgeMegaIndicator": "⚡ Mega",
+  "formBadgeRegionalIndicator": "🌍 Regional",
+  "formBadgeGmaxIndicator": "💥 G-Max",
+  "formBadgeFormsIndicator": "✨ Forms",
+  "hasAlternateFormsSemantics": "alternate forms available",
+  "favorites": "Favorites",
+  "favoritesEmptyTitle": "No Favorites Yet",
+  "favoritesEmptyMessage": "Tap the heart icon on any Pokémon to add it to your favorites.",
+  "addToFavorites": "Add to favorites",
+  "removeFromFavorites": "Remove from favorites",
+  "removeFromHistory": "Remove from history",
+  "sortRecentlyAdded": "Recently Added",
+  "recentlyViewed": "Recently Viewed",
+  "recentSearches": "Recent Searches",
+  "clearHistory": "Clear history",
+  "clearHistoryConfirmation": "Are you sure you want to clear your search and viewing history?",
+  "historyEnabled": "Keep history",
+  "historyEnabledInfo": "Record recently viewed Pokémon and searches.",
+  "theme": "Theme",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "unitSystem": "Measurement Units",
+  "unitSystemMetric": "Metric (m, kg)",
+  "unitSystemImperial": "Imperial (ft, lbs)",
+  "audioSettings": "Audio",
+  "autoPlayCry": "Auto-play cry on open",
+  "autoPlayCryInfo": "Automatically play the Pokémon's cry when opening the details screen.",
+  "cryVolume": "Cry Volume",
+  "storageAndCache": "Storage & Cache",
+  "cacheSize": "Cache size: {size}",
+  "@cacheSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "clearCacheConfirmation": "Are you sure you want to clear the cache? Downloaded data and images will need to be reloaded.",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "clear": "Clear",
+  "genus": "Category",
+  "captureRate": "Capture Rate",
+  "baseHappiness": "Base Friendship",
+  "growthRate": "Growth Rate",
+  "habitat": "Habitat",
+  "eggGroups": "Egg Groups",
+  "flavorText": "Pokédex Description",
+  "evolutionChain": "Evolution Chain",
+  "noEvolutions": "This Pokémon does not evolve.",
+  "evolutionTriggerLevel": "Lv. {level}",
+  "@evolutionTriggerLevel": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerItem": "Use {item}",
+  "@evolutionTriggerItem": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerTrade": "Trade",
+  "evolutionTriggerTradeItem": "Trade holding {item}",
+  "@evolutionTriggerTradeItem": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerHappiness": "High Friendship",
+  "evolutionTriggerHappinessDay": "Friendship (Day)",
+  "evolutionTriggerHappinessNight": "Friendship (Night)",
+  "evolutionTriggerLocation": "Level up at {location}",
+  "@evolutionTriggerLocation": {
+    "placeholders": {
+      "location": { "type": "String" }
+    }
+  },
+  "evolutionTriggerMove": "Knows {move}",
+  "@evolutionTriggerMove": {
+    "placeholders": {
+      "move": { "type": "String" }
+    }
+  },
+  "evolutionTriggerOther": "Special Condition",
+  "abilityDetail": "Ability Info",
+  "abilityEffect": "In-Battle Effect",
+  "abilityShortEffect": "Summary",
+  "allGameVersions": "All Versions",
+  "filterByVersion": "Game Version",
+  "baseSpeciesDataNotice": "Appearance & types reflect {formName}. Stats, moves, and abilities reflect the base species.",
+  "@baseSpeciesDataNotice": {
+    "placeholders": {
+      "formName": { "type": "String" }
+    }
+  },
+  "encountersUnavailableForVersion": "No encounters found for this game version.",
+  "heldItemsUnavailableForVersion": "No held items found for this game version.",
+  "movesUnavailableForVersion": "No moves found for this game version.",
+  "errorSpecies": "Failed to load species information.",
+  "errorEvolutionChain": "Failed to load evolution chain.",
+  "errorAbilityDetail": "Failed to load ability details.",
+  "evolutionTriggerLevelUpsideDown": "Lv. {level} (Upside down)",
+  "@evolutionTriggerLevelUpsideDown": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerLevelRain": "Lv. {level} (Rain)",
+  "@evolutionTriggerLevelRain": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerLevelAtkGtDef": "Lv. {level} (Atk > Def)",
+  "@evolutionTriggerLevelAtkGtDef": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerLevelDefGtAtk": "Lv. {level} (Def > Atk)",
+  "@evolutionTriggerLevelDefGtAtk": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerLevelAtkEqDef": "Lv. {level} (Atk = Def)",
+  "@evolutionTriggerLevelAtkEqDef": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerLevelDay": "Lv. {level} (Day)",
+  "@evolutionTriggerLevelDay": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerLevelNight": "Lv. {level} (Night)",
+  "@evolutionTriggerLevelNight": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerLevelParty": "Lv. {level} (with {species})",
+  "@evolutionTriggerLevelParty": {
+    "placeholders": {
+      "level": { "type": "int" },
+      "species": { "type": "String" }
+    }
+  },
+  "evolutionTriggerLevelPartyType": "Lv. {level} ({type} in party)",
+  "@evolutionTriggerLevelPartyType": {
+    "placeholders": {
+      "level": { "type": "int" },
+      "type": { "type": "String" }
+    }
+  },
+  "evolutionTriggerLevelGenderFemale": "Lv. {level} (Female)",
+  "@evolutionTriggerLevelGenderFemale": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerLevelGenderMale": "Lv. {level} (Male)",
+  "@evolutionTriggerLevelGenderMale": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "evolutionTriggerTradeSpecies": "Trade for {species}",
+  "@evolutionTriggerTradeSpecies": {
+    "placeholders": {
+      "species": { "type": "String" }
+    }
+  },
+  "evolutionTriggerShed": "Empty slot & Poké Ball",
+  "evolutionTriggerTurnUpsideDown": "Turn device upside down",
+  "evolutionTriggerRain": "Rain",
+  "alternateForms": "Alternate Forms",
+  "currentForm": "Current Form",
+  "currentPokemon": "Current Pokémon",
+  "evolutionTriggerPartySpecies": "With {species}",
+  "@evolutionTriggerPartySpecies": {
+    "placeholders": {
+      "species": { "type": "String" }
+    }
+  },
+  "evolutionTriggerItemGenderMale": "Use {item} (Male)",
+  "@evolutionTriggerItemGenderMale": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerItemGenderFemale": "Use {item} (Female)",
+  "@evolutionTriggerItemGenderFemale": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerItemDay": "Use {item} (Day)",
+  "@evolutionTriggerItemDay": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerItemNight": "Use {item} (Night)",
+  "@evolutionTriggerItemNight": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerHeldItem": "Hold {item}",
+  "@evolutionTriggerHeldItem": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerHeldItemDay": "Hold {item} (Day)",
+  "@evolutionTriggerHeldItemDay": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerHeldItemNight": "Hold {item} (Night)",
+  "@evolutionTriggerHeldItemNight": {
+    "placeholders": {
+      "item": { "type": "String" }
+    }
+  },
+  "evolutionTriggerAffection": "High Affection",
+  "evolutionTriggerBeauty": "High Beauty",
+  "evolutionTriggerPartyType": "{type} in party",
+  "@evolutionTriggerPartyType": {
+    "placeholders": {
+      "type": { "type": "String" }
+    }
+  },
+  "evolutionTriggerGenderMale": "Male",
+  "evolutionTriggerGenderFemale": "Female",
+  "aboutPokeFinder": "About PokéFinder",
+  "aboutAppDescription": "A lightweight, modern Pokédex app for exploring Pokémon, abilities, moves, and stats.",
+  "aboutVersion": "Version {version}",
+  "@aboutVersion": {
+    "placeholders": {
+      "version": { "type": "String" }
+    }
+  },
+  "aboutBuildNumber": "Build {buildNumber}",
+  "@aboutBuildNumber": {
+    "placeholders": {
+      "buildNumber": { "type": "String" }
+    }
+  },
+  "aboutDataSource": "Data Source",
+  "aboutDataSourceDescription": "All Pokémon data, sprites, and assets are sourced from PokeAPI.",
+  "aboutPokeApiWebsite": "PokeAPI Website",
+  "aboutDisclaimer": "Disclaimer",
+  "aboutDisclaimerText": "PokéFinder is an unofficial, non-commercial fan-made app and is not affiliated with, endorsed, or supported by Nintendo, GAME FREAK, or The Pokémon Company.",
+  "aboutOpenSourceLicenses": "Open Source Licenses",
+  "aboutSourceCode": "Source Code",
+  "aboutGitHubRepository": "GitHub Repository",
+  "aboutReportIssue": "Report an Issue",
+  "shareLink": "Copy link",
+  "shareLinkCopied": "Link copied to clipboard",
+  "compareTitle": "Compare",
+  "compareAdd": "Add to comparison",
+  "compareRemove": "Remove from comparison",
+  "compareClear": "Clear comparison",
+  "compareEmptyTitle": "No Pokémon to compare",
+  "compareEmptyMessage": "Add up to 2 Pokémon from the Pokédex cards or the detail screen to compare them side by side.",
+  "compareAddSecond": "Add a second Pokémon to compare",
+  "compareFull": "Comparison is full (2 max)",
+  "compareAdded": "Added to comparison",
+  "compareView": "View",
+  "compareTotal": "Total",
+  "matchupTitle": "Type matchups",
+  "matchupDefendingTypes": "Defending types",
+  "matchupDefendingHint": "Select up to 2 types",
+  "matchupEmptyTitle": "No defending type selected",
+  "matchupEmptyMessage": "Select 1 or 2 defending types to see weaknesses, resistances and immunities.",
+  "matchupGroup4x": "4× weak to",
+  "matchupGroup2x": "2× weak to",
+  "matchupGroupHalf": "½× resistant to",
+  "matchupGroupQuarter": "¼× resistant to",
+  "matchupGroupImmune": "Immune to",
+  "matchupClearSelection": "Clear selection",
+  "matchupViewMatchups": "View matchups",
+  "teamsTitle": "Teams",
+  "teamsEmptyTitle": "No teams yet",
+  "teamsEmptyMessage": "Create a team of up to 6 Pokémon to track type coverage and base stats.",
+  "teamCreate": "New team",
+  "teamCreateTitle": "Create team",
+  "teamNameLabel": "Team name",
+  "teamNameHint": "E.g. Kanto starters",
+  "teamNameEmpty": "Enter a team name",
+  "teamRename": "Rename team",
+  "teamDelete": "Delete team",
+  "teamDeleteTitle": "Delete team?",
+  "teamDeleteMessage": "Are you sure you want to delete {name}?",
+  "@teamDeleteMessage": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "teamAddMember": "Add to team",
+  "teamRemoveMember": "Remove from team",
+  "teamFull": "Team is full (6 max)",
+  "teamAddedTo": "Added to {team}",
+  "@teamAddedTo": {
+    "placeholders": {
+      "team": { "type": "String" }
+    }
+  },
+  "teamDuplicateWarning": "Duplicate Pokémon in team",
+  "teamDuplicateMessage": "This team contains the same Pokémon more than once.",
+  "teamMembersCount": "{count} of 6",
+  "@teamMembersCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "teamTypeCoverage": "Type coverage",
+  "teamStatsSum": "Total (sum)",
+  "teamStatsAverage": "Average",
+  "teamSummary": "Team summary",
+  "teamMembers": "Members",
+  "teamMoveToTop": "Move to top",
+  "teamEmptyMembersTitle": "No members yet",
+  "teamEmptyMembersMessage": "Add up to 6 Pokémon from the Pokédex cards or the detail screen.",
+  "teamPickTitle": "Choose a team",
+  "teamPickEmpty": "No teams yet — create one first.",
+  "teamView": "View"
 }
+
+

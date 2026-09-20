@@ -1,10 +1,11 @@
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:en_logger/en_logger.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
 import 'package:meta/meta.dart';
+import 'package:pokefinder/src/2_application/helpers/log_sanitizer.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
-import 'package:pokefinder/src/4_repository/repositories/data_repository.dart';
 
 part 'home_event.dart';
 part 'home_state.dart';
@@ -14,43 +15,43 @@ const _prefix = 'HomeBloc';
 /// Manages home screen state: user search input, navigation, and cache clearing.
 @injectable
 class HomeBloc extends Bloc<HomeBlocEvent, HomeBlocState> {
-  HomeBloc(this._pokemonRepository, this._dataRepository, this._logger)
+  HomeBloc(this._pokemonRepository, this._clearCacheUseCase, this._logger)
     : super(HomeBlocState.initial()) {
     on<UserInputEvent>((event, emit) {
-      _logger.info('User input: ${event.userInput}', prefix: _prefix);
+      final inputLog = sanitizeQueryForLog(event.userInput);
+      _logger.info('User input: $inputLog', prefix: _prefix);
 
-      List<String> suggestions = [];
-      if (event.userInput.length >= 2) {
-        final query = event.userInput.toLowerCase();
-        suggestions = state.allPokemonNames
-            .where((name) => name.toLowerCase().startsWith(query))
-            .take(5)
-            .toList();
-      }
-
-      emit(
-        state.copyWith(
-          userInput: event.userInput,
-          searchSuggestions: suggestions,
-          failure: null,
-        ),
-      );
-    });
+      emit(state.copyWith(userInput: event.userInput, failure: null));
+    }, transformer: restartable());
 
     on<FetchAllPokemonNamesEvent>((event, emit) async {
-      final result = await _pokemonRepository.getAllPokemonNames();
+      emit(state.copyWith(isIndexLoading: true));
+      final result = await _pokemonRepository.getPokemonIndex();
       result.fold(
-        (failure) => _logger.error(
-          'Failed to fetch pokemon names: $failure',
-          prefix: _prefix,
+        (failure) {
+          _logger.error(
+            'Failed to fetch pokemon index: $failure',
+            prefix: _prefix,
+          );
+          emit(
+            state.copyWith(nameIndexFailure: failure, isIndexLoading: false),
+          );
+        },
+        (entries) => emit(
+          state.copyWith(
+            pokemonIndex: entries,
+            allPokemonNames: entries.map((e) => e.name).toList(),
+            nameIndexFailure: null,
+            isIndexLoading: false,
+          ),
         ),
-        (names) => emit(state.copyWith(allPokemonNames: names)),
       );
     });
 
     on<IsButtonPressedEvent>((event, emit) {
+      final inputLog = sanitizeQueryForLog(state.userInput);
       _logger.info(
-        'Search button pressed with input: ${state.userInput}',
+        'Search button pressed with input: $inputLog',
         prefix: _prefix,
       );
       final name = PokemonName(state.userInput);
@@ -66,9 +67,20 @@ class HomeBloc extends Bloc<HomeBlocEvent, HomeBlocState> {
 
     on<ClearCacheEvent>((event, emit) async {
       _logger.info('Clearing repository cache', prefix: _prefix);
-      await _dataRepository.clearCache();
-      emit(state.copyWith(cacheCleared: true, failure: null));
-      emit(state.copyWith(cacheCleared: false)); // Reset the flag
+      final result = await _clearCacheUseCase();
+      result.fold(
+        (failure) {
+          _logger.error(
+            'Failed to clear repository cache: $failure',
+            prefix: _prefix,
+          );
+          emit(state.copyWith(cacheCleared: false, failure: failure));
+        },
+        (_) {
+          emit(state.copyWith(cacheCleared: true, failure: null));
+          emit(state.copyWith(cacheCleared: false)); // Reset the flag
+        },
+      );
     });
 
     on<NavigationDoneEvent>((event, emit) {
@@ -77,6 +89,6 @@ class HomeBloc extends Bloc<HomeBlocEvent, HomeBlocState> {
   }
 
   final IPokemonRepository _pokemonRepository;
-  final DataRepository _dataRepository;
+  final ClearCacheUseCase _clearCacheUseCase;
   final EnLogger _logger;
 }

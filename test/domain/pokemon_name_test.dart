@@ -29,5 +29,31 @@ void main() {
         throwsA(isA<BadRequestFailure>()),
       );
     });
+
+    test('accepts and canonicalizes positive numeric Pokédex IDs', () {
+      expect(PokemonName('25').isValid(), isTrue);
+      expect(PokemonName('25').rightOrCrash(), '25');
+      expect(PokemonName('  025  ').isValid(), isTrue);
+      expect(PokemonName('  025  ').rightOrCrash(), '25');
+      expect(PokemonName('1025').rightOrCrash(), '1025');
+    });
+
+    test('rejects zero and negative numbers', () {
+      expect(PokemonName('0').isValid(), isFalse);
+      expect(PokemonName('00').isValid(), isFalse);
+      expect(PokemonName('-1').isValid(), isFalse);
+      expect(PokemonName('-25').isValid(), isFalse);
+    });
+
+    test(
+      'rejects path traversal, script injection, and invalid characters',
+      () {
+        expect(PokemonName('../../etc/passwd').isValid(), isFalse);
+        expect(PokemonName('<script>').isValid(), isFalse);
+        expect(PokemonName('pika chu').isValid(), isFalse);
+        expect(PokemonName('pika@chu').isValid(), isFalse);
+        expect(PokemonName('pika--chu').isValid(), isFalse);
+      },
+    );
   });
 }

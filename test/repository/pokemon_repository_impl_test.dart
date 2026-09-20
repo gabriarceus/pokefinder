@@ -4,12 +4,15 @@ import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/src/3_domain/entities/damage_class.dart';
 import 'package:pokefinder/src/3_domain/entities/move_detail.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
 import 'package:pokefinder/src/4_repository/datasources/abstract/i_pokemon_remote_datasource.dart';
 import 'package:pokefinder/src/4_repository/models/raw_encounter/raw_encounter.dart';
 import 'package:pokefinder/src/4_repository/models/raw_form_details/raw_form_details.dart';
+import 'package:pokefinder/src/3_domain/entities/evolution_chain.dart';
+import 'package:pokefinder/src/4_repository/models/raw_evolution_chain/raw_evolution_chain.dart';
 import 'package:pokefinder/src/4_repository/models/raw_move_detail/raw_move_detail.dart';
 import 'package:pokefinder/src/4_repository/models/raw_pokemon/raw_pokemon.dart';
 import 'package:pokefinder/src/4_repository/repositories/pokemon_repository_impl.dart';
@@ -147,6 +150,24 @@ void main() {
       expect(pokemon.typeImage2, isEmpty);
     });
 
+    test(
+      'returns InvalidResponseFailure when types collection is empty',
+      () async {
+        when(() => dataSource.getPokemon(any())).thenAnswer(
+          (_) async =>
+              right(RawPokemon.fromJson(rawPokemonJson(types: const []))),
+        );
+
+        final result = await repository.getPokemon(PokemonName('venusaur'));
+
+        expect(result.isLeft(), isTrue);
+        result.fold((failure) {
+          expect(failure, isA<InvalidResponseFailure>());
+          expect(failure.message, contains('has no types specified'));
+        }, (_) => fail('expected left'));
+      },
+    );
+
     test('an unknown type id maps to no type and no sprite', () async {
       final pokemon = await mapPokemon(
         rawPokemonJson(
@@ -184,9 +205,6 @@ void main() {
           ),
         );
 
-        expect(pokemon.ability1, 'overgrow');
-        expect(pokemon.ability2, 'chlorophyll');
-        expect(pokemon.ability3, isEmpty);
         expect(pokemon.abilities, const [
           PokemonAbility(name: 'overgrow', isHidden: false, slot: 1),
           PokemonAbility(name: 'chlorophyll', isHidden: true, slot: 3),
@@ -300,6 +318,113 @@ void main() {
         expect(pokemon.officialArtworkShiny, isNull);
       },
     );
+
+    test(
+      'maps the full sprite payload including female and home variants',
+      () async {
+        final pokemon = await mapPokemon(
+          rawPokemonJson(
+            sprites: {
+              'front_default': 'front.png',
+              'back_default': 'back.png',
+              'front_shiny': 'front-shiny.png',
+              'back_shiny': 'back-shiny.png',
+              'front_female': 'front-female.png',
+              'back_female': 'back-female.png',
+              'front_shiny_female': 'front-shiny-female.png',
+              'back_shiny_female': 'back-shiny-female.png',
+              'other': {
+                'official-artwork': {
+                  'front_default': 'artwork.png',
+                  'front_shiny': 'artwork-shiny.png',
+                },
+                'home': {
+                  'front_default': 'home.png',
+                  'front_female': 'home-female.png',
+                  'front_shiny': 'home-shiny.png',
+                  'front_shiny_female': 'home-shiny-female.png',
+                },
+              },
+            },
+          ),
+        );
+
+        expect(pokemon.sprite, 'artwork.png');
+        expect(pokemon.spriteFrontDefault, 'front.png');
+        expect(pokemon.spriteBackDefault, 'back.png');
+        expect(pokemon.spriteFrontShiny, 'front-shiny.png');
+        expect(pokemon.spriteBackShiny, 'back-shiny.png');
+        expect(pokemon.spriteFrontFemale, 'front-female.png');
+        expect(pokemon.spriteBackFemale, 'back-female.png');
+        expect(pokemon.spriteFrontShinyFemale, 'front-shiny-female.png');
+        expect(pokemon.spriteBackShinyFemale, 'back-shiny-female.png');
+        expect(pokemon.officialArtworkDefault, 'artwork.png');
+        expect(pokemon.officialArtworkShiny, 'artwork-shiny.png');
+        expect(pokemon.homeDefault, 'home.png');
+        expect(pokemon.homeFemale, 'home-female.png');
+        expect(pokemon.homeShiny, 'home-shiny.png');
+        expect(pokemon.homeShinyFemale, 'home-shiny-female.png');
+      },
+    );
+
+    test(
+      'leaves female and home variants null for a partial payload',
+      () async {
+        final pokemon = await mapPokemon(
+          rawPokemonJson(
+            sprites: {
+              'front_default': 'front.png',
+              'back_default': null,
+              'front_shiny': null,
+              'back_shiny': null,
+              'front_female': null,
+              'back_female': null,
+              'front_shiny_female': null,
+              'back_shiny_female': null,
+              'other': {
+                'official-artwork': {
+                  'front_default': 'artwork.png',
+                  'front_shiny': null,
+                },
+                'home': null,
+              },
+            },
+          ),
+        );
+
+        expect(pokemon.sprite, 'artwork.png');
+        expect(pokemon.spriteFrontFemale, isNull);
+        expect(pokemon.spriteBackFemale, isNull);
+        expect(pokemon.spriteFrontShinyFemale, isNull);
+        expect(pokemon.spriteBackShinyFemale, isNull);
+        expect(pokemon.homeDefault, isNull);
+        expect(pokemon.homeFemale, isNull);
+        expect(pokemon.homeShiny, isNull);
+        expect(pokemon.homeShinyFemale, isNull);
+      },
+    );
+
+    test('empty sprite payload yields an empty primary sprite', () async {
+      final pokemon = await mapPokemon(
+        rawPokemonJson(
+          sprites: {
+            'front_default': null,
+            'back_default': null,
+            'front_shiny': null,
+            'back_shiny': null,
+            'front_female': null,
+            'back_female': null,
+            'front_shiny_female': null,
+            'back_shiny_female': null,
+            'other': null,
+          },
+        ),
+      );
+
+      expect(pokemon.sprite, isEmpty);
+      expect(pokemon.officialArtworkDefault, isNull);
+      expect(pokemon.homeDefault, isNull);
+    });
   });
 
   group('getPokemon failures', () {
@@ -317,7 +442,7 @@ void main() {
     });
 
     test(
-      'a malformed payload becomes an UnexpectedFailure instead of throwing',
+      'a malformed payload becomes an InvalidResponseFailure instead of throwing',
       () async {
         final json = rawPokemonJson(types: const []);
         when(
@@ -327,7 +452,10 @@ void main() {
         final result = await repository.getPokemon(PokemonName('venusaur'));
 
         expect(result.isLeft(), isTrue);
-        expect(result.fold((l) => l, (_) => null), isA<UnexpectedFailure>());
+        expect(
+          result.fold((l) => l, (_) => null),
+          isA<InvalidResponseFailure>(),
+        );
       },
     );
   });
@@ -371,6 +499,30 @@ void main() {
         expect(details.artworkShiny, endsWith('shiny/10033.png'));
       },
     );
+
+    test(
+      'returns InvalidResponseFailure when form types collection is empty',
+      () async {
+        when(() => dataSource.getFormDetails(any())).thenAnswer(
+          (_) async => right(
+            RawFormDetails.fromJson({
+              'id': 10033,
+              'name': 'venusaur-mega',
+              'types': <Map<String, dynamic>>[],
+              'sprites': {'front_default': 'mega.png'},
+            }),
+          ),
+        );
+
+        final result = await repository.getFormDetails('form/10033/');
+
+        expect(result.isLeft(), isTrue);
+        result.fold((failure) {
+          expect(failure, isA<InvalidResponseFailure>());
+          expect(failure.message, contains('has no types specified'));
+        }, (_) => fail('expected left'));
+      },
+    );
   });
 
   group('getEncounters', () {
@@ -408,7 +560,12 @@ void main() {
 
   group('getMoveDetail', () {
     test('keeps the first flavor text per language', () async {
-      when(() => dataSource.getMoveDetail(any())).thenAnswer(
+      when(
+        () => dataSource.getMoveDetail(
+          any(),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).thenAnswer(
         (_) async => right(
           RawMoveDetail.fromJson({
             'id': 33,
@@ -457,7 +614,12 @@ void main() {
     });
 
     test('an unrecognized damage class maps to null', () async {
-      when(() => dataSource.getMoveDetail(any())).thenAnswer(
+      when(
+        () => dataSource.getMoveDetail(
+          any(),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).thenAnswer(
         (_) async => right(
           RawMoveDetail.fromJson({
             'id': 1,
@@ -475,5 +637,262 @@ void main() {
 
       expect(detail.damageClass, isNull);
     });
+  });
+
+  group('getPokemon stat mapping by name', () {
+    test(
+      'maps stats by explicit API name even if array is shuffled or reversed',
+      () async {
+        final shuffledStats = [
+          {
+            'base_stat': 99,
+            'effort': 0,
+            'stat': {'name': 'speed', 'url': ''},
+          },
+          {
+            'base_stat': 88,
+            'effort': 0,
+            'stat': {'name': 'special-defense', 'url': ''},
+          },
+          {
+            'base_stat': 77,
+            'effort': 0,
+            'stat': {'name': 'special-attack', 'url': ''},
+          },
+          {
+            'base_stat': 66,
+            'effort': 0,
+            'stat': {'name': 'defense', 'url': ''},
+          },
+          {
+            'base_stat': 55,
+            'effort': 0,
+            'stat': {'name': 'attack', 'url': ''},
+          },
+          {
+            'base_stat': 44,
+            'effort': 0,
+            'stat': {'name': 'hp', 'url': ''},
+          },
+        ];
+
+        final json = rawPokemonJson()..['stats'] = shuffledStats;
+        final pokemon = await mapPokemon(json);
+
+        // Order should always be: [hp, attack, defense, special-attack, special-defense, speed]
+        expect(pokemon.stats, [44, 55, 66, 77, 88, 99]);
+      },
+    );
+  });
+
+  group('getPokemon sprite fallback order', () {
+    test('prefers official artwork over front_default', () async {
+      final json = rawPokemonJson(
+        sprites: {
+          'front_default': 'front.png',
+          'other': {
+            'official-artwork': {'front_default': 'artwork.png'},
+          },
+        },
+      );
+      final pokemon = await mapPokemon(json);
+      expect(pokemon.sprite, 'artwork.png');
+    });
+
+    test(
+      'falls back to front_default when official artwork is missing',
+      () async {
+        final json = rawPokemonJson(
+          sprites: {'front_default': 'front.png', 'other': null},
+        );
+        final pokemon = await mapPokemon(json);
+        expect(pokemon.sprite, 'front.png');
+      },
+    );
+
+    test(
+      'falls back to front_shiny when both artwork and front_default are missing',
+      () async {
+        final json = rawPokemonJson(
+          sprites: {
+            'front_default': null,
+            'front_shiny': 'shiny.png',
+            'other': null,
+          },
+        );
+        final pokemon = await mapPokemon(json);
+        expect(pokemon.sprite, 'shiny.png');
+      },
+    );
+  });
+
+  group('clearCache', () {
+    test('delegates clearCache to remote data source', () async {
+      when(() => dataSource.clearCache()).thenAnswer((_) async => right(unit));
+
+      final result = await repository.clearCache();
+      expect(result, right(unit));
+      verify(() => dataSource.clearCache()).called(1);
+    });
+  });
+
+  group('getPokemonIndex', () {
+    test(
+      'delegates getPokemonIndex to remote data source with cancelToken and forceRefresh',
+      () async {
+        const sampleEntries = [
+          PokemonIndexEntry(id: 1, name: 'bulbasaur', detailUrl: 'url1'),
+        ];
+        when(
+          () => dataSource.getPokemonIndex(
+            cancelToken: any(named: 'cancelToken'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).thenAnswer((_) async => right(sampleEntries));
+
+        final result = await repository.getPokemonIndex(forceRefresh: true);
+        expect(result.isRight(), isTrue);
+        expect(result.getOrElse(() => []), equals(sampleEntries));
+        verify(
+          () => dataSource.getPokemonIndex(
+            cancelToken: any(named: 'cancelToken'),
+            forceRefresh: true,
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'returns UnexpectedFailure when remote data source throws unexpected error',
+      () async {
+        when(
+          () => dataSource.getPokemonIndex(
+            cancelToken: any(named: 'cancelToken'),
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).thenThrow(Exception('Unexpected crash'));
+
+        final result = await repository.getPokemonIndex();
+        expect(result.isLeft(), isTrue);
+        result.fold(
+          (failure) => expect(failure, isA<UnexpectedFailure>()),
+          (_) => fail('expected left'),
+        );
+      },
+    );
+  });
+
+  group('getPokemonIdsForType', () {
+    test(
+      'delegates getPokemonIdsForType to remote data source with cancelToken',
+      () async {
+        when(
+          () => dataSource.getPokemonIdsForType(
+            PokemonType.fire,
+            cancelToken: any(named: 'cancelToken'),
+          ),
+        ).thenAnswer((_) async => const Right({4, 5, 6}));
+
+        final result = await repository.getPokemonIdsForType(PokemonType.fire);
+        expect(result, const Right({4, 5, 6}));
+        verify(
+          () => dataSource.getPokemonIdsForType(
+            PokemonType.fire,
+            cancelToken: any(named: 'cancelToken'),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'returns UnexpectedFailure when remote data source throws unexpected error',
+      () async {
+        when(
+          () => dataSource.getPokemonIdsForType(
+            PokemonType.fire,
+            cancelToken: any(named: 'cancelToken'),
+          ),
+        ).thenThrow(Exception('Unexpected crash'));
+
+        final result = await repository.getPokemonIdsForType(PokemonType.fire);
+        expect(result.isLeft(), isTrue);
+        result.fold(
+          (failure) => expect(failure, isA<UnexpectedFailure>()),
+          (_) => fail('expected left'),
+        );
+      },
+    );
+  });
+
+  group('getEvolutionChain', () {
+    test(
+      'maps raw evolution chain with compound trigger details to domain entity',
+      () async {
+        final raw = RawEvolutionChain.fromJson({
+          'id': 352,
+          'chain': {
+            'species': {
+              'name': 'inkay',
+              'url': 'https://pokeapi.co/api/v2/pokemon-species/686/',
+            },
+            'evolution_details': <Map<String, dynamic>>[],
+            'evolves_to': [
+              {
+                'species': {
+                  'name': 'malamar',
+                  'url': 'https://pokeapi.co/api/v2/pokemon-species/687/',
+                },
+                'evolution_details': [
+                  {
+                    'trigger': {'name': 'level-up', 'url': ''},
+                    'min_level': 30,
+                    'turn_upside_down': true,
+                    'needs_overworld_rain': false,
+                    'relative_physical_stats': null,
+                    'gender': 1,
+                    'party_species': {'name': 'remoraid', 'url': ''},
+                    'party_type': {'name': 'dark', 'url': ''},
+                    'trade_species': {'name': 'shelmet', 'url': ''},
+                  },
+                ],
+                'evolves_to': <Map<String, dynamic>>[],
+              },
+            ],
+          },
+        });
+
+        when(
+          () => dataSource.getEvolutionChain(
+            any(),
+            cancelToken: any(named: 'cancelToken'),
+          ),
+        ).thenAnswer((_) async => Right(raw));
+
+        final result = await repository.getEvolutionChain('chain/352/');
+
+        expect(result.isRight(), isTrue);
+        result.fold((_) => fail('expected right'), (chain) {
+          expect(chain.id, 352);
+          expect(chain.root.speciesName, 'inkay');
+          expect(chain.root.speciesId, 686);
+          expect(chain.root.evolvesTo.length, 1);
+
+          final malamarNode = chain.root.evolvesTo.first;
+          expect(malamarNode.speciesName, 'malamar');
+          expect(malamarNode.speciesId, 687);
+          expect(malamarNode.triggers.length, 1);
+
+          final trigger = malamarNode.triggers.first;
+          expect(trigger.triggerType, EvolutionTriggerType.levelUp);
+          expect(trigger.minLevel, 30);
+          expect(trigger.turnUpsideDown, isTrue);
+          expect(trigger.needsRain, isFalse);
+          expect(trigger.gender, 1);
+          expect(trigger.partySpecies, 'remoraid');
+          expect(trigger.partyType, 'dark');
+          expect(trigger.tradeSpecies, 'shelmet');
+        });
+      },
+    );
   });
 }

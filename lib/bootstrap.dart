@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:dio/dio.dart';
 import 'package:en_logger/en_logger.dart';
 import 'package:flutter/foundation.dart';
@@ -13,8 +14,10 @@ final GetIt getIt = GetIt.instance;
   preferRelativeImports: true, // default
   asExtension: true, // default
 )
-void configureDependencies(String environment) =>
-    getIt.init(environment: environment);
+Future<void> configureDependencies(String environment) async {
+  await getIt.reset();
+  getIt.init(environment: environment);
+}
 
 @module
 abstract class RegisterModule {
@@ -41,4 +44,7 @@ abstract class RegisterModule {
     );
     return dio;
   }
+
+  @lazySingleton
+  Clock get clock => const Clock();
 }

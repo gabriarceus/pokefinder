@@ -28,6 +28,9 @@ class LoggingInterceptor extends Interceptor {
   /// reaches onResponse/onError (e.g. cancellation), to keep the map bounded.
   static const _staleThreshold = Duration(minutes: 5);
 
+  /// Maximum characters of payload to log when [verbose] is enabled.
+  static const int maxPayloadLength = 1000;
+
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     _pruneStaleEntries();
@@ -40,7 +43,10 @@ class LoggingInterceptor extends Interceptor {
         _logger.debug('  Headers: ${options.headers}', prefix: _prefix);
       }
       if (options.data != null) {
-        _logger.debug('  Body: ${options.data}', prefix: _prefix);
+        _logger.debug(
+          '  Body: ${_truncate(options.data.toString())}',
+          prefix: _prefix,
+        );
       }
     }
 
@@ -62,7 +68,7 @@ class LoggingInterceptor extends Interceptor {
 
     if (verbose) {
       final body = response.data?.toString() ?? '';
-      _logger.debug('  Response: $body', prefix: _prefix);
+      _logger.debug('  Response: ${_truncate(body)}', prefix: _prefix);
     }
 
     handler.next(response);
@@ -81,10 +87,15 @@ class LoggingInterceptor extends Interceptor {
 
     if (verbose && err.response?.data != null) {
       final body = err.response!.data.toString();
-      _logger.debug('  Error body: $body', prefix: _prefix);
+      _logger.debug('  Error body: ${_truncate(body)}', prefix: _prefix);
     }
 
     handler.next(err);
+  }
+
+  String _truncate(String text) {
+    if (text.length <= maxPayloadLength) return text;
+    return '${text.substring(0, maxPayloadLength)}... [truncated ${text.length - maxPayloadLength} chars]';
   }
 
   /// Returns a human-readable elapsed time string for the given request.

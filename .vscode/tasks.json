@@ -51,6 +51,13 @@
       "problemMatcher": []
     },
     {
+      "label": "Sync AI docs",
+      "type": "shell",
+      "command": "./scripts/sync-ai-docs.sh",
+      "detail": "Build provider files and project skills from docs/ai/",
+      "problemMatcher": []
+    },
+    {
       "label": "(Release mode, Prod) Build Appbundle",
       "type": "shell",
       "command": "fvm flutter build appbundle --release --flavor prod",

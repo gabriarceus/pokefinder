@@ -35,4 +35,12 @@ enum PokemonType {
     }
     return null;
   }
+
+  /// Resolves the type matching [apiName], or null when no known type uses it.
+  static PokemonType? fromApiName(String apiName) {
+    for (final type in values) {
+      if (type.apiName == apiName) return type;
+    }
+    return null;
+  }
 }

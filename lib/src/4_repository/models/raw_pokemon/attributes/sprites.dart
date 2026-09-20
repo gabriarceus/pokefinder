@@ -5,15 +5,19 @@ part 'sprites.g.dart';
 @JsonSerializable(explicitToJson: true)
 class Sprites {
   const Sprites({
-    required this.frontDefault,
-    required this.backDefault,
-    required this.frontShiny,
-    required this.backShiny,
-    required this.other,
+    this.frontDefault,
+    this.backDefault,
+    this.frontShiny,
+    this.backShiny,
+    this.frontFemale,
+    this.backFemale,
+    this.frontShinyFemale,
+    this.backShinyFemale,
+    this.other,
   });
 
   @JsonKey(name: 'front_default')
-  final String frontDefault;
+  final String? frontDefault;
 
   @JsonKey(name: 'back_default')
   final String? backDefault;
@@ -23,6 +27,18 @@ class Sprites {
 
   @JsonKey(name: 'back_shiny')
   final String? backShiny;
+
+  @JsonKey(name: 'front_female')
+  final String? frontFemale;
+
+  @JsonKey(name: 'back_female')
+  final String? backFemale;
+
+  @JsonKey(name: 'front_shiny_female')
+  final String? frontShinyFemale;
+
+  @JsonKey(name: 'back_shiny_female')
+  final String? backShinyFemale;
 
   final SpritesOther? other;
 
@@ -34,10 +50,12 @@ class Sprites {
 
 @JsonSerializable(explicitToJson: true)
 class SpritesOther {
-  const SpritesOther({required this.officialArtwork});
+  const SpritesOther({this.officialArtwork, this.home});
 
   @JsonKey(name: 'official-artwork')
-  final OfficialArtwork officialArtwork;
+  final OfficialArtwork? officialArtwork;
+
+  final SpritesHome? home;
 
   factory SpritesOther.fromJson(Map<String, dynamic> json) =>
       _$SpritesOtherFromJson(json);
@@ -46,14 +64,41 @@ class SpritesOther {
 }
 
 @JsonSerializable()
-class OfficialArtwork {
-  const OfficialArtwork({required this.frontDefault, required this.frontShiny});
+class SpritesHome {
+  const SpritesHome({
+    this.frontDefault,
+    this.frontFemale,
+    this.frontShiny,
+    this.frontShinyFemale,
+  });
 
   @JsonKey(name: 'front_default')
-  final String frontDefault;
+  final String? frontDefault;
+
+  @JsonKey(name: 'front_female')
+  final String? frontFemale;
 
   @JsonKey(name: 'front_shiny')
-  final String frontShiny;
+  final String? frontShiny;
+
+  @JsonKey(name: 'front_shiny_female')
+  final String? frontShinyFemale;
+
+  factory SpritesHome.fromJson(Map<String, dynamic> json) =>
+      _$SpritesHomeFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SpritesHomeToJson(this);
+}
+
+@JsonSerializable()
+class OfficialArtwork {
+  const OfficialArtwork({this.frontDefault, this.frontShiny});
+
+  @JsonKey(name: 'front_default')
+  final String? frontDefault;
+
+  @JsonKey(name: 'front_shiny')
+  final String? frontShiny;
 
   factory OfficialArtwork.fromJson(Map<String, dynamic> json) =>
       _$OfficialArtworkFromJson(json);

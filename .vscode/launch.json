@@ -2,17 +2,66 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "main - DEV",
+      "name": "Dev - Live API (Debug)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
+      "flutterMode": "debug",
       "args": [
         "--flavor",
-        "dev"
+        "dev",
+        "--dart-define=USE_MOCK=false"
       ]
     },
     {
-      "name": "main - PROFILE",
+      "name": "Dev - Mock (Debug)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "flutterMode": "debug",
+      "args": [
+        "--flavor",
+        "dev",
+        "--dart-define=USE_MOCK=true"
+      ]
+    },
+    {
+      "name": "Dev - Live API (Profile)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "flutterMode": "profile",
+      "args": [
+        "--flavor",
+        "dev",
+        "--dart-define=USE_MOCK=false"
+      ]
+    },
+    {
+      "name": "Dev - Mock (Profile)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "flutterMode": "profile",
+      "args": [
+        "--flavor",
+        "dev",
+        "--dart-define=USE_MOCK=true"
+      ]
+    },
+    {
+      "name": "Prod (Debug)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "flutterMode": "debug",
+      "args": [
+        "--flavor",
+        "prod"
+      ]
+    },
+    {
+      "name": "Prod (Profile)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
@@ -23,7 +72,7 @@
       ]
     },
     {
-      "name": "main - RELEASE",
+      "name": "Prod (Release)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",

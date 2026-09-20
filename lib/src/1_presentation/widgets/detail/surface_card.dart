@@ -13,21 +13,25 @@ class SurfaceCard extends StatelessWidget {
     this.alpha = 0.2,
     this.borderRadius = 16,
     this.margin,
+    this.color,
   });
 
   final Widget child;
   final double alpha;
   final double borderRadius;
   final EdgeInsetsGeometry? margin;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
       margin: margin,
-      color: Theme.of(
-        context,
-      ).colorScheme.surfaceContainerHighest.withValues(alpha: alpha),
+      color:
+          color ??
+          Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest.withValues(alpha: alpha),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(borderRadius),
       ),

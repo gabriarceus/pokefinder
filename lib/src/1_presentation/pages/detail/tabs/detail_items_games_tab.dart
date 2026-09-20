@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
+import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
+import 'package:pokefinder/src/2_application/bloc/detail_game_version_cubit/detail_game_version_cubit.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 
@@ -24,6 +27,13 @@ class DetailItemsGamesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String selectedVersion = DetailGameVersionState.allVersions;
+    try {
+      selectedVersion = context.select<DetailGameVersionCubit, String>(
+        (cubit) => cubit.state.selectedVersion,
+      );
+    } catch (_) {}
+
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 24),
       child: Column(
@@ -36,9 +46,14 @@ class DetailItemsGamesTab extends StatelessWidget {
             isLoadingEncounters: isLoadingEncounters,
             encountersFailure: encountersFailure,
             textColor: textColor,
+            selectedVersion: selectedVersion,
           ),
           const SizedBox(height: 20),
-          _HeldItemsSection(pokemon: pokemon, textColor: textColor),
+          _HeldItemsSection(
+            pokemon: pokemon,
+            textColor: textColor,
+            selectedVersion: selectedVersion,
+          ),
           const SizedBox(height: 20),
           _GameIndicesSection(pokemon: pokemon, textColor: textColor),
         ],
@@ -92,12 +107,14 @@ class _EncountersSection extends StatelessWidget {
     required this.isLoadingEncounters,
     required this.encountersFailure,
     required this.textColor,
+    required this.selectedVersion,
   });
 
   final List<PokemonEncounter>? encounters;
   final bool isLoadingEncounters;
   final PokemonFailure? encountersFailure;
   final Color textColor;
+  final String selectedVersion;
 
   @override
   Widget build(BuildContext context) {
@@ -129,17 +146,63 @@ class _EncountersSection extends StatelessWidget {
     }
 
     if (encountersFailure != null) {
-      return Text(
-        encountersFailure!.localizedMessage(context),
-        style: const TextStyle(color: Colors.red),
+      final t = context.t();
+      return SurfaceCard(
+        borderRadius: 12,
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Icon(
+                Icons.error_outline_rounded,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  encountersFailure!.localizedMessage(context),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton.icon(
+                onPressed: () {
+                  context.read<PokemonBloc>().add(
+                    RetryPokemonEncountersEvent(),
+                  );
+                },
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: Text(t.retryButton),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
-    if (encounters == null || encounters!.isEmpty) {
+    final displayedEncounters =
+        (selectedVersion == DetailGameVersionState.allVersions ||
+            encounters == null)
+        ? encounters
+        : encounters!
+              .where((e) => e.versions.contains(selectedVersion))
+              .toList();
+
+    if (displayedEncounters == null || displayedEncounters.isEmpty) {
+      final message =
+          selectedVersion != DetailGameVersionState.allVersions &&
+              (encounters?.isNotEmpty ?? false)
+          ? context.t().encountersUnavailableForVersion
+          : context.t().encountersEmpty;
+
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Text(
-          context.t().encountersEmpty,
+          message,
           style: TextStyle(
             color: textColor.withValues(alpha: 0.6),
             fontStyle: FontStyle.italic,
@@ -152,10 +215,10 @@ class _EncountersSection extends StatelessWidget {
       shrinkWrap: true,
       padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: encounters!.length,
+      itemCount: displayedEncounters.length,
       separatorBuilder: (_, _) => const SizedBox(height: 4),
       itemBuilder: (context, index) {
-        final encounter = encounters![index];
+        final encounter = displayedEncounters[index];
         return SurfaceCard(
           borderRadius: 12,
           margin: EdgeInsets.zero,
@@ -169,22 +232,21 @@ class _EncountersSection extends StatelessWidget {
               spacing: 4,
               runSpacing: 4,
               children: encounter.versions.map((version) {
+                final primary = Theme.of(context).colorScheme.primary;
                 return Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 6,
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).primaryColor.withValues(alpha: 0.1),
+                    color: primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     context.translateGameVersion(version).toUpperCase(),
                     style: TextStyle(
                       fontSize: 10,
-                      color: Theme.of(context).primaryColor,
+                      color: primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -199,13 +261,25 @@ class _EncountersSection extends StatelessWidget {
 }
 
 class _HeldItemsSection extends StatelessWidget {
-  const _HeldItemsSection({required this.pokemon, required this.textColor});
+  const _HeldItemsSection({
+    required this.pokemon,
+    required this.textColor,
+    required this.selectedVersion,
+  });
 
   final Pokemon pokemon;
   final Color textColor;
+  final String selectedVersion;
 
   @override
   Widget build(BuildContext context) {
+    final displayedHeldItems =
+        selectedVersion == DetailGameVersionState.allVersions
+        ? pokemon.heldItems
+        : pokemon.heldItems
+              .where((item) => item.version == selectedVersion)
+              .toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -218,11 +292,14 @@ class _HeldItemsSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        if (pokemon.heldItems.isEmpty)
+        if (displayedHeldItems.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Text(
-              context.t().heldItemsEmpty,
+              selectedVersion != DetailGameVersionState.allVersions &&
+                      pokemon.heldItems.isNotEmpty
+                  ? context.t().heldItemsUnavailableForVersion
+                  : context.t().heldItemsEmpty,
               style: TextStyle(
                 color: textColor.withValues(alpha: 0.6),
                 fontStyle: FontStyle.italic,
@@ -233,18 +310,15 @@ class _HeldItemsSection extends StatelessWidget {
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: pokemon.heldItems.length,
+            itemCount: displayedHeldItems.length,
             itemBuilder: (context, index) {
-              final item = pokemon.heldItems[index];
-              final capitalizedItem = item.name
-                  .replaceAll('-', ' ')
-                  .toUpperCase();
+              final item = displayedHeldItems[index];
               return SurfaceCard(
                 borderRadius: 12,
                 child: ListTile(
                   leading: const Icon(Icons.gif_box_outlined),
                   title: Text(
-                    capitalizedItem,
+                    context.translateItem(item.name),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Text(
@@ -254,7 +328,7 @@ class _HeldItemsSection extends StatelessWidget {
                     '${item.rarity}%',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ),

@@ -11,8 +11,31 @@ import 'package:yaml/yaml.dart' as yaml;
 ///
 /// Exits with a non-zero code as soon as a step fails.
 Future<void> main(List<String> args) async {
-  final version = await _version();
-  await _createAndPushGitTag(version, version);
+  try {
+    await _ensureCleanWorktree();
+    final version = await _version();
+    if (version.trim().isEmpty) {
+      _abort('version in pubspec.yaml cannot be empty');
+    }
+    await _createAndPushGitTag(version, version);
+  } catch (error) {
+    _abort('post-build release tagging failed: $error');
+  }
+}
+
+/// Verifies that the Git worktree is clean before tagging a release.
+Future<void> _ensureCleanWorktree() async {
+  final result = await Process.run('git', ['status', '--porcelain']);
+  if (result.exitCode != 0) {
+    _abort('unable to verify git status: ${result.stderr}');
+  }
+
+  final output = (result.stdout as String).trim();
+  if (output.isNotEmpty) {
+    _abort(
+      'worktree is dirty. Commit or stash changes before tagging a release.',
+    );
+  }
 }
 
 /// return the `pubspec.yaml`
@@ -26,7 +49,11 @@ Future<yaml.YamlMap> _readPubspec() async {
 
 Future<String> _version() async {
   final pubspec = await _readPubspec();
-  return pubspec['version'] as String;
+  final version = pubspec['version'];
+  if (version == null || version is! String) {
+    _abort('invalid or missing version in pubspec.yaml');
+  }
+  return version;
 }
 
 /// Creates the annotated tag [tagName] and pushes it to `origin`.
@@ -35,7 +62,13 @@ Future<void> _createAndPushGitTag(String tagName, String commitMessage) async {
     _abort('tag $tagName already exists, bump the version in pubspec.yaml');
   }
 
-  await _git(['tag', tagName, '-m', commitMessage], 'create tag $tagName');
+  await _git([
+    'tag',
+    '-a',
+    tagName,
+    '-m',
+    commitMessage,
+  ], 'create tag $tagName');
   await _git(['push', 'origin', tagName], 'push tag $tagName');
 
   print('Pushed tag $tagName');

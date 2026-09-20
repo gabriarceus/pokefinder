@@ -1,9 +1,32 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:network_image_mock/network_image_mock.dart';
+import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
+import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/detail/failure.dart';
+import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/matchups/matchup_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/teams/teams_list_page.dart';
+import 'package:pokefinder/src/1_presentation/router/app_router.dart';
+import 'package:pokefinder/src/1_presentation/widgets/home/pokeball_widget.dart';
 import 'package:pokefinder/src/1_presentation/widgets/home/poke_text_field.dart';
+import 'package:pokefinder/src/2_application/application.dart';
+import 'package:pokefinder/src/3_domain/domain.dart';
+
+class _MockPokemonRepository extends Mock implements IPokemonRepository {}
 
 void main() {
+  setUpAll(() async {
+    registerFallbackValue(PokemonName('pikachu'));
+    registerFallbackValue(CancellationToken());
+    ensureHydratedStorage();
+    await configureDependencies('mock');
+  });
+
   group('PokeTextField', () {
     late TextEditingController controller;
     late FocusNode focusNode;
@@ -20,7 +43,12 @@ void main() {
       focusNode.dispose();
     });
 
-    Future<void> pumpField(WidgetTester tester, List<String> allNames) {
+    Future<void> pumpField(
+      WidgetTester tester,
+      List<String> allNames, {
+      PokemonFailure? nameIndexFailure,
+      VoidCallback? onRetryIndex,
+    }) {
       return tester.pumpWidget(
         MaterialApp(
           locale: const Locale('en'),
@@ -30,8 +58,15 @@ void main() {
             body: PokeTextField(
               controller: controller,
               focusNode: focusNode,
-              allNames: allNames,
+              allEntries: allNames
+                  .map(
+                    (name) =>
+                        PokemonIndexEntry(id: 1, name: name, detailUrl: ''),
+                  )
+                  .toList(),
               onChanged: reportedInputs.add,
+              nameIndexFailure: nameIndexFailure,
+              onRetryIndex: onRetryIndex,
             ),
           ),
         ),
@@ -95,6 +130,482 @@ void main() {
 
       expect(controller.text, 'pidgey');
       expect(reportedInputs.last, 'pidgey');
+    });
+
+    testWidgets('suggestion items meet minimum 48x48 dp touch target', (
+      tester,
+    ) async {
+      await pumpField(tester, const ['pikachu', 'pidgey']);
+
+      await tester.enterText(find.byType(TextField), 'pi');
+      await tester.pumpAndSettle();
+
+      final suggestionFinder = find.widgetWithText(InkWell, 'pikachu');
+      expect(suggestionFinder, findsOneWidget);
+      final size = tester.getSize(suggestionFinder);
+      expect(size.height, greaterThanOrEqualTo(48.0));
+      expect(size.width, greaterThanOrEqualTo(48.0));
+    });
+
+    testWidgets(
+      'renders sync problem icon and triggers retry when index fails',
+      (tester) async {
+        var retried = false;
+        await pumpField(
+          tester,
+          const [],
+          nameIndexFailure: const NetworkUnavailableFailure(),
+          onRetryIndex: () => retried = true,
+        );
+
+        final iconFinder = find.byIcon(Icons.sync_problem_rounded);
+        expect(iconFinder, findsOneWidget);
+
+        await tester.tap(iconFinder);
+        await tester.pumpAndSettle();
+
+        expect(retried, isTrue);
+      },
+    );
+
+    testWidgets('suggests prefix matches when query has leading whitespace', (
+      tester,
+    ) async {
+      await pumpField(tester, const ['pikachu', 'pidgey', 'raichu']);
+
+      await tester.enterText(find.byType(TextField), '   pi');
+      await tester.pumpAndSettle();
+
+      expect(visibleSuggestions(), ['pikachu', 'pidgey']);
+    });
+
+    testWidgets('renders inline error text when errorText is provided', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: PokeTextField(
+              controller: controller,
+              focusNode: focusNode,
+              onChanged: reportedInputs.add,
+              errorText: 'Bad request. Please try again.',
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Bad request. Please try again.'), findsOneWidget);
+    });
+
+    testWidgets('triggers onSubmitted callback on keyboard submission', (
+      tester,
+    ) async {
+      String? submittedValue;
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: PokeTextField(
+              controller: controller,
+              focusNode: focusNode,
+              onChanged: reportedInputs.add,
+              onSubmitted: (val) => submittedValue = val,
+            ),
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField), 'pikachu');
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await tester.pumpAndSettle();
+
+      expect(submittedValue, 'pikachu');
+    });
+  });
+
+  group('HomePage', () {
+    setUp(() {
+      if (getIt.isRegistered<RecentHistoryCubit>()) {
+        getIt<RecentHistoryCubit>().clearRecentSearches();
+        getIt<RecentHistoryCubit>().clearRecentPokemon();
+      }
+    });
+
+    Future<void> pumpHomePage(
+      WidgetTester tester, {
+      Size? physicalSize,
+      double? textScaleFactor,
+    }) async {
+      if (physicalSize != null) {
+        tester.view.physicalSize = physicalSize;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+      }
+
+      await mockNetworkImagesFor(() async {
+        final router = createAppRouter(initialLocation: '/');
+        await tester.pumpWidget(
+          MultiBlocProvider(
+            providers: [
+              if (getIt.isRegistered<LanguageCubit>())
+                BlocProvider.value(value: getIt<LanguageCubit>()),
+              if (getIt.isRegistered<PreferencesCubit>())
+                BlocProvider.value(value: getIt<PreferencesCubit>()),
+              if (getIt.isRegistered<FavoritesCubit>())
+                BlocProvider.value(value: getIt<FavoritesCubit>()),
+              if (getIt.isRegistered<RecentHistoryCubit>())
+                BlocProvider.value(value: getIt<RecentHistoryCubit>()),
+              if (getIt.isRegistered<TeamsCubit>())
+                BlocProvider.value(value: getIt<TeamsCubit>()),
+            ],
+            child: MaterialApp.router(
+              routerConfig: router,
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              builder: (context, child) {
+                if (textScaleFactor != null) {
+                  return MediaQuery(
+                    data: MediaQuery.of(
+                      context,
+                    ).copyWith(textScaler: TextScaler.linear(textScaleFactor)),
+                    child: child!,
+                  );
+                }
+                return child!;
+              },
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+      });
+    }
+
+    testWidgets('search button is disabled when input is empty', (
+      tester,
+    ) async {
+      await pumpHomePage(tester);
+
+      final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+      expect(button.onPressed, isNull);
+    });
+
+    testWidgets('search button is enabled when input has non-whitespace text', (
+      tester,
+    ) async {
+      await pumpHomePage(tester);
+
+      await tester.enterText(find.byType(TextField), 'pikachu');
+      await tester.pumpAndSettle();
+
+      final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+      expect(button.onPressed, isNotNull);
+    });
+
+    testWidgets('keyboard search action submits and navigates to detail', (
+      tester,
+    ) async {
+      await mockNetworkImagesFor(() async {
+        await pumpHomePage(tester);
+
+        await tester.enterText(find.byType(TextField), 'pikachu');
+        await tester.testTextInput.receiveAction(TextInputAction.search);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(Detail), findsOneWidget);
+        final detail = tester.widget<Detail>(find.byType(Detail));
+        expect(detail.pokemonName, 'pikachu');
+      });
+    });
+
+    testWidgets('tapping search button submits and navigates to detail', (
+      tester,
+    ) async {
+      await mockNetworkImagesFor(() async {
+        await pumpHomePage(tester);
+
+        await tester.enterText(find.byType(TextField), 'bulbasaur');
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Search'), warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(Detail), findsOneWidget);
+        final detail = tester.widget<Detail>(find.byType(Detail));
+        expect(detail.pokemonName, 'bulbasaur');
+      });
+    });
+
+    testWidgets(
+      'search query that results in failure is not added to recent searches',
+      (tester) async {
+        final mockRepo = _MockPokemonRepository();
+        final originalRepo = getIt<IPokemonRepository>();
+        final originalUseCase = getIt<GetPokemonUseCase>();
+        getIt.unregister<IPokemonRepository>();
+        getIt.unregister<GetPokemonUseCase>();
+        getIt.registerSingleton<IPokemonRepository>(mockRepo);
+        getIt.registerSingleton<GetPokemonUseCase>(GetPokemonUseCase(mockRepo));
+        addTearDown(() {
+          getIt.unregister<IPokemonRepository>();
+          getIt.unregister<GetPokemonUseCase>();
+          getIt.registerSingleton<IPokemonRepository>(originalRepo);
+          getIt.registerSingleton<GetPokemonUseCase>(originalUseCase);
+        });
+
+        when(
+          () => mockRepo.getPokemonIndex(),
+        ).thenAnswer((_) async => const Right([]));
+        when(
+          () => mockRepo.getAllPokemonNames(),
+        ).thenAnswer((_) async => const Right([]));
+        when(
+          () => mockRepo.getPokemon(
+            any(),
+            cancelToken: any(named: 'cancelToken'),
+          ),
+        ).thenAnswer((_) async => Left(PokemonNotFoundFailure()));
+
+        await mockNetworkImagesFor(() async {
+          await pumpHomePage(tester);
+
+          await tester.enterText(find.byType(TextField), 'notapokemon');
+          await tester.pumpAndSettle();
+
+          await tester.tap(find.text('Search'), warnIfMissed: false);
+          await tester.pumpAndSettle();
+
+          expect(find.byType(Detail), findsOneWidget);
+          expect(find.byType(DetailFailure), findsOneWidget);
+
+          expect(getIt<RecentHistoryCubit>().state.recentSearches, isEmpty);
+        });
+      },
+    );
+
+    testWidgets('successful search query is added to recent searches', (
+      tester,
+    ) async {
+      await mockNetworkImagesFor(() async {
+        await pumpHomePage(tester);
+
+        await tester.enterText(find.byType(TextField), 'bulbasaur');
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Search'), warnIfMissed: false);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(Detail), findsOneWidget);
+        expect(
+          getIt<RecentHistoryCubit>().state.recentSearches,
+          contains('bulbasaur'),
+        );
+      });
+    });
+
+    testWidgets(
+      'shows autocomplete suggestions and navigates to detail on selection',
+      (tester) async {
+        await mockNetworkImagesFor(() async {
+          await pumpHomePage(tester);
+
+          await tester.enterText(find.byType(TextField), 'pi');
+          await tester.pumpAndSettle();
+
+          expect(find.text('pikachu'), findsOneWidget);
+          expect(
+            tester.getSize(find.widgetWithText(InkWell, 'pikachu')).height,
+            greaterThanOrEqualTo(48.0),
+          );
+
+          await tester.tap(find.text('pikachu'), warnIfMissed: false);
+          await tester.pumpAndSettle();
+
+          expect(find.byType(Detail), findsOneWidget);
+          final detail = tester.widget<Detail>(find.byType(Detail));
+          expect(detail.pokemonName, 'pikachu');
+        });
+      },
+    );
+
+    testWidgets(
+      'hardware keyboard navigation and enter submits selected suggestion without duplicate',
+      (tester) async {
+        await mockNetworkImagesFor(() async {
+          await pumpHomePage(tester);
+
+          await tester.enterText(find.byType(TextField), 'pi');
+          await tester.pumpAndSettle();
+
+          expect(find.text('pikachu'), findsOneWidget);
+
+          // Navigate down to highlight the first suggestion
+          await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+          await tester.pumpAndSettle();
+
+          // Submit the field via search action
+          await tester.testTextInput.receiveAction(TextInputAction.search);
+          await tester.pumpAndSettle();
+
+          expect(find.byType(Detail), findsOneWidget);
+          final detail = tester.widget<Detail>(find.byType(Detail));
+          expect(detail.pokemonName, 'pikachu');
+        });
+      },
+    );
+
+    testWidgets(
+      'returning from detail navigation does not force soft keyboard input',
+      (tester) async {
+        await mockNetworkImagesFor(() async {
+          await pumpHomePage(tester);
+
+          await tester.enterText(find.byType(TextField), 'pikachu');
+          await tester.testTextInput.receiveAction(TextInputAction.search);
+          await tester.pumpAndSettle();
+
+          expect(find.byType(Detail), findsOneWidget);
+
+          // Navigate back to HomePage
+          final backButton = find.byType(BackButton);
+          expect(backButton, findsOneWidget);
+          await tester.tap(backButton);
+          await tester.pumpAndSettle();
+
+          expect(find.byType(HomePage), findsOneWidget);
+          final editableText = tester.widget<EditableText>(
+            find.byType(EditableText),
+          );
+          expect(editableText.focusNode.hasFocus, isFalse);
+        });
+      },
+    );
+
+    testWidgets('renders inline error feedback on invalid input', (
+      tester,
+    ) async {
+      await pumpHomePage(tester);
+
+      await tester.enterText(find.byType(TextField), '???');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Search'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byType(PokeTextField),
+          matching: find.text('Bad request. Please try again.'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    final viewports = <String, Size>{
+      'compact phone (320x568)': const Size(320, 568),
+      'standard phone (390x844)': const Size(390, 844),
+      'landscape phone (844x390)': const Size(844, 390),
+      'tablet (768x1024)': const Size(768, 1024),
+    };
+
+    for (final entry in viewports.entries) {
+      testWidgets('renders without overflow on ${entry.key}', (tester) async {
+        await pumpHomePage(tester, physicalSize: entry.value);
+
+        expect(tester.takeException(), isNull);
+        expect(find.byType(PokeTextField), findsOneWidget);
+        expect(find.byType(ElevatedButton), findsOneWidget);
+        expect(find.byType(PokeBallWidget), findsOneWidget);
+      });
+    }
+
+    testWidgets('renders without overflow at 2.0 text scale factor', (
+      tester,
+    ) async {
+      await pumpHomePage(
+        tester,
+        physicalSize: const Size(390, 844),
+        textScaleFactor: 2.0,
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(PokeTextField), findsOneWidget);
+      expect(find.byType(ElevatedButton), findsOneWidget);
+    });
+
+    testWidgets('decorative PokeBall is excluded from semantics', (
+      tester,
+    ) async {
+      await pumpHomePage(tester);
+
+      expect(
+        find.descendant(
+          of: find.byType(ExcludeSemantics),
+          matching: find.byType(PokeBallWidget),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('app bar menu button has localized settings tooltip', (
+      tester,
+    ) async {
+      await pumpHomePage(tester);
+
+      final iconButton = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.menu),
+      );
+      expect(iconButton.tooltip, 'Settings');
+    });
+
+    testWidgets('search button meets minimum 48x48 dp touch target', (
+      tester,
+    ) async {
+      await pumpHomePage(tester);
+
+      final size = tester.getSize(find.byType(ElevatedButton));
+      expect(size.height, greaterThanOrEqualTo(48.0));
+      expect(size.width, greaterThanOrEqualTo(48.0));
+    });
+
+    testWidgets('drawer type matchups tile navigates to /matchups', (
+      tester,
+    ) async {
+      await pumpHomePage(tester);
+
+      await tester.tap(find.widgetWithIcon(IconButton, Icons.menu));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Type matchups'), findsOneWidget);
+
+      await tester.tap(find.text('Type matchups'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MatchupPage), findsOneWidget);
+    });
+
+    testWidgets('drawer teams tile navigates to /teams', (tester) async {
+      await pumpHomePage(tester);
+
+      await tester.tap(find.widgetWithIcon(IconButton, Icons.menu));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Teams'), findsOneWidget);
+
+      await tester.tap(find.text('Teams'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TeamsListPage), findsOneWidget);
     });
   });
 }

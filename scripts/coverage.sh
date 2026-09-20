@@ -16,7 +16,7 @@ total=$(awk -F: '
 echo "Total line coverage: ${total}%"
 
 threshold="${1:-}"
-if [[ -n "$threshold" ]] && (( $(echo "$total < $threshold" | bc -l) )); then
+if [[ -n "$threshold" ]] && awk -v t="$total" -v th="$threshold" 'BEGIN { exit (t < th) ? 0 : 1 }'; then
   echo "Coverage ${total}% is below the required ${threshold}%" >&2
   exit 1
 fi
