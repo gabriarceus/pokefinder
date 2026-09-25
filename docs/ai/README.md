@@ -17,6 +17,16 @@ generated files — the script overwrites them.
   `GEMINI.md`.
 - This `README.md` — documentation only, synced nowhere.
 
+## Current skills
+
+| Skill | Covers |
+|---|---|
+| `flutter-project-conventions` | Where code goes, blocs and DI, PokeAPI data flow, failures, UI, l10n, tests |
+| `verifying-ui-on-device` | Running the app on the emulator, adb, screenshots, visual checklist |
+
+`context.md` lists them too, so every provider knows when to load each one. Keep both lists in
+sync when you add or rename a skill.
+
 ## Adding a project skill
 
 1. Create `skills/<name>.md` (lowercase hyphen-separated name), e.g.
