@@ -81,26 +81,35 @@ void main() {
       );
     });
 
-    test('maps cancel', () async {
-      when(() => dio.get<dynamic>(any())).thenThrow(
-        DioException(
-          requestOptions: requestOptions,
-          type: DioExceptionType.cancel,
-          message: 'request cancelled',
-        ),
-      );
-
-      expect(
-        () => client.get('/pokemon/test'),
-        throwsA(
-          isA<ApiException>().having(
-            (e) => e.isCancelled,
-            'isCancelled',
-            isTrue,
+    test(
+      'maps cancel to a plain ApiException without transport flags',
+      () async {
+        when(() => dio.get<dynamic>(any())).thenThrow(
+          DioException(
+            requestOptions: requestOptions,
+            type: DioExceptionType.cancel,
+            message: 'request cancelled',
           ),
-        ),
-      );
-    });
+        );
+
+        // Cancellation is no longer tracked: the request surfaces as a generic
+        // ApiException with a sanitized message and no status code.
+        expect(
+          () => client.get('/pokemon/test'),
+          throwsA(
+            isA<ApiException>()
+                .having((e) => e.statusCode, 'statusCode', isNull)
+                .having((e) => e.message, 'message', 'Network request failed')
+                .having((e) => e.isTimeout, 'isTimeout', isFalse)
+                .having(
+                  (e) => e.isConnectionError,
+                  'isConnectionError',
+                  isFalse,
+                ),
+          ),
+        );
+      },
+    );
 
     test('maps status code and safely truncates response body', () async {
       final longBody = 'A' * 500;

@@ -84,11 +84,6 @@ final class PokedexClearFiltersEvent extends PokedexEvent {
   const PokedexClearFiltersEvent();
 }
 
-/// Loads the next page of filtered Pokémon entries.
-final class PokedexLoadMoreEvent extends PokedexEvent {
-  const PokedexLoadMoreEvent();
-}
-
 /// Selects a random Pokémon from the current catalog for navigation.
 final class PokedexSelectRandomPokemonEvent extends PokedexEvent {
   const PokedexSelectRandomPokemonEvent();

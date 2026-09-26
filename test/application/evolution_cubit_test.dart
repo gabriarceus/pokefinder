@@ -24,14 +24,12 @@ const _sampleChain = EvolutionChain(
 void main() {
   late _MockPokemonRepository repository;
   late _MockEnLogger logger;
-  late GetEvolutionChainUseCase useCase;
   late EvolutionCubit cubit;
 
   setUp(() {
     repository = _MockPokemonRepository();
     logger = _MockEnLogger();
-    useCase = GetEvolutionChainUseCase(repository);
-    cubit = EvolutionCubit(useCase, logger);
+    cubit = EvolutionCubit(repository, logger);
   });
 
   tearDown(() async {
@@ -46,7 +44,6 @@ void main() {
     when(
       () => repository.getEvolutionChain(
         'https://pokeapi.co/api/v2/evolution-chain/1/',
-        cancelToken: any(named: 'cancelToken'),
       ),
     ).thenAnswer((_) async => right(_sampleChain));
 
@@ -67,10 +64,7 @@ void main() {
 
   test('emits EvolutionLoading then EvolutionError on failure', () async {
     when(
-      () => repository.getEvolutionChain(
-        any(),
-        cancelToken: any(named: 'cancelToken'),
-      ),
+      () => repository.getEvolutionChain(any()),
     ).thenAnswer((_) async => left(const UnexpectedFailure('evolution error')));
 
     final emitted = <EvolutionState>[];

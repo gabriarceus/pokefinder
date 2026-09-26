@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:injectable/injectable.dart' hide test;
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
@@ -13,13 +14,40 @@ import 'package:pokefinder/src/1_presentation/pages/settings/settings_page.dart'
 import 'package:pokefinder/src/1_presentation/pages/teams/team_detail_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/teams/teams_list_page.dart';
 import 'package:pokefinder/src/1_presentation/router/app_router.dart';
+import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:pokefinder/src/2_application/application.dart';
+import 'package:pokefinder/src/3_domain/domain.dart';
+import 'package:pokefinder/src/4_repository/repositories/mock_pokemon_repository.dart';
 
 void main() {
   setUpAll(() async {
     ensureHydratedStorage();
-    await configureDependencies('mock');
+    await configureDependencies(Environment.dev);
+    // O11: the repository is injected directly instead of relying on a
+    // flavor-provided mock, so the graph never reaches the network.
+    getIt.unregister<IPokemonRepository>();
+    getIt.registerSingleton<IPokemonRepository>(MockPokemonRepository());
   });
+
+  /// Lets the mocked image requests complete, then drives frames until the
+  /// tree is quiet.
+  ///
+  /// `pumpAndSettle` cannot be used on the detail screen: it keeps an
+  /// indeterminate `CircularProgressIndicator` mounted, so a frame is always
+  /// scheduled and `pumpAndSettle` never returns. This pumps a bounded
+  /// number of frames instead.
+  Future<void> settle(WidgetTester tester) async {
+    for (var i = 0; i < 3; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
+      await tester.pump();
+    }
+    for (var i = 0; i < 40; i++) {
+      if (!tester.binding.hasScheduledFrame) break;
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+  }
 
   Widget createRouterApp(
     String initialLocation, {
@@ -52,7 +80,7 @@ void main() {
 
   group('AppRouter canonical routes', () {
     testWidgets('navigating to / loads HomePage', (tester) async {
-      await tester.pumpWidget(createRouterApp('/'));
+      await tester.pumpWidget(createRouterApp(AppRoutes.home));
       await tester.pumpAndSettle();
 
       expect(find.byType(HomePage), findsOneWidget);
@@ -62,11 +90,13 @@ void main() {
       tester,
     ) async {
       await mockNetworkImagesFor(() async {
-        await tester.pumpWidget(createRouterApp('/pokemon/pikachu'));
-        await tester.pumpAndSettle();
+        await tester.pumpWidget(createRouterApp(AppRoutes.pokemon('pikachu')));
+        await settle(tester);
 
-        expect(find.byType(Detail), findsOneWidget);
-        final detailWidget = tester.widget<Detail>(find.byType(Detail));
+        expect(find.byType(PokemonDetailPage), findsOneWidget);
+        final detailWidget = tester.widget<PokemonDetailPage>(
+          find.byType(PokemonDetailPage),
+        );
         expect(detailWidget.pokemonName, equals('pikachu'));
       });
     });
@@ -75,11 +105,13 @@ void main() {
       'navigating to /pokemon/25 resolves to Detail with numeric ID',
       (tester) async {
         await mockNetworkImagesFor(() async {
-          await tester.pumpWidget(createRouterApp('/pokemon/25'));
-          await tester.pumpAndSettle();
+          await tester.pumpWidget(createRouterApp(AppRoutes.pokemon('25')));
+          await settle(tester);
 
-          expect(find.byType(Detail), findsOneWidget);
-          final detailWidget = tester.widget<Detail>(find.byType(Detail));
+          expect(find.byType(PokemonDetailPage), findsOneWidget);
+          final detailWidget = tester.widget<PokemonDetailPage>(
+            find.byType(PokemonDetailPage),
+          );
           expect(detailWidget.pokemonName, equals('25'));
         });
       },
@@ -92,7 +124,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byType(RouteErrorPage), findsOneWidget);
-        expect(find.byType(Detail), findsNothing);
+        expect(find.byType(PokemonDetailPage), findsNothing);
       },
     );
 
@@ -103,7 +135,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.byType(RouteErrorPage), findsOneWidget);
-        expect(find.byType(Detail), findsNothing);
+        expect(find.byType(PokemonDetailPage), findsNothing);
       },
     );
 
@@ -152,10 +184,10 @@ void main() {
     );
 
     testWidgets(
-      'returning from detail to home preserves search text and state',
+      'returning from detail to home preserves search text and drops focus',
       (tester) async {
         await mockNetworkImagesFor(() async {
-          await tester.pumpWidget(createRouterApp('/'));
+          await tester.pumpWidget(createRouterApp(AppRoutes.home));
           await tester.pumpAndSettle();
 
           // Type search query and maintain focus
@@ -165,9 +197,9 @@ void main() {
 
           // Submit search
           await tester.tap(find.text('Search'), warnIfMissed: false);
-          await tester.pumpAndSettle();
+          await settle(tester);
 
-          expect(find.byType(Detail), findsOneWidget);
+          expect(find.byType(PokemonDetailPage), findsOneWidget);
 
           // Pop back to home via AppBar back button
           await tester.tap(find.byType(BackButton), warnIfMissed: false);
@@ -176,15 +208,17 @@ void main() {
           expect(find.byType(HomePage), findsOneWidget);
           final textField = tester.widget<TextField>(find.byType(TextField));
           expect(textField.controller?.text, equals('pikachu'));
-          expect(textField.focusNode?.hasFocus, isTrue);
+          // O8: the home page unfocuses before pushing the detail route, so
+          // coming back must not raise the soft keyboard again.
+          expect(textField.focusNode?.hasFocus, isFalse);
         });
       },
     );
 
     testWidgets('navigating to /favorites loads FavoritesPage', (tester) async {
       await mockNetworkImagesFor(() async {
-        await tester.pumpWidget(createRouterApp('/favorites'));
-        await tester.pumpAndSettle();
+        await tester.pumpWidget(createRouterApp(AppRoutes.favorites));
+        await settle(tester);
 
         expect(find.byType(FavoritesPage), findsOneWidget);
       });
@@ -194,8 +228,8 @@ void main() {
       tester,
     ) async {
       await mockNetworkImagesFor(() async {
-        await tester.pumpWidget(createRouterApp('/pokedex'));
-        await tester.pumpAndSettle();
+        await tester.pumpWidget(createRouterApp(AppRoutes.pokedex));
+        await settle(tester);
 
         expect(find.byType(PokedexBrowsePage), findsOneWidget);
       });
@@ -204,8 +238,8 @@ void main() {
     testWidgets('navigating to /compare loads ComparisonPage', (tester) async {
       await mockNetworkImagesFor(() async {
         getIt<ComparisonCubit>().clear();
-        await tester.pumpWidget(createRouterApp('/compare'));
-        await tester.pumpAndSettle();
+        await tester.pumpWidget(createRouterApp(AppRoutes.compare));
+        await settle(tester);
 
         expect(find.byType(ComparisonPage), findsOneWidget);
       });
@@ -213,8 +247,8 @@ void main() {
 
     testWidgets('navigating to /settings loads SettingsPage', (tester) async {
       await mockNetworkImagesFor(() async {
-        await tester.pumpWidget(createRouterApp('/settings'));
-        await tester.pumpAndSettle();
+        await tester.pumpWidget(createRouterApp(AppRoutes.settings));
+        await settle(tester);
 
         expect(find.byType(SettingsPage), findsOneWidget);
       });
@@ -222,8 +256,8 @@ void main() {
 
     testWidgets('navigating to /teams loads TeamsListPage', (tester) async {
       await mockNetworkImagesFor(() async {
-        await tester.pumpWidget(createRouterApp('/teams'));
-        await tester.pumpAndSettle();
+        await tester.pumpWidget(createRouterApp(AppRoutes.teams));
+        await settle(tester);
 
         expect(find.byType(TeamsListPage), findsOneWidget);
       });
@@ -234,8 +268,8 @@ void main() {
     ) async {
       await mockNetworkImagesFor(() async {
         final teamId = getIt<TeamsCubit>().createTeam('Router Team');
-        await tester.pumpWidget(createRouterApp('/teams/$teamId'));
-        await tester.pumpAndSettle();
+        await tester.pumpWidget(createRouterApp(AppRoutes.team(teamId)));
+        await settle(tester);
 
         expect(find.byType(TeamDetailPage), findsOneWidget);
         expect(find.text('Router Team'), findsOneWidget);

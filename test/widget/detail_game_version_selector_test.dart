@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:injectable/injectable.dart' hide test;
 import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_game_version_selector.dart';
@@ -9,7 +10,7 @@ import '../fixtures/pokemon_fixture.dart';
 
 void main() {
   setUpAll(() async {
-    await configureDependencies('mock');
+    await configureDependencies(Environment.dev);
   });
 
   Widget createTestWidget({
@@ -94,5 +95,33 @@ void main() {
         expect(find.text('Red'), findsOneWidget);
       },
     );
+
+    testWidgets('encounter versions are included in the available list', (
+      tester,
+    ) async {
+      final cubit = DetailGameVersionCubit();
+      final samplePokemon = buildPokemon(moves: const []);
+
+      cubit.initialize(
+        samplePokemon,
+        encounters: const [
+          PokemonEncounter(
+            rawLocationAreaName: 'viridian-forest',
+            versions: ['red', 'blue'],
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(createTestWidget(cubit: cubit));
+      await tester.pumpAndSettle();
+
+      expect(cubit.state.availableVersions, ['red', 'blue']);
+
+      await tester.tap(find.text('All Versions'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Red').last, findsOneWidget);
+      expect(find.text('Blue').last, findsOneWidget);
+    });
   });
 }

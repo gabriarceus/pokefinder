@@ -15,7 +15,6 @@ extension PokemonFailureLocalization on PokemonFailure {
       StorageFailure() => t.errorStorage,
       UnauthorizedFailure() => t.errorUnauthorized,
       BadRequestFailure() => t.errorBadRequest,
-      RequestCancelledFailure() => '',
       UnexpectedFailure() => t.errorUnexpected,
     };
   }

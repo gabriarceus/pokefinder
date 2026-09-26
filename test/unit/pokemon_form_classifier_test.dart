@@ -59,6 +59,14 @@ void main() {
         PokemonFormCategory.cosmetic,
       );
       expect(
+        PokemonFormClassifier.classifyCategory('pikachu-alola-cap', id: 10099),
+        PokemonFormCategory.cosmetic,
+      );
+      expect(
+        PokemonFormClassifier.resolveRegionalGroup('pikachu-alola-cap'),
+        isNull,
+      );
+      expect(
         PokemonFormClassifier.classifyCategory('bulbasaur', id: 1),
         PokemonFormCategory.canonical,
       );

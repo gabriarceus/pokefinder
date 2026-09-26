@@ -1,17 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/src/1_presentation/widgets/section_title.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/extensions/form_name_formatter.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
-import 'package:pokefinder/src/1_presentation/widgets/detail/contrasting_text_color.dart';
-import 'package:pokefinder/src/1_presentation/widgets/detail/type_color_scheme.dart';
+import 'package:pokefinder/src/1_presentation/widgets/detail/type_chip.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
+
+/// Height of a form card that does not depend on the text scale: the 56 dp
+/// sprite box, the card's own vertical padding and border, and the three
+/// 4-6 dp gaps between the sprite, the name, the type badges and the
+/// "current form" badge.
+const double _kCardFixedHeight = 90;
+
+/// Height of the text-dependent part of a form card at a 1.0 text scale: a
+/// two-line name, up to two lines of type badges, and the "current form" badge.
+const double _kCardScaledHeight = 90;
+
+/// Largest text scale the card grows for. Beyond this the strip would eat the
+/// screen, and a truncated card is better than a scrollable one.
+const double _kMaxCardTextScale = 2.0;
 
 /// Widget displaying a horizontal gallery of alternate forms for a Pokémon.
 ///
 /// Renders nothing when the Pokémon has at most one form. Tapping any form card
-/// dispatches [SelectPokemonFormEvent] to the active [PokemonBloc].
+/// dispatches [SelectPokemonFormEvent] to the active [PokemonDetailBloc].
 class AlternateFormsWidget extends StatelessWidget {
   const AlternateFormsWidget({
     super.key,
@@ -37,17 +50,17 @@ class AlternateFormsWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          context.t().alternateForms,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: textColor,
-          ),
-        ),
-        const SizedBox(height: 8),
+        SectionTitle(context.t().alternateForms),
         SizedBox(
-          height: 168,
+          // The card holds a sprite plus three pieces of text, so a fixed
+          // height overflows at large text scales. Grow it with the scale
+          // instead of clipping the name or the badges.
+          height:
+              _kCardFixedHeight +
+              _kCardScaledHeight *
+                  MediaQuery.textScalerOf(
+                    context,
+                  ).scale(1).clamp(1.0, _kMaxCardTextScale),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
@@ -66,7 +79,7 @@ class AlternateFormsWidget extends StatelessWidget {
                 isBasePokemon:
                     form.name.toLowerCase() == pokemon.name.toLowerCase(),
                 baseArtworkUrl:
-                    pokemon.officialArtworkDefault ?? pokemon.sprite,
+                    pokemon.sprites.artworkDefault ?? pokemon.sprite,
                 typeColor: typeColor,
                 textColor: textColor,
               );
@@ -122,7 +135,7 @@ class _AlternateFormCard extends StatelessWidget {
       child: InkWell(
         onTap: () {
           if (!isSelected) {
-            final bloc = context.read<PokemonBloc>();
+            final bloc = context.read<PokemonDetailBloc>();
             final state = bloc.state;
             if (state is PokemonBlocSuccess && !state.isLoadingForm) {
               bloc.add(SelectPokemonFormEvent(form));
@@ -187,8 +200,7 @@ class _AlternateFormCard extends StatelessWidget {
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 11,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                   color: isSelected ? typeColor : textColor,
                   height: 1.2,
@@ -201,8 +213,9 @@ class _AlternateFormCard extends StatelessWidget {
                   spacing: 4,
                   runSpacing: 2,
                   children: [
-                    _FormTypeChip(type: form.type1!),
-                    if (form.type2 != null) _FormTypeChip(type: form.type2!),
+                    TypeChip(type: form.type1!, compact: true),
+                    if (form.type2 != null)
+                      TypeChip(type: form.type2!, compact: true),
                   ],
                 ),
               ],
@@ -221,8 +234,7 @@ class _AlternateFormCard extends StatelessWidget {
                     context.t().currentForm,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 9,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: typeColor,
                     ),
@@ -231,35 +243,6 @@ class _AlternateFormCard extends StatelessWidget {
               ],
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FormTypeChip extends StatelessWidget {
-  const _FormTypeChip({required this.type});
-
-  final PokemonType type;
-
-  @override
-  Widget build(BuildContext context) {
-    final typeName = context.translateType(type.apiName);
-    final color = TypeColorScheme.getColorFromType(type);
-    final textColor = contrastingTextColor(color);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        typeName,
-        style: TextStyle(
-          color: textColor,
-          fontSize: 8.5,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );

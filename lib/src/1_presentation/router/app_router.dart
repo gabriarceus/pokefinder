@@ -23,7 +23,6 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
     routes: <RouteBase>[
       GoRoute(
         path: '/',
-        name: 'home',
         builder: (BuildContext context, GoRouterState state) {
           final query = state.uri.queryParameters['query'] ?? '';
           return HomePageProvider(userInput: query, child: const HomePage());
@@ -31,7 +30,6 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
         routes: <RouteBase>[
           GoRoute(
             path: 'pokemon/:nameOrId',
-            name: 'pokemon_detail',
             builder: (BuildContext context, GoRouterState state) {
               final rawParam = state.pathParameters['nameOrId'];
               final validated = parsePokemonRouteParam(rawParam);
@@ -41,7 +39,10 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
               final searchQuery = state.uri.queryParameters['search'];
               return PokemonBlocProvider(
                 pokemonName: validated,
-                child: Detail(pokemonName: validated, searchQuery: searchQuery),
+                child: PokemonDetailPage(
+                  pokemonName: validated,
+                  searchQuery: searchQuery,
+                ),
               );
             },
           ),
@@ -49,21 +50,18 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
       ),
       GoRoute(
         path: '/pokedex',
-        name: 'pokedex_browse',
         builder: (BuildContext context, GoRouterState state) {
           return const PokedexBrowsePageProvider(child: PokedexBrowsePage());
         },
       ),
       GoRoute(
         path: '/compare',
-        name: 'comparison',
         builder: (BuildContext context, GoRouterState state) {
           return const ComparisonPage();
         },
       ),
       GoRoute(
         path: '/matchups',
-        name: 'matchups',
         builder: (BuildContext context, GoRouterState state) {
           final initial = parseMatchupTypesParam(
             state.uri.queryParameters['types'],
@@ -73,21 +71,18 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
       ),
       GoRoute(
         path: '/favorites',
-        name: 'favorites',
         builder: (BuildContext context, GoRouterState state) {
           return const FavoritesPage();
         },
       ),
       GoRoute(
         path: '/teams',
-        name: 'teams',
         builder: (BuildContext context, GoRouterState state) {
           return const TeamsListPage();
         },
         routes: <RouteBase>[
           GoRoute(
             path: ':teamId',
-            name: 'team_detail',
             builder: (BuildContext context, GoRouterState state) {
               final teamId = state.pathParameters['teamId'] ?? '';
               if (teamId.isEmpty) {
@@ -100,14 +95,12 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
       ),
       GoRoute(
         path: '/settings',
-        name: 'settings',
         builder: (BuildContext context, GoRouterState state) {
           return const SettingsPage();
         },
         routes: <RouteBase>[
           GoRoute(
             path: 'about',
-            name: 'about',
             builder: (BuildContext context, GoRouterState state) {
               return const AboutPage();
             },

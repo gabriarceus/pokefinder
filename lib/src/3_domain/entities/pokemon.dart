@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_sprites.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 
 /// Domain model for a Pokemon
@@ -9,35 +10,19 @@ class Pokemon extends Equatable {
     required this.sprite,
     required this.weight,
     required this.height,
-    required this.typeImage1,
-    required this.typeImage2,
     required this.type1,
     required this.type2,
     required this.cry,
     required this.stats,
     required this.baseExperience,
     required this.isDefault,
-    required this.order,
     required this.locationAreaEncounters,
     required this.cryLegacy,
     required this.forms,
     required this.gameIndices,
     required this.speciesName,
     required this.speciesUrl,
-    required this.spriteBackDefault,
-    required this.spriteFrontDefault,
-    required this.spriteFrontShiny,
-    required this.spriteBackShiny,
-    required this.spriteFrontFemale,
-    required this.spriteBackFemale,
-    required this.spriteFrontShinyFemale,
-    required this.spriteBackShinyFemale,
-    required this.officialArtworkDefault,
-    required this.officialArtworkShiny,
-    required this.homeDefault,
-    required this.homeFemale,
-    required this.homeShiny,
-    required this.homeShinyFemale,
+    required this.sprites,
     required this.abilities,
     required this.heldItems,
     required this.moves,
@@ -46,8 +31,6 @@ class Pokemon extends Equatable {
 
   final int id;
   final String name;
-  final String typeImage1;
-  final String typeImage2;
   final PokemonType? type1;
   final PokemonType? type2;
   final String sprite;
@@ -67,27 +50,13 @@ class Pokemon extends Equatable {
 
   final int? baseExperience;
   final bool isDefault;
-  final int order;
   final String locationAreaEncounters;
   final String? cryLegacy;
   final List<PokemonForm> forms;
   final List<String> gameIndices;
   final String speciesName;
   final String speciesUrl;
-  final String? spriteBackDefault;
-  final String? spriteFrontDefault;
-  final String? spriteFrontShiny;
-  final String? spriteBackShiny;
-  final String? spriteFrontFemale;
-  final String? spriteBackFemale;
-  final String? spriteFrontShinyFemale;
-  final String? spriteBackShinyFemale;
-  final String? officialArtworkDefault;
-  final String? officialArtworkShiny;
-  final String? homeDefault;
-  final String? homeFemale;
-  final String? homeShiny;
-  final String? homeShinyFemale;
+  final PokemonSprites sprites;
   final List<PokemonAbility> abilities;
   final List<PokemonHeldItem> heldItems;
   final List<PokemonMove> moves;
@@ -100,35 +69,19 @@ class Pokemon extends Equatable {
     sprite,
     weight,
     height,
-    typeImage1,
-    typeImage2,
     type1,
     type2,
     cry,
     stats,
     baseExperience,
     isDefault,
-    order,
     locationAreaEncounters,
     cryLegacy,
     forms,
     gameIndices,
     speciesName,
     speciesUrl,
-    spriteBackDefault,
-    spriteFrontDefault,
-    spriteFrontShiny,
-    spriteBackShiny,
-    spriteFrontFemale,
-    spriteBackFemale,
-    spriteFrontShinyFemale,
-    spriteBackShinyFemale,
-    officialArtworkDefault,
-    officialArtworkShiny,
-    homeDefault,
-    homeFemale,
-    homeShiny,
-    homeShinyFemale,
+    sprites,
     abilities,
     heldItems,
     moves,
@@ -137,18 +90,13 @@ class Pokemon extends Equatable {
 }
 
 class PokemonAbility extends Equatable {
-  const PokemonAbility({
-    required this.name,
-    required this.isHidden,
-    required this.slot,
-  });
+  const PokemonAbility({required this.name, required this.isHidden});
 
   final String name;
   final bool isHidden;
-  final int slot;
 
   @override
-  List<Object?> get props => [name, isHidden, slot];
+  List<Object?> get props => [name, isHidden];
 }
 
 class PokemonHeldItem extends Equatable {
@@ -205,8 +153,6 @@ class PokemonFormDetails extends Equatable {
     required this.name,
     required this.type1,
     this.type2,
-    required this.typeImage1,
-    required this.typeImage2,
     required this.spriteDefault,
     required this.spriteShiny,
     required this.artworkDefault,
@@ -219,22 +165,18 @@ class PokemonFormDetails extends Equatable {
     name: pokemon.name,
     type1: pokemon.type1,
     type2: pokemon.type2,
-    typeImage1: pokemon.typeImage1,
-    typeImage2: pokemon.typeImage2,
     spriteDefault: pokemon.sprite,
-    spriteShiny: pokemon.spriteFrontShiny ?? pokemon.sprite,
-    artworkDefault: pokemon.officialArtworkDefault ?? pokemon.sprite,
+    spriteShiny: pokemon.sprites.frontShiny ?? pokemon.sprite,
+    artworkDefault: pokemon.sprites.artworkDefault ?? pokemon.sprite,
     artworkShiny:
-        pokemon.officialArtworkShiny ??
-        pokemon.spriteFrontShiny ??
+        pokemon.sprites.artworkShiny ??
+        pokemon.sprites.frontShiny ??
         pokemon.sprite,
   );
 
   final String name;
   final PokemonType? type1;
   final PokemonType? type2;
-  final String typeImage1;
-  final String typeImage2;
   final String spriteDefault;
   final String spriteShiny;
   final String artworkDefault;
@@ -245,8 +187,6 @@ class PokemonFormDetails extends Equatable {
     name,
     type1,
     type2,
-    typeImage1,
-    typeImage2,
     spriteDefault,
     spriteShiny,
     artworkDefault,
@@ -256,15 +196,13 @@ class PokemonFormDetails extends Equatable {
 
 class PokemonEncounter extends Equatable {
   const PokemonEncounter({
-    required this.locationAreaName,
     required this.rawLocationAreaName,
     required this.versions,
   });
 
-  final String locationAreaName;
   final String rawLocationAreaName;
   final List<String> versions;
 
   @override
-  List<Object?> get props => [locationAreaName, rawLocationAreaName, versions];
+  List<Object?> get props => [rawLocationAreaName, versions];
 }

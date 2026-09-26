@@ -9,6 +9,8 @@ class GameVersionMappings {
     'crystal': ['crystal'],
     'ruby-sapphire': ['ruby', 'sapphire'],
     'emerald': ['emerald'],
+    'colosseum': ['colosseum'],
+    'xd': ['xd'],
     'firered-leafgreen': ['firered', 'leafgreen'],
     'diamond-pearl': ['diamond', 'pearl'],
     'platinum': ['platinum'],
@@ -32,8 +34,6 @@ class GameVersionMappings {
     ],
     'legends-arceus': ['legends-arceus'],
     'scarlet-violet': ['scarlet', 'violet', 'the-teal-mask', 'the-indigo-disk'],
-    'colosseum': ['colosseum'],
-    'xd': ['xd'],
   };
 
   static final Map<String, String> _versionToGroup = () {
@@ -64,6 +64,20 @@ class GameVersionMappings {
       if (indexB != -1) return 1;
       return a.toLowerCase().compareTo(b.toLowerCase());
     });
+  }
+
+  /// Returns the most recent group in [versionGroups] by release order, or
+  /// null when none is known.
+  static String? latestVersionGroup(Iterable<String> versionGroups) {
+    final ordered = _groupToVersions.keys.toList();
+    String? latest;
+    for (final group in versionGroups) {
+      final index = ordered.indexOf(group.toLowerCase());
+      if (index != -1 && (latest == null || index > ordered.indexOf(latest))) {
+        latest = group;
+      }
+    }
+    return latest;
   }
 
   /// Resolves the version group for a specific [version].

@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
-import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_summary.dart';
 
 /// Maximum number of members held by a single local team.
 const kTeamMaxMembers = 6;
@@ -10,69 +9,20 @@ const kTeamMaxNameLength = 40;
 
 /// Lightweight bookmark for a team member.
 ///
-/// Stores index refs only (`id`, `name`, sprite, types, timestamp) — never
-/// full API payloads. Forms are distinct members when their canonical slugs
-/// differ (e.g. `charizard` vs `charizard-mega-x`).
+/// Stores index refs only, never full API payloads. Forms are distinct
+/// members when their canonical slugs differ (e.g. `charizard` vs
+/// `charizard-mega-x`).
 class TeamMember extends Equatable {
-  const TeamMember({
-    required this.id,
-    required this.name,
-    required this.spriteUrl,
-    this.types = const [],
-    required this.addedAt,
-  });
-
-  /// Pokédex identifier (forms use IDs above 1025).
-  final int id;
-
-  /// Canonical lowercase name slug (e.g. `pikachu`, `charizard-mega-x`).
-  final String name;
-
-  /// URL of the default sprite image.
-  final String spriteUrl;
-
-  /// Known elemental types at the time the member was added.
-  final List<PokemonType> types;
-
-  /// Timestamp when the member joined the team.
-  final DateTime addedAt;
-
-  /// Normalized identity key: distinct slugs are distinct members.
-  String get memberKey => name.trim().toLowerCase();
-
-  /// Serializes this member to a lightweight JSON map.
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'spriteUrl': spriteUrl,
-    'types': types.map((t) => t.apiName).toList(),
-    'addedAt': addedAt.toIso8601String(),
-  };
+  const TeamMember({required this.pokemon, required this.addedAt});
 
   /// Deserializes a member from a JSON map.
   ///
   /// Throws a [FormatException] when required refs are missing so callers
   /// can evict the corrupt record instead of crashing.
   factory TeamMember.fromJson(Map<String, dynamic> json) {
-    final rawId = json['id'];
-    final id = rawId is int ? rawId : int.tryParse(rawId?.toString() ?? '');
-    final rawName = json['name'];
-    final name = rawName is String ? rawName.trim() : '';
-    if (id == null || id <= 0 || name.isEmpty) {
-      throw FormatException('Corrupt team member record: $json');
-    }
-    final rawTypes = json['types'];
-    final typeList = rawTypes is List ? rawTypes : const [];
-    final rawSpriteUrl = json['spriteUrl'];
     final rawAddedAt = json['addedAt'];
     return TeamMember(
-      id: id,
-      name: name,
-      spriteUrl: rawSpriteUrl is String ? rawSpriteUrl : '',
-      types: typeList
-          .map((t) => PokemonType.fromApiName(t.toString()))
-          .whereType<PokemonType>()
-          .toList(),
+      pokemon: PokemonSummary.fromJson(json),
       addedAt: rawAddedAt is String
           ? DateTime.tryParse(rawAddedAt) ??
                 DateTime.fromMillisecondsSinceEpoch(0)
@@ -80,19 +30,23 @@ class TeamMember extends Equatable {
     );
   }
 
-  /// Converts this member into a [PokemonIndexEntry] for card presentation.
-  PokemonIndexEntry toIndexEntry() {
-    return PokemonIndexEntry(
-      id: id,
-      name: name,
-      detailUrl: 'https://pokeapi.co/api/v2/pokemon/$id/',
-      types: types,
-      customSpriteUrl: spriteUrl.isNotEmpty ? spriteUrl : null,
-    );
-  }
+  /// The member; forms use IDs above 1025.
+  final PokemonSummary pokemon;
+
+  /// Timestamp when the member joined the team.
+  final DateTime addedAt;
+
+  /// Normalized identity key: distinct slugs are distinct members.
+  String get memberKey => pokemon.name.trim().toLowerCase();
+
+  /// Serializes this member to a lightweight JSON map.
+  Map<String, dynamic> toJson() => {
+    ...pokemon.toJson(),
+    'addedAt': addedAt.toIso8601String(),
+  };
 
   @override
-  List<Object?> get props => [id, name, spriteUrl, types, addedAt];
+  List<Object?> get props => [pokemon, addedAt];
 }
 
 /// Local team of up to [kTeamMaxMembers] lightweight member refs.

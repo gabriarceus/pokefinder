@@ -1,4 +1,6 @@
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_sprites.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_summary.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 
 /// Builds a [Pokemon] with placeholder values for every field not overridden.
@@ -14,20 +16,7 @@ Pokemon buildPokemon({
   List<PokemonMove> moves = const [],
   List<PokemonHeldItem> heldItems = const [],
   List<String> gameIndices = const [],
-  String? spriteFrontShiny,
-  String? officialArtworkDefault,
-  String? officialArtworkShiny,
-  String? spriteBackDefault,
-  String? spriteFrontDefault,
-  String? spriteBackShiny,
-  String? spriteFrontFemale,
-  String? spriteBackFemale,
-  String? spriteFrontShinyFemale,
-  String? spriteBackShinyFemale,
-  String? homeDefault,
-  String? homeFemale,
-  String? homeShiny,
-  String? homeShinyFemale,
+  PokemonSprites sprites = const PokemonSprites(),
   bool isStale = false,
   List<int> stats = const [45, 49, 49, 65, 65, 45],
 }) {
@@ -37,38 +26,32 @@ Pokemon buildPokemon({
     sprite: sprite,
     weight: 69,
     height: 7,
-    typeImage1: 'type1.png',
-    typeImage2: '',
     type1: type1,
     type2: type2,
     cry: 'cry.ogg',
     stats: stats,
     baseExperience: 64,
     isDefault: true,
-    order: 1,
     locationAreaEncounters: locationAreaEncounters,
     cryLegacy: null,
     forms: forms,
     gameIndices: gameIndices,
     speciesName: name,
     speciesUrl: '',
-    spriteBackDefault: spriteBackDefault,
-    spriteFrontDefault: spriteFrontDefault,
-    spriteFrontShiny: spriteFrontShiny,
-    spriteBackShiny: spriteBackShiny,
-    spriteFrontFemale: spriteFrontFemale,
-    spriteBackFemale: spriteBackFemale,
-    spriteFrontShinyFemale: spriteFrontShinyFemale,
-    spriteBackShinyFemale: spriteBackShinyFemale,
-    officialArtworkDefault: officialArtworkDefault,
-    officialArtworkShiny: officialArtworkShiny,
-    homeDefault: homeDefault,
-    homeFemale: homeFemale,
-    homeShiny: homeShiny,
-    homeShinyFemale: homeShinyFemale,
+    sprites: sprites,
     abilities: const [],
     heldItems: heldItems,
     moves: moves,
     isStale: isStale,
   );
+}
+
+/// Builds a [PokemonSummary] with placeholder values.
+PokemonSummary buildSummary({
+  int id = 1,
+  String name = 'bulbasaur',
+  String spriteUrl = 'sprite.png',
+  List<PokemonType> types = const [PokemonType.grass],
+}) {
+  return PokemonSummary(id: id, name: name, spriteUrl: spriteUrl, types: types);
 }

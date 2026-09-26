@@ -94,14 +94,11 @@ void main() {
     });
   });
 
-  group('canAddToComparison', () {
-    test('allows entries below the cap and rejects at the cap', () {
-      expect(canAddToComparison(0), isTrue);
-      expect(canAddToComparison(1), isTrue);
-      expect(canAddToComparison(kComparisonMaxEntries), isFalse);
-      expect(canAddToComparison(kComparisonMaxEntries + 1), isFalse);
-    });
-
+  group('comparison cap', () {
+    // The cap constant is domain-level, so it is asserted here. Enforcing it
+    // (`ComparisonState.isFull` gating `ComparisonCubit.addEntry`) is
+    // application behavior and is covered in comparison_cubit_test.dart, so
+    // this file keeps its layer and does not import the application layer.
     test('caps the comparison at two entries', () {
       expect(kComparisonMaxEntries, equals(2));
     });

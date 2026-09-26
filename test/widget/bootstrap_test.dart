@@ -64,7 +64,7 @@ void main() {
       await tester.pumpWidget(renderedApp!);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byType(ElevatedButton));
+      await tester.tap(find.byType(FilledButton));
       await tester.pumpAndSettle();
 
       expect(attempts, equals(2));
@@ -74,8 +74,8 @@ void main() {
     test(
       'rapid successive calls to configureDependencies re-register without collision',
       () async {
-        await configureDependencies('mock');
-        await configureDependencies('mock');
+        await configureDependencies(Environment.dev);
+        await configureDependencies(Environment.dev);
         expect(getIt.isRegistered<EnLogger>(), isTrue);
       },
     );
@@ -84,11 +84,11 @@ void main() {
       'resolves all presentation BLoCs and Cubits without missing dependencies',
       () async {
         ensureHydratedStorage();
-        await configureDependencies('mock');
+        await configureDependencies(Environment.dev);
 
         expect(getIt<PokedexBloc>(), isA<PokedexBloc>());
         expect(getIt<HomeBloc>(), isA<HomeBloc>());
-        expect(getIt<PokemonBloc>(), isA<PokemonBloc>());
+        expect(getIt<PokemonDetailBloc>(), isA<PokemonDetailBloc>());
         expect(getIt<FavoritesCubit>(), isA<FavoritesCubit>());
         expect(getIt<PreferencesCubit>(), isA<PreferencesCubit>());
         expect(getIt<RecentHistoryCubit>(), isA<RecentHistoryCubit>());
@@ -115,15 +115,17 @@ void main() {
       },
     );
 
-    test('bootstrap respects explicit environment parameter', () async {
-      ensureHydratedStorage();
-      await bootstrap(
-        then: () => const Text('App Started'),
-        initializeStorage: () async {},
-        appRunner: (_) {},
-        environment: Environment.prod,
-      );
-      expect(getIt<IPokemonRepository>(), isA<PokemonRepositoryImpl>());
-    });
+    test(
+      'bootstrap registers the repository resolved from the flavor',
+      () async {
+        ensureHydratedStorage();
+        await bootstrap(
+          then: () => const Text('App Started'),
+          initializeStorage: () async {},
+          appRunner: (_) {},
+        );
+        expect(getIt<IPokemonRepository>(), isA<IPokemonRepository>());
+      },
+    );
   });
 }

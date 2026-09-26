@@ -194,18 +194,6 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settings;
 
-  /// No description provided for @useDeviceLanguage.
-  ///
-  /// In en, this message translates to:
-  /// **'Use device language'**
-  String get useDeviceLanguage;
-
-  /// No description provided for @useDeviceLanguageInfo.
-  ///
-  /// In en, this message translates to:
-  /// **'If enabled, the app will use your device\'s language.'**
-  String get useDeviceLanguageInfo;
-
   /// No description provided for @about.
   ///
   /// In en, this message translates to:
@@ -317,7 +305,7 @@ abstract class AppLocalizations {
   /// No description provided for @tabItemsGames.
   ///
   /// In en, this message translates to:
-  /// **'Items & Games'**
+  /// **'Where to find'**
   String get tabItemsGames;
 
   /// No description provided for @baseExp.
@@ -325,6 +313,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Base Exp'**
   String get baseExp;
+
+  /// No description provided for @baseExpValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} XP'**
+  String baseExpValue({required int value});
+
+  /// No description provided for @showResults.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Show 1 result} other{Show {count} results}}'**
+  String showResults({required int count});
 
   /// No description provided for @order.
   ///
@@ -505,12 +505,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rarity'**
   String get rarity;
-
-  /// No description provided for @species.
-  ///
-  /// In en, this message translates to:
-  /// **'Species'**
-  String get species;
 
   /// No description provided for @locationAreaEncounters.
   ///

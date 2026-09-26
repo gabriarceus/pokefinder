@@ -56,7 +56,7 @@ only — no share-sheet plugin, no new permissions on either OS.
 - **[just_audio](https://pub.dev/packages/just_audio) + [just_audio_media_kit](https://pub.dev/packages/just_audio_media_kit)** — plays the Pokémon cry (`.ogg` on iOS)
 - **[intl](https://pub.dev/packages/intl) + flutter_localizations** — locale-aware formatting and translations (ARB files)
 - **[en_logger](https://pub.dev/packages/en_logger)** — prefixed logging with release-mode redaction
-- **[bloc_concurrency](https://pub.dev/packages/bloc_concurrency) + [clock](https://pub.dev/packages/clock)** — request transformers, cancellation/dedup, deterministic cache expiry
+- **[bloc_concurrency](https://pub.dev/packages/bloc_concurrency) + [clock](https://pub.dev/packages/clock)** — request transformers, deterministic cache expiry
 - **[package_info_plus](https://pub.dev/packages/package_info_plus) + [url_launcher](https://pub.dev/packages/url_launcher)** — About screen version info and external links
 - **gen_l10n** — translations from `lib/l10n/app_en.arb` (template) + `app_it.arb`
 
@@ -69,11 +69,11 @@ inward (UI → application → domain ← repository):
 lib/src/
 ├── 1_presentation/   UI: pages, widgets, theme (reacts to state, no logic)
 ├── 2_application/    blocs & cubits (events, states, logic)
-├── 3_domain/         entities, failures, repository interfaces, use cases
-└── 4_repository/     data sources, repository implementations, API models
+├── 3_domain/         entities, failures, repository interface
+└── 4_repository/     API client, cache, repository implementations, API models
 ```
 
-### Bloc construction and use cases
+### Bloc construction and repository access
 
 Presentation widgets never call `getIt` directly. Blocs and cubits with
 static dependencies are `@injectable` and are obtained exclusively through
@@ -81,10 +81,11 @@ static dependencies are `@injectable` and are obtained exclusively through
 documented construction point (it also builds the non-injectable,
 runtime-data `DetailMovesCubit`). The only other sanctioned `getIt` call
 sites are the app-lifetime singletons provided at the app root
-(`lib/main.dart`). Every repository flow is fronted by a use case
-(`GetPokemonSpeciesUseCase`, `GetEvolutionChainUseCase`,
-`GetAbilityDetailUseCase`, `GetMoveDetailUseCase`, …) — cubits depend on
-the use case, never on `IPokemonRepository` directly.
+(`lib/main.dart`).
+
+There is no use case layer. Cubits and blocs depend on `IPokemonRepository`
+directly, and the presentation layer reaches it only through the factory —
+`IPokemonRepository` is not imported by widgets.
 
 ### Flavors and DI environments
 
@@ -98,7 +99,7 @@ while `--flavor prod` binds `Environment.prod` with `PokemonRepositoryImpl` for 
 
 ## Data, caching, and i18n
 
-- PokeAPI v2 over Dio; responses cached in Hive via a feature-agnostic `DataRepository` with `cacheFirst`, `networkFirst`, and `networkOnly` fetch strategies.
+- PokeAPI v2 over Dio; responses cached in Hive by `PokeApiCache`, a feature-agnostic cache-first client with a 24 h window, stale-if-error fallback and per-URL request sharing. `PokemonRepositoryImpl` parses the JSON, maps it to entities and maps every error to a `PokemonFailure` in one place.
 - Durable user state (language, theme, favorites, teams, history) lives in documents storage; disposable API cache lives in temporary storage.
 - UI strings: `lib/l10n/app_en.arb` + `app_it.arb` → `AppLocalizations`. Bulk data translations (abilities, moves, items, locations) live in `lib/l10n/*_db.dart`, keyed by API value — see `docs/localization_policy.md`.
 - Logging redacts user queries at release level and truncates payloads — see `docs/logging_policy.md`.

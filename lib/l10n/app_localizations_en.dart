@@ -60,13 +60,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings => 'Settings';
 
   @override
-  String get useDeviceLanguage => 'Use device language';
-
-  @override
-  String get useDeviceLanguageInfo =>
-      'If enabled, the app will use your device\'s language.';
-
-  @override
   String get about => 'About';
 
   @override
@@ -121,10 +114,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabMoves => 'Moves';
 
   @override
-  String get tabItemsGames => 'Items & Games';
+  String get tabItemsGames => 'Where to find';
 
   @override
   String get baseExp => 'Base Exp';
+
+  @override
+  String baseExpValue({required int value}) {
+    return '$value XP';
+  }
+
+  @override
+  String showResults({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show $count results',
+      one: 'Show 1 result',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get order => 'Order';
@@ -217,9 +226,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rarity => 'Rarity';
-
-  @override
-  String get species => 'Species';
 
   @override
   String get locationAreaEncounters => 'Location Encounters';

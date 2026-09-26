@@ -1,9 +1,10 @@
 import 'package:bloc/bloc.dart';
 import 'package:en_logger/en_logger.dart';
 import 'package:equatable/equatable.dart';
+import 'package:pokefinder/src/2_application/helpers/move_name_resolver.dart';
 import 'package:pokefinder/src/3_domain/entities/learn_method.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
-import 'package:pokefinder/l10n/moves_db.dart';
+import 'package:pokefinder/src/3_domain/helpers/game_version_mappings.dart';
 
 /// Holds the current search, filter, and move list state for the moves tab.
 class DetailMovesState extends Equatable {
@@ -12,8 +13,6 @@ class DetailMovesState extends Equatable {
     required this.selectedMethod,
     required this.selectedVersionGroup,
     required this.filteredMoves,
-    required this.allMoves,
-    required this.versionGroups,
     required this.availableMethods,
   });
 
@@ -21,10 +20,6 @@ class DetailMovesState extends Equatable {
   final String selectedMethod;
   final String? selectedVersionGroup;
   final List<PokemonMove> filteredMoves;
-  final List<PokemonMove> allMoves;
-
-  /// Distinct version groups present in [allMoves] (stable for the cubit life).
-  final List<String> versionGroups;
 
   /// Learn-method filter options for the selected version group, with the
   /// "all" sentinel as the first entry.
@@ -36,8 +31,6 @@ class DetailMovesState extends Equatable {
     selectedMethod,
     selectedVersionGroup,
     filteredMoves,
-    allMoves,
-    versionGroups,
     availableMethods,
   ];
 
@@ -46,8 +39,6 @@ class DetailMovesState extends Equatable {
     String? selectedMethod,
     String? selectedVersionGroup,
     List<PokemonMove>? filteredMoves,
-    List<PokemonMove>? allMoves,
-    List<String>? versionGroups,
     List<String>? availableMethods,
   }) {
     return DetailMovesState(
@@ -55,124 +46,103 @@ class DetailMovesState extends Equatable {
       selectedMethod: selectedMethod ?? this.selectedMethod,
       selectedVersionGroup: selectedVersionGroup ?? this.selectedVersionGroup,
       filteredMoves: filteredMoves ?? this.filteredMoves,
-      allMoves: allMoves ?? this.allMoves,
-      versionGroups: versionGroups ?? this.versionGroups,
       availableMethods: availableMethods ?? this.availableMethods,
     );
   }
 }
 
-/// Cubit that filters and sorts a Pokémon's moves by version group,
+/// Cubit that filters and sorts a Pokémon's moves by game version,
 /// learn method, and search query.
 class DetailMovesCubit extends Cubit<DetailMovesState> {
-  DetailMovesCubit({required List<PokemonMove> moves, required EnLogger logger})
-    : _logger = logger,
-      super(_initialState(moves)) {
-    _filterMoves();
+  /// Starts on the version group of [gameVersion]; see [selectGameVersion].
+  DetailMovesCubit({
+    required List<PokemonMove> moves,
+    required MoveNameResolver moveName,
+    required EnLogger logger,
+    String gameVersion = allVersions,
+  }) : _moves = moves,
+       _moveName = moveName,
+       _logger = logger,
+       super(
+         const DetailMovesState(
+           searchQuery: '',
+           selectedMethod: allMethodsFilter,
+           selectedVersionGroup: null,
+           filteredMoves: [],
+           availableMethods: [allMethodsFilter],
+         ),
+       ) {
+    selectGameVersion(gameVersion);
   }
 
+  final List<PokemonMove> _moves;
+  final MoveNameResolver _moveName;
   final EnLogger _logger;
   static const _prefix = 'DetailMovesCubit';
 
   /// Filter sentinel that selects moves of any learn method.
   static const allMethodsFilter = 'all';
 
-  /// Version group preferred as the initial selection when available.
-  static const _preferredVersionGroup = 'diamond-pearl';
+  /// Game version sentinel that selects the latest version group.
+  static const allVersions = 'all';
 
-  /// Language code that triggers Italian move-name translation.
-  static const _italianLanguageCode = 'it';
-
-  /// Language code used when none is supplied.
-  static const _defaultLanguageCode = 'en';
-
-  static DetailMovesState _initialState(List<PokemonMove> moves) {
-    final versionGroups = moves.map((m) => m.versionGroup).toSet().toList();
-    String? initialVersionGroup;
-    if (versionGroups.isNotEmpty) {
-      initialVersionGroup = versionGroups.contains(_preferredVersionGroup)
-          ? _preferredVersionGroup
-          : versionGroups.first;
-    }
-    return DetailMovesState(
-      searchQuery: '',
-      selectedMethod: allMethodsFilter,
-      selectedVersionGroup: initialVersionGroup,
-      filteredMoves: const [],
-      allMoves: moves,
-      versionGroups: versionGroups,
-      availableMethods: _availableMethodsFor(moves, initialVersionGroup),
-    );
-  }
-
-  /// Learn-method options for [versionGroup], with [allMethodsFilter] first.
-  static List<String> _availableMethodsFor(
-    List<PokemonMove> moves,
-    String? versionGroup,
-  ) {
-    if (versionGroup == null) return const [allMethodsFilter];
-    final methods = moves
-        .where((m) => m.versionGroup == versionGroup)
-        .map((m) => m.learnMethod)
-        .toSet();
-    return [allMethodsFilter, ...methods];
-  }
-
-  void updateSearchQuery(String query, String languageCode) {
+  void updateSearchQuery(String query) {
     emit(state.copyWith(searchQuery: query));
-    _filterMoves(languageCode: languageCode);
+    _filterMoves();
   }
 
-  void updateSelectedMethod(String method, String languageCode) {
+  void updateSelectedMethod(String method) {
     _logger.info('Method filter changed to "$method"', prefix: _prefix);
     emit(state.copyWith(selectedMethod: method));
-    _filterMoves(languageCode: languageCode);
+    _filterMoves();
   }
 
-  void updateSelectedVersionGroup(String versionGroup, String languageCode) {
+  /// Shows the moves of the version group that contains [gameVersion].
+  ///
+  /// [allVersions] selects the most recent version group of the Pokémon.
+  void selectGameVersion(String gameVersion) {
+    final versionGroup = gameVersion == allVersions
+        ? GameVersionMappings.latestVersionGroup(
+                _moves.map((m) => m.versionGroup),
+              ) ??
+              _moves.firstOrNull?.versionGroup
+        : GameVersionMappings.versionGroupFor(gameVersion);
     _logger.info('Version group changed to "$versionGroup"', prefix: _prefix);
-    final availableMethods = _availableMethodsFor(state.allMoves, versionGroup);
-    final selectedMethod =
-        state.selectedMethod != allMethodsFilter &&
-            !availableMethods.contains(state.selectedMethod)
-        ? allMethodsFilter
-        : state.selectedMethod;
+
+    final methods = {
+      for (final move in _moves)
+        if (move.versionGroup == versionGroup) move.learnMethod,
+    };
+    final availableMethods = [allMethodsFilter, ...methods];
+    final selectedMethod = availableMethods.contains(state.selectedMethod)
+        ? state.selectedMethod
+        : allMethodsFilter;
 
     emit(
-      state.copyWith(
-        selectedVersionGroup: versionGroup,
-        availableMethods: availableMethods,
+      DetailMovesState(
+        searchQuery: state.searchQuery,
         selectedMethod: selectedMethod,
+        selectedVersionGroup: versionGroup,
+        filteredMoves: state.filteredMoves,
+        availableMethods: availableMethods,
       ),
     );
-
-    _filterMoves(languageCode: languageCode);
+    _filterMoves();
   }
 
-  void _filterMoves({String languageCode = _defaultLanguageCode}) {
+  void _filterMoves() {
+    final query = state.searchQuery.toLowerCase();
     final uniqueMoves = <String, PokemonMove>{};
-    for (final move in state.allMoves) {
+    for (final move in _moves) {
       if (move.versionGroup != state.selectedVersionGroup) continue;
-
-      String translatedName = move.name;
-      if (languageCode == _italianLanguageCode) {
-        final key = move.name.toLowerCase().trim();
-        final trans = movesDb[key];
-        if (trans != null) {
-          translatedName = trans;
-        }
-      }
-      translatedName = translatedName.toLowerCase();
-
-      final matchesSearch =
-          move.name.toLowerCase().contains(state.searchQuery.toLowerCase()) ||
-          translatedName.contains(state.searchQuery.toLowerCase());
-
-      if (!matchesSearch) continue;
       if (state.selectedMethod != allMethodsFilter &&
           move.learnMethod != state.selectedMethod) {
         continue;
       }
+      final matchesSearch =
+          move.name.toLowerCase().contains(query) ||
+          _moveName(move.name).toLowerCase().contains(query);
+      if (!matchesSearch) continue;
 
       final existing = uniqueMoves[move.name];
       if (existing == null ||
@@ -183,17 +153,27 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
       }
     }
 
-    final filteredMoves = uniqueMoves.values.toList();
+    final names = {for (final name in uniqueMoves.keys) name: _moveName(name)};
+    final filteredMoves = uniqueMoves.values.toList()
+      ..sort((a, b) {
+        final byMethod = _methodRank(a).compareTo(_methodRank(b));
+        if (byMethod != 0) return byMethod;
+        if (_isLevelUp(a)) {
+          final byLevel = a.levelLearnedAt.compareTo(b.levelLearnedAt);
+          if (byLevel != 0) return byLevel;
+        }
+        final byName = names[a.name]!.compareTo(names[b.name]!);
+        return byName != 0 ? byName : a.name.compareTo(b.name);
+      });
+
     _logger.debug('Filtered ${filteredMoves.length} moves', prefix: _prefix);
-
-    filteredMoves.sort((a, b) {
-      if (a.learnMethod == LearnMethod.levelUp.apiValue &&
-          b.learnMethod == LearnMethod.levelUp.apiValue) {
-        return a.levelLearnedAt.compareTo(b.levelLearnedAt);
-      }
-      return a.name.compareTo(b.name);
-    });
-
     emit(state.copyWith(filteredMoves: filteredMoves));
   }
+
+  static bool _isLevelUp(PokemonMove move) =>
+      move.learnMethod == LearnMethod.levelUp.apiValue;
+
+  /// Known learn methods in [LearnMethod] order, then every other method.
+  static int _methodRank(PokemonMove move) =>
+      LearnMethod.fromApi(move.learnMethod)?.index ?? LearnMethod.values.length;
 }

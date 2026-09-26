@@ -11,7 +11,7 @@ import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 
 import '../fixtures/pokemon_fixture.dart';
 
-class _MockPokemonBloc extends Mock implements PokemonBloc {}
+class _MockPokemonBloc extends Mock implements PokemonDetailBloc {}
 
 void main() {
   setUpAll(() {
@@ -35,7 +35,7 @@ void main() {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
-        body: BlocProvider<PokemonBloc>.value(
+        body: BlocProvider<PokemonDetailBloc>.value(
           value: mockBloc,
           child: AlternateFormsWidget(
             pokemon: pokemon,

@@ -3,27 +3,6 @@ part of 'detail_bloc.dart';
 @immutable
 sealed class PokemonBlocState extends Equatable {
   const PokemonBlocState();
-
-  T map<T>({
-    required T Function(PokemonBlocInitial state) onInitial,
-    required T Function(PokemonBlocLoading state) onLoading,
-    required T Function(PokemonBlocFailure state) onFailure,
-    required T Function(PokemonBlocSuccess state) onSuccess,
-  }) {
-    switch (this) {
-      case PokemonBlocInitial initial:
-        return onInitial(initial);
-
-      case PokemonBlocLoading loading:
-        return onLoading(loading);
-
-      case PokemonBlocFailure failure:
-        return onFailure(failure);
-
-      case PokemonBlocSuccess success:
-        return onSuccess(success);
-    }
-  }
 }
 
 final class PokemonBlocInitial extends PokemonBlocState {
@@ -76,6 +55,23 @@ final class PokemonBlocSuccess extends PokemonBlocState {
   /// form has been selected.
   PokemonFormDetails get formDetails =>
       selectedFormDetails ?? PokemonFormDetails.fromPokemon(pokemon);
+
+  /// Summary of the displayed form, with the base Pokémon's values where the
+  /// form has none.
+  PokemonSummary get summary {
+    final form = formDetails;
+    final types = form.type1 != null
+        ? [form.type1, form.type2]
+        : [pokemon.type1, pokemon.type2];
+    return PokemonSummary(
+      id: pokemon.id,
+      name: form.name.isNotEmpty ? form.name : pokemon.name,
+      spriteUrl: form.spriteDefault.isNotEmpty
+          ? form.spriteDefault
+          : pokemon.sprite,
+      types: types.whereType<PokemonType>().toList(),
+    );
+  }
 
   PokemonBlocSuccess copyWith({
     Pokemon? pokemon,

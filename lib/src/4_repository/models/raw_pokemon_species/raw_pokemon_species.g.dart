@@ -19,15 +19,6 @@ RawPokemonSpecies _$RawPokemonSpeciesFromJson(
       : NamedAPIResource.fromJson(json['habitat'] as Map<String, dynamic>),
   captureRate: (json['capture_rate'] as num?)?.toInt(),
   baseHappiness: (json['base_happiness'] as num?)?.toInt(),
-  growthRate: json['growth_rate'] == null
-      ? null
-      : NamedAPIResource.fromJson(json['growth_rate'] as Map<String, dynamic>),
-  genderRate: (json['gender_rate'] as num?)?.toInt(),
-  eggGroups:
-      (json['egg_groups'] as List<dynamic>?)
-          ?.map((e) => NamedAPIResource.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
   evolutionChain: json['evolution_chain'] == null
       ? null
       : RawEvolutionChainResource.fromJson(
@@ -46,9 +37,6 @@ RawPokemonSpecies _$RawPokemonSpeciesFromJson(
           ?.map((e) => RawSpeciesGenusEntry.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
-  isBaby: json['is_baby'] as bool? ?? false,
-  isLegendary: json['is_legendary'] as bool? ?? false,
-  isMythical: json['is_mythical'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$RawPokemonSpeciesToJson(RawPokemonSpecies instance) =>
@@ -59,17 +47,11 @@ Map<String, dynamic> _$RawPokemonSpeciesToJson(RawPokemonSpecies instance) =>
       'habitat': instance.habitat?.toJson(),
       'capture_rate': instance.captureRate,
       'base_happiness': instance.baseHappiness,
-      'growth_rate': instance.growthRate?.toJson(),
-      'gender_rate': instance.genderRate,
-      'egg_groups': instance.eggGroups.map((e) => e.toJson()).toList(),
       'evolution_chain': instance.evolutionChain?.toJson(),
       'flavor_text_entries': instance.flavorTextEntries
           .map((e) => e.toJson())
           .toList(),
       'genera': instance.genera.map((e) => e.toJson()).toList(),
-      'is_baby': instance.isBaby,
-      'is_legendary': instance.isLegendary,
-      'is_mythical': instance.isMythical,
     };
 
 RawEvolutionChainResource _$RawEvolutionChainResourceFromJson(

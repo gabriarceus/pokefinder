@@ -4,7 +4,6 @@ import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/_app_bar.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/bold_label_value.dart';
-import 'package:pokefinder/src/1_presentation/widgets/detail/type_image.dart';
 
 void main() {
   Future<void> pumpInApp(WidgetTester tester, Widget child) {
@@ -19,22 +18,15 @@ void main() {
     );
   }
 
-  group('TypeImage', () {
-    testWidgets('renders nothing when the type sprite url is empty', (
-      tester,
-    ) async {
-      await pumpInApp(tester, const TypeImage(type: ''));
-
-      expect(find.byType(Image), findsNothing);
-    });
-
-    testWidgets('renders the sprite when a url is provided', (tester) async {
-      await pumpInApp(tester, const TypeImage(type: 'grass.png'));
-
-      final image = tester.widget<Image>(find.byType(Image));
-      expect((image.image as NetworkImage).url, 'grass.png');
-    });
-  });
+  /// [DetailAppBar] is a `SliverAppBar`, so it needs a scroll view around it.
+  Widget appBarHost(Widget appBar) => Scaffold(
+    body: CustomScrollView(
+      slivers: [
+        appBar,
+        const SliverToBoxAdapter(child: SizedBox(height: 200)),
+      ],
+    ),
+  );
 
   group('BoldLabelValue', () {
     testWidgets('renders nothing when the value is empty', (tester) async {
@@ -72,10 +64,17 @@ void main() {
     ) async {
       await pumpInApp(
         tester,
-        const Scaffold(
-          appBar: DetailAppBar(backgroundColor: Colors.blue, isStale: true),
+        appBarHost(
+          const DetailAppBar(
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+            expandedHeight: kToolbarHeight + 120,
+            background: SizedBox.shrink(),
+            isStale: true,
+          ),
         ),
       );
+      await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.cloud_off_rounded), findsOneWidget);
       expect(find.byTooltip('Offline cached data'), findsOneWidget);
@@ -84,10 +83,17 @@ void main() {
     testWidgets('hides cloud_off icon when isStale is false', (tester) async {
       await pumpInApp(
         tester,
-        const Scaffold(
-          appBar: DetailAppBar(backgroundColor: Colors.blue, isStale: false),
+        appBarHost(
+          const DetailAppBar(
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+            expandedHeight: kToolbarHeight + 120,
+            background: SizedBox.shrink(),
+            isStale: false,
+          ),
         ),
       );
+      await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.cloud_off_rounded), findsNothing);
     });

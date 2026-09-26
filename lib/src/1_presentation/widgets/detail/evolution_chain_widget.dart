@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
@@ -38,8 +39,7 @@ class EvolutionChainWidget extends StatelessWidget {
         children: [
           Text(
             context.t().evolutionChain,
-            style: TextStyle(
-              fontSize: 18,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: textColor,
             ),
@@ -74,10 +74,10 @@ class EvolutionChainWidget extends StatelessWidget {
                         Text(
                           errorMessage,
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                            fontSize: 13,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
                         ),
                         const SizedBox(height: 8),
                         TextButton.icon(
@@ -330,7 +330,7 @@ class _PokemonNodeCard extends StatelessWidget {
       child: InkWell(
         onTap: () {
           if (!isCurrent) {
-            context.push('/pokemon/${node.speciesName}');
+            context.push(AppRoutes.pokemon(node.speciesName));
           }
         },
         borderRadius: BorderRadius.circular(16),
@@ -371,8 +371,7 @@ class _PokemonNodeCard extends StatelessWidget {
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   fontWeight: isCurrent ? FontWeight.bold : FontWeight.w600,
                   color: isCurrent ? typeColor : textColor,
                 ),
@@ -411,8 +410,7 @@ class _TriggerArrow extends StatelessWidget {
               ),
               child: Text(
                 label,
-                style: TextStyle(
-                  fontSize: 10,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: typeColor,
                 ),
@@ -451,8 +449,7 @@ class _TriggerBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 12,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
           fontWeight: FontWeight.bold,
           color: typeColor,
         ),

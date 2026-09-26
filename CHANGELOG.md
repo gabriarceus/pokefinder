@@ -82,6 +82,41 @@ All notable changes to this project will be documented in this file, following t
 - Applied tall-style formatter; moved `path`, `yaml` to `dev_dependencies`; upgraded dependencies; replaced `com.example` IDs with production IDs; `post_build.dart` aborts on dirty worktree / failure.
 - Decoupled `HomeBloc` via `ClearCacheUseCase`; consolidated URL / asset helpers into `PokeApiUrlHelper`; flavor-to-DI mapping (`dev` → mock, `prod` → live).
 - Production logging redacted (queries) and truncated (payloads); measurements and stats use locale-aware `intl` formatting; Italian copy polish.
+- Data layer collapsed from seven layers to two. `PokeApiCache` is a
+  cache-first JSON client (24 h window, stale-if-error, per-URL request
+  sharing) and `PokemonRepositoryImpl` parses, maps to entities and maps every
+  error in one place. The double error mapping, the per-endpoint copy-paste
+  fetch methods and the cache-epoch write guard are gone.
+- Blocs and cubits call `IPokemonRepository` directly. The nine pass-through
+  use cases (one line each, and not used consistently anyway) are gone.
+- One `PokemonSummary` (id, name, sprite, types) replaces the four near
+  identical favorite / recent / team / comparison-entry types, and
+  `Pokemon` groups its 16 sprite URLs in a `PokemonSprites` value object.
+  Stored favorites, history and teams still load: the JSON keys are unchanged.
+- Pokédex filters live in one `PokedexFilters` value object. The in-memory
+  pagination that sliced an already-loaded list is gone, along with its scroll
+  listener, bottom spinner and load-more event; the lazy `SliverGrid` renders
+  the filtered entries directly.
+- The comparison page loads its own details through `ComparisonCubit` with
+  `getPokemon` only. It went from 1079 to 456 lines and no longer nests one
+  detail bloc per side.
+- Home search uses a `SearchNavigation` value compared by identity instead of a
+  navigation flag plus a "done" event, and the index is loaded with a single
+  `LoadIndex` event.
+- Routes are built with the `AppRoutes` helpers instead of ~30 string literals;
+  the per-type `TypeColorScheme` is one opaque color map, and text legibility
+  on a colored surface goes through one `readableOn` helper.
+- Typography uses `textTheme` roles throughout: no `fontSize:` literals remain
+  in the presentation layer, and repeated section-heading styles became
+  `SectionTitle`.
+- Language is a single System / English / Italiano segmented button in
+  Settings; the duplicate drawer UI and the extra `lastManualLanguageId` /
+  system-language state are gone.
+- Detail: fixed full-width tabs, one weight/height row, sprite gallery as a
+  horizontal strip, header sprite placeholder, the redundant "Species" section
+  removed, and `showCheckmark: false` on selectable type chips.
+- Tests of deleted code were deleted rather than rewritten, and the suite was
+  migrated to the new APIs.
 
 ### Fixed
 
@@ -94,9 +129,77 @@ All notable changes to this project will be documented in this file, following t
 - Accessibility and UI: redundant / missing screen-reader announcements, 48dp touch targets, Italian badge localization, Hive LRU bloat and jank.
 - Crashes and logic: version-selector assertion on Pokémon switch, evolution trigger shadowing (item / trade / gender lost with level), form type filtering, autocomplete false positives on `canonical`, pull-to-refresh unmount crash, cancelled-request surfacing as failure.
 - Store compliance: Android INTERNET-only, no cleartext traffic, flavor labels, adaptive icons; iOS plist stripped (mic, local network, arbitrary loads, background audio).
+- Pokédex type filter showed "No Pokémon found" on a slow or failing type
+  request: the selection is now applied immediately with a loading marker on
+  the chip, the type ids load in the background, a failure deselects the type
+  again and is reported in a SnackBar instead of looking like zero results,
+  and taps are processed sequentially so two quick taps no longer lose an
+  update.
+- Detail page played the cry and re-recorded history on every state emission
+  (data, encounters, form loading, form loaded). Side effects now run once per
+  Pokémon.
+- Detail app bar icons and title were always white because the background was
+  passed as `Colors.transparent`: the real type color and its contrasting text
+  color are used now.
+- Drawer reported "Cache size: 0 B" and raced its own clear-cache action. The
+  cache and language blocks left the drawer (Settings owns both) and the drawer
+  is navigation only.
+- Returning to Home from a detail page reopened the keyboard and the
+  suggestion overlay over the buttons: the field is unfocused before navigating.
+- Moves were sorted by English API slug in an inconsistent comparator, so the
+  Italian list looked random. Sorting is now by method group, then level for
+  level-up moves, then the localized name, with the display name injected
+  through a `MoveNameResolver` instead of reaching into l10n from the
+  application layer.
+- The error page's illustration sat behind a translucent card and covered the
+  "Edit search" button, and the retry button was unreadable in dark mode.
+  The image is now a normal element above the card and the action is a
+  `FilledButton`.
+- The loading detail page had no way back; it keeps a plain app bar now.
+- `pikachu-*-cap` was badged as a regional (ALOLA) form. Costumes are
+  classified as cosmetic before the regional check.
+- The disabled "Search" label was white on light grey, because the color was
+  forced on the `Text`. The button owns its foreground color now.
+- The filter sheet had two close actions that did the same thing ("Apply" only
+  closed it) and a near-invisible close icon: one clear way to close.
+- The detail header type chip was centered in its column, so it floated ~44dp
+  right of the name; it is left-aligned with the name now.
+- Selecting a matchup defending type grew the chip and pushed the others onto
+  other rows; selection is shown with fill and border only, at a fixed size.
+- Mixed-language labels: `Gen N` and `XP` are localized ARB strings, the
+  half-translated location names are fully translated or fall back to English,
+  and the English-text PokeAPI type sprites (`TypeImage`) are gone in favour of
+  the localized `TypeChip`.
+- Comparing Pokémon downloaded each one's encounters, which the comparison
+  page never shows.
+- Detail header no longer collapses: the page is a `NestedScrollView` with a
+  pinned `SliverAppBar`, so the Moves tab is not limited to three rows.
+- The Pokédex had two conflicting game-version selectors, one of them inert on
+  Stats. There is now one selector, shown only on the tabs that use it, and
+  "all versions" falls back to the Pokémon's latest version group.
+- Empty states, section titles and app bars differed per page. Shared
+  `EmptyStateView` and `SectionTitle` widgets, one theme-driven color scheme
+  and one app bar style replace the per-page copies.
+- Swallowed provider errors: 26 silent `catch (_)` around `context.read` hid
+  missing providers. They are gone, so a broken provider tree now fails loudly.
+- `getPokemon` threw synchronously on an invalid name instead of returning a
+  `Left`, breaking the `IPokemonRepository` contract: the comparison page
+  could crash on a non-canonical entry name instead of showing a failure. The
+  validation is now folded into the result.
+- The detail header overflowed its box on a short landscape screen and at a
+  2.0 text scale on a compact phone: the sprite had a hard 64 dp minimum it
+  could not shrink below, and the type chips wrapped to a second line. The
+  sprite now shrinks to the space the collapsing app bar gives it and the
+  chips stay on one line.
 
 ### Removed
 
+- The use case layer, `DataRepository`, `IPokemonRemoteDataSource` /
+  `PokemonRemoteDataSource`, `FetchStrategy`, `CacheMetadata`, `DataResponse`,
+  `DataFetchException`, `RequestDeduplicator`, `CancellationToken` (and with it
+  `RequestCancelledFailure`), the `DetailState.map` helper, the `PokemonBloc` /
+  `HomeBloc` builder wrappers, `getAllPokemonNames`, the Pokédex pagination,
+  the drawer's cache and language blocks, and `TypeImage`.
 - Unused runtime deps (`flutter_animate`, `gap`, `pokeball_widget`, `flutter_gen`); redundant `WAKE_LOCK` permission; dead test-only constructors and hydration calls.
 
 ## [1.0.0-rc1] - 2026-09-02

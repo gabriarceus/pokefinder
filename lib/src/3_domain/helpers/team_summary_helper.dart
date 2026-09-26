@@ -55,7 +55,9 @@ class TeamSummaryHelper {
   /// Forms with distinct slugs are distinct members and never collide.
   static bool isDuplicateName(List<TeamMember> members, String name) {
     final key = normalizeMemberKey(name);
-    return members.any((member) => normalizeMemberKey(member.name) == key);
+    return members.any(
+      (member) => normalizeMemberKey(member.pokemon.name) == key,
+    );
   }
 
   /// Whether [members] contains any duplicated slugs.
@@ -83,7 +85,7 @@ class TeamSummaryHelper {
   static List<PokemonType> typeCoverage(List<TeamMember> members) {
     final seen = <PokemonType>[];
     for (final member in members) {
-      for (final type in member.types) {
+      for (final type in member.pokemon.types) {
         if (!seen.contains(type)) seen.add(type);
       }
     }

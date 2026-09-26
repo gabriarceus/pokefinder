@@ -7,10 +7,12 @@ TeamMember _member({
   List<PokemonType> types = const [PokemonType.electric],
 }) {
   return TeamMember(
-    id: id,
-    name: name,
-    spriteUrl: 'https://example.com/$id.png',
-    types: types,
+    pokemon: PokemonSummary(
+      id: id,
+      name: name,
+      spriteUrl: 'https://example.com/$id.png',
+      types: types,
+    ),
     addedAt: DateTime.utc(2026, 1, 1),
   );
 }
@@ -54,11 +56,11 @@ void main() {
         'addedAt': '2026-01-01T00:00:00.000Z',
       });
 
-      expect(restored.types, equals([PokemonType.electric]));
+      expect(restored.pokemon.types, equals([PokemonType.electric]));
     });
 
     test('toIndexEntry carries the lightweight ref', () {
-      final entry = _member().toIndexEntry();
+      final entry = _member().pokemon.toIndexEntry();
 
       expect(entry.id, equals(25));
       expect(entry.name, equals('pikachu'));
@@ -107,7 +109,10 @@ void main() {
         ],
       });
 
-      expect(team.members.map((m) => m.name).toList(), equals(['pikachu']));
+      expect(
+        team.members.map((m) => m.pokemon.name).toList(),
+        equals(['pikachu']),
+      );
     });
 
     test('fromJson tolerates wrong field types without throwing', () {
@@ -127,8 +132,8 @@ void main() {
         'types': 'not-a-list',
         'addedAt': 123,
       });
-      expect(member.spriteUrl, isEmpty);
-      expect(member.types, isEmpty);
+      expect(member.pokemon.spriteUrl, isEmpty);
+      expect(member.pokemon.types, isEmpty);
     });
 
     test('fromJson truncates members beyond the 6-member cap', () {
@@ -159,9 +164,7 @@ void main() {
         members: [
           for (var i = 1; i <= kTeamMaxMembers; i++)
             TeamMember(
-              id: i,
-              name: 'pokemon-$i',
-              spriteUrl: '',
+              pokemon: PokemonSummary(id: i, name: 'pokemon-$i', spriteUrl: ''),
               addedAt: DateTime.utc(2026, 1, 1),
             ),
         ],

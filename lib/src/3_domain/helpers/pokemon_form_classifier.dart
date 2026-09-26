@@ -77,6 +77,12 @@ class PokemonFormClassifier {
       return PokemonFormCategory.primal;
     }
 
+    // Before the regional check: costumes such as `pikachu-alola-cap` carry a
+    // region name but are not regional forms.
+    if (_isCosmetic(name)) {
+      return PokemonFormCategory.cosmetic;
+    }
+
     if (name.contains('-alola') ||
         name.contains('-galar') ||
         name.contains('-hisui') ||
@@ -88,15 +94,12 @@ class PokemonFormClassifier {
       return PokemonFormCategory.gmax;
     }
 
-    if (_isCosmetic(name)) {
-      return PokemonFormCategory.cosmetic;
-    }
-
     return PokemonFormCategory.battleMode;
   }
 
   /// Resolves the [PokemonRegionalGroup] if this form is regional, otherwise null.
   static PokemonRegionalGroup? resolveRegionalGroup(String name) {
+    if (_isCosmetic(name)) return null;
     if (name.contains('-alola')) return PokemonRegionalGroup.alola;
     if (name.contains('-galar')) return PokemonRegionalGroup.galar;
     if (name.contains('-hisui')) return PokemonRegionalGroup.hisui;

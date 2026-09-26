@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/sprite_gallery_widget.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_sprites.dart';
 
 import '../fixtures/pokemon_fixture.dart';
 
@@ -26,19 +27,17 @@ void main() {
       await mockNetworkImagesFor(() async {
         final pokemon = buildPokemon(
           sprite: 'front.png',
-          spriteBackDefault: 'back.png',
-          spriteFrontShiny: 'front-shiny.png',
-          officialArtworkDefault: 'art.png',
-          homeDefault: 'home.png',
+          sprites: const PokemonSprites(
+            frontDefault: 'front.png',
+            backDefault: 'back.png',
+            frontShiny: 'front-shiny.png',
+            artworkDefault: 'art.png',
+            homeDefault: 'home.png',
+          ),
         );
 
         await tester.pumpWidget(
-          _buildHarness(
-            child: SpriteGalleryWidget(
-              pokemon: pokemon,
-              textColor: Colors.black,
-            ),
-          ),
+          _buildHarness(child: SpriteGalleryWidget(pokemon: pokemon)),
         );
         await tester.pumpAndSettle();
 
@@ -60,12 +59,7 @@ void main() {
         final pokemon = buildPokemon(sprite: '');
 
         await tester.pumpWidget(
-          _buildHarness(
-            child: SpriteGalleryWidget(
-              pokemon: pokemon,
-              textColor: Colors.black,
-            ),
-          ),
+          _buildHarness(child: SpriteGalleryWidget(pokemon: pokemon)),
         );
         await tester.pumpAndSettle();
 
@@ -81,16 +75,13 @@ void main() {
       await mockNetworkImagesFor(() async {
         final pokemon = buildPokemon(
           sprite: 'https://invalid/front.png',
-          officialArtworkDefault: 'https://invalid/art.png',
+          sprites: const PokemonSprites(
+            artworkDefault: 'https://invalid/art.png',
+          ),
         );
 
         await tester.pumpWidget(
-          _buildHarness(
-            child: SpriteGalleryWidget(
-              pokemon: pokemon,
-              textColor: Colors.black,
-            ),
-          ),
+          _buildHarness(child: SpriteGalleryWidget(pokemon: pokemon)),
         );
         await tester.pumpAndSettle();
 
@@ -117,16 +108,11 @@ void main() {
       await mockNetworkImagesFor(() async {
         final pokemon = buildPokemon(
           sprite: 'front.png',
-          officialArtworkDefault: 'art.png',
+          sprites: const PokemonSprites(artworkDefault: 'art.png'),
         );
 
         await tester.pumpWidget(
-          _buildHarness(
-            child: SpriteGalleryWidget(
-              pokemon: pokemon,
-              textColor: Colors.black,
-            ),
-          ),
+          _buildHarness(child: SpriteGalleryWidget(pokemon: pokemon)),
         );
         await tester.pumpAndSettle();
 
@@ -139,16 +125,11 @@ void main() {
       await mockNetworkImagesFor(() async {
         final pokemon = buildPokemon(
           sprite: 'front.png',
-          officialArtworkDefault: 'art.png',
+          sprites: const PokemonSprites(artworkDefault: 'art.png'),
         );
 
         await tester.pumpWidget(
-          _buildHarness(
-            child: SpriteGalleryWidget(
-              pokemon: pokemon,
-              textColor: Colors.black,
-            ),
-          ),
+          _buildHarness(child: SpriteGalleryWidget(pokemon: pokemon)),
         );
         await tester.pumpAndSettle();
 
@@ -177,16 +158,11 @@ void main() {
 
         final pokemon = buildPokemon(
           sprite: 'front.png',
-          officialArtworkDefault: 'art.png',
+          sprites: const PokemonSprites(artworkDefault: 'art.png'),
         );
 
         await tester.pumpWidget(
-          _buildHarness(
-            child: SpriteGalleryWidget(
-              pokemon: pokemon,
-              textColor: Colors.black,
-            ),
-          ),
+          _buildHarness(child: SpriteGalleryWidget(pokemon: pokemon)),
         );
         await tester.pumpAndSettle();
 
@@ -202,16 +178,13 @@ void main() {
       await mockNetworkImagesFor(() async {
         final pokemon = buildPokemon(
           sprite: 'front.png',
-          officialArtworkDefault: 'art.png',
+          sprites: const PokemonSprites(artworkDefault: 'art.png'),
         );
 
         await tester.pumpWidget(
           _buildHarness(
             locale: const Locale('it'),
-            child: SpriteGalleryWidget(
-              pokemon: pokemon,
-              textColor: Colors.black,
-            ),
+            child: SpriteGalleryWidget(pokemon: pokemon),
           ),
         );
         await tester.pumpAndSettle();
@@ -219,6 +192,32 @@ void main() {
         expect(find.text('Galleria Sprite'), findsOneWidget);
         expect(find.text('Artwork ufficiale'), findsOneWidget);
         expect(find.text('Fronte (normale)'), findsOneWidget);
+      });
+    });
+
+    testWidgets('renders the variants in a horizontal strip', (tester) async {
+      await mockNetworkImagesFor(() async {
+        final pokemon = buildPokemon(
+          sprite: 'front.png',
+          sprites: const PokemonSprites(
+            frontDefault: 'front.png',
+            backDefault: 'back.png',
+            artworkDefault: 'art.png',
+          ),
+        );
+
+        await tester.pumpWidget(
+          _buildHarness(child: SpriteGalleryWidget(pokemon: pokemon)),
+        );
+        await tester.pumpAndSettle();
+
+        final listView = tester.widget<ListView>(
+          find.descendant(
+            of: find.byType(SpriteGalleryWidget),
+            matching: find.byType(ListView),
+          ),
+        );
+        expect(listView.scrollDirection, Axis.horizontal);
       });
     });
   });

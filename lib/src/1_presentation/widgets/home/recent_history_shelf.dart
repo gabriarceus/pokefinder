@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
-import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 import 'package:pokefinder/src/2_application/bloc/recent_history_cubit/recent_history_cubit.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
@@ -14,10 +14,7 @@ class RecentHistoryShelf extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    RecentHistoryState historyState = const RecentHistoryState();
-    try {
-      historyState = context.watch<RecentHistoryCubit>().state;
-    } catch (_) {}
+    final historyState = context.watch<RecentHistoryCubit>().state;
 
     if (!historyState.isHistoryEnabled) return const SizedBox.shrink();
 
@@ -53,13 +50,7 @@ class RecentHistoryShelf extends StatelessWidget {
                   onPressed: () {
                     context.read<RecentHistoryCubit>().clearRecentSearches();
                   },
-                  child: Text(
-                    t.clear,
-                    style: TextStyle(
-                      color: theme.colorScheme.primary,
-                      fontSize: 12,
-                    ),
-                  ),
+                  child: Text(t.clear),
                 ),
               ],
             ),
@@ -100,18 +91,12 @@ class RecentHistoryShelf extends StatelessWidget {
                   onPressed: () {
                     context.read<RecentHistoryCubit>().clearRecentPokemon();
                   },
-                  child: Text(
-                    t.clear,
-                    style: TextStyle(
-                      color: theme.colorScheme.primary,
-                      fontSize: 12,
-                    ),
-                  ),
+                  child: Text(t.clear),
                 ),
               ],
             ),
             SizedBox(
-              height: 130,
+              height: 150,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: historyState.recentPokemon.length,
@@ -137,7 +122,13 @@ class _RecentPokemonCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final displayName = item.name.capitalize();
+    final pokemon = item.pokemon;
+    final displayName = pokemon.name.capitalize();
+    final placeholder = Icon(
+      Icons.catching_pokemon,
+      size: 32,
+      color: theme.colorScheme.primary,
+    );
 
     return Semantics(
       button: true,
@@ -146,10 +137,13 @@ class _RecentPokemonCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () => context.push('/pokemon/${item.name}'),
+          onTap: () {
+            FocusManager.instance.primaryFocus?.unfocus();
+            context.push(AppRoutes.pokemon(pokemon.name));
+          },
           child: Ink(
             width: 100,
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.fromLTRB(8, 0, 0, 8),
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(12),
@@ -157,79 +151,55 @@ class _RecentPokemonCard extends StatelessWidget {
                 color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
               ),
             ),
-            child: Stack(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Semantics(
-                    button: true,
-                    label:
-                        '${AppLocalizations.of(context).removeFromHistory}: $displayName',
-                    child: SizedBox(
-                      width: 44,
-                      height: 44,
-                      child: IconButton(
-                        iconSize: 14,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(
-                          minWidth: 44,
-                          minHeight: 44,
-                        ),
-                        icon: Icon(
-                          Icons.close,
-                          size: 14,
-                          color: theme.colorScheme.outline,
-                        ),
-                        onPressed: () {
-                          context
-                              .read<RecentHistoryCubit>()
-                              .removeRecentPokemon(item.id);
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                Row(
                   children: [
-                    Text(
-                      '#${item.id.toString().padLeft(3, '0')}',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.outline,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
                     Expanded(
-                      child: Center(
-                        child: item.spriteUrl.isNotEmpty
-                            ? Image.network(
-                                item.spriteUrl,
-                                fit: BoxFit.contain,
-                                errorBuilder: (_, _, _) => const Icon(
-                                  Icons.catching_pokemon,
-                                  size: 32,
-                                  color: AppPalette.brandRed,
-                                ),
-                              )
-                            : const Icon(
-                                Icons.catching_pokemon,
-                                size: 32,
-                                color: AppPalette.brandRed,
-                              ),
+                      child: Text(
+                        '#${pokemon.id.toString().padLeft(3, '0')}',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.outline,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      displayName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    IconButton(
+                      iconSize: 16,
+                      tooltip:
+                          '${AppLocalizations.of(context).removeFromHistory}: $displayName',
+                      icon: Icon(Icons.close, color: theme.colorScheme.outline),
+                      onPressed: () => context
+                          .read<RecentHistoryCubit>()
+                          .removeRecentPokemon(pokemon.id),
                     ),
                   ],
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: pokemon.spriteUrl.isNotEmpty
+                        ? Image.network(
+                            pokemon.spriteUrl,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, _, _) => placeholder,
+                          )
+                        : placeholder,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Text(
+                    displayName,
+                    maxLines: 1,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),

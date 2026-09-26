@@ -1,16 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:injectable/injectable.dart' hide test;
+import 'package:mocktail/mocktail.dart';
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/main.dart';
+import 'package:pokefinder/src/1_presentation/pages/detail/widgets/detail_header.dart';
 import 'package:pokefinder/src/1_presentation/router/app_router.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
+class _MockCryAudioController extends Mock implements CryAudioController {}
+
+/// Pumps frames until [finder] matches.
+///
+/// `mockNetworkImagesFor` never completes the image request, so the detail
+/// header's loading spinner animates forever and `pumpAndSettle` never returns.
+Future<void> pumpUntilFound(WidgetTester tester, Finder finder) async {
+  for (var i = 0; i < 50 && finder.evaluate().isEmpty; i++) {
+    await tester.pump(const Duration(milliseconds: 200));
+  }
+}
+
+/// Pumps a bounded number of frames so animations reach their final state.
+Future<void> pumpFrames(WidgetTester tester) async {
+  for (var i = 0; i < 12; i++) {
+    await tester.pump(const Duration(milliseconds: 200));
+  }
+}
+
 void main() {
   setUpAll(() async {
     ensureHydratedStorage();
-    await configureDependencies('mock');
+    await configureDependencies(Environment.dev);
   });
 
   Future<void> pumpDetailApp(
@@ -20,7 +42,8 @@ void main() {
     await mockNetworkImagesFor(() async {
       final router = createAppRouter(initialLocation: '/pokemon/$pokemon');
       await tester.pumpWidget(MyApp(router: router));
-      await tester.pumpAndSettle();
+      await pumpUntilFound(tester, find.byType(DetailHeader));
+      await pumpFrames(tester);
     });
   }
 
@@ -29,14 +52,16 @@ void main() {
       if (getIt.isRegistered<FavoritesCubit>()) {
         final favoritesCubit = getIt<FavoritesCubit>();
         for (final fav in favoritesCubit.state.favorites) {
-          favoritesCubit.removeFavorite(fav.id);
+          favoritesCubit.removeFavorite(fav.pokemon.id);
         }
       }
       if (getIt.isRegistered<RecentHistoryCubit>()) {
         getIt<RecentHistoryCubit>().clearAllHistory();
       }
       if (getIt.isRegistered<PreferencesCubit>()) {
-        getIt<PreferencesCubit>().setUnitSystem(UnitSystem.metric);
+        getIt<PreferencesCubit>()
+          ..setUnitSystem(UnitSystem.metric)
+          ..setAutoPlayCry(false);
       }
     });
 
@@ -47,8 +72,11 @@ void main() {
 
         final recentHistoryCubit = getIt<RecentHistoryCubit>();
         expect(recentHistoryCubit.state.recentPokemon, isNotEmpty);
-        expect(recentHistoryCubit.state.recentPokemon.first.id, 1);
-        expect(recentHistoryCubit.state.recentPokemon.first.name, 'bulbasaur');
+        expect(recentHistoryCubit.state.recentPokemon.first.pokemon.id, 1);
+        expect(
+          recentHistoryCubit.state.recentPokemon.first.pokemon.name,
+          'bulbasaur',
+        );
       },
     );
 
@@ -63,14 +91,14 @@ void main() {
 
         // Tap favorite button to add to favorites
         await tester.tap(find.byIcon(Icons.favorite_border_rounded));
-        await tester.pumpAndSettle();
+        await pumpFrames(tester);
 
         expect(favoritesCubit.isFavorite(1), isTrue);
         expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
 
         // Tap favorite button to remove from favorites
         await tester.tap(find.byIcon(Icons.favorite_rounded));
-        await tester.pumpAndSettle();
+        await pumpFrames(tester);
 
         expect(favoritesCubit.isFavorite(1), isFalse);
         expect(find.byIcon(Icons.favorite_border_rounded), findsOneWidget);
@@ -91,11 +119,53 @@ void main() {
 
         // Switch to Imperial
         preferencesCubit.setUnitSystem(UnitSystem.imperial);
-        await tester.pumpAndSettle();
+        await pumpFrames(tester);
 
         // In Imperial: Bulbasaur is 2' 04" and 15.2 lbs
         expect(find.text('2\' 04"'), findsOneWidget);
         expect(find.text('15.2 lbs'), findsOneWidget);
+      },
+    );
+  });
+
+  group('Detail Page - auto-play cry runs once per loaded Pokémon', () {
+    late _MockCryAudioController audioController;
+
+    setUp(() {
+      audioController = _MockCryAudioController();
+      when(() => audioController.state).thenReturn(const CryPlaybackState());
+      when(
+        () => audioController.stateStream,
+      ).thenAnswer((_) => const Stream<CryPlaybackState>.empty());
+      when(() => audioController.setVolume(any())).thenAnswer((_) async {});
+      when(() => audioController.play(any())).thenAnswer((_) async {});
+      when(() => audioController.toggle(any())).thenAnswer((_) async {});
+      when(() => audioController.dispose()).thenAnswer((_) async {});
+
+      getIt.unregister<CryAudioController>();
+      getIt.registerFactory<CryAudioController>(() => audioController);
+
+      getIt<RecentHistoryCubit>().clearAllHistory();
+      getIt<PreferencesCubit>()
+        ..setAutoPlayCry(true)
+        ..setCryVolume(0.5);
+    });
+
+    testWidgets(
+      'plays the cry exactly once although the bloc emits success repeatedly',
+      (tester) async {
+        await pumpDetailApp(tester, pokemon: 'bulbasaur');
+
+        // The bloc emits PokemonBlocSuccess for the data, then again for the
+        // background encounters: both carry the same Pokémon id, so the
+        // listenWhen must collapse them into a single cry playback.
+        verify(() => audioController.play(any())).called(1);
+        verify(() => audioController.setVolume(0.5)).called(1);
+
+        // ...and the history entry is recorded once, not twice.
+        final recentPokemon = getIt<RecentHistoryCubit>().state.recentPokemon;
+        expect(recentPokemon, hasLength(1));
+        expect(recentPokemon.first.pokemon.id, 1);
       },
     );
   });

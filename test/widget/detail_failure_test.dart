@@ -40,7 +40,7 @@ void main() {
       );
 
       // Verify Retry button works
-      final retryFinder = find.widgetWithText(ElevatedButton, 'Retry');
+      final retryFinder = find.widgetWithText(FilledButton, 'Retry');
       expect(retryFinder, findsOneWidget);
       await tester.tap(retryFinder);
       expect(retryCalled, isTrue);

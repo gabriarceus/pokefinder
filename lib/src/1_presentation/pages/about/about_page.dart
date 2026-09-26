@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
-import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Screen presenting app version, PokeAPI attribution, legal disclaimers, and open source licenses.
@@ -89,14 +88,7 @@ class _AboutPageState extends State<AboutPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          t.aboutPokeFinder,
-          style: const TextStyle(color: AppPalette.onBrandRed),
-        ),
-        backgroundColor: AppPalette.brandRed,
-        iconTheme: const IconThemeData(color: AppPalette.onBrandRed),
-      ),
+      appBar: AppBar(title: Text(t.aboutPokeFinder)),
       body: FutureBuilder<PackageInfo>(
         future: _packageInfoFuture,
         builder: (context, snapshot) {
@@ -115,13 +107,15 @@ class _AboutPageState extends State<AboutPage> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: AppPalette.brandRed.withValues(alpha: 0.1),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.catching_pokemon,
                         size: 48,
-                        color: AppPalette.brandRed,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -238,9 +232,9 @@ class _AboutPageState extends State<AboutPage> {
                     applicationVersion: version != null && buildNumber != null
                         ? '$version+$buildNumber'
                         : null,
-                    applicationIcon: const Icon(
+                    applicationIcon: Icon(
                       Icons.catching_pokemon,
-                      color: AppPalette.brandRed,
+                      color: Theme.of(context).colorScheme.primary,
                       size: 40,
                     ),
                   );
