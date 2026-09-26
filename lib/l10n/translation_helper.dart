@@ -1,192 +1,159 @@
 import 'package:flutter/widgets.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/l10n/abilities_db.dart';
+import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/l10n/items_db.dart';
+import 'package:pokefinder/l10n/locations_db.dart';
+import 'package:pokefinder/l10n/moves_db.dart';
 import 'package:pokefinder/l10n/translation_fallback.dart';
 import 'package:pokefinder/src/3_domain/entities/damage_class.dart';
-import 'package:pokefinder/l10n/moves_db.dart';
-import 'package:pokefinder/l10n/locations_db.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
 import 'package:pokefinder/src/3_domain/helpers/string_casing_extensions.dart';
 
+/// Bundled translations per language code, for each kind of PokeAPI slug.
+const Map<String, Map<String, String>> _abilitiesByLocale = {'it': abilitiesDb};
+const Map<String, Map<String, String>> _movesByLocale = {'it': movesDb};
+const Map<String, Map<String, String>> _itemsByLocale = {'it': itemsDb};
+const Map<String, Map<String, String>> _locationsByLocale = {'it': locationsDb};
+
+/// Italian word for "route" in location names.
+const Map<String, String> _routeWordByLocale = {'it': 'Percorso'};
+
+/// Returns the [languageCode] translation of [slug] from [dbByLocale], or the
+/// title-cased slug when there is none.
+String _translate(
+  Map<String, Map<String, String>> dbByLocale,
+  String slug,
+  String languageCode,
+) {
+  final key = slug.toLowerCase().trim();
+  return usableTranslationOrNull(dbByLocale[languageCode]?[key]) ??
+      slug.toDisplayCase();
+}
+
+/// Returns the display name of the move [slug] in [languageCode].
+String translateMoveSlug(String slug, String languageCode) =>
+    _translate(_movesByLocale, slug, languageCode);
+
+final _routePattern = RegExp(r'^([a-z\-]+)-route-(\d+)(-area)?$');
+final _floorPattern = RegExp(r'^(.+)-(b?\d+f)$');
+
+/// Returns the display name of the location [slug] in [languageCode].
+///
+/// The name is translated as a whole or not at all: when any part has no
+/// translation, the whole title-cased English name is returned.
+String translateLocationSlug(String slug, String languageCode) {
+  final english = slug.toDisplayCase();
+  final db = _locationsByLocale[languageCode];
+  if (db == null) return english;
+
+  var key = slug.toLowerCase().trim();
+  final route = _routePattern.firstMatch(key);
+  if (route != null) {
+    final region = usableTranslationOrNull(db[route.group(1)]);
+    final routeWord = _routeWordByLocale[languageCode];
+    if (region == null || routeWord == null) return english;
+    return '$routeWord ${route.group(2)} ($region)';
+  }
+
+  if (!db.containsKey(key) && key.endsWith('-area')) {
+    key = key.substring(0, key.length - '-area'.length);
+  }
+  final floor = _floorPattern.firstMatch(key);
+  final base = floor != null && !db.containsKey(key) ? floor.group(1)! : key;
+  final translated = usableTranslationOrNull(db[base]);
+  if (translated == null) return english;
+  return base == key
+      ? translated
+      : '$translated ${floor!.group(2)!.toUpperCase()}';
+}
+
+/// Localized names of game versions and version groups, keyed by slug.
+final Map<String, String Function(AppLocalizations)> _gameNames = {
+  'red': (t) => t.gameRed,
+  'blue': (t) => t.gameBlue,
+  'yellow': (t) => t.gameYellow,
+  'gold': (t) => t.gameGold,
+  'silver': (t) => t.gameSilver,
+  'crystal': (t) => t.gameCrystal,
+  'ruby': (t) => t.gameRuby,
+  'sapphire': (t) => t.gameSapphire,
+  'emerald': (t) => t.gameEmerald,
+  'firered': (t) => t.gameFirered,
+  'leafgreen': (t) => t.gameLeafgreen,
+  'diamond': (t) => t.gameDiamond,
+  'pearl': (t) => t.gamePearl,
+  'platinum': (t) => t.gamePlatinum,
+  'heartgold': (t) => t.gameHeartgold,
+  'soulsilver': (t) => t.gameSoulsilver,
+  'black': (t) => t.gameBlack,
+  'white': (t) => t.gameWhite,
+  'black-2': (t) => t.gameBlack2,
+  'white-2': (t) => t.gameWhite2,
+  'x': (t) => t.gameX,
+  'y': (t) => t.gameY,
+  'omega-ruby': (t) => t.gameOmegaRuby,
+  'alpha-sapphire': (t) => t.gameAlphaSapphire,
+  'sun': (t) => t.gameSun,
+  'moon': (t) => t.gameMoon,
+  'ultra-sun': (t) => t.gameUltraSun,
+  'ultra-moon': (t) => t.gameUltraMoon,
+  'lets-go-pikachu': (t) => t.gameLetsGoPikachu,
+  'lets-go-eevee': (t) => t.gameLetsGoEevee,
+  'sword': (t) => t.gameSword,
+  'shield': (t) => t.gameShield,
+  'the-isle-of-armor': (t) => t.gameTheIsleOfArmor,
+  'the-crown-tundra': (t) => t.gameTheCrownTundra,
+  'legends-arceus': (t) => t.gameLegendsArceus,
+  'scarlet': (t) => t.gameScarlet,
+  'violet': (t) => t.gameViolet,
+  'the-teal-mask': (t) => t.gameTheTealMask,
+  'the-indigo-disk': (t) => t.gameTheIndigoDisk,
+  'colosseum': (t) => t.gameColosseum,
+  'xd': (t) => t.gameXd,
+  'red-blue': (t) => t.gameGroupRedBlue,
+  'gold-silver': (t) => t.gameGroupGoldSilver,
+  'ruby-sapphire': (t) => t.gameGroupRubySapphire,
+  'firered-leafgreen': (t) => t.gameGroupFireredLeafgreen,
+  'diamond-pearl': (t) => t.gameGroupDiamondPearl,
+  'heartgold-soulsilver': (t) => t.gameGroupHeartgoldSoulsilver,
+  'black-white': (t) => t.gameGroupBlackWhite,
+  'black-2-white-2': (t) => t.gameGroupBlack2White2,
+  'x-y': (t) => t.gameGroupXY,
+  'omega-ruby-alpha-sapphire': (t) => t.gameGroupOmegaRubyAlphaSapphire,
+  'sun-moon': (t) => t.gameGroupSunMoon,
+  'ultra-sun-ultra-moon': (t) => t.gameGroupUltraSunUltraMoon,
+  'lets-go-pikachu-lets-go-eevee': (t) => t.gameGroupLetsGoPikachuLetsGoEevee,
+  'sword-shield': (t) => t.gameGroupSwordShield,
+  'scarlet-violet': (t) => t.gameGroupScarletViolet,
+};
+
 extension TranslationExtension on BuildContext {
+  String get _languageCode => Localizations.localeOf(this).languageCode;
+
   /// Returns the localized display name for [entry].
   String translatePokemonIndexEntry(PokemonIndexEntry entry) {
-    final locale = Localizations.localeOf(this);
-    return entry.getDisplayName(languageCode: locale.languageCode);
+    return entry.getDisplayName(languageCode: _languageCode);
   }
 
-  String translateAbility(String name) {
-    final key = name.toLowerCase().trim();
-    final locale = Localizations.localeOf(this);
+  String translateAbility(String name) =>
+      _translate(_abilitiesByLocale, name, _languageCode);
 
-    if (locale.languageCode == 'it') {
-      final translation = usableTranslationOrNull(abilitiesDb[key]);
-      if (translation != null) {
-        return translation;
-      }
-    }
-    return name.toDisplayCase();
-  }
-
-  String translateMove(String name) {
-    final key = name.toLowerCase().trim();
-    final locale = Localizations.localeOf(this);
-
-    if (locale.languageCode == 'it') {
-      final translation = usableTranslationOrNull(movesDb[key]);
-      if (translation != null) {
-        return translation;
-      }
-    }
-    return name.toDisplayCase();
-  }
+  String translateMove(String name) => translateMoveSlug(name, _languageCode);
 
   /// Returns the localized display name for a held/evolution [item] slug.
   ///
-  /// Italian names come from [itemsDb]; every other case falls back to
-  /// title case, never to a raw UPPER-CASED slug.
-  String translateItem(String name) {
-    final key = name.toLowerCase().trim();
-    final locale = Localizations.localeOf(this);
+  /// Falls back to title case, never to a raw UPPER-CASED slug.
+  String translateItem(String name) =>
+      _translate(_itemsByLocale, name, _languageCode);
 
-    if (locale.languageCode == 'it') {
-      final translation = usableTranslationOrNull(itemsDb[key]);
-      if (translation != null) {
-        return translation;
-      }
-    }
-    return name.toDisplayCase();
-  }
-
-  String translateLocation(String rawName) {
-    final locale = Localizations.localeOf(this);
-    if (locale.languageCode == 'it') {
-      return _translateLocationToItalian(rawName);
-    }
-    return rawName.toDisplayCase();
-  }
+  String translateLocation(String rawName) =>
+      translateLocationSlug(rawName, _languageCode);
 
   String translateGameVersion(String gameName) {
-    final t = AppLocalizations.of(this);
-    final key = gameName.toLowerCase().trim();
-    switch (key) {
-      case 'red':
-        return t.gameRed;
-      case 'blue':
-        return t.gameBlue;
-      case 'yellow':
-        return t.gameYellow;
-      case 'gold':
-        return t.gameGold;
-      case 'silver':
-        return t.gameSilver;
-      case 'crystal':
-        return t.gameCrystal;
-      case 'ruby':
-        return t.gameRuby;
-      case 'sapphire':
-        return t.gameSapphire;
-      case 'emerald':
-        return t.gameEmerald;
-      case 'firered':
-        return t.gameFirered;
-      case 'leafgreen':
-        return t.gameLeafgreen;
-      case 'diamond':
-        return t.gameDiamond;
-      case 'pearl':
-        return t.gamePearl;
-      case 'platinum':
-        return t.gamePlatinum;
-      case 'heartgold':
-        return t.gameHeartgold;
-      case 'soulsilver':
-        return t.gameSoulsilver;
-      case 'black':
-        return t.gameBlack;
-      case 'white':
-        return t.gameWhite;
-      case 'black-2':
-        return t.gameBlack2;
-      case 'white-2':
-        return t.gameWhite2;
-      case 'x':
-        return t.gameX;
-      case 'y':
-        return t.gameY;
-      case 'omega-ruby':
-        return t.gameOmegaRuby;
-      case 'alpha-sapphire':
-        return t.gameAlphaSapphire;
-      case 'sun':
-        return t.gameSun;
-      case 'moon':
-        return t.gameMoon;
-      case 'ultra-sun':
-        return t.gameUltraSun;
-      case 'ultra-moon':
-        return t.gameUltraMoon;
-      case 'lets-go-pikachu':
-        return t.gameLetsGoPikachu;
-      case 'lets-go-eevee':
-        return t.gameLetsGoEevee;
-      case 'sword':
-        return t.gameSword;
-      case 'shield':
-        return t.gameShield;
-      case 'the-isle-of-armor':
-        return t.gameTheIsleOfArmor;
-      case 'the-crown-tundra':
-        return t.gameTheCrownTundra;
-      case 'legends-arceus':
-        return t.gameLegendsArceus;
-      case 'scarlet':
-        return t.gameScarlet;
-      case 'violet':
-        return t.gameViolet;
-      case 'the-teal-mask':
-        return t.gameTheTealMask;
-      case 'the-indigo-disk':
-        return t.gameTheIndigoDisk;
-      case 'colosseum':
-        return t.gameColosseum;
-      case 'xd':
-        return t.gameXd;
-      // Groups:
-      case 'red-blue':
-        return t.gameGroupRedBlue;
-      case 'gold-silver':
-        return t.gameGroupGoldSilver;
-      case 'ruby-sapphire':
-        return t.gameGroupRubySapphire;
-      case 'firered-leafgreen':
-        return t.gameGroupFireredLeafgreen;
-      case 'diamond-pearl':
-        return t.gameGroupDiamondPearl;
-      case 'heartgold-soulsilver':
-        return t.gameGroupHeartgoldSoulsilver;
-      case 'black-white':
-        return t.gameGroupBlackWhite;
-      case 'black-2-white-2':
-        return t.gameGroupBlack2White2;
-      case 'x-y':
-        return t.gameGroupXY;
-      case 'omega-ruby-alpha-sapphire':
-        return t.gameGroupOmegaRubyAlphaSapphire;
-      case 'sun-moon':
-        return t.gameGroupSunMoon;
-      case 'ultra-sun-ultra-moon':
-        return t.gameGroupUltraSunUltraMoon;
-      case 'lets-go-pikachu-lets-go-eevee':
-        return t.gameGroupLetsGoPikachuLetsGoEevee;
-      case 'sword-shield':
-        return t.gameGroupSwordShield;
-      case 'scarlet-violet':
-        return t.gameGroupScarletViolet;
-      default:
-        return gameName.toDisplayCase();
-    }
+    final name = _gameNames[gameName.toLowerCase().trim()];
+    return name != null
+        ? name(AppLocalizations.of(this))
+        : gameName.toDisplayCase();
   }
 
   /// Returns the localized name of the Pokémon [typeName], or null when the
@@ -209,67 +176,5 @@ extension TranslationExtension on BuildContext {
       DamageClass.special => t.damageClassSpecial,
       DamageClass.status => t.damageClassStatus,
     };
-  }
-
-  static final List<String> _sortedLocationKeys = List.unmodifiable(
-    locationsDb.keys.toList()..sort((a, b) => b.length.compareTo(a.length)),
-  );
-
-  String _translateLocationToItalian(String rawName) {
-    String name = rawName.toLowerCase().trim();
-
-    // 1. Match routes, e.g. "sinnoh-route-201", "kanto-route-1", "kanto-route-1-area"
-    final routeRegExp = RegExp(r'^([a-z\-]+)-route-(\d+)(.*)$');
-    final match = routeRegExp.firstMatch(name);
-    if (match != null) {
-      final region = match.group(1)!;
-      final routeNumber = match.group(2)!;
-      final suffix = match.group(3) ?? '';
-
-      final translatedRegion = locationsDb[region] ?? region.capitalize();
-      final translatedSuffix = _translateLocationSuffix(suffix);
-
-      return 'Percorso $routeNumber ($translatedRegion)$translatedSuffix';
-    }
-
-    // 2. Lookup other locations using length-descending order to avoid partial matches
-    String translated = name;
-
-    for (final key in _sortedLocationKeys) {
-      if (translated.contains(key)) {
-        final replacement = locationsDb[key]!;
-        translated = translated.replaceFirst(key, '##$replacement##');
-      }
-    }
-
-    // 3. Translate suffix parts
-    translated = _translateLocationSuffix(translated);
-
-    // 4. Remove the ## markers
-    translated = translated.replaceAll('##', '');
-
-    // 5. Clean up duplicate spaces and capitalize words
-    return translated.capitalizeWords();
-  }
-
-  String _translateLocationSuffix(String suffix) {
-    return suffix
-        .replaceAll('-area', ' area')
-        .replaceAll('-entrance', ' ingresso')
-        .replaceAll('-exterior', ' esterno')
-        .replaceAll('-hideout', ' rifugio')
-        .replaceAll('-inside', ' interno')
-        .replaceAll('-1f', ' 1F')
-        .replaceAll('-2f', ' 2F')
-        .replaceAll('-3f', ' 3F')
-        .replaceAll('-4f', ' 4F')
-        .replaceAll('-5f', ' 5F')
-        .replaceAll('-6f', ' 6F')
-        .replaceAll('-7f', ' 7F')
-        .replaceAll('-b1f', ' B1F')
-        .replaceAll('-b2f', ' B2F')
-        .replaceAll('-b3f', ' B3F')
-        .replaceAll('-b4f', ' B4F')
-        .replaceAll('-', ' ');
   }
 }

@@ -2,90 +2,70 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-/// Paint widget to wrap PokeBallPainter.
-/// Receives a [Color] and a [double] opacity to be passed down to PokeBallPainter
+/// A decorative Poké Ball drawn with the theme colors: a primary top half,
+/// a light bottom half and a dark band with a center button.
 class PokeBallWidget extends StatelessWidget {
-  final Color color;
-  final double? opacity;
-  final CustomPainter? foregroundPainter;
-  final Size size;
-  final bool isComplex;
-  final bool willChange;
-  final Widget? child;
+  const PokeBallWidget({super.key, required this.size});
 
-  const PokeBallWidget({
-    super.key,
-    required this.color,
-    this.opacity,
-    this.foregroundPainter,
-    this.size = Size.zero,
-    this.isComplex = false,
-    this.willChange = false,
-    this.child,
-  });
+  final double size;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return CustomPaint(
-      painter: PokeBallPainter(color: color, opacity: opacity),
-      foregroundPainter: foregroundPainter,
-      isComplex: isComplex,
-      size: size,
-      willChange: willChange,
-      child: child,
+      size: Size.square(size),
+      painter: PokeBallPainter(
+        topColor: colorScheme.primary,
+        bottomColor: colorScheme.surfaceContainerHighest,
+        bandColor: colorScheme.onSurface,
+      ),
     );
   }
 }
 
-/// Painter for the pokeball shape.
-/// Receives a [Color] as a parameter to be used for the shape fill color.
-/// [double] opacity to set the shape opacity
+/// Paints a Poké Ball that fills the smaller side of the canvas.
 class PokeBallPainter extends CustomPainter {
-  final Color color;
-  final double? opacity;
+  PokeBallPainter({
+    required this.topColor,
+    required this.bottomColor,
+    required this.bandColor,
+  });
 
-  PokeBallPainter({required this.color, this.opacity});
+  final Color topColor;
+  final Color bottomColor;
+  final Color bandColor;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final minSize = min<double>(size.width, size.height);
-    final centerOffset = Offset(size.width / 2, size.height / 2);
-    final mainPaint = Paint()..color = color.withValues(alpha: opacity ?? 0.5);
-    final padding = minSize / 20;
-    final strokeWidth = minSize / 13;
-    final linePaintToRemove = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..blendMode = BlendMode.dstOut;
-    final circlePaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..blendMode = BlendMode.dstOut;
-    final centerCircleRadius = minSize / 8;
+    final diameter = min(size.width, size.height);
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = diameter / 2;
+    final band = diameter / 13;
+    final ball = Rect.fromCircle(center: center, radius: radius);
 
-    canvas.saveLayer(
-      Rect.fromCenter(center: centerOffset, width: minSize, height: minSize),
-      Paint(),
+    canvas.drawArc(ball, pi, pi, true, Paint()..color = topColor);
+    canvas.drawArc(ball, 0, pi, true, Paint()..color = bottomColor);
+
+    final bandPaint = Paint()..color = bandColor;
+    canvas.drawRect(
+      Rect.fromCenter(center: center, width: diameter, height: band),
+      bandPaint,
     );
-    // Draw the outside circle
-    canvas.drawCircle(centerOffset, minSize / 2, mainPaint);
-    // Draw the parts to remove
-    canvas.drawLine(
-      Offset(0, size.height / 2),
-      Offset(size.width / 2 - centerCircleRadius - padding, size.height / 2),
-      linePaintToRemove,
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = bandColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = band / 2,
     );
-    canvas.drawLine(
-      Offset(size.width / 2 + centerCircleRadius + padding, size.height / 2),
-      Offset(size.width, size.height / 2),
-      linePaintToRemove,
-    );
-    // Draw the middle circle with the same stroke as the rectangles
-    canvas.drawCircle(centerOffset, centerCircleRadius + padding, circlePaint);
-    canvas.restore();
+    canvas.drawCircle(center, diameter / 6, bandPaint);
+    canvas.drawCircle(center, diameter / 10, Paint()..color = bottomColor);
   }
 
   @override
   bool shouldRepaint(PokeBallPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.opacity != opacity;
+      oldDelegate.topColor != topColor ||
+      oldDelegate.bottomColor != bottomColor ||
+      oldDelegate.bandColor != bandColor;
 }

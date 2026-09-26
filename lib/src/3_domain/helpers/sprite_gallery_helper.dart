@@ -15,53 +15,59 @@ class SpriteGalleryHelper {
   static List<SpriteVariant> buildAllVariants(Pokemon pokemon) => [
     SpriteVariant(
       kind: SpriteVariantKind.artworkDefault,
-      url: pokemon.officialArtworkDefault,
+      url: pokemon.sprites.artworkDefault,
     ),
     SpriteVariant(
       kind: SpriteVariantKind.artworkShiny,
-      url: pokemon.officialArtworkShiny,
+      url: pokemon.sprites.artworkShiny,
     ),
     SpriteVariant(
       kind: SpriteVariantKind.frontDefault,
-      url: pokemon.spriteFrontDefault ?? pokemon.sprite,
+      url: pokemon.sprites.frontDefault ?? pokemon.sprite,
     ),
     SpriteVariant(
       kind: SpriteVariantKind.backDefault,
-      url: pokemon.spriteBackDefault,
+      url: pokemon.sprites.backDefault,
     ),
     SpriteVariant(
       kind: SpriteVariantKind.frontShiny,
-      url: pokemon.spriteFrontShiny,
+      url: pokemon.sprites.frontShiny,
     ),
     SpriteVariant(
       kind: SpriteVariantKind.backShiny,
-      url: pokemon.spriteBackShiny,
+      url: pokemon.sprites.backShiny,
     ),
     SpriteVariant(
       kind: SpriteVariantKind.frontFemale,
-      url: pokemon.spriteFrontFemale,
+      url: pokemon.sprites.frontFemale,
     ),
     SpriteVariant(
       kind: SpriteVariantKind.backFemale,
-      url: pokemon.spriteBackFemale,
+      url: pokemon.sprites.backFemale,
     ),
     SpriteVariant(
       kind: SpriteVariantKind.frontShinyFemale,
-      url: pokemon.spriteFrontShinyFemale,
+      url: pokemon.sprites.frontShinyFemale,
     ),
     SpriteVariant(
       kind: SpriteVariantKind.backShinyFemale,
-      url: pokemon.spriteBackShinyFemale,
+      url: pokemon.sprites.backShinyFemale,
     ),
     SpriteVariant(
       kind: SpriteVariantKind.homeDefault,
-      url: pokemon.homeDefault,
+      url: pokemon.sprites.homeDefault,
     ),
-    SpriteVariant(kind: SpriteVariantKind.homeFemale, url: pokemon.homeFemale),
-    SpriteVariant(kind: SpriteVariantKind.homeShiny, url: pokemon.homeShiny),
+    SpriteVariant(
+      kind: SpriteVariantKind.homeFemale,
+      url: pokemon.sprites.homeFemale,
+    ),
+    SpriteVariant(
+      kind: SpriteVariantKind.homeShiny,
+      url: pokemon.sprites.homeShiny,
+    ),
     SpriteVariant(
       kind: SpriteVariantKind.homeShinyFemale,
-      url: pokemon.homeShinyFemale,
+      url: pokemon.sprites.homeShinyFemale,
     ),
   ];
 

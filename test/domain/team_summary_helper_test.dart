@@ -9,10 +9,7 @@ TeamMember _member(
   List<PokemonType> types = const [PokemonType.electric],
 }) {
   return TeamMember(
-    id: id,
-    name: name,
-    spriteUrl: '',
-    types: types,
+    pokemon: PokemonSummary(id: id, name: name, spriteUrl: '', types: types),
     addedAt: DateTime.utc(2026, 1, 1),
   );
 }

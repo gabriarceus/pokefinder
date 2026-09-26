@@ -5,18 +5,12 @@ part 'ability_container.g.dart';
 
 @JsonSerializable()
 class AbilityContainer {
-  const AbilityContainer({
-    required this.ability,
-    required this.isHidden,
-    required this.slot,
-  });
+  const AbilityContainer({required this.ability, required this.isHidden});
 
   final Ability ability;
 
   @JsonKey(name: 'is_hidden')
   final bool isHidden;
-
-  final int slot;
 
   factory AbilityContainer.fromJson(Map<String, dynamic> json) =>
       _$AbilityContainerFromJson(json);

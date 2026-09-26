@@ -9,26 +9,22 @@ import 'package:pokefinder/src/3_domain/domain.dart';
 
 class _MockEnLogger extends Mock implements EnLogger {}
 
-class _MockGetCacheSizeUseCase extends Mock implements GetCacheSizeUseCase {}
-
-class _MockClearCacheUseCase extends Mock implements ClearCacheUseCase {}
+class _MockPokemonRepository extends Mock implements IPokemonRepository {}
 
 void main() {
   late _MockEnLogger logger;
-  late _MockGetCacheSizeUseCase getCacheSizeUseCase;
-  late _MockClearCacheUseCase clearCacheUseCase;
+  late _MockPokemonRepository repository;
   late InMemoryHydratedStorage storage;
 
   setUp(() {
     logger = _MockEnLogger();
-    getCacheSizeUseCase = _MockGetCacheSizeUseCase();
-    clearCacheUseCase = _MockClearCacheUseCase();
+    repository = _MockPokemonRepository();
     storage = InMemoryHydratedStorage();
     HydratedBloc.storage = storage;
   });
 
   PreferencesCubit buildCubit() {
-    return PreferencesCubit(logger, getCacheSizeUseCase, clearCacheUseCase);
+    return PreferencesCubit(logger, repository);
   }
 
   group('PreferencesCubit', () {
@@ -67,40 +63,77 @@ void main() {
       expect(cubit.state.cryVolume, equals(1.0));
     });
 
-    test('refreshCacheSize updates cacheSizeBytes from use case', () async {
+    test(
+      'refreshCacheSize updates cacheSizeBytes from the repository',
+      () async {
+        when(
+          () => repository.getCacheSize(),
+        ).thenAnswer((_) async => const Right(2048));
+
+        final cubit = buildCubit();
+        await cubit.refreshCacheSize();
+
+        expect(cubit.state.cacheSizeBytes, equals(2048));
+        verify(() => repository.getCacheSize()).called(1);
+      },
+    );
+
+    test('refreshCacheSize keeps the previous value on failure', () async {
       when(
-        () => getCacheSizeUseCase(),
-      ).thenAnswer((_) async => const Right(2048));
+        () => repository.getCacheSize(),
+      ).thenAnswer((_) async => left(const StorageFailure('disk full')));
 
       final cubit = buildCubit();
       await cubit.refreshCacheSize();
 
-      expect(cubit.state.cacheSizeBytes, equals(2048));
-      verify(() => getCacheSizeUseCase()).called(1);
+      expect(cubit.state.cacheSizeBytes, equals(0));
     });
 
     test(
-      'clearCache invokes clearCacheUseCase and refreshes cache size',
+      'clearCache invokes the repository and refreshes cache size',
       () async {
         when(
-          () => clearCacheUseCase(),
+          () => repository.clearCache(),
         ).thenAnswer((_) async => const Right(unit));
         when(
-          () => getCacheSizeUseCase(),
+          () => repository.getCacheSize(),
         ).thenAnswer((_) async => const Right(0));
 
         final cubit = buildCubit();
         await cubit.clearCache();
+        await pumpEventQueue();
 
         expect(cubit.state.cacheSizeBytes, equals(0));
-        verify(() => clearCacheUseCase()).called(1);
+        verify(() => repository.clearCache()).called(1);
+        verify(() => repository.getCacheSize()).called(1);
       },
     );
 
-    test('persists state across cubit restarts', () async {
-      when(() => getCacheSizeUseCase()).thenAnswer((_) async => const Right(0));
+    test('clearCache keeps the previous size when clearing fails', () async {
       when(
-        () => clearCacheUseCase(),
+        () => repository.getCacheSize(),
+      ).thenAnswer((_) async => const Right(2048));
+      when(
+        () => repository.clearCache(),
+      ).thenAnswer((_) async => left(const StorageFailure('read only')));
+
+      final cubit = buildCubit();
+      await cubit.refreshCacheSize();
+      await cubit.clearCache();
+      await pumpEventQueue();
+
+      expect(cubit.state.cacheSizeBytes, equals(2048));
+      // The refresh after a failed clear must not run.
+      verify(() => repository.getCacheSize()).called(1);
+      verify(() => repository.clearCache()).called(1);
+    });
+
+    test('persists state across cubit restarts', () async {
+      when(
+        () => repository.getCacheSize(),
+      ).thenAnswer((_) async => const Right(0));
+      when(
+        () => repository.clearCache(),
       ).thenAnswer((_) async => const Right(unit));
 
       final cubit1 = buildCubit();

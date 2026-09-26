@@ -38,6 +38,7 @@ class CompactStatRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     final baseColor = textColor ?? Theme.of(context).colorScheme.onSurface;
     final minVal = StatCalculator.calculateMinStat(kind, value);
     final maxVal = StatCalculator.calculateMaxStat(kind, value);
@@ -63,8 +64,7 @@ class CompactStatRow extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(
-              fontSize: 14,
+            style: textTheme.bodyMedium?.copyWith(
               color: baseColor.withValues(alpha: 0.8),
               fontWeight: FontWeight.w600,
             ),
@@ -72,8 +72,7 @@ class CompactStatRow extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             '${context.t().statsBase}: $formattedValue | ${context.t().statsMin}: $formattedMin | ${context.t().statsMax}: $formattedMax',
-            style: TextStyle(
-              fontSize: 12,
+            style: textTheme.bodySmall?.copyWith(
               color: baseColor.withValues(alpha: 0.8),
               fontWeight: FontWeight.w500,
             ),

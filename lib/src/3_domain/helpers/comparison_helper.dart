@@ -1,7 +1,7 @@
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/3_domain/helpers/stat_calculator.dart';
 
-/// Maximum number of Pokémon entries held for side-by-side comparison (v1).
+/// Maximum number of Pokémon entries held for side-by-side comparison.
 const kComparisonMaxEntries = 2;
 
 /// Which side leads a [ComparisonStatRow].
@@ -55,7 +55,3 @@ List<ComparisonStatRow> buildComparisonStatRows(Pokemon first, Pokemon second) {
     ),
   );
 }
-
-/// Whether another entry can be added given [currentCount] selected entries.
-bool canAddToComparison(int currentCount) =>
-    currentCount < kComparisonMaxEntries;

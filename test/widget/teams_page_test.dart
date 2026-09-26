@@ -1,8 +1,10 @@
+import 'package:dartz/dartz.dart';
 import 'package:en_logger/en_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:injectable/injectable.dart' hide test;
 import 'package:mocktail/mocktail.dart';
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/bootstrap.dart';
@@ -10,11 +12,16 @@ import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/_app_bar.dart';
 import 'package:pokefinder/src/1_presentation/pages/teams/team_detail_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/teams/teams_list_page.dart';
+import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:pokefinder/src/1_presentation/widgets/pokedex/pokemon_card.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
+import '../fixtures/pokemon_fixture.dart';
+
 class _MockEnLogger extends Mock implements EnLogger {}
+
+class _MockPokemonRepository extends Mock implements IPokemonRepository {}
 
 const _bulbasaurEntry = PokemonIndexEntry(
   id: 1,
@@ -30,54 +37,90 @@ const _charmanderEntry = PokemonIndexEntry(
 );
 
 void main() {
-  setUpAll(() async {
-    ensureHydratedStorage();
-    await configureDependencies('mock');
-  });
-
   late TeamsCubit teamsCubit;
+  late FavoritesCubit favoritesCubit;
+  late ComparisonCubit comparisonCubit;
+  late _MockPokemonRepository repository;
+
+  setUpAll(() async {
+    // O11: build the DI graph, then inject a local mock repository so the
+    // summary fetches of the team detail page never reach the network.
+    registerFallbackValue(PokemonName('bulbasaur'));
+    ensureHydratedStorage();
+    repository = _MockPokemonRepository();
+    await configureDependencies(Environment.dev);
+    getIt.unregister<IPokemonRepository>();
+    getIt.registerSingleton<IPokemonRepository>(repository);
+  });
 
   setUp(() {
     HydratedBloc.storage = InMemoryHydratedStorage();
     teamsCubit = TeamsCubit(_MockEnLogger());
+    favoritesCubit = FavoritesCubit(_MockEnLogger());
+    reset(repository);
+    when(
+      () => repository.getPokemon(any()),
+    ).thenAnswer((_) async => left(const NetworkUnavailableFailure('offline')));
+    when(
+      () => repository.getEncounters(any()),
+    ).thenAnswer((_) async => const Right(<PokemonEncounter>[]));
+    comparisonCubit = ComparisonCubit(_MockEnLogger(), repository);
   });
 
-  tearDown(() {
-    teamsCubit.close();
+  tearDown(() async {
+    await teamsCubit.close();
+    await favoritesCubit.close();
+    await comparisonCubit.close();
   });
+
+  /// Lets the mocked image requests complete, then settles the animations.
+  ///
+  /// `pumpAndSettle` alone never returns while a `CircularProgressIndicator`
+  /// is on screen waiting for an image, so the real async has to run first.
+  Future<void> settle(WidgetTester tester) async {
+    for (var i = 0; i < 3; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+  }
 
   Widget buildListHarness({
     GoRouter? router,
     Locale locale = const Locale('en'),
+    Widget? child,
   }) {
-    if (router != null) {
-      return BlocProvider<TeamsCubit>.value(
-        value: teamsCubit,
-        child: MaterialApp.router(
-          routerConfig: router,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: locale,
-        ),
-      );
-    }
-    return BlocProvider<TeamsCubit>.value(
-      value: teamsCubit,
-      child: MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        locale: locale,
-        home: const TeamsListPage(),
-      ),
+    final app = router != null
+        ? MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: locale,
+          )
+        : MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: locale,
+            home: child ?? const TeamsListPage(),
+          );
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<TeamsCubit>.value(value: teamsCubit),
+        BlocProvider<FavoritesCubit>.value(value: favoritesCubit),
+        BlocProvider<ComparisonCubit>.value(value: comparisonCubit),
+      ],
+      child: app,
     );
   }
 
-  GoRouter buildTeamsRouter({String initialLocation = '/teams'}) {
+  GoRouter buildTeamsRouter({String initialLocation = AppRoutes.teams}) {
     return GoRouter(
       initialLocation: initialLocation,
       routes: [
         GoRoute(
-          path: '/teams',
+          path: AppRoutes.teams,
           builder: (_, _) => const TeamsListPage(),
           routes: [
             GoRoute(
@@ -88,7 +131,7 @@ void main() {
           ],
         ),
         GoRoute(
-          path: '/pokedex',
+          path: AppRoutes.pokedex,
           builder: (_, _) => const Scaffold(body: Text('Pokédex Browse')),
         ),
         GoRoute(
@@ -116,7 +159,7 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.widgetWithText(ElevatedButton, 'New team'), findsOneWidget);
+      expect(find.widgetWithText(FilledButton, 'New team'), findsOneWidget);
     });
 
     testWidgets('localizes the empty state in Italian', (tester) async {
@@ -126,7 +169,7 @@ void main() {
       expect(find.text('Squadre'), findsOneWidget);
       expect(find.text('Nessuna squadra'), findsOneWidget);
       expect(
-        find.widgetWithText(ElevatedButton, 'Nuova squadra'),
+        find.widgetWithText(FilledButton, 'Nuova squadra'),
         findsOneWidget,
       );
     });
@@ -135,7 +178,7 @@ void main() {
       await tester.pumpWidget(buildListHarness(router: buildTeamsRouter()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(ElevatedButton, 'New team'));
+      await tester.tap(find.widgetWithText(FilledButton, 'New team'));
       await tester.pumpAndSettle();
 
       expect(find.text('Create team'), findsOneWidget);
@@ -151,7 +194,7 @@ void main() {
       await tester.pumpWidget(buildListHarness());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(ElevatedButton, 'New team'));
+      await tester.tap(find.widgetWithText(FilledButton, 'New team'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'New team').last);
@@ -189,7 +232,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Delete team?'), findsOneWidget);
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Delete team'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete team'));
       await tester.pumpAndSettle();
 
       expect(teamsCubit.state.teams, isEmpty);
@@ -216,7 +259,7 @@ void main() {
         final teamId = teamsCubit.createTeam('Team');
         await tester.pumpWidget(
           buildListHarness(
-            router: buildTeamsRouter(initialLocation: '/teams/$teamId'),
+            router: buildTeamsRouter(initialLocation: AppRoutes.team(teamId)),
           ),
         );
         await tester.pumpAndSettle();
@@ -238,10 +281,10 @@ void main() {
     ) async {
       await mockNetworkImagesFor(() async {
         final teamId = teamsCubit.createTeam('Team');
-        teamsCubit.addMember(teamId: teamId, entry: _bulbasaurEntry);
+        teamsCubit.addMember(teamId: teamId, pokemon: _bulbasaurEntry.summary);
         await tester.pumpWidget(
           buildListHarness(
-            router: buildTeamsRouter(initialLocation: '/teams/$teamId'),
+            router: buildTeamsRouter(initialLocation: AppRoutes.team(teamId)),
           ),
         );
         await tester.pumpAndSettle();
@@ -261,11 +304,11 @@ void main() {
     testWidgets('duplicate members render a warning banner', (tester) async {
       await mockNetworkImagesFor(() async {
         final teamId = teamsCubit.createTeam('Team');
-        teamsCubit.addMember(teamId: teamId, entry: _bulbasaurEntry);
-        teamsCubit.addMember(teamId: teamId, entry: _bulbasaurEntry);
+        teamsCubit.addMember(teamId: teamId, pokemon: _bulbasaurEntry.summary);
+        teamsCubit.addMember(teamId: teamId, pokemon: _bulbasaurEntry.summary);
         await tester.pumpWidget(
           buildListHarness(
-            router: buildTeamsRouter(initialLocation: '/teams/$teamId'),
+            router: buildTeamsRouter(initialLocation: AppRoutes.team(teamId)),
           ),
         );
         await tester.pumpAndSettle();
@@ -281,11 +324,11 @@ void main() {
     testWidgets('remove flow drops the member', (tester) async {
       await mockNetworkImagesFor(() async {
         final teamId = teamsCubit.createTeam('Team');
-        teamsCubit.addMember(teamId: teamId, entry: _bulbasaurEntry);
-        teamsCubit.addMember(teamId: teamId, entry: _charmanderEntry);
+        teamsCubit.addMember(teamId: teamId, pokemon: _bulbasaurEntry.summary);
+        teamsCubit.addMember(teamId: teamId, pokemon: _charmanderEntry.summary);
         await tester.pumpWidget(
           buildListHarness(
-            router: buildTeamsRouter(initialLocation: '/teams/$teamId'),
+            router: buildTeamsRouter(initialLocation: AppRoutes.team(teamId)),
           ),
         );
         await tester.pumpAndSettle();
@@ -307,11 +350,17 @@ void main() {
       tester,
     ) async {
       await mockNetworkImagesFor(() async {
+        when(() => repository.getPokemon(any())).thenAnswer(
+          (_) async => right(buildPokemon(id: 1, name: 'bulbasaur')),
+        );
+        when(
+          () => repository.getEncounters(any()),
+        ).thenAnswer((_) async => const Right(<PokemonEncounter>[]));
         final teamId = teamsCubit.createTeam('Team');
-        teamsCubit.addMember(teamId: teamId, entry: _bulbasaurEntry);
+        teamsCubit.addMember(teamId: teamId, pokemon: _bulbasaurEntry.summary);
         await tester.pumpWidget(
           buildListHarness(
-            router: buildTeamsRouter(initialLocation: '/teams/$teamId'),
+            router: buildTeamsRouter(initialLocation: AppRoutes.team(teamId)),
           ),
         );
         await tester.pumpAndSettle();
@@ -321,21 +370,39 @@ void main() {
       });
     });
 
+    testWidgets('a failing member fetch shows an inline retry row', (
+      tester,
+    ) async {
+      await mockNetworkImagesFor(() async {
+        final teamId = teamsCubit.createTeam('Team');
+        teamsCubit.addMember(teamId: teamId, pokemon: _bulbasaurEntry.summary);
+        await tester.pumpWidget(
+          buildListHarness(
+            router: buildTeamsRouter(initialLocation: AppRoutes.team(teamId)),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('bulbasaur'), findsWidgets);
+        expect(find.byTooltip('Retry'), findsOneWidget);
+      });
+    });
+
     testWidgets('reordering members keeps the stats summary aligned', (
       tester,
     ) async {
       await mockNetworkImagesFor(() async {
         final teamId = teamsCubit.createTeam('Team');
-        teamsCubit.addMember(teamId: teamId, entry: _bulbasaurEntry);
-        teamsCubit.addMember(teamId: teamId, entry: _charmanderEntry);
+        teamsCubit.addMember(teamId: teamId, pokemon: _bulbasaurEntry.summary);
+        teamsCubit.addMember(teamId: teamId, pokemon: _charmanderEntry.summary);
         await tester.pumpWidget(
           buildListHarness(
-            router: buildTeamsRouter(initialLocation: '/teams/$teamId'),
+            router: buildTeamsRouter(initialLocation: AppRoutes.team(teamId)),
           ),
         );
         await tester.pumpAndSettle();
 
-        expect(find.textContaining('Total (sum)'), findsOneWidget);
+        expect(find.text('Type coverage'), findsOneWidget);
         await tester.drag(
           find.byType(ReorderableListView),
           const Offset(0, -500),
@@ -356,13 +423,13 @@ void main() {
           teamsCubit.state
               .teamById(teamId)!
               .members
-              .map((m) => m.name)
+              .map((m) => m.pokemon.name)
               .toList(),
           equals(['charmander', 'bulbasaur']),
         );
         expect(find.text('Bulbasaur'), findsOneWidget);
         expect(find.text('Charmander'), findsOneWidget);
-        expect(find.textContaining('Total (sum)'), findsOneWidget);
+        expect(find.text('Type coverage'), findsOneWidget);
         expect(tester.takeException(), isNull);
       });
     });
@@ -372,16 +439,18 @@ void main() {
     ) async {
       var invoked = 0;
       await tester.pumpWidget(
-        BlocProvider<TeamsCubit>.value(
-          value: teamsCubit,
-          child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              appBar: DetailAppBar(
-                backgroundColor: Colors.green,
-                onTeam: () => invoked++,
-              ),
+        buildListHarness(
+          child: Scaffold(
+            body: CustomScrollView(
+              slivers: [
+                DetailAppBar(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  expandedHeight: 200,
+                  background: const SizedBox.shrink(),
+                  onTeam: () => invoked++,
+                ),
+              ],
             ),
           ),
         ),
@@ -398,37 +467,36 @@ void main() {
 
   group('PokemonCard team action', () {
     Widget buildCardHarness() {
-      return BlocProvider<TeamsCubit>.value(
-        value: teamsCubit,
-        child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: SizedBox(
-              width: 300,
-              height: 320,
-              child: PokemonCard(entry: _bulbasaurEntry, onTap: () {}),
-            ),
+      return buildListHarness(
+        child: const Scaffold(
+          body: SizedBox(
+            width: 300,
+            height: 320,
+            child: PokemonCard(entry: _bulbasaurEntry),
           ),
         ),
       );
     }
 
-    testWidgets('tapping the team action adds the entry and confirms', (
+    testWidgets('the long-press sheet adds the entry and confirms', (
       tester,
     ) async {
       await mockNetworkImagesFor(() async {
         final teamId = teamsCubit.createTeam('Team');
         await tester.pumpWidget(buildCardHarness());
-        await tester.pumpAndSettle();
+        await settle(tester);
 
-        await tester.tap(find.byIcon(Icons.group_add_rounded));
-        await tester.pumpAndSettle();
+        await tester.longPress(find.byType(PokemonCard));
+        await settle(tester);
+
+        expect(find.text('Add to team'), findsOneWidget);
+
+        await tester.tap(find.text('Add to team'));
+        await settle(tester);
 
         expect(find.text('Choose a team'), findsOneWidget);
         await tester.tap(find.text('Team'));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 500));
+        await settle(tester);
 
         expect(teamsCubit.state.teamById(teamId)!.members.length, equals(1));
         expect(find.text('Added to Team'), findsOneWidget);
@@ -441,43 +509,25 @@ void main() {
         for (var i = 1; i <= kTeamMaxMembers; i++) {
           teamsCubit.addMember(
             teamId: teamId,
-            entry: PokemonIndexEntry(id: i, name: 'pokemon-$i', detailUrl: ''),
+            pokemon: PokemonSummary(id: i, name: 'pokemon-$i', spriteUrl: ''),
           );
         }
         await tester.pumpWidget(buildCardHarness());
-        await tester.pumpAndSettle();
+        await settle(tester);
 
-        await tester.tap(find.byIcon(Icons.group_add_rounded));
-        await tester.pumpAndSettle();
+        await tester.longPress(find.byType(PokemonCard));
+        await settle(tester);
+
+        await tester.tap(find.text('Add to team'));
+        await settle(tester);
         await tester.tap(find.text('Full'));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 500));
+        await settle(tester);
 
         expect(
           teamsCubit.state.teamById(teamId)!.members.length,
           equals(kTeamMaxMembers),
         );
         expect(find.text('Team is full (6 max)'), findsOneWidget);
-      });
-    });
-
-    testWidgets('team button exposes accessible semantics and 48dp target', (
-      tester,
-    ) async {
-      await mockNetworkImagesFor(() async {
-        await tester.pumpWidget(buildCardHarness());
-        await tester.pumpAndSettle();
-
-        expect(find.bySemanticsLabel('Add to team'), findsOneWidget);
-        expect(find.byTooltip('Add to team'), findsOneWidget);
-        final size = tester.getSize(
-          find.ancestor(
-            of: find.byIcon(Icons.group_add_rounded),
-            matching: find.byType(IconButton),
-          ),
-        );
-        expect(size.width, greaterThanOrEqualTo(48.0));
-        expect(size.height, greaterThanOrEqualTo(48.0));
       });
     });
   });

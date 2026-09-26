@@ -26,7 +26,7 @@ void main() {
         findsNWidgets(2),
       ); // AppBar and headline
       expect(find.text('Invalid Pokémon route parameter.'), findsOneWidget);
-      expect(find.byType(ElevatedButton), findsOneWidget);
+      expect(find.byType(FilledButton), findsOneWidget);
       expect(find.text('Go to Home'), findsOneWidget);
     });
 
@@ -81,7 +81,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final buttonFinder = find.byType(ElevatedButton);
+      final buttonFinder = find.byType(FilledButton);
       expect(buttonFinder, findsOneWidget);
       await tester.tap(buttonFinder);
       await tester.pumpAndSettle();

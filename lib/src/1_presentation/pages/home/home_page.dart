@@ -3,13 +3,14 @@ import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dar
 import 'package:pokefinder/src/1_presentation/presentation.dart';
 import 'package:pokefinder/src/1_presentation/widgets/home/home_widgets.dart';
 import 'package:pokefinder/src/2_application/application.dart';
-import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 
 import '_app_bar.dart';
-import '_bloc.dart';
 import '_drawer.dart';
 
 export '_bloc.dart';
+
+/// Maximum width of the search column.
+const _kContentMaxWidth = 400.0;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,15 +22,11 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    final initialInput = context.read<HomeBloc>().state.userInput;
-    if (initialInput.isNotEmpty) {
-      _controller.text = initialInput;
-    }
+    _controller.text = context.read<HomeBloc>().state.userInput;
   }
 
   @override
@@ -39,205 +36,114 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  void _submitSearch(BuildContext context, [String? query]) {
-    final rawInput = (query ?? _controller.text).trim();
-    if (_isSubmitting || rawInput.isEmpty) return;
-    final bloc = context.read<HomeBloc>();
-    if (bloc.state.userInput != rawInput) {
-      bloc.add(UserInputEvent(rawInput));
-    }
-    bloc.add(IsButtonPressedEvent());
+  void _submitSearch([String? query]) {
+    final input = (query ?? _controller.text).trim();
+    if (input.isEmpty) return;
+    context.read<HomeBloc>().add(SearchSubmitted(input));
   }
 
-  void _onListen(BuildContext context, HomeBlocState state) async {
-    final failure = state.failure;
-    if (failure != null) {
-      final showSnackBar = switch (failure) {
-        BadRequestFailure() || RequestCancelledFailure() => false,
-        UnauthorizedFailure() ||
-        PokemonNotFoundFailure() ||
-        NetworkUnavailableFailure() ||
-        RequestTimeoutFailure() ||
-        RateLimitedFailure() ||
-        ServerFailure() ||
-        InvalidResponseFailure() ||
-        StorageFailure() ||
-        UnexpectedFailure() => true,
-      };
-      if (showSnackBar) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.localizedMessage(context))),
-        );
-      }
-    } else if (state.cacheCleared) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).cacheClearedSuccessfully),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } else if (state.navigateToDetail && !_isSubmitting) {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = true;
-        });
-      }
-      final nameOrId = state.userInput.trim();
-      context.read<HomeBloc>().add(NavigationDoneEvent());
-      try {
-        await context.push(
-          '/pokemon/${Uri.encodeComponent(nameOrId)}?search=${Uri.encodeQueryComponent(nameOrId)}',
-        );
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isSubmitting = false;
-          });
-        }
-      }
-    }
+  void _openDetail(SearchNavigation navigation) {
+    // Without unfocus the field gets focus again when the user comes back,
+    // and the keyboard and the suggestions cover the buttons.
+    _focusNode.unfocus();
+    final nameOrId = navigation.nameOrId;
+    context.push(AppRoutes.pokemon(nameOrId, search: nameOrId));
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final hasHistory = context.select<RecentHistoryCubit, bool>((cubit) {
+      final history = cubit.state;
+      return history.isHistoryEnabled &&
+          (history.recentPokemon.isNotEmpty ||
+              history.recentSearches.isNotEmpty);
+    });
+
     return Scaffold(
-      resizeToAvoidBottomInset: true,
       appBar: const HomeAppBar(),
       drawer: const HomeDrawer(),
       body: BlocListener<HomeBloc, HomeBlocState>(
-        listener: _onListen,
+        listenWhen: (previous, current) =>
+            current.pendingNavigation != null &&
+            previous.pendingNavigation != current.pendingNavigation,
+        listener: (context, state) => _openDetail(state.pendingNavigation!),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final isLandscape =
-                MediaQuery.of(context).orientation == Orientation.landscape;
-            final pokeballDimension = isLandscape
-                ? (constraints.maxHeight * 0.28).clamp(60.0, 120.0)
-                : (constraints.maxHeight * 0.25).clamp(80.0, 200.0);
-
+            final pokeballSize = (constraints.maxHeight * 0.25).clamp(
+              60.0,
+              200.0,
+            );
             return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: (constraints.maxHeight - 40).clamp(
+                  minHeight: (constraints.maxHeight - 32).clamp(
                     0.0,
                     double.infinity,
                   ),
                 ),
-                child: HomeBlocBuilder(
-                  builder: (context, state) {
-                    final isSubmitDisabled =
-                        _isSubmitting || state.userInput.trim().isEmpty;
-
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 400),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            child: PokeTextField(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: _kContentMaxWidth,
+                    ),
+                    child: BlocBuilder<HomeBloc, HomeBlocState>(
+                      builder: (context, state) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            PokeTextField(
                               controller: _controller,
                               focusNode: _focusNode,
                               allEntries: state.pokemonIndex,
-                              nameIndexFailure: state.nameIndexFailure,
-                              errorText: state.failure?.localizedMessage(
+                              nameIndexFailure: state.indexFailure,
+                              errorText: state.searchFailure?.localizedMessage(
                                 context,
                               ),
-                              onRetryIndex: () {
-                                context.read<HomeBloc>().add(
-                                  FetchAllPokemonNamesEvent(),
-                                );
+                              onRetryIndex: () =>
+                                  context.read<HomeBloc>().add(LoadIndex()),
+                              onChanged: (input) => context
+                                  .read<HomeBloc>()
+                                  .add(SearchInputChanged(input)),
+                              onSubmitted: _submitSearch,
+                            ),
+                            const SizedBox(height: 16),
+                            FilledButton(
+                              onPressed: state.userInput.trim().isEmpty
+                                  ? null
+                                  : _submitSearch,
+                              child: Text(t.searchButton),
+                            ),
+                            const SizedBox(height: 12),
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                _focusNode.unfocus();
+                                context.push(AppRoutes.pokedex);
                               },
-                              onChanged: (input) {
-                                context.read<HomeBloc>().add(
-                                  UserInputEvent(input),
-                                );
-                              },
-                              onSubmitted: (query) {
-                                _submitSearch(context, query);
+                              icon: const Icon(Icons.catching_pokemon),
+                              label: Text(t.browsePokedex),
+                            ),
+                            RecentHistoryShelf(
+                              onSelectQuery: (query) {
+                                _controller.text = query;
+                                _submitSearch(query);
                               },
                             ),
-                          ),
-                        ),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            minWidth: 140,
-                            minHeight: 48,
-                          ),
-                          child: ElevatedButton(
-                            onPressed: isSubmitDisabled
-                                ? null
-                                : () => _submitSearch(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppPalette.brandRed,
-                              minimumSize: const Size(140, 48),
-                            ),
-                            child: _isSubmitting
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: AppPalette.onBrandRed,
-                                    ),
-                                  )
-                                : Text(
-                                    AppLocalizations.of(context).searchButton,
-                                    style: const TextStyle(
-                                      color: AppPalette.onBrandRed,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            minWidth: 140,
-                            minHeight: 48,
-                          ),
-                          child: OutlinedButton.icon(
-                            onPressed: () => context.push('/pokedex'),
-                            icon: const Icon(
-                              Icons.catching_pokemon,
-                              color: AppPalette.brandRed,
-                            ),
-                            label: Text(
-                              AppLocalizations.of(context).browsePokedex,
-                              style: const TextStyle(
-                                color: AppPalette.brandRed,
+                            if (!hasHistory) ...[
+                              const SizedBox(height: 48),
+                              Center(
+                                child: ExcludeSemantics(
+                                  child: PokeBallWidget(size: pokeballSize),
+                                ),
                               ),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(140, 48),
-                              side: const BorderSide(
-                                color: AppPalette.brandRed,
-                              ),
-                            ),
-                          ),
-                        ),
-                        RecentHistoryShelf(
-                          onSelectQuery: (query) {
-                            _controller.text = query;
-                            _submitSearch(context, query);
-                          },
-                        ),
-                        SizedBox(
-                          height: (constraints.maxHeight * 0.08).clamp(
-                            16.0,
-                            64.0,
-                          ),
-                        ),
-                        ExcludeSemantics(
-                          child: PokeBallWidget(
-                            color: AppPalette.pokeballAccent,
-                            opacity: 1.0,
-                            size: Size(pokeballDimension, pokeballDimension),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+                            ],
+                          ],
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
             );

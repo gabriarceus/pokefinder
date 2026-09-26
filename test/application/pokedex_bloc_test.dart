@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:en_logger/en_logger.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -57,21 +59,27 @@ void main() {
 
   test('initial state has correct defaults', () {
     expect(bloc.state.status, PokedexStatus.initial);
+    expect(bloc.state.isRefreshing, isFalse);
     expect(bloc.state.allEntries, isEmpty);
     expect(bloc.state.filteredEntries, isEmpty);
-    expect(bloc.state.visibleEntries, isEmpty);
-    expect(bloc.state.searchQuery, isEmpty);
-    expect(bloc.state.selectedTypes, isEmpty);
-    expect(bloc.state.selectedGeneration, isNull);
-    expect(bloc.state.sortOrder, PokedexSortOrder.idAscending);
+    expect(bloc.state.filters, const PokedexFilters());
+    expect(bloc.state.filters.query, isEmpty);
+    expect(bloc.state.filters.selectedTypes, isEmpty);
+    expect(bloc.state.filters.generation, isNull);
+    expect(bloc.state.filters.sortOrder, PokedexSortOrder.idAscending);
+    expect(bloc.state.filters.formFilter, PokedexFormFilter.canonicalOnly);
+    expect(bloc.state.filters.includeCosmeticForms, isFalse);
+    expect(bloc.state.typeIdMap, isEmpty);
+    expect(bloc.state.loadingTypes, isEmpty);
     expect(bloc.state.failure, isNull);
+    expect(bloc.state.typeFilterFailure, isNull);
+    expect(bloc.state.randomPokemonToNavigate, isNull);
   });
 
   group('PokedexFetchIndexEvent', () {
     test('successful fetch updates state to success with entries', () async {
       when(
         () => repository.getPokemonIndex(
-          cancelToken: any(named: 'cancelToken'),
           forceRefresh: any(named: 'forceRefresh'),
         ),
       ).thenAnswer((_) async => Right(sampleEntries));
@@ -82,14 +90,38 @@ void main() {
       expect(bloc.state.status, PokedexStatus.success);
       expect(bloc.state.allEntries, sampleEntries);
       expect(bloc.state.filteredEntries, sampleEntries);
-      expect(bloc.state.visibleEntries, sampleEntries);
       expect(bloc.state.failure, isNull);
     });
+
+    test(
+      'the whole index is exposed at once, without in-memory paging',
+      () async {
+        final manyEntries = List.generate(
+          80,
+          (i) => PokemonIndexEntry(
+            id: i + 1,
+            name: 'pokemon-${i + 1}',
+            detailUrl: '',
+          ),
+        );
+
+        when(
+          () => repository.getPokemonIndex(
+            forceRefresh: any(named: 'forceRefresh'),
+          ),
+        ).thenAnswer((_) async => Right(manyEntries));
+
+        bloc.add(const PokedexFetchIndexEvent());
+        await pumpEventQueue();
+
+        expect(bloc.state.allEntries.length, 80);
+        expect(bloc.state.filteredEntries, manyEntries);
+      },
+    );
 
     test('failure on empty catalog sets failure status', () async {
       when(
         () => repository.getPokemonIndex(
-          cancelToken: any(named: 'cancelToken'),
           forceRefresh: any(named: 'forceRefresh'),
         ),
       ).thenAnswer(
@@ -105,10 +137,7 @@ void main() {
 
     test('failure during pull-to-refresh preserves existing entries', () async {
       when(
-        () => repository.getPokemonIndex(
-          cancelToken: any(named: 'cancelToken'),
-          forceRefresh: false,
-        ),
+        () => repository.getPokemonIndex(forceRefresh: false),
       ).thenAnswer((_) async => Right(sampleEntries));
 
       bloc.add(const PokedexFetchIndexEvent(forceRefresh: false));
@@ -116,12 +145,7 @@ void main() {
       expect(bloc.state.allEntries.length, 4);
 
       // Now simulate refresh failure
-      when(
-        () => repository.getPokemonIndex(
-          cancelToken: any(named: 'cancelToken'),
-          forceRefresh: true,
-        ),
-      ).thenAnswer(
+      when(() => repository.getPokemonIndex(forceRefresh: true)).thenAnswer(
         (_) async => left(const NetworkUnavailableFailure('No internet')),
       );
 
@@ -139,7 +163,6 @@ void main() {
     setUp(() async {
       when(
         () => repository.getPokemonIndex(
-          cancelToken: any(named: 'cancelToken'),
           forceRefresh: any(named: 'forceRefresh'),
         ),
       ).thenAnswer((_) async => Right(sampleEntries));
@@ -148,52 +171,91 @@ void main() {
       await pumpEventQueue();
     });
 
-    test('search query updates filteredEntries and visibleEntries', () async {
+    test('search query updates filteredEntries', () async {
       bloc.add(const PokedexSearchQueryChangedEvent('pika'));
       await pumpEventQueue();
 
-      expect(bloc.state.searchQuery, 'pika');
+      expect(bloc.state.filters.query, 'pika');
       expect(bloc.state.filteredEntries.map((e) => e.name), ['pikachu']);
     });
 
     test('type filter toggles type and queries type IDs if missing', () async {
       when(
-        () => repository.getPokemonIdsForType(
-          PokemonType.fire,
-          cancelToken: any(named: 'cancelToken'),
-        ),
+        () => repository.getPokemonIdsForType(PokemonType.fire),
       ).thenAnswer((_) async => const Right({4}));
 
       bloc.add(const PokedexTypeFilterToggledEvent(PokemonType.fire));
       await pumpEventQueue();
 
-      expect(bloc.state.selectedTypes, {PokemonType.fire});
+      expect(bloc.state.filters.selectedTypes, {PokemonType.fire});
+      expect(bloc.state.typeIdMap[PokemonType.fire], {4});
+      expect(bloc.state.loadingTypes, isEmpty);
       expect(bloc.state.filteredEntries.map((e) => e.name), ['charmander']);
 
       // Untoggle
       bloc.add(const PokedexTypeFilterToggledEvent(PokemonType.fire));
       await pumpEventQueue();
 
-      expect(bloc.state.selectedTypes, isEmpty);
+      expect(bloc.state.filters.selectedTypes, isEmpty);
       expect(bloc.state.filteredEntries.length, 4);
     });
 
-    test('propagates failure when getPokemonIdsForType fails', () async {
-      when(
-        () => repository.getPokemonIdsForType(
-          PokemonType.fire,
-          cancelToken: any(named: 'cancelToken'),
-        ),
-      ).thenAnswer(
-        (_) async => left(const NetworkUnavailableFailure('Network error')),
-      );
+    test(
+      'a selected type is shown right away and marked loading until its ids arrive',
+      () async {
+        final completer = Completer<Either<PokemonFailure, Set<int>>>();
+        when(
+          () => repository.getPokemonIdsForType(PokemonType.fire),
+        ).thenAnswer((_) => completer.future);
 
-      bloc.add(const PokedexTypeFilterToggledEvent(PokemonType.fire));
-      await pumpEventQueue();
+        bloc.add(const PokedexTypeFilterToggledEvent(PokemonType.fire));
+        await pumpEventQueue();
 
-      expect(bloc.state.selectedTypes, {PokemonType.fire});
-      expect(bloc.state.failure, isA<NetworkUnavailableFailure>());
-    });
+        // The selection is emitted before the ids are known...
+        expect(bloc.state.filters.selectedTypes, {PokemonType.fire});
+        expect(bloc.state.loadingTypes, {PokemonType.fire});
+        // ...and the grid keeps the entries it already had meanwhile.
+        expect(bloc.state.filteredEntries, sampleEntries);
+
+        completer.complete(const Right({4}));
+        await pumpEventQueue();
+
+        expect(bloc.state.loadingTypes, isEmpty);
+        expect(bloc.state.filters.selectedTypes, {PokemonType.fire});
+        expect(bloc.state.typeIdMap, {
+          PokemonType.fire: {4},
+        });
+        expect(bloc.state.typeFilterFailure, isNull);
+        expect(bloc.state.filteredEntries.map((e) => e.name), ['charmander']);
+      },
+    );
+
+    test(
+      'propagates failure when getPokemonIdsForType fails: the type is deselected '
+      'and the failure surfaces on typeFilterFailure',
+      () async {
+        when(
+          () => repository.getPokemonIdsForType(PokemonType.fire),
+        ).thenAnswer(
+          (_) async => left(const NetworkUnavailableFailure('Network error')),
+        );
+
+        bloc.add(const PokedexTypeFilterToggledEvent(PokemonType.fire));
+        await pumpEventQueue();
+
+        expect(bloc.state.filters.selectedTypes, isEmpty);
+        expect(bloc.state.loadingTypes, isEmpty);
+        expect(bloc.state.typeIdMap, isEmpty);
+        expect(
+          bloc.state.typeFilterFailure,
+          const NetworkUnavailableFailure('Network error'),
+        );
+        // The index failure channel stays untouched: the catalog is still there.
+        expect(bloc.state.failure, isNull);
+        expect(bloc.state.status, PokedexStatus.success);
+        expect(bloc.state.filteredEntries, sampleEntries);
+      },
+    );
 
     test('debounces consecutive search queries when duration > 0', () async {
       final debouncedBloc = PokedexBloc(
@@ -203,7 +265,6 @@ void main() {
       );
       when(
         () => repository.getPokemonIndex(
-          cancelToken: any(named: 'cancelToken'),
           forceRefresh: any(named: 'forceRefresh'),
         ),
       ).thenAnswer((_) async => Right(sampleEntries));
@@ -216,11 +277,11 @@ void main() {
       debouncedBloc.add(const PokedexSearchQueryChangedEvent('pik'));
 
       // Immediately after dispatch, query has not debounced yet
-      expect(debouncedBloc.state.searchQuery, isEmpty);
+      expect(debouncedBloc.state.filters.query, isEmpty);
 
       // Wait for debounce duration
       await Future<void>.delayed(const Duration(milliseconds: 75));
-      expect(debouncedBloc.state.searchQuery, 'pik');
+      expect(debouncedBloc.state.filters.query, 'pik');
 
       await debouncedBloc.close();
     });
@@ -229,7 +290,7 @@ void main() {
       bloc.add(const PokedexGenerationFilterChangedEvent(2));
       await pumpEventQueue();
 
-      expect(bloc.state.selectedGeneration, 2);
+      expect(bloc.state.filters.generation, 2);
       expect(
         bloc.state.filteredEntries,
         isEmpty,
@@ -246,7 +307,7 @@ void main() {
       );
       await pumpEventQueue();
 
-      expect(bloc.state.sortOrder, PokedexSortOrder.nameAscending);
+      expect(bloc.state.filters.sortOrder, PokedexSortOrder.nameAscending);
       expect(bloc.state.filteredEntries.map((e) => e.name), [
         'bulbasaur',
         'charmander',
@@ -262,84 +323,27 @@ void main() {
         const PokedexSortOrderChangedEvent(PokedexSortOrder.nameAscending),
       );
       await pumpEventQueue();
-      expect(bloc.state.hasActiveFilters, isTrue);
+      expect(bloc.state.filters.hasActiveFilters, isTrue);
 
       bloc.add(const PokedexClearFiltersEvent());
       await pumpEventQueue();
 
-      expect(bloc.state.hasActiveFilters, isFalse);
-      expect(bloc.state.searchQuery, isEmpty);
-      expect(bloc.state.selectedTypes, isEmpty);
-      expect(bloc.state.selectedGeneration, isNull);
-      expect(bloc.state.sortOrder, PokedexSortOrder.idAscending);
+      expect(bloc.state.filters.hasActiveFilters, isFalse);
+      expect(bloc.state.filters, const PokedexFilters());
+      expect(bloc.state.filters.query, isEmpty);
+      expect(bloc.state.filters.selectedTypes, isEmpty);
+      expect(bloc.state.filters.generation, isNull);
+      expect(bloc.state.filters.sortOrder, PokedexSortOrder.idAscending);
       expect(bloc.state.filteredEntries.length, 4);
     });
   });
 
-  group('Pagination & Random Pokemon', () {
-    test('load more increases visible entries when hasMore is true', () async {
-      final manyEntries = List.generate(
-        50,
-        (i) => PokemonIndexEntry(
-          id: i + 1,
-          name: 'pokemon-${i + 1}',
-          detailUrl: '',
-        ),
-      );
-
-      when(
-        () => repository.getPokemonIndex(
-          cancelToken: any(named: 'cancelToken'),
-          forceRefresh: any(named: 'forceRefresh'),
-        ),
-      ).thenAnswer((_) async => Right(manyEntries));
-
-      bloc.add(const PokedexFetchIndexEvent());
-      await pumpEventQueue();
-
-      expect(bloc.state.visibleEntries.length, 24);
-      expect(bloc.state.hasMore, isTrue);
-
-      bloc.add(const PokedexLoadMoreEvent());
-      await pumpEventQueue();
-
-      expect(bloc.state.visibleEntries.length, 48);
-      expect(bloc.state.currentPage, 2);
-    });
-
-    test('concurrent load more events are handled cleanly', () async {
-      final manyEntries = List.generate(
-        80,
-        (i) => PokemonIndexEntry(
-          id: i + 1,
-          name: 'pokemon-${i + 1}',
-          detailUrl: '',
-        ),
-      );
-
-      when(
-        () => repository.getPokemonIndex(
-          cancelToken: any(named: 'cancelToken'),
-          forceRefresh: any(named: 'forceRefresh'),
-        ),
-      ).thenAnswer((_) async => Right(manyEntries));
-
-      bloc.add(const PokedexFetchIndexEvent());
-      await pumpEventQueue();
-
-      bloc.add(const PokedexLoadMoreEvent());
-      bloc.add(const PokedexLoadMoreEvent());
-      await pumpEventQueue();
-
-      expect(bloc.state.currentPage, 2);
-    });
-
+  group('Random Pokemon & Forms', () {
     test(
       'select random pokemon picks from pool and handles navigation reset',
       () async {
         when(
           () => repository.getPokemonIndex(
-            cancelToken: any(named: 'cancelToken'),
             forceRefresh: any(named: 'forceRefresh'),
           ),
         ).thenAnswer((_) async => Right(sampleEntries));
@@ -395,7 +399,6 @@ void main() {
         () async {
           when(
             () => repository.getPokemonIndex(
-              cancelToken: any(named: 'cancelToken'),
               forceRefresh: any(named: 'forceRefresh'),
             ),
           ).thenAnswer((_) async => Right(mixedEntries));

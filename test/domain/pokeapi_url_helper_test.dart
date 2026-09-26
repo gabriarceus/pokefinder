@@ -43,14 +43,10 @@ void main() {
       );
     });
 
-    test('builds sprite and type sprite URLs', () {
+    test('builds pixel sprite URLs', () {
       expect(
         PokeApiUrlHelper.spriteUrl(25),
         'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png',
-      );
-      expect(
-        PokeApiUrlHelper.typeSpriteUrl(10),
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/10.png',
       );
     });
   });

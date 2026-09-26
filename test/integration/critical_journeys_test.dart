@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:injectable/injectable.dart' hide test;
 import 'package:mocktail/mocktail.dart';
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/bootstrap.dart';
@@ -9,14 +10,16 @@ import 'package:pokefinder/main.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/failure.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/widgets/detail_header.dart';
+import 'package:pokefinder/src/1_presentation/pages/detail/widgets/detail_tab_scroll_view.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/widgets/form_selection_bottom_sheet.dart';
 import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/route_error/route_error_page.dart';
 import 'package:pokefinder/src/1_presentation/router/app_router.dart';
+import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/move_detail_bottom_sheet.dart';
 import 'package:pokefinder/src/2_application/application.dart';
-import 'package:pokefinder/src/3_domain/cancellation_token.dart';
 import 'package:pokefinder/src/3_domain/entities/damage_class.dart';
+import 'package:pokefinder/src/3_domain/entities/language.dart';
 import 'package:pokefinder/src/3_domain/entities/move_detail.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
@@ -57,8 +60,6 @@ const _megaDetails = PokemonFormDetails(
   name: 'venusaur-mega',
   type1: PokemonType.grass,
   type2: PokemonType.poison,
-  typeImage1: 'type_grass.png',
-  typeImage2: 'type_poison.png',
   spriteDefault: 'mega.png',
   spriteShiny: 'mega_shiny.png',
   artworkDefault: 'mega_art.png',
@@ -82,7 +83,6 @@ const _tackleMoveDetail = MoveDetail(
 void main() {
   setUpAll(() {
     registerFallbackValue(PokemonName('pikachu'));
-    registerFallbackValue(CancellationToken());
   });
 
   late _MockPokemonRepository repository;
@@ -92,7 +92,7 @@ void main() {
     storage = _InMemoryStorage();
     HydratedBloc.storage = storage;
 
-    await configureDependencies('mock');
+    await configureDependencies(Environment.dev);
 
     repository = _MockPokemonRepository();
     if (getIt.isRegistered<IPokemonRepository>()) {
@@ -101,9 +101,6 @@ void main() {
     getIt.registerSingleton<IPokemonRepository>(repository);
 
     // Default stubs
-    when(() => repository.getAllPokemonNames()).thenAnswer(
-      (_) async => const Right(['pikachu', 'bulbasaur', 'venusaur']),
-    );
     when(() => repository.getPokemonIndex()).thenAnswer(
       (_) async => const Right([
         PokemonIndexEntry(id: 25, name: 'pikachu', detailUrl: ''),
@@ -112,11 +109,14 @@ void main() {
       ]),
     );
     when(
-      () => repository.getEncounters(
-        any(),
-        cancelToken: any(named: 'cancelToken'),
-      ),
+      () => repository.getEncounters(any()),
     ).thenAnswer((_) async => const Right([]));
+    when(
+      () => repository.getPokemonSpecies(any()),
+    ).thenAnswer((_) async => left(const NetworkUnavailableFailure()));
+    when(
+      () => repository.getEvolutionChain(any()),
+    ).thenAnswer((_) async => left(const NetworkUnavailableFailure()));
     when(
       () => repository.clearCache(),
     ).thenAnswer((_) async => const Right(unit));
@@ -124,6 +124,26 @@ void main() {
       () => repository.getCacheSize(),
     ).thenAnswer((_) async => const Right(1024));
   });
+
+  /// Lets the mocked image requests complete, then drives frames until the
+  /// tree is quiet.
+  ///
+  /// `pumpAndSettle` cannot be used once the detail screen is on the stack: it
+  /// keeps an indeterminate `CircularProgressIndicator` mounted, so a frame is
+  /// always scheduled and `pumpAndSettle` never returns. This pumps a
+  /// bounded number of frames instead.
+  Future<void> settle(WidgetTester tester) async {
+    for (var i = 0; i < 3; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
+      await tester.pump();
+    }
+    for (var i = 0; i < 40; i++) {
+      if (!tester.binding.hasScheduledFrame) break;
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+  }
 
   Future<void> pumpAppWithRouter(
     WidgetTester tester, {
@@ -139,7 +159,7 @@ void main() {
     await mockNetworkImagesFor(() async {
       final router = createAppRouter(initialLocation: initialLocation);
       await tester.pumpWidget(MyApp(router: router));
-      await tester.pumpAndSettle();
+      await settle(tester);
     });
   }
 
@@ -153,31 +173,28 @@ void main() {
         type1: PokemonType.electric,
       );
       when(
-        () => repository.getPokemon(
-          any(),
-          cancelToken: any(named: 'cancelToken'),
-        ),
+        () => repository.getPokemon(any()),
       ).thenAnswer((_) async => Right(pikachu));
 
-      await pumpAppWithRouter(tester, initialLocation: '/');
+      await pumpAppWithRouter(tester, initialLocation: AppRoutes.home);
 
       expect(find.byType(HomePage), findsOneWidget);
 
       // Enter search query
       final textFieldFinder = find.byType(TextField);
       await tester.enterText(textFieldFinder, 'pikachu');
-      await tester.pumpAndSettle();
+      await settle(tester);
 
       // Tap search button
-      final searchButtonFinder = find.widgetWithText(ElevatedButton, 'Search');
+      final searchButtonFinder = find.widgetWithText(FilledButton, 'Search');
       expect(searchButtonFinder, findsOneWidget);
       await mockNetworkImagesFor(() async {
         await tester.tap(searchButtonFinder, warnIfMissed: false);
-        await tester.pumpAndSettle();
+        await settle(tester);
       });
 
       // Verify navigation to Detail page
-      expect(find.byType(Detail), findsOneWidget);
+      expect(find.byType(PokemonDetailPage), findsOneWidget);
       expect(find.text('Pikachu'), findsOneWidget);
       expect(find.text('#025'), findsOneWidget);
       expect(
@@ -192,25 +209,19 @@ void main() {
       'not found failure displays recovery UI and allows edit search back to home',
       (tester) async {
         when(
-          () => repository.getPokemon(
-            any(),
-            cancelToken: any(named: 'cancelToken'),
-          ),
+          () => repository.getPokemon(any()),
         ).thenAnswer((_) async => Left(PokemonNotFoundFailure()));
 
-        await pumpAppWithRouter(tester, initialLocation: '/');
+        await pumpAppWithRouter(tester, initialLocation: AppRoutes.home);
 
         // Enter unknown Pokémon in search and submit
         await tester.enterText(find.byType(TextField), 'missingno');
-        await tester.pumpAndSettle();
+        await settle(tester);
 
-        final searchButtonFinder = find.widgetWithText(
-          ElevatedButton,
-          'Search',
-        );
+        final searchButtonFinder = find.widgetWithText(FilledButton, 'Search');
         await mockNetworkImagesFor(() async {
           await tester.tap(searchButtonFinder);
-          await tester.pumpAndSettle();
+          await settle(tester);
         });
 
         // Verify not found failure page is rendered
@@ -225,7 +236,7 @@ void main() {
         );
         expect(editSearchBtn, findsOneWidget);
         await tester.tap(editSearchBtn);
-        await tester.pumpAndSettle();
+        await settle(tester);
 
         // Verifies return to HomePage with query preserved in text controller
         expect(find.byType(HomePage), findsOneWidget);
@@ -240,30 +251,28 @@ void main() {
     ) async {
       var callCount = 0;
       final pokemon = buildPokemon(id: 25, name: 'pikachu');
-      when(
-        () => repository.getPokemon(
-          any(),
-          cancelToken: any(named: 'cancelToken'),
-        ),
-      ).thenAnswer((_) async {
+      when(() => repository.getPokemon(any())).thenAnswer((_) async {
         callCount++;
         return callCount == 1 ? Left(PokemonNotFoundFailure()) : Right(pokemon);
       });
 
-      await pumpAppWithRouter(tester, initialLocation: '/pokemon/pikachu');
+      await pumpAppWithRouter(
+        tester,
+        initialLocation: AppRoutes.pokemon('pikachu'),
+      );
 
       expect(find.byType(DetailFailure), findsOneWidget);
 
       // Tap Retry
-      final retryBtn = find.widgetWithText(ElevatedButton, 'Retry');
+      final retryBtn = find.widgetWithText(FilledButton, 'Retry');
       expect(retryBtn, findsOneWidget);
       await mockNetworkImagesFor(() async {
         await tester.tap(retryBtn);
-        await tester.pumpAndSettle();
+        await settle(tester);
       });
 
       // Verifies successful recovery on retry
-      expect(find.byType(Detail), findsOneWidget);
+      expect(find.byType(PokemonDetailPage), findsOneWidget);
       expect(find.text('Pikachu'), findsOneWidget);
     });
   });
@@ -278,15 +287,15 @@ void main() {
         isStale: true,
       );
       when(
-        () => repository.getPokemon(
-          any(),
-          cancelToken: any(named: 'cancelToken'),
-        ),
+        () => repository.getPokemon(any()),
       ).thenAnswer((_) async => Right(cachedBulbasaur));
 
-      await pumpAppWithRouter(tester, initialLocation: '/pokemon/bulbasaur');
+      await pumpAppWithRouter(
+        tester,
+        initialLocation: AppRoutes.pokemon('bulbasaur'),
+      );
 
-      expect(find.byType(Detail), findsOneWidget);
+      expect(find.byType(PokemonDetailPage), findsOneWidget);
       expect(find.text('Bulbasaur'), findsOneWidget);
       expect(find.byIcon(Icons.cloud_off_rounded), findsOneWidget);
     });
@@ -295,13 +304,13 @@ void main() {
       'displays offline error state when uncached Pokémon is searched offline',
       (tester) async {
         when(
-          () => repository.getPokemon(
-            any(),
-            cancelToken: any(named: 'cancelToken'),
-          ),
+          () => repository.getPokemon(any()),
         ).thenAnswer((_) async => const Left(NetworkUnavailableFailure()));
 
-        await pumpAppWithRouter(tester, initialLocation: '/pokemon/mew');
+        await pumpAppWithRouter(
+          tester,
+          initialLocation: AppRoutes.pokemon('mew'),
+        );
 
         expect(find.byType(DetailFailure), findsOneWidget);
         expect(find.byIcon(Icons.wifi_off_rounded), findsOneWidget);
@@ -309,7 +318,7 @@ void main() {
           find.text('No internet connection. Please check your network.'),
           findsOneWidget,
         );
-        expect(find.widgetWithText(ElevatedButton, 'Retry'), findsOneWidget);
+        expect(find.widgetWithText(FilledButton, 'Retry'), findsOneWidget);
       },
     );
   });
@@ -318,15 +327,15 @@ void main() {
     testWidgets('direct route with name resolves to Detail', (tester) async {
       final bulbasaur = buildPokemon(id: 1, name: 'bulbasaur');
       when(
-        () => repository.getPokemon(
-          any(),
-          cancelToken: any(named: 'cancelToken'),
-        ),
+        () => repository.getPokemon(any()),
       ).thenAnswer((_) async => Right(bulbasaur));
 
-      await pumpAppWithRouter(tester, initialLocation: '/pokemon/bulbasaur');
+      await pumpAppWithRouter(
+        tester,
+        initialLocation: AppRoutes.pokemon('bulbasaur'),
+      );
 
-      expect(find.byType(Detail), findsOneWidget);
+      expect(find.byType(PokemonDetailPage), findsOneWidget);
       expect(find.text('Bulbasaur'), findsOneWidget);
     });
 
@@ -335,15 +344,12 @@ void main() {
     ) async {
       final pikachu = buildPokemon(id: 25, name: 'pikachu');
       when(
-        () => repository.getPokemon(
-          any(),
-          cancelToken: any(named: 'cancelToken'),
-        ),
+        () => repository.getPokemon(any()),
       ).thenAnswer((_) async => Right(pikachu));
 
-      await pumpAppWithRouter(tester, initialLocation: '/pokemon/25');
+      await pumpAppWithRouter(tester, initialLocation: AppRoutes.pokemon('25'));
 
-      expect(find.byType(Detail), findsOneWidget);
+      expect(find.byType(PokemonDetailPage), findsOneWidget);
       expect(find.text('Pikachu'), findsOneWidget);
     });
 
@@ -352,15 +358,15 @@ void main() {
       (tester) async {
         await pumpAppWithRouter(
           tester,
-          initialLocation: '/pokemon/invalid!name',
+          initialLocation: AppRoutes.pokemon('invalid!name'),
         );
 
         expect(find.byType(RouteErrorPage), findsOneWidget);
 
-        final returnHomeBtn = find.widgetWithText(ElevatedButton, 'Go to Home');
+        final returnHomeBtn = find.widgetWithText(FilledButton, 'Go to Home');
         expect(returnHomeBtn, findsOneWidget);
         await tester.tap(returnHomeBtn);
-        await tester.pumpAndSettle();
+        await settle(tester);
 
         expect(find.byType(HomePage), findsOneWidget);
       },
@@ -378,30 +384,35 @@ void main() {
         ],
       );
       when(
-        () => repository.getPokemon(
-          any(),
-          cancelToken: any(named: 'cancelToken'),
-        ),
+        () => repository.getPokemon(any()),
       ).thenAnswer((_) async => Right(venusaur));
       when(
-        () => repository.getFormDetails(
-          _megaForm.url,
-          cancelToken: any(named: 'cancelToken'),
-        ),
+        () => repository.getFormDetails(_megaForm.url),
       ).thenAnswer((_) async => const Right(_megaDetails));
 
-      await pumpAppWithRouter(tester, initialLocation: '/pokemon/venusaur');
+      await pumpAppWithRouter(
+        tester,
+        initialLocation: AppRoutes.pokemon('venusaur'),
+      );
 
-      // Find and tap Select Form & Appearance button in Info tab
+      // The button lives far down a lazily built sliver list, so scroll to it.
       final formsButton = find.widgetWithText(
         FilledButton,
         'Select Form & Appearance',
       );
+      await tester.scrollUntilVisible(
+        formsButton,
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(DetailTabScrollView),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
       expect(formsButton, findsOneWidget);
-      await tester.ensureVisible(formsButton);
-      await tester.pumpAndSettle();
       await tester.tap(formsButton);
-      await tester.pumpAndSettle();
+      await settle(tester);
 
       expect(find.byType(FormSelectionBottomSheet), findsOneWidget);
 
@@ -413,7 +424,7 @@ void main() {
       expect(megaTile, findsOneWidget);
       await mockNetworkImagesFor(() async {
         await tester.tap(megaTile);
-        await tester.pumpAndSettle();
+        await settle(tester);
       });
 
       // Detail header now reflects the selected form name
@@ -438,35 +449,41 @@ void main() {
         ],
       );
       when(
-        () => repository.getPokemon(
-          any(),
-          cancelToken: any(named: 'cancelToken'),
-        ),
+        () => repository.getPokemon(any()),
       ).thenAnswer((_) async => Right(venusaur));
       when(
-        () => repository.getFormDetails(
-          _megaForm.url,
-          cancelToken: any(named: 'cancelToken'),
-        ),
+        () => repository.getFormDetails(_megaForm.url),
       ).thenAnswer((_) async => const Left(UnexpectedFailure('Form failed')));
 
-      await pumpAppWithRouter(tester, initialLocation: '/pokemon/venusaur');
+      await pumpAppWithRouter(
+        tester,
+        initialLocation: AppRoutes.pokemon('venusaur'),
+      );
 
       final formsButton = find.widgetWithText(
         FilledButton,
         'Select Form & Appearance',
       );
-      await tester.ensureVisible(formsButton);
-      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        formsButton,
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(DetailTabScrollView),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      expect(formsButton, findsOneWidget);
       await tester.tap(formsButton);
-      await tester.pumpAndSettle();
+      await settle(tester);
 
       final megaTile = find.descendant(
         of: find.byType(FormSelectionBottomSheet),
         matching: find.widgetWithText(InkWell, 'Venusaur - Mega'),
       );
       await tester.tap(megaTile);
-      await tester.pumpAndSettle();
+      await settle(tester);
 
       // Verifies failure notice and rollback action are displayed in bottom sheet
       final rollbackFinder = find.text('Reset to default form');
@@ -475,7 +492,7 @@ void main() {
 
       // Triggers rollback action and verifies failure notice is dismissed
       await tester.tap(rollbackFinder);
-      await tester.pumpAndSettle();
+      await settle(tester);
       expect(find.text('Reset to default form'), findsNothing);
     });
   });
@@ -497,31 +514,28 @@ void main() {
         ],
       );
       when(
-        () => repository.getPokemon(
-          any(),
-          cancelToken: any(named: 'cancelToken'),
-        ),
+        () => repository.getPokemon(any()),
       ).thenAnswer((_) async => Right(bulbasaur));
       when(
-        () => repository.getMoveDetail(
-          'tackle',
-          cancelToken: any(named: 'cancelToken'),
-        ),
+        () => repository.getMoveDetail('tackle'),
       ).thenAnswer((_) async => const Right(_tackleMoveDetail));
 
-      await pumpAppWithRouter(tester, initialLocation: '/pokemon/bulbasaur');
+      await pumpAppWithRouter(
+        tester,
+        initialLocation: AppRoutes.pokemon('bulbasaur'),
+      );
 
       // Switch to Moves tab
       final movesTab = find.text('Moves');
       expect(movesTab, findsOneWidget);
       await tester.tap(movesTab);
-      await tester.pumpAndSettle();
+      await settle(tester);
 
       // Tap Tackle move
       final tackleCard = find.widgetWithText(ListTile, 'Tackle');
       expect(tackleCard, findsOneWidget);
       await tester.tap(tackleCard);
-      await tester.pumpAndSettle();
+      await settle(tester);
 
       expect(find.byType(MoveDetailBottomSheet), findsOneWidget);
       expect(find.text('Power'), findsOneWidget);
@@ -546,32 +560,27 @@ void main() {
           ],
         );
         when(
-          () => repository.getPokemon(
-            any(),
-            cancelToken: any(named: 'cancelToken'),
-          ),
+          () => repository.getPokemon(any()),
         ).thenAnswer((_) async => Right(bulbasaur));
 
         var moveCalls = 0;
-        when(
-          () => repository.getMoveDetail(
-            'tackle',
-            cancelToken: any(named: 'cancelToken'),
-          ),
-        ).thenAnswer((_) async {
+        when(() => repository.getMoveDetail('tackle')).thenAnswer((_) async {
           moveCalls++;
           return moveCalls == 1
               ? const Left(NetworkUnavailableFailure())
               : const Right(_tackleMoveDetail);
         });
 
-        await pumpAppWithRouter(tester, initialLocation: '/pokemon/bulbasaur');
+        await pumpAppWithRouter(
+          tester,
+          initialLocation: AppRoutes.pokemon('bulbasaur'),
+        );
 
         await tester.tap(find.text('Moves'));
-        await tester.pumpAndSettle();
+        await settle(tester);
 
         await tester.tap(find.widgetWithText(ListTile, 'Tackle'));
-        await tester.pumpAndSettle();
+        await settle(tester);
 
         // Verify failure state in sheet
         expect(
@@ -583,7 +592,7 @@ void main() {
         final retryBtn = find.widgetWithText(OutlinedButton, 'Retry');
         expect(retryBtn, findsOneWidget);
         await tester.tap(retryBtn);
-        await tester.pumpAndSettle();
+        await settle(tester);
 
         // Verifies recovery
         expect(find.text('Power'), findsOneWidget);
@@ -596,48 +605,39 @@ void main() {
     testWidgets('updates UI language and persists across application restart', (
       tester,
     ) async {
-      await pumpAppWithRouter(tester, initialLocation: '/');
+      // O13/B4: the language control moved from the drawer to Settings and is
+      // a single segmented button.
+      await pumpAppWithRouter(tester, initialLocation: AppRoutes.settings);
 
-      expect(find.text('PokéFinder'), findsOneWidget);
+      expect(find.text('Settings'), findsOneWidget);
 
-      // Open drawer menu
-      await tester.tap(find.byIcon(Icons.menu));
-      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Language'),
+        150,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.text('Italiano'));
+      await settle(tester);
 
-      // Disable 'Use device language' switch
-      final switchTile = find.byType(SwitchListTile);
-      expect(switchTile, findsOneWidget);
-      await tester.tap(switchTile);
-      await tester.pumpAndSettle();
-
-      // Tap 'Italiano' language radio option
-      final italianOption = find.widgetWithText(RadioListTile<int>, 'Italiano');
-      expect(italianOption, findsOneWidget);
-      await tester.tap(italianOption);
-      await tester.pumpAndSettle();
-
-      // Close drawer
-      final navigator = Navigator.of(tester.element(find.byType(Drawer)));
-      navigator.pop();
-      await tester.pumpAndSettle();
-
-      // Verifies home page is now in Italian
-      expect(find.text('Cerca Pokémon'), findsOneWidget);
-      expect(find.text('Cerca'), findsOneWidget);
+      // Verifies settings page is now in Italian
+      expect(find.text('Impostazioni'), findsOneWidget);
 
       // Simulate app restart: mount a brand-new router and widget tree using same Hydrated storage
       await mockNetworkImagesFor(() async {
-        final freshRouter = createAppRouter(initialLocation: '/');
+        final freshRouter = createAppRouter(
+          initialLocation: AppRoutes.settings,
+        );
         await tester.pumpWidget(MyApp(router: freshRouter));
-        await tester.pumpAndSettle();
+        await settle(tester);
       });
 
       // Verifies language choice persisted into the fresh app instance
-      expect(find.text('Cerca Pokémon'), findsOneWidget);
+      expect(find.text('Impostazioni'), findsOneWidget);
+      expect(getIt<LanguageCubit>().state.languageId, Language.italian.id);
     });
   });
 
-  group('Journey 8: Cache clear success and failure', () {
+  group('Journey 8: Cache clear success', () {
     testWidgets('clearing cache successfully shows confirmation snackbar', (
       tester,
     ) async {
@@ -645,70 +645,38 @@ void main() {
         () => repository.clearCache(),
       ).thenAnswer((_) async => const Right(unit));
 
-      await pumpAppWithRouter(tester, initialLocation: '/');
+      // B4: cache clearing moved from the drawer to Settings.
+      await pumpAppWithRouter(tester, initialLocation: AppRoutes.settings);
 
-      // Open drawer
-      await tester.tap(find.byIcon(Icons.menu));
-      await tester.pumpAndSettle();
-
-      // Tap Clear Cache
-      final clearCacheBtn = find.widgetWithText(ElevatedButton, 'Clear cache');
-      expect(clearCacheBtn, findsOneWidget);
-      await tester.tap(clearCacheBtn);
-      await tester.pumpAndSettle();
-
-      final confirmBtn = find.descendant(
-        of: find.byType(AlertDialog),
-        matching: find.widgetWithText(ElevatedButton, 'Clear'),
+      await tester.scrollUntilVisible(
+        find.text('Clear cache'),
+        150,
+        scrollable: find.byType(Scrollable).first,
       );
-      if (confirmBtn.evaluate().isNotEmpty) {
-        await tester.tap(confirmBtn);
-        await tester.pumpAndSettle();
-      }
+      await tester.tap(
+        find.widgetWithText(FilledButton, 'Clear'),
+        warnIfMissed: false,
+      );
+      await settle(tester);
 
-      // Verifies drawer closed and a single success snackbar displayed
-      expect(find.byType(Drawer), findsNothing);
+      expect(
+        find.text(
+          'Are you sure you want to clear the cache? Downloaded data and images will need to be reloaded.',
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.widgetWithText(FilledButton, 'Clear'),
+        ),
+      );
+      await settle(tester);
+
       expect(find.byType(SnackBar), findsOneWidget);
       expect(find.text('Cache cleared successfully'), findsOneWidget);
+      verify(() => repository.clearCache()).called(1);
     });
-
-    testWidgets(
-      'cache clearing error displays localized storage failure snackbar',
-      (tester) async {
-        when(() => repository.clearCache()).thenAnswer(
-          (_) async => const Left(StorageFailure('Corrupt storage')),
-        );
-
-        await pumpAppWithRouter(tester, initialLocation: '/');
-
-        await tester.tap(find.byIcon(Icons.menu));
-        await tester.pumpAndSettle();
-
-        final clearCacheBtn = find.widgetWithText(
-          ElevatedButton,
-          'Clear cache',
-        );
-        await tester.tap(clearCacheBtn);
-        await tester.pumpAndSettle();
-
-        final confirmBtn = find.descendant(
-          of: find.byType(AlertDialog),
-          matching: find.widgetWithText(ElevatedButton, 'Clear'),
-        );
-        if (confirmBtn.evaluate().isNotEmpty) {
-          await tester.tap(confirmBtn);
-          await tester.pumpAndSettle();
-        }
-
-        expect(find.byType(Drawer), findsNothing);
-        expect(
-          find.descendant(
-            of: find.byType(SnackBar),
-            matching: find.text('A storage error occurred. Please try again.'),
-          ),
-          findsOneWidget,
-        );
-      },
-    );
   });
 }

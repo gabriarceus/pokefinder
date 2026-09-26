@@ -73,8 +73,7 @@ class AbilityDetailBottomSheet extends StatelessWidget {
                   children: [
                     Text(
                       displayName,
-                      style: const TextStyle(
-                        fontSize: 22,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                       textAlign: TextAlign.center,
@@ -87,19 +86,20 @@ class AbilityDetailBottomSheet extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.amber.withValues(alpha: 0.15),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.tertiaryContainer,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Colors.amber.withValues(alpha: 0.5),
-                          ),
                         ),
                         child: Text(
                           context.t().abilityHidden.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.amber.shade900,
-                          ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onTertiaryContainer,
+                              ),
                         ),
                       ),
                     ],
@@ -190,7 +190,9 @@ class _AbilityDetailContent extends StatelessWidget {
         if (summary.isNotEmpty) ...[
           Text(
             t.abilityShortEffect,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
           Container(
@@ -203,14 +205,18 @@ class _AbilityDetailContent extends StatelessWidget {
             ),
             child: Text(
               summary,
-              style: const TextStyle(fontSize: 14, height: 1.4),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(height: 1.4),
             ),
           ),
           const SizedBox(height: 20),
         ],
         Text(
           t.abilityEffect,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 6),
         Container(
@@ -223,7 +229,9 @@ class _AbilityDetailContent extends StatelessWidget {
           ),
           child: Text(
             battleEffect.isNotEmpty ? battleEffect : '-',
-            style: const TextStyle(fontSize: 14, height: 1.4),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(height: 1.4),
           ),
         ),
       ],

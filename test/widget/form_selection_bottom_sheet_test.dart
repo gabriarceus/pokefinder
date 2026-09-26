@@ -10,7 +10,7 @@ import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 
 import '../fixtures/pokemon_fixture.dart';
 
-class _MockPokemonBloc extends Mock implements PokemonBloc {}
+class _MockPokemonBloc extends Mock implements PokemonDetailBloc {}
 
 void main() {
   setUpAll(() {
@@ -56,7 +56,7 @@ void main() {
         MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: BlocProvider<PokemonBloc>.value(
+          home: BlocProvider<PokemonDetailBloc>.value(
             value: bloc,
             child: Scaffold(
               body: FormSelectionBottomSheet(
@@ -131,7 +131,7 @@ void main() {
               textScaler: TextScaler.linear(2.0),
             ),
             child: Scaffold(
-              body: BlocProvider<PokemonBloc>.value(
+              body: BlocProvider<PokemonDetailBloc>.value(
                 value: bloc,
                 child: FormSelectionBottomSheet(
                   pokemon: pokemon,

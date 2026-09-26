@@ -1,29 +1,32 @@
 import 'dart:async';
 
+import 'package:dartz/dartz.dart';
+import 'package:en_logger/en_logger.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:network_image_mock/network_image_mock.dart';
-import 'package:en_logger/en_logger.dart';
-import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/comparison/comparison_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/pokedex_browse/pokedex_browse_page.dart';
+import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:pokefinder/src/1_presentation/widgets/pokedex/pokemon_card.dart';
 import 'package:pokefinder/src/1_presentation/widgets/pokedex/pokemon_card_skeleton.dart';
-import 'package:pokefinder/src/2_application/bloc/comparison_cubit/comparison_cubit.dart';
-import 'package:pokefinder/src/2_application/bloc/pokedex_bloc/pokedex_bloc.dart';
+import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
 class _MockPokedexBloc extends Mock implements PokedexBloc {}
 
 class _MockEnLogger extends Mock implements EnLogger {}
 
+class _MockPokemonRepository extends Mock implements IPokemonRepository {}
+
 void main() {
   late _MockPokedexBloc bloc;
   late ComparisonCubit comparisonCubit;
+  late FavoritesCubit favoritesCubit;
   late StreamController<PokedexState> streamController;
 
   final sampleEntries = [
@@ -47,15 +50,30 @@ void main() {
     ),
   ];
 
+  setUpAll(() {
+    // ComparisonCubit loads the details of every entry it holds.
+    registerFallbackValue(PokemonName('bulbasaur'));
+    // PokemonCard reads FavoritesCubit, which is hydrated.
+    ensureHydratedStorage();
+  });
+
   setUp(() {
     bloc = _MockPokedexBloc();
-    comparisonCubit = ComparisonCubit(_MockEnLogger());
+    final repository = _MockPokemonRepository();
+    when(
+      () => repository.getPokemon(any()),
+    ).thenAnswer((_) async => left(const UnexpectedFailure('offline')));
+    comparisonCubit = ComparisonCubit(_MockEnLogger(), repository);
+    HydratedBloc.storage = InMemoryHydratedStorage();
+    favoritesCubit = FavoritesCubit(_MockEnLogger());
     streamController = StreamController<PokedexState>.broadcast();
     when(() => bloc.stream).thenAnswer((_) => streamController.stream);
   });
 
   tearDown(() async {
     await streamController.close();
+    await comparisonCubit.close();
+    await favoritesCubit.close();
   });
 
   Widget buildTestableWidget(Size screenSize) {
@@ -69,6 +87,7 @@ void main() {
           providers: [
             BlocProvider<PokedexBloc>.value(value: bloc),
             BlocProvider<ComparisonCubit>.value(value: comparisonCubit),
+            BlocProvider<FavoritesCubit>.value(value: favoritesCubit),
           ],
           child: const PokedexBrowsePage(),
         ),
@@ -79,7 +98,7 @@ void main() {
   group('PokedexBrowsePage', () {
     testWidgets('renders skeletons when loading initial index', (tester) async {
       when(() => bloc.state).thenReturn(
-        PokedexState.initial().copyWith(status: PokedexStatus.loading),
+        const PokedexState().copyWith(status: PokedexStatus.loading),
       );
 
       await tester.pumpWidget(buildTestableWidget(const Size(400, 800)));
@@ -93,11 +112,10 @@ void main() {
     ) async {
       await mockNetworkImagesFor(() async {
         when(() => bloc.state).thenReturn(
-          PokedexState.initial().copyWith(
+          const PokedexState().copyWith(
             status: PokedexStatus.success,
             allEntries: sampleEntries,
             filteredEntries: sampleEntries,
-            visibleEntries: sampleEntries,
           ),
         );
 
@@ -116,12 +134,10 @@ void main() {
     ) async {
       await mockNetworkImagesFor(() async {
         when(() => bloc.state).thenReturn(
-          PokedexState.initial().copyWith(
+          const PokedexState().copyWith(
             status: PokedexStatus.success,
             allEntries: sampleEntries,
-            filteredEntries: const [],
-            visibleEntries: const [],
-            searchQuery: 'xyznonexistent',
+            filters: PokedexFilters(query: 'xyznonexistent'),
           ),
         );
 
@@ -142,11 +158,73 @@ void main() {
       });
     });
 
+    testWidgets(
+      'shows the type loading indicator instead of the empty state while the '
+      'ids of a selected type are loading',
+      (tester) async {
+        when(() => bloc.state).thenReturn(
+          const PokedexState().copyWith(
+            status: PokedexStatus.success,
+            allEntries: sampleEntries,
+            filters: PokedexFilters(selectedTypes: {PokemonType.fire}),
+            loadingTypes: {PokemonType.fire},
+          ),
+        );
+
+        await tester.pumpWidget(buildTestableWidget(const Size(400, 800)));
+        await tester.pump();
+
+        expect(find.byType(LinearProgressIndicator), findsOneWidget);
+        expect(
+          find.text('No Pokémon found matching your filters'),
+          findsNothing,
+        );
+      },
+    );
+
+    testWidgets(
+      'a type filter failure is surfaced as a snack bar and no longer hides the '
+      'empty results view',
+      (tester) async {
+        final initialState = const PokedexState().copyWith(
+          status: PokedexStatus.success,
+          allEntries: sampleEntries,
+          filters: PokedexFilters(selectedTypes: {PokemonType.fire}),
+          loadingTypes: {PokemonType.fire},
+        );
+        when(() => bloc.state).thenReturn(initialState);
+
+        await tester.pumpWidget(buildTestableWidget(const Size(400, 800)));
+        await tester.pump();
+        expect(find.byType(SnackBar), findsNothing);
+
+        // The ids never arrive: the type is dropped and the failure is reported.
+        final failedState = initialState.copyWith(
+          filters: const PokedexFilters(),
+          loadingTypes: const {},
+          typeFilterFailure: const NetworkUnavailableFailure('No internet'),
+        );
+        when(() => bloc.state).thenReturn(failedState);
+        streamController.add(failedState);
+        await tester.pump();
+
+        expect(find.byType(SnackBar), findsOneWidget);
+        expect(
+          find.text('No internet connection. Please check your network.'),
+          findsOneWidget,
+        );
+        expect(
+          find.text('No Pokémon found matching your filters'),
+          findsOneWidget,
+        );
+      },
+    );
+
     testWidgets('renders error view with retry button on failure', (
       tester,
     ) async {
       when(() => bloc.state).thenReturn(
-        PokedexState.initial().copyWith(
+        const PokedexState().copyWith(
           status: PokedexStatus.failure,
           failure: const NetworkUnavailableFailure('No internet'),
         ),
@@ -172,11 +250,10 @@ void main() {
     ) async {
       await mockNetworkImagesFor(() async {
         when(() => bloc.state).thenReturn(
-          PokedexState.initial().copyWith(
+          const PokedexState().copyWith(
             status: PokedexStatus.success,
             allEntries: sampleEntries,
             filteredEntries: sampleEntries,
-            visibleEntries: sampleEntries,
           ),
         );
 
@@ -195,19 +272,19 @@ void main() {
     testWidgets(
       'syncs search field text via BlocListener when state search query changes',
       (tester) async {
-        final state = PokedexState.initial().copyWith(
+        final state = const PokedexState().copyWith(
           status: PokedexStatus.success,
           allEntries: sampleEntries,
           filteredEntries: sampleEntries,
-          visibleEntries: sampleEntries,
-          searchQuery: '',
         );
         when(() => bloc.state).thenReturn(state);
 
         await tester.pumpWidget(buildTestableWidget(const Size(400, 800)));
         await tester.pump();
 
-        final updatedState = state.copyWith(searchQuery: 'pikachu');
+        final updatedState = state.copyWith(
+          filters: const PokedexFilters(query: 'pikachu'),
+        );
         when(() => bloc.state).thenReturn(updatedState);
         streamController.add(updatedState);
         await tester.pump();
@@ -221,11 +298,10 @@ void main() {
       'pull to refresh does not throw when widget unmounts during refresh',
       (tester) async {
         await mockNetworkImagesFor(() async {
-          final refreshingState = PokedexState.initial().copyWith(
+          final refreshingState = const PokedexState().copyWith(
             status: PokedexStatus.success,
             allEntries: sampleEntries,
             filteredEntries: sampleEntries,
-            visibleEntries: sampleEntries,
             isRefreshing: true,
           );
           when(() => bloc.state).thenReturn(refreshingState);
@@ -282,12 +358,11 @@ void main() {
           ];
 
           when(() => bloc.state).thenReturn(
-            PokedexState.initial().copyWith(
+            const PokedexState().copyWith(
               status: PokedexStatus.success,
               allEntries: interleavedEntries,
               filteredEntries: interleavedEntries,
-              visibleEntries: interleavedEntries,
-              formFilter: PokedexFormFilter.all,
+              filters: PokedexFilters(formFilter: PokedexFormFilter.all),
             ),
           );
 
@@ -323,16 +398,15 @@ void main() {
     ) async {
       await mockNetworkImagesFor(() async {
         when(() => bloc.state).thenReturn(
-          PokedexState.initial().copyWith(
+          const PokedexState().copyWith(
             status: PokedexStatus.success,
             allEntries: sampleEntries,
             filteredEntries: sampleEntries,
-            visibleEntries: sampleEntries,
           ),
         );
 
-        comparisonCubit.addEntry(sampleEntries[0]);
-        comparisonCubit.addEntry(sampleEntries[1]);
+        comparisonCubit.addEntry(sampleEntries[0].summary);
+        comparisonCubit.addEntry(sampleEntries[1].summary);
 
         await tester.pumpWidget(buildTestableWidget(const Size(400, 800)));
         await tester.pump();
@@ -344,31 +418,30 @@ void main() {
 
     testWidgets('tapping compare action navigates to /compare', (tester) async {
       await mockNetworkImagesFor(() async {
-        await configureDependencies('mock');
         when(() => bloc.state).thenReturn(
-          PokedexState.initial().copyWith(
+          const PokedexState().copyWith(
             status: PokedexStatus.success,
             allEntries: sampleEntries,
             filteredEntries: sampleEntries,
-            visibleEntries: sampleEntries,
           ),
         );
 
         final router = GoRouter(
-          initialLocation: '/pokedex',
+          initialLocation: AppRoutes.pokedex,
           routes: [
             GoRoute(
-              path: '/pokedex',
+              path: AppRoutes.pokedex,
               builder: (context, state) => MultiBlocProvider(
                 providers: [
                   BlocProvider<PokedexBloc>.value(value: bloc),
                   BlocProvider<ComparisonCubit>.value(value: comparisonCubit),
+                  BlocProvider<FavoritesCubit>.value(value: favoritesCubit),
                 ],
                 child: const PokedexBrowsePage(),
               ),
             ),
             GoRoute(
-              path: '/compare',
+              path: AppRoutes.compare,
               builder: (context, state) => BlocProvider<ComparisonCubit>.value(
                 value: comparisonCubit,
                 child: const ComparisonPage(),

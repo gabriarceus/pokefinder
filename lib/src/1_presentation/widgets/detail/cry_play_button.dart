@@ -99,13 +99,13 @@ class CryPlayButton extends StatelessWidget {
                             label,
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: mode == CryButtonMode.unavailable
-                                  ? Theme.of(context).disabledColor
-                                  : Theme.of(context).colorScheme.primary,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: mode == CryButtonMode.unavailable
+                                      ? Theme.of(context).disabledColor
+                                      : Theme.of(context).colorScheme.primary,
+                                ),
                           ),
                         ),
                       ],

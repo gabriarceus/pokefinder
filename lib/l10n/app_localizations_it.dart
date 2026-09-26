@@ -61,13 +61,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings => 'Impostazioni';
 
   @override
-  String get useDeviceLanguage => 'Usa la lingua del dispositivo';
-
-  @override
-  String get useDeviceLanguageInfo =>
-      'Se attivato, l\'app userà la stessa lingua del tuo dispositivo.';
-
-  @override
   String get about => 'Informazioni';
 
   @override
@@ -122,10 +115,26 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tabMoves => 'Mosse';
 
   @override
-  String get tabItemsGames => 'Strumenti';
+  String get tabItemsGames => 'Dove trovarlo';
 
   @override
   String get baseExp => 'Esperienza di base ceduta';
+
+  @override
+  String baseExpValue({required int value}) {
+    return '$value PE';
+  }
+
+  @override
+  String showResults({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mostra $count risultati',
+      one: 'Mostra 1 risultato',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get order => 'Ordine';
@@ -218,9 +227,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get rarity => 'Rarità';
-
-  @override
-  String get species => 'Specie';
 
   @override
   String get locationAreaEncounters => 'Aree d\'incontro';

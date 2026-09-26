@@ -1,42 +1,112 @@
+import 'package:dartz/dartz.dart';
+import 'package:en_logger/en_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
+import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:pokefinder/src/1_presentation/widgets/pokedex/pokemon_card.dart';
+import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
+class _MockEnLogger extends Mock implements EnLogger {}
+
+class _MockPokemonRepository extends Mock implements IPokemonRepository {}
+
+const _pikachu = PokemonIndexEntry(
+  id: 25,
+  name: 'pikachu',
+  detailUrl: 'https://pokeapi.co/api/v2/pokemon/25/',
+  types: [PokemonType.electric],
+);
+
 void main() {
+  late FavoritesCubit favoritesCubit;
+  late ComparisonCubit comparisonCubit;
+
+  setUpAll(() {
+    registerFallbackValue(PokemonName('bulbasaur'));
+    ensureHydratedStorage();
+  });
+
+  setUp(() {
+    HydratedBloc.storage = InMemoryHydratedStorage();
+    favoritesCubit = FavoritesCubit(_MockEnLogger());
+    final repository = _MockPokemonRepository();
+    when(
+      () => repository.getPokemon(any()),
+    ).thenAnswer((_) async => left(const NetworkUnavailableFailure('offline')));
+    comparisonCubit = ComparisonCubit(_MockEnLogger(), repository);
+  });
+
+  tearDown(() async {
+    await favoritesCubit.close();
+    await comparisonCubit.close();
+  });
+
+  /// Lets the mocked image requests complete, then settles the animations.
+  Future<void> settle(WidgetTester tester) async {
+    for (var i = 0; i < 3; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+  }
+
+  /// [onPokemon] is called with the raw route param when the card is tapped.
   Widget buildTestableWidget(
     Widget child, {
     Locale locale = const Locale('en'),
+    void Function(String? nameOrId)? onPokemon,
   }) {
-    return MaterialApp(
-      locale: locale,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(body: Center(child: child)),
+    final router = GoRouter(
+      initialLocation: AppRoutes.home,
+      routes: [
+        GoRoute(
+          path: AppRoutes.home,
+          builder: (_, _) => Scaffold(body: Center(child: child)),
+        ),
+        GoRoute(
+          path: '/pokemon/:nameOrId',
+          builder: (_, state) {
+            onPokemon?.call(state.pathParameters['nameOrId']);
+            return const Scaffold(body: Text('Detail'));
+          },
+        ),
+      ],
+    );
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<FavoritesCubit>.value(value: favoritesCubit),
+        BlocProvider<ComparisonCubit>.value(value: comparisonCubit),
+      ],
+      child: MaterialApp.router(
+        routerConfig: router,
+        locale: locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+      ),
     );
   }
 
   group('PokemonCard', () {
     testWidgets('renders number, name, and sprite image', (tester) async {
       await mockNetworkImagesFor(() async {
-        const entry = PokemonIndexEntry(
-          id: 25,
-          name: 'pikachu',
-          detailUrl: 'https://pokeapi.co/api/v2/pokemon/25/',
-          types: [PokemonType.electric],
-        );
-
         await tester.pumpWidget(
           buildTestableWidget(
             const SizedBox(
               width: 160,
               height: 180,
-              child: PokemonCard(entry: entry),
+              child: PokemonCard(entry: _pikachu),
             ),
           ),
         );
+        await settle(tester);
 
         expect(find.text('#025'), findsOneWidget);
         expect(find.text('Pikachu'), findsOneWidget);
@@ -46,9 +116,11 @@ void main() {
       });
     });
 
-    testWidgets('triggers onTap callback when tapped', (tester) async {
+    testWidgets('tapping the card opens the canonical detail route', (
+      tester,
+    ) async {
       await mockNetworkImagesFor(() async {
-        var tapped = false;
+        String? navigatedTo;
         const entry = PokemonIndexEntry(
           id: 1,
           name: 'bulbasaur',
@@ -57,18 +129,16 @@ void main() {
 
         await tester.pumpWidget(
           buildTestableWidget(
-            SizedBox(
-              width: 160,
-              height: 180,
-              child: PokemonCard(entry: entry, onTap: () => tapped = true),
-            ),
+            SizedBox(width: 160, height: 180, child: PokemonCard(entry: entry)),
+            onPokemon: (value) => navigatedTo = value,
           ),
         );
+        await settle(tester);
 
         await tester.tap(find.byType(PokemonCard));
-        await tester.pump();
+        await settle(tester);
 
-        expect(tapped, isTrue);
+        expect(navigatedTo, equals('bulbasaur'));
       });
     });
 
@@ -91,6 +161,7 @@ void main() {
             ),
           ),
         );
+        await settle(tester);
 
         final cardSize = tester.getSize(find.byType(PokemonCard));
         expect(cardSize.width, greaterThanOrEqualTo(48.0));
@@ -102,22 +173,16 @@ void main() {
       'exposes accessible semantics label with types and excludes children semantics',
       (tester) async {
         await mockNetworkImagesFor(() async {
-          const entry = PokemonIndexEntry(
-            id: 25,
-            name: 'pikachu',
-            detailUrl: '',
-            types: [PokemonType.electric],
-          );
-
           await tester.pumpWidget(
             buildTestableWidget(
               const SizedBox(
                 width: 160,
                 height: 180,
-                child: PokemonCard(entry: entry),
+                child: PokemonCard(entry: _pikachu),
               ),
             ),
           );
+          await settle(tester);
 
           final semanticsFinder = find.descendant(
             of: find.byType(PokemonCard),
@@ -158,6 +223,7 @@ void main() {
               ),
             ),
           );
+          await settle(tester);
 
           expect(find.text('#0006'), findsOneWidget);
           expect(find.text('Mega Charizard X'), findsOneWidget);
@@ -188,6 +254,7 @@ void main() {
               ),
             ),
           );
+          await settle(tester);
 
           expect(find.text('#006'), findsOneWidget);
           expect(find.text('Charizard'), findsOneWidget);
@@ -231,6 +298,7 @@ void main() {
               locale: const Locale('it'),
             ),
           );
+          await settle(tester);
 
           expect(find.text('#037'), findsOneWidget);
           expect(find.text('Vulpix'), findsOneWidget);
@@ -251,97 +319,74 @@ void main() {
       },
     );
 
-    testWidgets(
-      'renders favorite button and fires onFavoriteToggle when tapped',
-      (tester) async {
-        await mockNetworkImagesFor(() async {
-          var favoriteToggled = false;
-          const entry = PokemonIndexEntry(
-            id: 25,
-            name: 'pikachu',
-            detailUrl: '',
-            types: [PokemonType.electric],
-          );
-
-          await tester.pumpWidget(
-            buildTestableWidget(
-              SizedBox(
-                width: 160,
-                height: 180,
-                child: PokemonCard(
-                  entry: entry,
-                  isFavorite: true,
-                  onFavoriteToggle: () => favoriteToggled = true,
-                ),
-              ),
+    testWidgets('the favorite button toggles the favorite through the cubit', (
+      tester,
+    ) async {
+      await mockNetworkImagesFor(() async {
+        await tester.pumpWidget(
+          buildTestableWidget(
+            const SizedBox(
+              width: 160,
+              height: 180,
+              child: PokemonCard(entry: _pikachu),
             ),
-          );
+          ),
+        );
+        await settle(tester);
 
-          expect(find.byIcon(Icons.favorite), findsOneWidget);
-          await tester.tap(find.byIcon(Icons.favorite));
-          await tester.pump();
+        expect(find.byIcon(Icons.favorite_border), findsOneWidget);
+        expect(favoritesCubit.isFavorite(25), isFalse);
 
-          expect(favoriteToggled, isTrue);
-        });
-      },
-    );
+        await tester.tap(find.byIcon(Icons.favorite_border));
+        await settle(tester);
+
+        expect(favoritesCubit.isFavorite(25), isTrue);
+        expect(find.byIcon(Icons.favorite), findsOneWidget);
+
+        // Tapping again removes it.
+        await tester.tap(find.byIcon(Icons.favorite));
+        await settle(tester);
+
+        expect(favoritesCubit.isFavorite(25), isFalse);
+        expect(find.byIcon(Icons.favorite_border), findsOneWidget);
+      });
+    });
 
     testWidgets(
       'favorite button exposes accessible semantics and meets 48x48 dp touch target',
       (tester) async {
         await mockNetworkImagesFor(() async {
-          const entry = PokemonIndexEntry(
-            id: 25,
-            name: 'pikachu',
-            detailUrl: '',
-            types: [PokemonType.electric],
-          );
-
-          // Test non-favorite state (Add to favorites)
+          // Non-favorite state (Add to favorites)
           await tester.pumpWidget(
             buildTestableWidget(
               const SizedBox(
                 width: 160,
                 height: 180,
-                child: PokemonCard(
-                  entry: entry,
-                  isFavorite: false,
-                  showFavoriteButton: true,
-                  showCompareButton: false,
-                  showTeamButton: false,
-                ),
+                child: PokemonCard(entry: _pikachu),
               ),
             ),
           );
+          await settle(tester);
 
-          expect(find.bySemanticsLabel('Add to favorites'), findsOneWidget);
+          // A5: the icon-only button announces its state through its tooltip.
+          expect(find.byTooltip('Add to favorites'), findsOneWidget);
           final addFavButton = find.byType(IconButton);
           expect(addFavButton, findsOneWidget);
+          expect(
+            tester.widget<IconButton>(addFavButton).tooltip,
+            'Add to favorites',
+          );
           final addFavSize = tester.getSize(addFavButton);
           expect(addFavSize.width, greaterThanOrEqualTo(48.0));
           expect(addFavSize.height, greaterThanOrEqualTo(48.0));
 
-          // Test favorite state (Remove from favorites)
-          await tester.pumpWidget(
-            buildTestableWidget(
-              const SizedBox(
-                width: 160,
-                height: 180,
-                child: PokemonCard(
-                  entry: entry,
-                  isFavorite: true,
-                  showFavoriteButton: true,
-                  showCompareButton: false,
-                  showTeamButton: false,
-                ),
-              ),
-            ),
-          );
+          // Favorite state (Remove from favorites)
+          favoritesCubit.addFavorite(_pikachu.summary);
+          await settle(tester);
 
-          expect(
-            find.bySemanticsLabel('Remove from favorites'),
-            findsOneWidget,
-          );
+          expect(find.byIcon(Icons.favorite), findsOneWidget);
+
+          expect(find.byTooltip('Remove from favorites'), findsOneWidget);
           final removeFavButton = find.byType(IconButton);
           expect(removeFavButton, findsOneWidget);
           final removeFavSize = tester.getSize(removeFavButton);
@@ -351,72 +396,37 @@ void main() {
       },
     );
 
-    testWidgets('hides favorite button when showFavoriteButton is false', (
+    testWidgets('the long-press sheet exposes the compare action', (
       tester,
     ) async {
       await mockNetworkImagesFor(() async {
-        const entry = PokemonIndexEntry(
-          id: 25,
-          name: 'pikachu',
-          detailUrl: '',
-          types: [PokemonType.electric],
-        );
-
         await tester.pumpWidget(
           buildTestableWidget(
             const SizedBox(
               width: 160,
               height: 180,
-              child: PokemonCard(entry: entry, showFavoriteButton: false),
+              child: PokemonCard(entry: _pikachu),
             ),
           ),
         );
+        await settle(tester);
 
-        expect(find.byIcon(Icons.favorite), findsNothing);
-        expect(find.byIcon(Icons.favorite_border), findsNothing);
-      });
-    });
+        await tester.longPress(find.byType(PokemonCard));
+        await settle(tester);
 
-    testWidgets('compare button exposes tooltip matching selection state', (
-      tester,
-    ) async {
-      await mockNetworkImagesFor(() async {
-        const entry = PokemonIndexEntry(
-          id: 25,
-          name: 'pikachu',
-          detailUrl: '',
-          types: [PokemonType.electric],
-        );
+        expect(find.text('Add to comparison'), findsOneWidget);
+        expect(find.text('Add to team'), findsOneWidget);
 
-        await tester.pumpWidget(
-          buildTestableWidget(
-            const SizedBox(
-              width: 160,
-              height: 180,
-              child: PokemonCard(
-                entry: entry,
-                isInComparison: false,
-                showFavoriteButton: false,
-              ),
-            ),
-          ),
-        );
-        expect(find.byTooltip('Add to comparison'), findsOneWidget);
+        await tester.tap(find.text('Add to comparison'));
+        await settle(tester);
 
-        await tester.pumpWidget(
-          buildTestableWidget(
-            const SizedBox(
-              width: 160,
-              height: 180,
-              child: PokemonCard(
-                entry: entry,
-                isInComparison: true,
-                showFavoriteButton: false,
-              ),
-            ),
-          ),
-        );
-        expect(find.byTooltip('Remove from comparison'), findsOneWidget);
+        expect(comparisonCubit.isSelected(25), isTrue);
+
+        // Selected entries are offered for removal instead.
+        await tester.longPress(find.byType(PokemonCard));
+        await settle(tester);
+
+        expect(find.text('Remove from comparison'), findsOneWidget);
       });
     });
   });

@@ -2,16 +2,15 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:dartz/dartz.dart';
-import 'package:pokefinder/src/3_domain/cancellation_token.dart';
 import 'package:en_logger/en_logger.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
 import 'package:meta/meta.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_summary.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
-import 'package:pokefinder/src/3_domain/usecases/get_pokemon_usecase.dart';
-import 'package:pokefinder/src/3_domain/usecases/get_pokemon_encounters_usecase.dart';
-import 'package:pokefinder/src/3_domain/usecases/get_pokemon_form_details_usecase.dart';
+import 'package:pokefinder/src/3_domain/repositories/i_pokemon_repository.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
 
 export 'detail_moves_cubit.dart';
@@ -23,13 +22,9 @@ const _prefix = 'DetailBloc';
 
 /// Manages the state for fetching, displaying, and switching Pokémon forms.
 @injectable
-class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
-  PokemonBloc(
-    this._getPokemonUseCase,
-    this._getPokemonEncountersUseCase,
-    this._getPokemonFormDetailsUseCase,
-    this._logger,
-  ) : super(const PokemonBlocInitial()) {
+class PokemonDetailBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
+  PokemonDetailBloc(this._repository, this._logger)
+    : super(const PokemonBlocInitial()) {
     _registerEventHandlers();
   }
 
@@ -43,21 +38,8 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
     on<ClearPokemonFormFailureEvent>(onClearFormFailure);
   }
 
-  final GetPokemonUseCase _getPokemonUseCase;
-  final GetPokemonEncountersUseCase _getPokemonEncountersUseCase;
-  final GetPokemonFormDetailsUseCase _getPokemonFormDetailsUseCase;
+  final IPokemonRepository _repository;
   final EnLogger _logger;
-  CancellationToken? _pokemonCancelToken;
-  CancellationToken? _encountersCancelToken;
-  CancellationToken? _formCancelToken;
-
-  @override
-  Future<void> close() {
-    _pokemonCancelToken?.cancel('PokemonBloc closed');
-    _encountersCancelToken?.cancel('PokemonBloc closed');
-    _formCancelToken?.cancel('PokemonBloc closed');
-    return super.close();
-  }
 
   FutureOr<void> onFetchPokemon(
     FetchPokemonEvent event,
@@ -68,26 +50,19 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
       return;
     }
 
-    _pokemonCancelToken?.cancel('Superseded by new FetchPokemonEvent');
-    _encountersCancelToken?.cancel('Superseded by new FetchPokemonEvent');
-    final pokemonToken = CancellationToken();
-    _pokemonCancelToken = pokemonToken;
-
     emit(const PokemonBlocLoading());
     _logger.info(
       'Fetching data for Pokemon: ${name.rightOrCrash()}',
       prefix: _prefix,
     );
-    final Either<PokemonFailure, Pokemon> result = await _getPokemonUseCase(
+    final Either<PokemonFailure, Pokemon> result = await _repository.getPokemon(
       name,
-      cancelToken: pokemonToken,
     );
 
-    if (pokemonToken.isCancelled || emit.isDone) return;
+    if (emit.isDone) return;
 
     await result.fold(
       (failure) async {
-        if (failure is RequestCancelledFailure) return;
         _logger.error(
           'Failed to fetch Pokemon: ${failure.message}',
           prefix: _prefix,
@@ -95,7 +70,6 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
         emit(PokemonBlocFailure(failure));
       },
       (pokemon) async {
-        if (pokemonToken.isCancelled || emit.isDone) return;
         _logger.info(
           'Successfully fetched Pokemon: ${pokemon.name}',
           prefix: _prefix,
@@ -111,23 +85,18 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
           ),
         );
 
-        final encountersToken = CancellationToken();
-        _encountersCancelToken = encountersToken;
-
         // Fetch location area encounters in the background
-        final encountersResult = await _getPokemonEncountersUseCase(
+        final encountersResult = await _repository.getEncounters(
           pokemon.locationAreaEncounters,
-          cancelToken: encountersToken,
         );
 
-        if (encountersToken.isCancelled || emit.isDone) return;
+        if (emit.isDone) return;
 
         final currentState = state;
         if (currentState is PokemonBlocSuccess &&
             currentState.pokemon.id == pokemon.id) {
           encountersResult.fold(
             (failure) {
-              if (failure is RequestCancelledFailure) return;
               emit(
                 currentState.copyWith(
                   isLoadingEncounters: false,
@@ -157,12 +126,6 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
     final currentState = state;
     if (currentState is! PokemonBlocSuccess) return;
 
-    _encountersCancelToken?.cancel(
-      'Superseded by new RetryPokemonEncountersEvent',
-    );
-    final encountersToken = CancellationToken();
-    _encountersCancelToken = encountersToken;
-
     emit(
       currentState.copyWith(isLoadingEncounters: true, encountersFailure: null),
     );
@@ -172,19 +135,17 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
       prefix: _prefix,
     );
 
-    final encountersResult = await _getPokemonEncountersUseCase(
+    final encountersResult = await _repository.getEncounters(
       currentState.pokemon.locationAreaEncounters,
-      cancelToken: encountersToken,
     );
 
-    if (encountersToken.isCancelled || emit.isDone) return;
+    if (emit.isDone) return;
 
     final latestState = state;
     if (latestState is PokemonBlocSuccess &&
         latestState.pokemon.id == currentState.pokemon.id) {
       encountersResult.fold(
         (failure) {
-          if (failure is RequestCancelledFailure) return;
           emit(
             latestState.copyWith(
               isLoadingEncounters: false,
@@ -212,8 +173,6 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
     final currentState = state;
     if (currentState is! PokemonBlocSuccess) return;
 
-    _formCancelToken?.cancel('Superseded by new SelectPokemonFormEvent');
-
     if (event.form.name == currentState.pokemon.name) {
       final defaultFormDetails = PokemonFormDetails.fromPokemon(
         currentState.pokemon,
@@ -229,9 +188,6 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
       return;
     }
 
-    final formToken = CancellationToken();
-    _formCancelToken = formToken;
-
     emit(
       currentState.copyWith(
         isLoadingForm: true,
@@ -240,19 +196,15 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
       ),
     );
 
-    final result = await _getPokemonFormDetailsUseCase(
-      event.form.url,
-      cancelToken: formToken,
-    );
+    final result = await _repository.getFormDetails(event.form.url);
 
-    if (formToken.isCancelled || emit.isDone) return;
+    if (emit.isDone) return;
 
     final updatedState = state;
     if (updatedState is! PokemonBlocSuccess) return;
 
     result.fold(
       (failure) {
-        if (failure is RequestCancelledFailure) return;
         emit(
           updatedState.copyWith(
             isLoadingForm: false,

@@ -1,17 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Centralized color palette for brand chrome that is not derived from the
-/// ambient [ThemeData]. Keeps recurring color literals in a single place so
-/// they stay consistent and easy to retune.
+/// Centralized color palette and themes of the application.
 abstract final class AppPalette {
-  /// Primary brand red used for action buttons and drawer chrome.
-  static const Color brandRed = Colors.red;
-
-  /// Foreground color drawn on top of [brandRed] surfaces.
-  static const Color onBrandRed = Colors.white;
-
-  /// Fill of the decorative pokeball on the home screen.
-  static const Color pokeballAccent = Color.fromARGB(255, 223, 112, 104);
+  /// Brand red, the seed of both color schemes.
+  static const Color brandRed = Color(0xFFE53935);
 
   /// Color for a stat value above the high threshold.
   static const Color statHigh = Colors.green;
@@ -23,30 +15,34 @@ abstract final class AppPalette {
   static const Color statLow = Colors.red;
 
   /// Light theme configuration for the application.
-  static ThemeData get lightTheme {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: brandRed,
-      brightness: Brightness.light,
-    );
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.light,
-      colorScheme: colorScheme,
-      primaryColor: colorScheme.primary,
-    );
-  }
+  static ThemeData get lightTheme => _theme(Brightness.light);
 
   /// Dark theme configuration for the application.
-  static ThemeData get darkTheme {
+  static ThemeData get darkTheme => _theme(Brightness.dark);
+
+  static ThemeData _theme(Brightness brightness) {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: brandRed,
-      brightness: Brightness.dark,
+      brightness: brightness,
+      // Keeps primary close to the brand red instead of a muted tone.
+      dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
     );
+    final isLight = brightness == Brightness.light;
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: brightness,
       colorScheme: colorScheme,
       primaryColor: colorScheme.primary,
+      appBarTheme: AppBarTheme(
+        // A red bar is too bright on a near-black page: dark mode uses a
+        // raised surface instead.
+        backgroundColor: isLight
+            ? colorScheme.primary
+            : colorScheme.surfaceContainerHigh,
+        foregroundColor: isLight
+            ? colorScheme.onPrimary
+            : colorScheme.onSurface,
+      ),
     );
   }
 }

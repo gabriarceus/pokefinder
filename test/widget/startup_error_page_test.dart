@@ -24,10 +24,10 @@ void main() {
 
       expect(find.text('Startup Failed'), findsOneWidget);
       expect(find.text('Storage path unavailable'), findsOneWidget);
-      expect(find.byType(ElevatedButton), findsOneWidget);
+      expect(find.byType(FilledButton), findsOneWidget);
       expect(find.text('Retry'), findsOneWidget);
 
-      await tester.tap(find.byType(ElevatedButton));
+      await tester.tap(find.byType(FilledButton));
       await tester.pump();
 
       expect(retryCalled, isTrue);

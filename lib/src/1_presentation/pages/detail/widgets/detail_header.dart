@@ -1,55 +1,55 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/extensions/form_name_formatter.dart';
-import 'package:pokefinder/src/1_presentation/pages/matchups/matchup_page.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 
+/// Height of the name and number row.
+const _kNameRowHeight = 44.0;
+
+/// Name, number, type chips and sprite of the displayed Pokémon form.
+///
+/// The sprite fills the height left below the name row, up to 160 dp.
 class DetailHeader extends StatelessWidget {
   const DetailHeader({
     super.key,
     required this.selectedFormName,
     required this.pokemonId,
-    required this.typeImage1,
-    required this.typeImage2,
     required this.textColor,
-    required this.spriteWidget,
+    required this.spriteDefault,
+    required this.spriteShiny,
     this.type1,
     this.type2,
     this.showShiny = false,
-    this.isLandscape = false,
   });
 
   final String selectedFormName;
   final int pokemonId;
-  final String typeImage1;
-  final String typeImage2;
   final Color textColor;
+  final String spriteDefault;
+  final String spriteShiny;
   final PokemonType? type1;
   final PokemonType? type2;
   final bool showShiny;
-  final bool isLandscape;
-
-  /// The pre-built sprite widget (including shiny cross-fade logic) injected by
-  /// the parent so this widget stays free of state management concerns.
-  final Widget spriteWidget;
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final displayFormName = formatFormName(context, selectedFormName);
     final shinyLabel = showShiny ? t.formSelectorShiny : t.defaultForm;
+    final number = '#${pokemonId.toString().padLeft(3, '0')}';
+    final types = [type1, type2].whereType<PokemonType>().toList();
+    final nameStyle = Theme.of(context).textTheme.headlineMedium?.copyWith(
+      fontWeight: FontWeight.w900,
+      color: textColor,
+    );
 
     // Tapping either chip presets the calculator with this Pokémon's full
     // 1–2 defending types, so the defensive profile stays intact.
-    String matchupPath() {
-      final defending = [type1, type2].whereType<PokemonType>().toList();
-      return buildMatchupPath(defending);
-    }
-
-    Widget tappableChip(PokemonType type, String imageUrl) {
+    Widget tappableChip(PokemonType type) {
       final typeName = context.translateType(type.apiName);
       return Semantics(
         button: true,
@@ -59,11 +59,13 @@ class DetailHeader extends StatelessWidget {
           message: t.matchupViewMatchups,
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
-            onTap: () => context.push(matchupPath()),
+            onTap: () => context.push(AppRoutes.matchups(types)),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-              child: Center(
-                child: TypeChip(type: type, imageUrl: imageUrl),
+              constraints: const BoxConstraints(minHeight: 48),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                widthFactor: 1,
+                child: TypeChip(type: type),
               ),
             ),
           ),
@@ -71,144 +73,82 @@ class DetailHeader extends StatelessWidget {
       );
     }
 
-    final typeChips = Wrap(
-      spacing: 8,
-      runSpacing: 6,
-      children: [
-        if (type1 != null)
-          tappableChip(type1!, typeImage1)
-        else if (typeImage1.isNotEmpty)
-          TypeImage(type: typeImage1),
-        if (type2 != null)
-          tappableChip(type2!, typeImage2)
-        else if (typeImage2.isNotEmpty)
-          TypeImage(type: typeImage2),
-      ],
-    );
-
-    final accessibleSprite = Semantics(
-      image: true,
-      excludeSemantics: true,
-      label: '$displayFormName, $shinyLabel',
-      child: spriteWidget,
-    );
-
-    if (isLandscape) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // No lower bound: the header lives in a `FlexibleSpaceBar` background,
+        // so it can be handed less room than the sprite would like (a short
+        // landscape screen, a large text scale, or mid-collapse). A hard floor
+        // made the column overflow there. The sprite shrinks instead; while the
+        // app bar is collapsed the sprite is behind the toolbar anyway.
+        final spriteSize = (constraints.maxHeight - _kNameRowHeight - 8).clamp(
+          0.0,
+          160.0,
+        );
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Semantics(
-              header: true,
-              excludeSemantics: true,
-              label:
-                  '$displayFormName, #${pokemonId.toString().padLeft(3, '0')}',
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        displayFormName,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          color: textColor,
-                        ),
+            SizedBox(
+              height: _kNameRowHeight,
+              child: Semantics(
+                header: true,
+                excludeSemantics: true,
+                label: '$displayFormName, $number',
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(displayFormName, style: nameStyle),
                       ),
                     ),
-                  ),
-                  Text(
-                    '#${pokemonId.toString().padLeft(3, '0')}',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: textColor,
-                    ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Text(number, style: nameStyle),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 8),
-            SizedBox(width: 120, height: 120, child: accessibleSprite),
-            const SizedBox(height: 8),
-            typeChips,
-          ],
-        ),
-      );
-    }
-
-    final screenWidth = MediaQuery.of(context).size.width;
-    final spriteDimension = screenWidth < 360 ? 120.0 : 160.0;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Row 1: Name + Number (full width, same style)
-          Semantics(
-            header: true,
-            excludeSemantics: true,
-            label: '$displayFormName, #${pokemonId.toString().padLeft(3, '0')}',
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // One line, scrollable if it does not fit: a `Wrap` grew to two
+                // lines at a 2.0 text scale and pushed the header past the
+                // height the collapsing app bar gives it.
                 Expanded(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      displayFormName,
-                      style: TextStyle(
-                        fontSize: screenWidth < 360 ? 28 : 36,
-                        fontWeight: FontWeight.w900,
-                        color: textColor,
-                      ),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      spacing: 8,
+                      children: [for (final type in types) tappableChip(type)],
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                Flexible(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      '#${pokemonId.toString().padLeft(3, '0')}',
-                      style: TextStyle(
-                        fontSize: screenWidth < 360 ? 28 : 36,
-                        fontWeight: FontWeight.w900,
-                        color: textColor,
-                      ),
+                Semantics(
+                  image: true,
+                  excludeSemantics: true,
+                  label: '$displayFormName, $shinyLabel',
+                  child: AnimatedCrossFade(
+                    duration: const Duration(milliseconds: 300),
+                    crossFadeState: showShiny
+                        ? CrossFadeState.showSecond
+                        : CrossFadeState.showFirst,
+                    firstChild: SpriteBoxImage(
+                      sprite: spriteDefault,
+                      size: spriteSize,
+                    ),
+                    secondChild: SpriteBoxImage(
+                      sprite: spriteShiny,
+                      size: spriteSize,
                     ),
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 8),
-          // Row 2: Type badges (left) + Sprite (right)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Type badges on the left
-              Expanded(child: typeChips),
-              const SizedBox(width: 8),
-              // Sprite on the right
-              SizedBox(
-                width: spriteDimension,
-                height: spriteDimension,
-                child: accessibleSprite,
-              ),
-            ],
-          ),
-        ],
-      ),
+          ],
+        );
+      },
     );
   }
 }

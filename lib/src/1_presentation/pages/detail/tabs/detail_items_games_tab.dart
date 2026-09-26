@@ -3,100 +3,83 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
+import 'package:pokefinder/src/1_presentation/pages/detail/widgets/detail_tab_scroll_view.dart';
+import 'package:pokefinder/src/1_presentation/theme/readable_color.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
+import 'package:pokefinder/src/1_presentation/widgets/section_title.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_game_version_cubit/detail_game_version_cubit.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 
+/// "Where to find" tab of the detail page: encounters, held items and the
+/// games that include the Pokémon.
 class DetailItemsGamesTab extends StatelessWidget {
   const DetailItemsGamesTab({
     super.key,
     required this.pokemon,
-    required this.textColor,
     required this.encounters,
     required this.isLoadingEncounters,
     required this.encountersFailure,
   });
 
   final Pokemon pokemon;
-  final Color textColor;
   final List<PokemonEncounter>? encounters;
   final bool isLoadingEncounters;
   final PokemonFailure? encountersFailure;
 
   @override
   Widget build(BuildContext context) {
-    String selectedVersion = DetailGameVersionState.allVersions;
-    try {
-      selectedVersion = context.select<DetailGameVersionCubit, String>(
-        (cubit) => cubit.state.selectedVersion,
-      );
-    } catch (_) {}
+    final selectedVersion = context.select<DetailGameVersionCubit, String>(
+      (cubit) => cubit.state.selectedVersion,
+    );
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SpeciesSection(pokemon: pokemon, textColor: textColor),
-          const SizedBox(height: 20),
-          _EncountersSection(
-            encounters: encounters,
-            isLoadingEncounters: isLoadingEncounters,
-            encountersFailure: encountersFailure,
-            textColor: textColor,
-            selectedVersion: selectedVersion,
-          ),
-          const SizedBox(height: 20),
-          _HeldItemsSection(
-            pokemon: pokemon,
-            textColor: textColor,
-            selectedVersion: selectedVersion,
-          ),
-          const SizedBox(height: 20),
-          _GameIndicesSection(pokemon: pokemon, textColor: textColor),
-        ],
-      ),
+    return DetailTabScrollView(
+      storageKey: 'detail_items_games',
+      slivers: [
+        SliverList.list(
+          children: [
+            DetailGameVersionSelector(
+              typeColor: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(height: 16),
+            _EncountersSection(
+              encounters: encounters,
+              isLoadingEncounters: isLoadingEncounters,
+              encountersFailure: encountersFailure,
+              selectedVersion: selectedVersion,
+            ),
+            const SizedBox(height: 24),
+            _HeldItemsSection(
+              pokemon: pokemon,
+              selectedVersion: selectedVersion,
+            ),
+            const SizedBox(height: 24),
+            _GameIndicesSection(pokemon: pokemon),
+          ],
+        ),
+      ],
     );
   }
 }
 
-class _SpeciesSection extends StatelessWidget {
-  const _SpeciesSection({required this.pokemon, required this.textColor});
+/// Muted italic text for a section without entries.
+class _EmptySectionText extends StatelessWidget {
+  const _EmptySectionText(this.text);
 
-  final Pokemon pokemon;
-  final Color textColor;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.t().species,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: textColor,
-          ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          fontStyle: FontStyle.italic,
         ),
-        const SizedBox(height: 8),
-        SurfaceCard(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                LabelValueRow(
-                  label: context.t().species,
-                  value: pokemon.speciesName.toUpperCase(),
-                  textColor: textColor,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -106,36 +89,28 @@ class _EncountersSection extends StatelessWidget {
     required this.encounters,
     required this.isLoadingEncounters,
     required this.encountersFailure,
-    required this.textColor,
     required this.selectedVersion,
   });
 
   final List<PokemonEncounter>? encounters;
   final bool isLoadingEncounters;
   final PokemonFailure? encountersFailure;
-  final Color textColor;
   final String selectedVersion;
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          context.t().locationAreaEncounters,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: textColor,
-          ),
-        ),
-        const SizedBox(height: 8),
+        SectionTitle(context.t().locationAreaEncounters),
         _buildBody(context),
       ],
     );
   }
 
   Widget _buildBody(BuildContext context) {
+    final t = context.t();
+    final theme = Theme.of(context);
     if (isLoadingEncounters) {
       return const Center(
         child: Padding(
@@ -145,8 +120,8 @@ class _EncountersSection extends StatelessWidget {
       );
     }
 
-    if (encountersFailure != null) {
-      final t = context.t();
+    final failure = encountersFailure;
+    if (failure != null) {
       return SurfaceCard(
         borderRadius: 12,
         margin: EdgeInsets.zero,
@@ -154,27 +129,21 @@ class _EncountersSection extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
-              Icon(
-                Icons.error_outline_rounded,
-                color: Theme.of(context).colorScheme.error,
-              ),
+              Icon(Icons.error_outline_rounded, color: theme.colorScheme.error),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  encountersFailure!.localizedMessage(context),
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
-                    fontWeight: FontWeight.w500,
+                  failure.localizedMessage(context),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.error,
                   ),
                 ),
               ),
               const SizedBox(width: 8),
               TextButton.icon(
-                onPressed: () {
-                  context.read<PokemonBloc>().add(
-                    RetryPokemonEncountersEvent(),
-                  );
-                },
+                onPressed: () => context.read<PokemonDetailBloc>().add(
+                  RetryPokemonEncountersEvent(),
+                ),
                 icon: const Icon(Icons.refresh_rounded, size: 18),
                 label: Text(t.retryButton),
               ),
@@ -184,78 +153,63 @@ class _EncountersSection extends StatelessWidget {
       );
     }
 
-    final displayedEncounters =
-        (selectedVersion == DetailGameVersionState.allVersions ||
-            encounters == null)
+    final isAllVersions = selectedVersion == DetailGameVersionState.allVersions;
+    final displayedEncounters = isAllVersions || encounters == null
         ? encounters
         : encounters!
               .where((e) => e.versions.contains(selectedVersion))
               .toList();
 
     if (displayedEncounters == null || displayedEncounters.isEmpty) {
-      final message =
-          selectedVersion != DetailGameVersionState.allVersions &&
-              (encounters?.isNotEmpty ?? false)
-          ? context.t().encountersUnavailableForVersion
-          : context.t().encountersEmpty;
-
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Text(
-          message,
-          style: TextStyle(
-            color: textColor.withValues(alpha: 0.6),
-            fontStyle: FontStyle.italic,
-          ),
-        ),
+      return _EmptySectionText(
+        !isAllVersions && (encounters?.isNotEmpty ?? false)
+            ? t.encountersUnavailableForVersion
+            : t.encountersEmpty,
       );
     }
 
-    return ListView.separated(
-      shrinkWrap: true,
-      padding: EdgeInsets.zero,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: displayedEncounters.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 4),
-      itemBuilder: (context, index) {
-        final encounter = displayedEncounters[index];
-        return SurfaceCard(
-          borderRadius: 12,
-          margin: EdgeInsets.zero,
-          child: ListTile(
-            leading: const Icon(Icons.location_on_outlined),
-            title: Text(
-              context.translateLocation(encounter.rawLocationAreaName),
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: encounter.versions.map((version) {
-                final primary = Theme.of(context).colorScheme.primary;
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    context.translateGameVersion(version).toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: primary,
-                      fontWeight: FontWeight.bold,
+    final primary = theme.colorScheme.primary;
+    return Column(
+      children: [
+        for (final encounter in displayedEncounters)
+          SurfaceCard(
+            borderRadius: 12,
+            margin: const EdgeInsets.only(bottom: 4),
+            child: ListTile(
+              leading: const Icon(Icons.location_on_outlined),
+              title: Text(
+                context.translateLocation(encounter.rawLocationAreaName),
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                children: [
+                  for (final version in encounter.versions)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        context.translateGameVersion(version),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ),
-                );
-              }).toList(),
+                ],
+              ),
             ),
           ),
-        );
-      },
+      ],
     );
   }
 }
@@ -263,130 +217,110 @@ class _EncountersSection extends StatelessWidget {
 class _HeldItemsSection extends StatelessWidget {
   const _HeldItemsSection({
     required this.pokemon,
-    required this.textColor,
     required this.selectedVersion,
   });
 
   final Pokemon pokemon;
-  final Color textColor;
   final String selectedVersion;
 
   @override
   Widget build(BuildContext context) {
-    final displayedHeldItems =
-        selectedVersion == DetailGameVersionState.allVersions
+    final t = context.t();
+    final theme = Theme.of(context);
+    final isAllVersions = selectedVersion == DetailGameVersionState.allVersions;
+    final displayedHeldItems = isAllVersions
         ? pokemon.heldItems
         : pokemon.heldItems
               .where((item) => item.version == selectedVersion)
               .toList();
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          context.t().heldItems,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: textColor,
-          ),
-        ),
-        const SizedBox(height: 8),
+        SectionTitle(t.heldItems),
         if (displayedHeldItems.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text(
-              selectedVersion != DetailGameVersionState.allVersions &&
-                      pokemon.heldItems.isNotEmpty
-                  ? context.t().heldItemsUnavailableForVersion
-                  : context.t().heldItemsEmpty,
-              style: TextStyle(
-                color: textColor.withValues(alpha: 0.6),
-                fontStyle: FontStyle.italic,
-              ),
-            ),
+          _EmptySectionText(
+            !isAllVersions && pokemon.heldItems.isNotEmpty
+                ? t.heldItemsUnavailableForVersion
+                : t.heldItemsEmpty,
           )
         else
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: displayedHeldItems.length,
-            itemBuilder: (context, index) {
-              final item = displayedHeldItems[index];
-              return SurfaceCard(
-                borderRadius: 12,
-                child: ListTile(
-                  leading: const Icon(Icons.gif_box_outlined),
-                  title: Text(
-                    context.translateItem(item.name),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    '${context.t().versionLabel}: ${context.translateGameVersion(item.version)}',
-                  ),
-                  trailing: Text(
-                    '${item.rarity}%',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+          for (final item in displayedHeldItems)
+            SurfaceCard(
+              borderRadius: 12,
+              margin: const EdgeInsets.only(bottom: 4),
+              child: ListTile(
+                leading: const Icon(Icons.backpack_outlined),
+                title: Text(
+                  context.translateItem(item.name),
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              );
-            },
-          ),
+                subtitle: Text(
+                  '${t.versionLabel}: ${context.translateGameVersion(item.version)}',
+                ),
+                trailing: Text(
+                  '${item.rarity}%',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ),
+            ),
       ],
     );
   }
 }
 
 class _GameIndicesSection extends StatelessWidget {
-  const _GameIndicesSection({required this.pokemon, required this.textColor});
+  const _GameIndicesSection({required this.pokemon});
 
   final Pokemon pokemon;
-  final Color textColor;
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          context.t().gameIndices,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: textColor,
-          ),
-        ),
-        const SizedBox(height: 8),
+        SectionTitle(context.t().gameIndices),
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: pokemon.gameIndices.map((game) {
-            final color = gameVersionColor(game);
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: color.withValues(alpha: 0.5),
-                  width: 1.5,
-                ),
-              ),
-              child: Text(
-                context.translateGameVersion(game).toUpperCase(),
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: color,
-                ),
-              ),
-            );
-          }).toList(),
+          children: [
+            for (final game in pokemon.gameIndices)
+              _GameBadge(label: context.translateGameVersion(game), game: game),
+          ],
         ),
       ],
+    );
+  }
+}
+
+class _GameBadge extends StatelessWidget {
+  const _GameBadge({required this.label, required this.game});
+
+  final String label;
+  final String game;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = gameVersionColor(game);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.5), width: 1.5),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w800,
+          color: color.readableOn(Theme.of(context).brightness),
+        ),
+      ),
     );
   }
 }

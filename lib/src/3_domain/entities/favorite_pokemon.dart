@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
-import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_summary.dart';
 
 /// Available sorting strategies for favorited Pokémon.
 enum FavoriteSortOrder {
@@ -22,66 +21,29 @@ enum FavoriteSortOrder {
 
 /// Lightweight bookmark entity for a favorited Pokémon.
 class FavoritePokemon extends Equatable {
-  const FavoritePokemon({
-    required this.id,
-    required this.name,
-    required this.spriteUrl,
-    this.types = const [],
-    required this.addedAt,
-  });
-
-  /// Pokédex identifier.
-  final int id;
-
-  /// Canonical name of the Pokémon.
-  final String name;
-
-  /// URL of the default sprite image.
-  final String spriteUrl;
-
-  /// Pokémon elemental types.
-  final List<PokemonType> types;
-
-  /// Timestamp when the entry was added to favorites.
-  final DateTime addedAt;
-
-  /// Serializes this entity to a lightweight JSON map.
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'spriteUrl': spriteUrl,
-    'types': types.map((t) => t.apiName).toList(),
-    'addedAt': addedAt.toIso8601String(),
-  };
+  const FavoritePokemon({required this.pokemon, required this.addedAt});
 
   /// Deserializes an entity from a JSON map.
   factory FavoritePokemon.fromJson(Map<String, dynamic> json) {
-    final rawTypes = json['types'] as List<dynamic>? ?? const [];
     return FavoritePokemon(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      spriteUrl: json['spriteUrl'] as String? ?? '',
-      types: rawTypes
-          .map((t) => PokemonType.fromApiName(t.toString()))
-          .whereType<PokemonType>()
-          .toList(),
+      pokemon: PokemonSummary.fromJson(json),
       addedAt:
           DateTime.tryParse(json['addedAt'] as String? ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
     );
   }
 
-  /// Converts this bookmark into a [PokemonIndexEntry] for card presentation.
-  PokemonIndexEntry toIndexEntry() {
-    return PokemonIndexEntry(
-      id: id,
-      name: name,
-      detailUrl: 'https://pokeapi.co/api/v2/pokemon/$id/',
-      types: types,
-      customSpriteUrl: spriteUrl.isNotEmpty ? spriteUrl : null,
-    );
-  }
+  final PokemonSummary pokemon;
+
+  /// Timestamp when the entry was added to favorites.
+  final DateTime addedAt;
+
+  /// Serializes this entity to a lightweight JSON map.
+  Map<String, dynamic> toJson() => {
+    ...pokemon.toJson(),
+    'addedAt': addedAt.toIso8601String(),
+  };
 
   @override
-  List<Object?> get props => [id, name, spriteUrl, types, addedAt];
+  List<Object?> get props => [pokemon, addedAt];
 }

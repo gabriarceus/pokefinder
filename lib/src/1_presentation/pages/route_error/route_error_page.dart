@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
-import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 
 const _kSadAzurillAsset = 'assets/images/sad_azurill.png';
 
@@ -17,11 +17,7 @@ class RouteErrorPage extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.routeNotFoundTitle),
-        backgroundColor: AppPalette.brandRed,
-        foregroundColor: AppPalette.onBrandRed,
-      ),
+      appBar: AppBar(title: Text(l10n.routeNotFoundTitle)),
       body: Stack(
         children: [
           Center(
@@ -30,10 +26,10 @@ class RouteErrorPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.search_off_rounded,
                     size: 64,
-                    color: AppPalette.brandRed,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -50,18 +46,14 @@ class RouteErrorPage extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
-                  ElevatedButton.icon(
+                  FilledButton.icon(
                     onPressed: () {
                       if (context.canPop()) {
                         context.pop();
                       } else {
-                        context.go('/');
+                        context.go(AppRoutes.home);
                       }
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppPalette.brandRed,
-                      foregroundColor: AppPalette.onBrandRed,
-                    ),
                     icon: const Icon(Icons.home_outlined),
                     label: Text(l10n.goHome),
                   ),

@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_form_category.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_regional_group.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_summary.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 import 'package:pokefinder/src/3_domain/helpers/pokemon_form_classifier.dart';
 
@@ -83,6 +84,10 @@ class PokemonIndexEntry extends Equatable {
   String get spriteUrl =>
       customSpriteUrl ??
       'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$id.png';
+
+  /// Summary of this entry, with the [spriteUrl] image.
+  PokemonSummary get summary =>
+      PokemonSummary(id: id, name: name, spriteUrl: spriteUrl, types: types);
 
   /// High-resolution official artwork URL derived from [id].
   String get officialArtworkUrl =>

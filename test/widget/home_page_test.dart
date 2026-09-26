@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:injectable/injectable.dart' hide test;
 import 'package:mocktail/mocktail.dart';
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/bootstrap.dart';
@@ -22,9 +23,8 @@ class _MockPokemonRepository extends Mock implements IPokemonRepository {}
 void main() {
   setUpAll(() async {
     registerFallbackValue(PokemonName('pikachu'));
-    registerFallbackValue(CancellationToken());
     ensureHydratedStorage();
-    await configureDependencies('mock');
+    await configureDependencies(Environment.dev);
   });
 
   group('PokeTextField', () {
@@ -266,6 +266,8 @@ void main() {
                 BlocProvider.value(value: getIt<RecentHistoryCubit>()),
               if (getIt.isRegistered<TeamsCubit>())
                 BlocProvider.value(value: getIt<TeamsCubit>()),
+              if (getIt.isRegistered<ComparisonCubit>())
+                BlocProvider.value(value: getIt<ComparisonCubit>()),
             ],
             child: MaterialApp.router(
               routerConfig: router,
@@ -290,12 +292,32 @@ void main() {
       });
     }
 
+    /// Lets the mocked image requests complete, then drives frames until the
+    /// tree is quiet.
+    ///
+    /// `pumpAndSettle` cannot be used on the detail screen: it keeps an
+    /// indeterminate `CircularProgressIndicator` mounted, so a frame is always
+    /// scheduled and `pumpAndSettle` never returns. This pumps a bounded
+    /// number of frames instead.
+    Future<void> settle(WidgetTester tester) async {
+      for (var i = 0; i < 3; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 100)),
+        );
+        await tester.pump();
+      }
+      for (var i = 0; i < 40; i++) {
+        if (!tester.binding.hasScheduledFrame) break;
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
     testWidgets('search button is disabled when input is empty', (
       tester,
     ) async {
       await pumpHomePage(tester);
 
-      final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+      final button = tester.widget<FilledButton>(find.byType(FilledButton));
       expect(button.onPressed, isNull);
     });
 
@@ -307,7 +329,7 @@ void main() {
       await tester.enterText(find.byType(TextField), 'pikachu');
       await tester.pumpAndSettle();
 
-      final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+      final button = tester.widget<FilledButton>(find.byType(FilledButton));
       expect(button.onPressed, isNotNull);
     });
 
@@ -319,10 +341,12 @@ void main() {
 
         await tester.enterText(find.byType(TextField), 'pikachu');
         await tester.testTextInput.receiveAction(TextInputAction.search);
-        await tester.pumpAndSettle();
+        await settle(tester);
 
-        expect(find.byType(Detail), findsOneWidget);
-        final detail = tester.widget<Detail>(find.byType(Detail));
+        expect(find.byType(PokemonDetailPage), findsOneWidget);
+        final detail = tester.widget<PokemonDetailPage>(
+          find.byType(PokemonDetailPage),
+        );
         expect(detail.pokemonName, 'pikachu');
       });
     });
@@ -337,10 +361,12 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('Search'), warnIfMissed: false);
-        await tester.pumpAndSettle();
+        await settle(tester);
 
-        expect(find.byType(Detail), findsOneWidget);
-        final detail = tester.widget<Detail>(find.byType(Detail));
+        expect(find.byType(PokemonDetailPage), findsOneWidget);
+        final detail = tester.widget<PokemonDetailPage>(
+          find.byType(PokemonDetailPage),
+        );
         expect(detail.pokemonName, 'bulbasaur');
       });
     });
@@ -348,32 +374,25 @@ void main() {
     testWidgets(
       'search query that results in failure is not added to recent searches',
       (tester) async {
+        // O11: inject a mock repository directly instead of a use case.
         final mockRepo = _MockPokemonRepository();
         final originalRepo = getIt<IPokemonRepository>();
-        final originalUseCase = getIt<GetPokemonUseCase>();
         getIt.unregister<IPokemonRepository>();
-        getIt.unregister<GetPokemonUseCase>();
         getIt.registerSingleton<IPokemonRepository>(mockRepo);
-        getIt.registerSingleton<GetPokemonUseCase>(GetPokemonUseCase(mockRepo));
         addTearDown(() {
           getIt.unregister<IPokemonRepository>();
-          getIt.unregister<GetPokemonUseCase>();
           getIt.registerSingleton<IPokemonRepository>(originalRepo);
-          getIt.registerSingleton<GetPokemonUseCase>(originalUseCase);
         });
 
         when(
           () => mockRepo.getPokemonIndex(),
-        ).thenAnswer((_) async => const Right([]));
+        ).thenAnswer((_) async => const Right(<PokemonIndexEntry>[]));
         when(
-          () => mockRepo.getAllPokemonNames(),
-        ).thenAnswer((_) async => const Right([]));
+          () => mockRepo.getEncounters(any()),
+        ).thenAnswer((_) async => const Right(<PokemonEncounter>[]));
         when(
-          () => mockRepo.getPokemon(
-            any(),
-            cancelToken: any(named: 'cancelToken'),
-          ),
-        ).thenAnswer((_) async => Left(PokemonNotFoundFailure()));
+          () => mockRepo.getPokemon(any()),
+        ).thenAnswer((_) async => const Left(PokemonNotFoundFailure()));
 
         await mockNetworkImagesFor(() async {
           await pumpHomePage(tester);
@@ -384,7 +403,7 @@ void main() {
           await tester.tap(find.text('Search'), warnIfMissed: false);
           await tester.pumpAndSettle();
 
-          expect(find.byType(Detail), findsOneWidget);
+          expect(find.byType(PokemonDetailPage), findsOneWidget);
           expect(find.byType(DetailFailure), findsOneWidget);
 
           expect(getIt<RecentHistoryCubit>().state.recentSearches, isEmpty);
@@ -402,9 +421,9 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('Search'), warnIfMissed: false);
-        await tester.pumpAndSettle();
+        await settle(tester);
 
-        expect(find.byType(Detail), findsOneWidget);
+        expect(find.byType(PokemonDetailPage), findsOneWidget);
         expect(
           getIt<RecentHistoryCubit>().state.recentSearches,
           contains('bulbasaur'),
@@ -428,10 +447,12 @@ void main() {
           );
 
           await tester.tap(find.text('pikachu'), warnIfMissed: false);
-          await tester.pumpAndSettle();
+          await settle(tester);
 
-          expect(find.byType(Detail), findsOneWidget);
-          final detail = tester.widget<Detail>(find.byType(Detail));
+          expect(find.byType(PokemonDetailPage), findsOneWidget);
+          final detail = tester.widget<PokemonDetailPage>(
+            find.byType(PokemonDetailPage),
+          );
           expect(detail.pokemonName, 'pikachu');
         });
       },
@@ -454,10 +475,12 @@ void main() {
 
           // Submit the field via search action
           await tester.testTextInput.receiveAction(TextInputAction.search);
-          await tester.pumpAndSettle();
+          await settle(tester);
 
-          expect(find.byType(Detail), findsOneWidget);
-          final detail = tester.widget<Detail>(find.byType(Detail));
+          expect(find.byType(PokemonDetailPage), findsOneWidget);
+          final detail = tester.widget<PokemonDetailPage>(
+            find.byType(PokemonDetailPage),
+          );
           expect(detail.pokemonName, 'pikachu');
         });
       },
@@ -471,15 +494,15 @@ void main() {
 
           await tester.enterText(find.byType(TextField), 'pikachu');
           await tester.testTextInput.receiveAction(TextInputAction.search);
-          await tester.pumpAndSettle();
+          await settle(tester);
 
-          expect(find.byType(Detail), findsOneWidget);
+          expect(find.byType(PokemonDetailPage), findsOneWidget);
 
           // Navigate back to HomePage
           final backButton = find.byType(BackButton);
           expect(backButton, findsOneWidget);
           await tester.tap(backButton);
-          await tester.pumpAndSettle();
+          await settle(tester);
 
           expect(find.byType(HomePage), findsOneWidget);
           final editableText = tester.widget<EditableText>(
@@ -524,7 +547,7 @@ void main() {
 
         expect(tester.takeException(), isNull);
         expect(find.byType(PokeTextField), findsOneWidget);
-        expect(find.byType(ElevatedButton), findsOneWidget);
+        expect(find.byType(FilledButton), findsOneWidget);
         expect(find.byType(PokeBallWidget), findsOneWidget);
       });
     }
@@ -540,7 +563,7 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.byType(PokeTextField), findsOneWidget);
-      expect(find.byType(ElevatedButton), findsOneWidget);
+      expect(find.byType(FilledButton), findsOneWidget);
     });
 
     testWidgets('decorative PokeBall is excluded from semantics', (
@@ -557,15 +580,17 @@ void main() {
       );
     });
 
-    testWidgets('app bar menu button has localized settings tooltip', (
+    testWidgets('app bar menu button has the localized drawer tooltip', (
       tester,
     ) async {
       await pumpHomePage(tester);
 
+      // B4: the drawer is navigation only, so the button keeps the standard
+      // Material drawer tooltip instead of a settings one.
       final iconButton = tester.widget<IconButton>(
         find.widgetWithIcon(IconButton, Icons.menu),
       );
-      expect(iconButton.tooltip, 'Settings');
+      expect(iconButton.tooltip, 'Open navigation menu');
     });
 
     testWidgets('search button meets minimum 48x48 dp touch target', (
@@ -573,7 +598,7 @@ void main() {
     ) async {
       await pumpHomePage(tester);
 
-      final size = tester.getSize(find.byType(ElevatedButton));
+      final size = tester.getSize(find.byType(FilledButton));
       expect(size.height, greaterThanOrEqualTo(48.0));
       expect(size.width, greaterThanOrEqualTo(48.0));
     });

@@ -21,14 +21,12 @@ const _sampleAbility = AbilityDetail(
 void main() {
   late _MockPokemonRepository repository;
   late _MockEnLogger logger;
-  late GetAbilityDetailUseCase useCase;
   late AbilityDetailCubit cubit;
 
   setUp(() {
     repository = _MockPokemonRepository();
     logger = _MockEnLogger();
-    useCase = GetAbilityDetailUseCase(repository);
-    cubit = AbilityDetailCubit(useCase, logger);
+    cubit = AbilityDetailCubit(repository, logger);
   });
 
   tearDown(() async {
@@ -43,10 +41,7 @@ void main() {
     'emits AbilityDetailLoading then AbilityDetailLoaded on success',
     () async {
       when(
-        () => repository.getAbilityDetail(
-          'overgrow',
-          cancelToken: any(named: 'cancelToken'),
-        ),
+        () => repository.getAbilityDetail('overgrow'),
       ).thenAnswer((_) async => right(_sampleAbility));
 
       final emitted = <AbilityDetailState>[];
@@ -67,10 +62,7 @@ void main() {
     'emits AbilityDetailLoading then AbilityDetailError on failure',
     () async {
       when(
-        () => repository.getAbilityDetail(
-          any(),
-          cancelToken: any(named: 'cancelToken'),
-        ),
+        () => repository.getAbilityDetail(any()),
       ).thenAnswer((_) async => left(const UnexpectedFailure('ability error')));
 
       final emitted = <AbilityDetailState>[];

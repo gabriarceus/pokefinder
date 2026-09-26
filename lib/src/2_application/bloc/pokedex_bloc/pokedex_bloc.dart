@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:bloc/bloc.dart';
@@ -15,76 +14,93 @@ part 'pokedex_state.dart';
 
 const _prefix = 'PokedexBloc';
 
-EventTransformer<PokedexSearchQueryChangedEvent> _debounceSearch(
-  Duration duration,
-) {
-  return (events, mapper) {
-    if (duration == Duration.zero) {
-      return events.asyncExpand(mapper);
-    }
-    StreamController<PokedexSearchQueryChangedEvent>? controller;
-    Timer? timer;
-    StreamSubscription<PokedexSearchQueryChangedEvent>? subscription;
-
-    controller = StreamController<PokedexSearchQueryChangedEvent>(
-      onListen: () {
-        subscription = events.listen(
-          (event) {
-            timer?.cancel();
-            if (event.query.isEmpty) {
-              controller?.add(event);
-            } else {
-              timer = Timer(duration, () {
-                controller?.add(event);
-              });
-            }
-          },
-          onError: controller?.addError,
-          onDone: () {
-            timer?.cancel();
-            controller?.close();
-          },
-        );
-      },
-      onCancel: () {
-        timer?.cancel();
-        subscription?.cancel();
-      },
-    );
-
-    return controller.stream.asyncExpand(mapper);
-  };
-}
-
-/// Manages Pokédex discovery browsing, client-side filtering, sorting, and pagination.
+/// Manages Pokédex discovery browsing, client-side filtering and sorting.
 @injectable
 class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
   PokedexBloc(
     this._pokemonRepository,
     this._logger, {
     @factoryParam Duration? searchDebounceDuration,
-  }) : super(PokedexState.initial()) {
-    final debounce =
-        searchDebounceDuration ?? const Duration(milliseconds: 250);
+  }) : _searchDebounce =
+           searchDebounceDuration ?? const Duration(milliseconds: 250),
+       super(const PokedexState()) {
     on<PokedexFetchIndexEvent>(_onFetchIndex);
     on<PokedexSearchQueryChangedEvent>(
       _onSearchQueryChanged,
-      transformer: _debounceSearch(debounce),
+      transformer: restartable(),
     );
-    on<PokedexTypeFilterToggledEvent>(_onTypeFilterToggled);
-    on<PokedexGenerationFilterChangedEvent>(_onGenerationFilterChanged);
-    on<PokedexSortOrderChangedEvent>(_onSortOrderChanged);
-    on<PokedexFormFilterChangedEvent>(_onFormFilterChanged);
-    on<PokedexCosmeticToggleChangedEvent>(_onCosmeticToggleChanged);
-    on<PokedexClearFiltersEvent>(_onClearFilters);
-    on<PokedexLoadMoreEvent>(_onLoadMore, transformer: droppable());
+    on<PokedexTypeFilterToggledEvent>(
+      _onTypeFilterToggled,
+      transformer: sequential(),
+    );
+    on<PokedexGenerationFilterChangedEvent>(
+      (event, emit) => _applyFilters(
+        emit,
+        state.filters.copyWith(generation: event.generation),
+      ),
+    );
+    on<PokedexSortOrderChangedEvent>(
+      (event, emit) => _applyFilters(
+        emit,
+        state.filters.copyWith(sortOrder: event.sortOrder),
+      ),
+    );
+    on<PokedexFormFilterChangedEvent>(
+      (event, emit) => _applyFilters(
+        emit,
+        state.filters.copyWith(formFilter: event.formFilter),
+      ),
+    );
+    on<PokedexCosmeticToggleChangedEvent>(
+      (event, emit) => _applyFilters(
+        emit,
+        state.filters.copyWith(
+          includeCosmeticForms: event.includeCosmeticForms,
+        ),
+      ),
+    );
+    on<PokedexClearFiltersEvent>(
+      (event, emit) => _applyFilters(emit, const PokedexFilters()),
+    );
     on<PokedexSelectRandomPokemonEvent>(_onSelectRandomPokemon);
-    on<PokedexRandomNavigationDoneEvent>(_onRandomNavigationDone);
+    on<PokedexRandomNavigationDoneEvent>(
+      (event, emit) => emit(state.copyWith(randomPokemonToNavigate: null)),
+    );
   }
 
   final IPokemonRepository _pokemonRepository;
   final EnLogger _logger;
+  final Duration _searchDebounce;
   final Random _random = Random();
+
+  /// Emits [filters] with the entries they select.
+  void _applyFilters(Emitter<PokedexState> emit, PokedexFilters filters) {
+    if (filters == state.filters) return;
+    _logger.info('Filters changed: $filters', prefix: _prefix);
+    emit(
+      state.copyWith(
+        filters: filters,
+        filteredEntries: _filter(state.allEntries, filters, state.typeIdMap),
+      ),
+    );
+  }
+
+  List<PokemonIndexEntry> _filter(
+    List<PokemonIndexEntry> entries,
+    PokedexFilters filters,
+    Map<PokemonType, Set<int>> typeIdMap,
+  ) {
+    return PokemonIndexFilterHelper.filterAndSort(
+      entries: entries,
+      query: filters.query,
+      generation: filters.generation,
+      selectedTypes: filters.selectedTypes,
+      typeIdMap: typeIdMap,
+      sortOrder: filters.sortOrder,
+      formFilter: filters.formFilter,
+      includeCosmeticForms: filters.includeCosmeticForms,
+    );
+  }
 
   Future<void> _onFetchIndex(
     PokedexFetchIndexEvent event,
@@ -111,311 +127,107 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
           'Failed to fetch Pokédex index: $failure',
           prefix: _prefix,
         );
-        if (state.allEntries.isEmpty) {
-          emit(
-            state.copyWith(
-              status: PokedexStatus.failure,
-              failure: failure,
-              isRefreshing: false,
-            ),
-          );
-        } else {
-          emit(state.copyWith(isRefreshing: false, failure: failure));
-        }
-      },
-      (entries) {
-        final filtered = PokemonIndexFilterHelper.filterAndSort(
-          entries: entries,
-          query: state.searchQuery,
-          generation: state.selectedGeneration,
-          selectedTypes: state.selectedTypes,
-          typeIdMap: state.typeIdMap,
-          sortOrder: state.sortOrder,
-          formFilter: state.formFilter,
-          includeCosmeticForms: state.includeCosmeticForms,
-        );
-
         emit(
           state.copyWith(
-            status: PokedexStatus.success,
+            status: state.allEntries.isEmpty ? PokedexStatus.failure : null,
             isRefreshing: false,
-            allEntries: entries,
-            filteredEntries: filtered,
-            visibleEntries: filtered.take(state.pageSize).toList(),
-            currentPage: 1,
-            failure: null,
+            failure: failure,
           ),
         );
       },
+      (entries) => emit(
+        state.copyWith(
+          status: PokedexStatus.success,
+          isRefreshing: false,
+          allEntries: entries,
+          filteredEntries: _filter(entries, state.filters, state.typeIdMap),
+          failure: null,
+        ),
+      ),
     );
   }
 
-  void _onSearchQueryChanged(
+  Future<void> _onSearchQueryChanged(
     PokedexSearchQueryChangedEvent event,
     Emitter<PokedexState> emit,
-  ) {
-    if (event.query == state.searchQuery) return;
+  ) async {
+    if (event.query == state.filters.query) return;
+    // Debounce: restartable() drops this handler when a newer query arrives.
+    if (event.query.isNotEmpty && _searchDebounce > Duration.zero) {
+      await Future<void>.delayed(_searchDebounce);
+      if (emit.isDone) return;
+    }
     final queryLog = sanitizeQueryForLog(event.query);
     _logger.info('Search query changed: $queryLog', prefix: _prefix);
-
-    final filtered = PokemonIndexFilterHelper.filterAndSort(
-      entries: state.allEntries,
-      query: event.query,
-      generation: state.selectedGeneration,
-      selectedTypes: state.selectedTypes,
-      typeIdMap: state.typeIdMap,
-      sortOrder: state.sortOrder,
-      formFilter: state.formFilter,
-      includeCosmeticForms: state.includeCosmeticForms,
-    );
-
-    emit(
-      state.copyWith(
-        searchQuery: event.query,
-        filteredEntries: filtered,
-        visibleEntries: filtered.take(state.pageSize).toList(),
-        currentPage: 1,
-      ),
-    );
+    _applyFilters(emit, state.filters.copyWith(query: event.query));
   }
 
   Future<void> _onTypeFilterToggled(
     PokedexTypeFilterToggledEvent event,
     Emitter<PokedexState> emit,
   ) async {
-    final updatedTypes = Set<PokemonType>.from(state.selectedTypes);
-    final isAdding = !updatedTypes.contains(event.type);
+    final type = event.type;
+    final selected = state.filters.selectedTypes;
+    final isAdding = !selected.contains(type);
+    _logger.info(
+      'Type filter toggled: ${type.name} (active: $isAdding)',
+      prefix: _prefix,
+    );
 
-    if (isAdding) {
-      updatedTypes.add(event.type);
-    } else {
-      updatedTypes.remove(event.type);
+    final toggledFilters = state.filters.copyWith(
+      selectedTypes: isAdding
+          ? {...selected, type}
+          : ({...selected}..remove(type)),
+    );
+    if (!isAdding || state.typeIdMap.containsKey(type)) {
+      _applyFilters(emit, toggledFilters);
+      return;
     }
 
-    _logger.info(
-      'Type filter toggled: ${event.type.name} (active: $isAdding)',
-      prefix: _prefix,
-    );
-
-    var currentTypeIdMap = state.typeIdMap;
-    PokemonFailure? typeFailure;
-
-    // Fetch IDs for this type if missing from the cache map
-    if (isAdding && !currentTypeIdMap.containsKey(event.type)) {
-      final typeResult = await _pokemonRepository.getPokemonIdsForType(
-        event.type,
-      );
-      typeResult.fold(
-        (failure) {
-          _logger.warning(
-            'Could not load IDs for type ${event.type.name}: $failure',
-            prefix: _prefix,
-          );
-          typeFailure = failure;
-        },
-        (ids) {
-          currentTypeIdMap = Map<PokemonType, Set<int>>.from(currentTypeIdMap)
-            ..[event.type] = ids;
-        },
-      );
-    }
-
-    final filtered = PokemonIndexFilterHelper.filterAndSort(
-      entries: state.allEntries,
-      query: state.searchQuery,
-      generation: state.selectedGeneration,
-      selectedTypes: updatedTypes,
-      typeIdMap: currentTypeIdMap,
-      sortOrder: state.sortOrder,
-      formFilter: state.formFilter,
-      includeCosmeticForms: state.includeCosmeticForms,
-    );
-
+    // Show the selection at once; the grid keeps its entries until the ids
+    // for this type arrive.
     emit(
       state.copyWith(
-        selectedTypes: updatedTypes,
-        typeIdMap: currentTypeIdMap,
-        filteredEntries: filtered,
-        visibleEntries: filtered.take(state.pageSize).toList(),
-        currentPage: 1,
-        failure: typeFailure,
+        filters: toggledFilters,
+        loadingTypes: {...state.loadingTypes, type},
+        typeFilterFailure: null,
       ),
     );
-  }
 
-  void _onGenerationFilterChanged(
-    PokedexGenerationFilterChangedEvent event,
-    Emitter<PokedexState> emit,
-  ) {
-    if (event.generation == state.selectedGeneration) return;
-    _logger.info(
-      'Generation filter changed: ${event.generation}',
-      prefix: _prefix,
+    final result = await _pokemonRepository.getPokemonIdsForType(type);
+    final loadingTypes = {...state.loadingTypes}..remove(type);
+
+    result.fold(
+      (failure) {
+        _logger.warning(
+          'Could not load IDs for type ${type.name}: $failure',
+          prefix: _prefix,
+        );
+        emit(
+          state.copyWith(
+            filters: state.filters.copyWith(
+              selectedTypes: {...state.filters.selectedTypes}..remove(type),
+            ),
+            loadingTypes: loadingTypes,
+            typeFilterFailure: failure,
+          ),
+        );
+      },
+      (ids) {
+        final typeIdMap = {...state.typeIdMap, type: ids};
+        emit(
+          state.copyWith(
+            typeIdMap: typeIdMap,
+            loadingTypes: loadingTypes,
+            filteredEntries: _filter(
+              state.allEntries,
+              state.filters,
+              typeIdMap,
+            ),
+          ),
+        );
+      },
     );
-
-    final filtered = PokemonIndexFilterHelper.filterAndSort(
-      entries: state.allEntries,
-      query: state.searchQuery,
-      generation: event.generation,
-      selectedTypes: state.selectedTypes,
-      typeIdMap: state.typeIdMap,
-      sortOrder: state.sortOrder,
-      formFilter: state.formFilter,
-      includeCosmeticForms: state.includeCosmeticForms,
-    );
-
-    emit(
-      state.copyWith(
-        selectedGeneration: event.generation,
-        filteredEntries: filtered,
-        visibleEntries: filtered.take(state.pageSize).toList(),
-        currentPage: 1,
-      ),
-    );
-  }
-
-  void _onSortOrderChanged(
-    PokedexSortOrderChangedEvent event,
-    Emitter<PokedexState> emit,
-  ) {
-    if (event.sortOrder == state.sortOrder) return;
-    _logger.info(
-      'Sort order changed: ${event.sortOrder.name}',
-      prefix: _prefix,
-    );
-
-    final filtered = PokemonIndexFilterHelper.filterAndSort(
-      entries: state.allEntries,
-      query: state.searchQuery,
-      generation: state.selectedGeneration,
-      selectedTypes: state.selectedTypes,
-      typeIdMap: state.typeIdMap,
-      sortOrder: event.sortOrder,
-      formFilter: state.formFilter,
-      includeCosmeticForms: state.includeCosmeticForms,
-    );
-
-    emit(
-      state.copyWith(
-        sortOrder: event.sortOrder,
-        filteredEntries: filtered,
-        visibleEntries: filtered.take(state.pageSize).toList(),
-        currentPage: 1,
-      ),
-    );
-  }
-
-  void _onFormFilterChanged(
-    PokedexFormFilterChangedEvent event,
-    Emitter<PokedexState> emit,
-  ) {
-    if (event.formFilter == state.formFilter) return;
-    _logger.info(
-      'Form filter changed: ${event.formFilter.name}',
-      prefix: _prefix,
-    );
-
-    final filtered = PokemonIndexFilterHelper.filterAndSort(
-      entries: state.allEntries,
-      query: state.searchQuery,
-      generation: state.selectedGeneration,
-      selectedTypes: state.selectedTypes,
-      typeIdMap: state.typeIdMap,
-      sortOrder: state.sortOrder,
-      formFilter: event.formFilter,
-      includeCosmeticForms: state.includeCosmeticForms,
-    );
-
-    emit(
-      state.copyWith(
-        formFilter: event.formFilter,
-        filteredEntries: filtered,
-        visibleEntries: filtered.take(state.pageSize).toList(),
-        currentPage: 1,
-      ),
-    );
-  }
-
-  void _onCosmeticToggleChanged(
-    PokedexCosmeticToggleChangedEvent event,
-    Emitter<PokedexState> emit,
-  ) {
-    if (event.includeCosmeticForms == state.includeCosmeticForms) return;
-    _logger.info(
-      'Cosmetic forms toggle changed: ${event.includeCosmeticForms}',
-      prefix: _prefix,
-    );
-
-    final filtered = PokemonIndexFilterHelper.filterAndSort(
-      entries: state.allEntries,
-      query: state.searchQuery,
-      generation: state.selectedGeneration,
-      selectedTypes: state.selectedTypes,
-      typeIdMap: state.typeIdMap,
-      sortOrder: state.sortOrder,
-      formFilter: state.formFilter,
-      includeCosmeticForms: event.includeCosmeticForms,
-    );
-
-    emit(
-      state.copyWith(
-        includeCosmeticForms: event.includeCosmeticForms,
-        filteredEntries: filtered,
-        visibleEntries: filtered.take(state.pageSize).toList(),
-        currentPage: 1,
-      ),
-    );
-  }
-
-  void _onClearFilters(
-    PokedexClearFiltersEvent event,
-    Emitter<PokedexState> emit,
-  ) {
-    _logger.info('Clearing all Pokédex filters', prefix: _prefix);
-
-    final filtered = PokemonIndexFilterHelper.filterAndSort(
-      entries: state.allEntries,
-      query: '',
-      generation: null,
-      selectedTypes: const {},
-      typeIdMap: state.typeIdMap,
-      sortOrder: PokedexSortOrder.idAscending,
-      formFilter: PokedexFormFilter.canonicalOnly,
-      includeCosmeticForms: false,
-    );
-
-    emit(
-      state.copyWith(
-        searchQuery: '',
-        selectedTypes: const {},
-        selectedGeneration: null,
-        sortOrder: PokedexSortOrder.idAscending,
-        formFilter: PokedexFormFilter.canonicalOnly,
-        includeCosmeticForms: false,
-        filteredEntries: filtered,
-        visibleEntries: filtered.take(state.pageSize).toList(),
-        currentPage: 1,
-      ),
-    );
-  }
-
-  Future<void> _onLoadMore(
-    PokedexLoadMoreEvent event,
-    Emitter<PokedexState> emit,
-  ) async {
-    if (!state.hasMore || state.status != PokedexStatus.success) return;
-
-    final nextPage = state.currentPage + 1;
-    final nextVisibleCount = nextPage * state.pageSize;
-    final nextVisible = state.filteredEntries.take(nextVisibleCount).toList();
-
-    _logger.info(
-      'Loading page $nextPage (${nextVisible.length}/${state.filteredEntries.length} entries)',
-      prefix: _prefix,
-    );
-
-    emit(state.copyWith(currentPage: nextPage, visibleEntries: nextVisible));
-    await Future<void>.delayed(Duration.zero);
   }
 
   void _onSelectRandomPokemon(
@@ -427,17 +239,8 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
         : state.allEntries;
     if (pool.isEmpty) return;
 
-    final randomIndex = _random.nextInt(pool.length);
-    final chosen = pool[randomIndex];
-
+    final chosen = pool[_random.nextInt(pool.length)];
     _logger.info('Random Pokémon selected: ${chosen.name}', prefix: _prefix);
     emit(state.copyWith(randomPokemonToNavigate: chosen));
-  }
-
-  void _onRandomNavigationDone(
-    PokedexRandomNavigationDoneEvent event,
-    Emitter<PokedexState> emit,
-  ) {
-    emit(state.copyWith(randomPokemonToNavigate: null));
   }
 }

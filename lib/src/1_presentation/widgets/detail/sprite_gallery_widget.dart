@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/surface_card.dart';
+import 'package:pokefinder/src/1_presentation/widgets/section_title.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
 /// Returns the localized label for a sprite [kind].
@@ -24,40 +25,30 @@ String spriteVariantLabel(BuildContext context, SpriteVariantKind kind) {
   };
 }
 
-/// Grid gallery of the available artwork/sprite variants for a Pokémon.
+/// Horizontal strip of the available artwork/sprite variants for a Pokémon.
 ///
 /// Shows only variants with a recorded URL ([SpriteGalleryHelper] supplies
 /// URLs + fallback order; image bytes stay in the platform image cache, no
-/// new binary cache). Missing payloads render a placeholder card instead of
-/// a blank hole, and every failed image renders a placeholder icon.
+/// new binary cache). Tiles have the same size; a tap opens a larger preview.
 class SpriteGalleryWidget extends StatelessWidget {
-  const SpriteGalleryWidget({
-    super.key,
-    required this.pokemon,
-    required this.textColor,
-  });
+  const SpriteGalleryWidget({super.key, required this.pokemon});
 
   final Pokemon pokemon;
-  final Color textColor;
 
   @override
   Widget build(BuildContext context) {
     final variants = SpriteGalleryHelper.buildAvailableVariants(pokemon);
+    final mutedColor = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.4);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          context.t().spriteTitle,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: textColor,
-          ),
-        ),
-        const SizedBox(height: 8),
+        SectionTitle(context.t().spriteTitle),
         if (variants.isEmpty)
           SurfaceCard(
+            margin: EdgeInsets.zero,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -65,48 +56,37 @@ class SpriteGalleryWidget extends StatelessWidget {
                   Icon(
                     Icons.image_not_supported_outlined,
                     size: 36,
-                    color: textColor.withValues(alpha: 0.4),
+                    color: mutedColor,
                   ),
                   const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      context.t().noData,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: textColor.withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ),
+                  Expanded(child: Text(context.t().noData)),
                 ],
               ),
             ),
           )
         else
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              childAspectRatio: 0.68,
+          SizedBox(
+            height: _kTileHeight,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: variants.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, index) =>
+                  _SpriteGalleryTile(variant: variants[index]),
             ),
-            itemCount: variants.length,
-            itemBuilder: (context, index) {
-              final variant = variants[index];
-              return _SpriteGalleryTile(variant: variant, textColor: textColor);
-            },
           ),
       ],
     );
   }
 }
 
+const _kTileWidth = 104.0;
+const _kTileHeight = 136.0;
+
 class _SpriteGalleryTile extends StatelessWidget {
-  const _SpriteGalleryTile({required this.variant, required this.textColor});
+  const _SpriteGalleryTile({required this.variant});
 
   final SpriteVariant variant;
-  final Color textColor;
 
   void _showPreview(BuildContext context, String label) {
     final url = variant.url;
@@ -126,10 +106,8 @@ class _SpriteGalleryTile extends StatelessWidget {
                     Expanded(
                       child: Text(
                         label,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
                     const CloseButton(),
@@ -163,6 +141,9 @@ class _SpriteGalleryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final label = spriteVariantLabel(context, variant.kind);
     final url = variant.url;
+    final mutedColor = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.4);
 
     return Semantics(
       button: true,
@@ -176,6 +157,7 @@ class _SpriteGalleryTile extends StatelessWidget {
             : () => _showPreview(context, label),
         borderRadius: BorderRadius.circular(16),
         child: Container(
+          width: _kTileWidth,
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
           decoration: BoxDecoration(
             color: Theme.of(
@@ -193,15 +175,18 @@ class _SpriteGalleryTile extends StatelessWidget {
                       ? Icon(
                           Icons.image_not_supported_outlined,
                           size: 32,
-                          color: textColor.withValues(alpha: 0.4),
+                          color: mutedColor,
                         )
                       : Image.network(
                           url,
+                          width: 88,
+                          height: 88,
                           fit: BoxFit.contain,
+                          filterQuality: FilterQuality.medium,
                           errorBuilder: (context, _, _) => Icon(
                             Icons.broken_image_outlined,
                             size: 32,
-                            color: textColor.withValues(alpha: 0.4),
+                            color: mutedColor,
                           ),
                         ),
                 ),
@@ -212,10 +197,8 @@ class _SpriteGalleryTile extends StatelessWidget {
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 11,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: textColor,
                   height: 1.2,
                 ),
               ),

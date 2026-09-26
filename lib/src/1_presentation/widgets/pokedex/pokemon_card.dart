@@ -4,108 +4,26 @@ import 'package:go_router/go_router.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/pages/teams/add_to_team_sheet.dart';
-import 'package:pokefinder/src/1_presentation/widgets/detail/type_color_scheme.dart';
+import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
+import 'package:pokefinder/src/1_presentation/widgets/detail/type_chip.dart';
 import 'package:pokefinder/src/2_application/bloc/comparison_cubit/comparison_cubit.dart';
 import 'package:pokefinder/src/2_application/bloc/favorites_cubit/favorites_cubit.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_form_category.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
 
-/// Interactive card component displaying a Pokémon index entry summary.
+/// Side of the square that holds the card image.
+const _kImageSize = 96.0;
+
+/// Card of a Pokémon index entry: number, name, image, types and a favorite
+/// toggle.
+///
+/// A tap opens the detail; a long press opens the compare and team actions.
 class PokemonCard extends StatelessWidget {
-  const PokemonCard({
-    super.key,
-    required this.entry,
-    this.onTap,
-    this.isFavorite,
-    this.onFavoriteToggle,
-    this.showFavoriteButton = true,
-    this.isInComparison,
-    this.onCompareToggle,
-    this.showCompareButton = true,
-    this.onTeamPressed,
-    this.showTeamButton = true,
-  });
+  const PokemonCard({super.key, required this.entry});
 
   final PokemonIndexEntry entry;
-  final VoidCallback? onTap;
-  final bool? isFavorite;
-  final VoidCallback? onFavoriteToggle;
-  final bool showFavoriteButton;
-  final bool? isInComparison;
-  final VoidCallback? onCompareToggle;
-  final bool showCompareButton;
-  final VoidCallback? onTeamPressed;
-  final bool showTeamButton;
 
-  static Color _resolveFormBadgeColor(
-    PokemonFormCategory category,
-    ThemeData theme,
-  ) {
-    final isDark = theme.brightness == Brightness.dark;
-    if (isDark) {
-      return switch (category) {
-        PokemonFormCategory.mega => Colors.purple.shade900.withValues(
-          alpha: 0.5,
-        ),
-        PokemonFormCategory.primal => Colors.indigo.shade900.withValues(
-          alpha: 0.5,
-        ),
-        PokemonFormCategory.regional => Colors.teal.shade900.withValues(
-          alpha: 0.5,
-        ),
-        PokemonFormCategory.gmax => Colors.deepOrange.shade900.withValues(
-          alpha: 0.5,
-        ),
-        PokemonFormCategory.battleMode => Colors.blueGrey.shade900.withValues(
-          alpha: 0.5,
-        ),
-        PokemonFormCategory.cosmetic => Colors.amber.shade900.withValues(
-          alpha: 0.5,
-        ),
-        PokemonFormCategory.canonical =>
-          theme.colorScheme.surfaceContainerHighest,
-      };
-    }
-    return switch (category) {
-      PokemonFormCategory.mega => Colors.purple.shade100,
-      PokemonFormCategory.primal => Colors.indigo.shade100,
-      PokemonFormCategory.regional => Colors.teal.shade100,
-      PokemonFormCategory.gmax => Colors.deepOrange.shade100,
-      PokemonFormCategory.battleMode => Colors.blueGrey.shade100,
-      PokemonFormCategory.cosmetic => Colors.amber.shade100,
-      PokemonFormCategory.canonical =>
-        theme.colorScheme.surfaceContainerHighest,
-    };
-  }
-
-  static Color _resolveFormBadgeTextColor(
-    PokemonFormCategory category,
-    ThemeData theme,
-  ) {
-    final isDark = theme.brightness == Brightness.dark;
-    if (isDark) {
-      return switch (category) {
-        PokemonFormCategory.mega => Colors.purple.shade200,
-        PokemonFormCategory.primal => Colors.indigo.shade200,
-        PokemonFormCategory.regional => Colors.teal.shade200,
-        PokemonFormCategory.gmax => Colors.deepOrange.shade200,
-        PokemonFormCategory.battleMode => Colors.blueGrey.shade200,
-        PokemonFormCategory.cosmetic => Colors.amber.shade200,
-        PokemonFormCategory.canonical => theme.colorScheme.onSurfaceVariant,
-      };
-    }
-    return switch (category) {
-      PokemonFormCategory.mega => Colors.purple.shade900,
-      PokemonFormCategory.primal => Colors.indigo.shade900,
-      PokemonFormCategory.regional => Colors.teal.shade900,
-      PokemonFormCategory.gmax => Colors.deepOrange.shade900,
-      PokemonFormCategory.battleMode => Colors.blueGrey.shade900,
-      PokemonFormCategory.cosmetic => Colors.amber.shade900,
-      PokemonFormCategory.canonical => theme.colorScheme.onSurfaceVariant,
-    };
-  }
-
-  static String _resolveBaseCardIndicator(
+  static String _baseCardIndicator(
     AppLocalizations l10n,
     PokemonIndexEntry entry,
   ) {
@@ -121,95 +39,67 @@ class PokemonCard extends StatelessWidget {
     return l10n.formBadgeFormsIndicator;
   }
 
-  bool _resolveIsFavorite(BuildContext context) {
-    if (isFavorite != null) return isFavorite!;
-    try {
-      return context.select<FavoritesCubit, bool>(
-        (cubit) => cubit.isFavorite(entry.id),
+  void _toggleComparison(BuildContext context) {
+    final cubit = context.read<ComparisonCubit>();
+    final wasSelected = cubit.isSelected(entry.id);
+    final nowSelected = cubit.toggleEntry(entry.summary);
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
+    if (nowSelected) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.compareAdded),
+          action: SnackBarAction(
+            label: l10n.compareView,
+            onPressed: () => context.push(AppRoutes.compare),
+          ),
+        ),
       );
-    } catch (_) {
-      return false;
+    } else if (!wasSelected) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.compareFull)));
     }
   }
 
-  void _handleFavoriteToggle(BuildContext context) {
-    if (onFavoriteToggle != null) {
-      onFavoriteToggle!();
-      return;
-    }
-    try {
-      context.read<FavoritesCubit>().toggleFavorite(
-        id: entry.id,
-        name: entry.name,
-        spriteUrl: entry.spriteUrl,
-        types: entry.types,
-      );
-    } catch (_) {}
-  }
-
-  bool _resolveIsInComparison(BuildContext context) {
-    if (isInComparison != null) return isInComparison!;
-    try {
-      return context.select<ComparisonCubit, bool>(
-        (cubit) => cubit.isSelected(entry.id),
-      );
-    } catch (_) {
-      return false;
-    }
-  }
-
-  void _handleCompareToggle(BuildContext context) {
-    if (onCompareToggle != null) {
-      onCompareToggle!();
-      return;
-    }
-    try {
-      final cubit = context.read<ComparisonCubit>();
-      final wasSelected = cubit.isSelected(entry.id);
-      final nowSelected = cubit.toggleEntry(entry);
-      if (!context.mounted) return;
-      final l10n = AppLocalizations.of(context);
-      final messenger = ScaffoldMessenger.of(context);
-      if (nowSelected) {
-        messenger
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(
-              content: Text(l10n.compareAdded),
-              action: SnackBarAction(
-                label: l10n.compareView,
-                onPressed: () => context.push('/compare'),
-              ),
+  void _showActions(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final isComparing = context.read<ComparisonCubit>().isSelected(entry.id);
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.compare_arrows_rounded),
+              title: Text(isComparing ? l10n.compareRemove : l10n.compareAdd),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _toggleComparison(context);
+              },
             ),
-          );
-      } else if (!wasSelected) {
-        messenger
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(l10n.compareFull)));
-      }
-    } catch (_) {}
-  }
-
-  void _handleTeamPressed(BuildContext context) {
-    if (onTeamPressed != null) {
-      onTeamPressed!();
-      return;
-    }
-    showAddToTeamSheet(context, entry);
+            ListTile(
+              leading: const Icon(Icons.group_add_rounded),
+              title: Text(l10n.teamAddMember),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                showAddToTeamSheet(context, entry.summary);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final isFav = _resolveIsFavorite(context);
-    final isComparing = _resolveIsInComparison(context);
+    final isFavorite = context.select<FavoritesCubit, bool>(
+      (cubit) => cubit.isFavorite(entry.id),
+    );
     final displayName = context.translatePokemonIndexEntry(entry);
-    final primaryType = entry.types.isNotEmpty ? entry.types.first : null;
-    final accentColor = primaryType != null
-        ? TypeColorScheme.getColorFromType(primaryType)
-        : theme.colorScheme.primaryContainer.withValues(alpha: 0.5);
-
     final idDisplay = entry.isAlternateForm
         ? entry.dexNumberDisplay
         : entry.formattedId;
@@ -218,7 +108,7 @@ class PokemonCard extends StatelessWidget {
         : entry.effectiveSpeciesGeneration;
 
     final typeNames = entry.types
-        .map((t) => context.translateTypeOrNull(t.apiName) ?? t.name)
+        .map((t) => context.translateType(t.apiName))
         .join(', ');
     final formTag = entry.isAlternateForm && entry.formBadgeText != null
         ? ', ${entry.formBadgeText}'
@@ -229,6 +119,28 @@ class PokemonCard extends StatelessWidget {
         ? '$idDisplay, $displayName$formTag'
         : '$idDisplay, $displayName$formTag, $typeNames';
 
+    final (
+      String? badgeText,
+      Color badgeColor,
+      Color badgeTextColor,
+    ) = switch (entry) {
+      PokemonIndexEntry(isAlternateForm: true, :final formBadgeText?) => (
+        formBadgeText,
+        theme.colorScheme.tertiaryContainer,
+        theme.colorScheme.onTertiaryContainer,
+      ),
+      PokemonIndexEntry(isAlternateForm: false, hasAlternateForms: true) => (
+        _baseCardIndicator(l10n, entry),
+        theme.colorScheme.primaryContainer,
+        theme.colorScheme.onPrimaryContainer,
+      ),
+      _ => (
+        genNumber > 0 ? l10n.generationNum(number: genNumber) : null,
+        Colors.transparent,
+        theme.colorScheme.outline,
+      ),
+    };
+
     return Material(
       color: Colors.transparent,
       child: Stack(
@@ -238,8 +150,8 @@ class PokemonCard extends StatelessWidget {
             label: fullLabel,
             excludeSemantics: true,
             child: InkWell(
-              onTap: onTap ?? () => context.push('/pokemon/${entry.name}'),
-              onLongPress: () => _handleCompareToggle(context),
+              onTap: () => context.push(AppRoutes.pokemon(entry.name)),
+              onLongPress: () => _showActions(context),
               borderRadius: BorderRadius.circular(16),
               child: Ink(
                 decoration: BoxDecoration(
@@ -250,224 +162,92 @@ class PokemonCard extends StatelessWidget {
                       alpha: 0.5,
                     ),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
                 ),
-                child: Stack(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Subtle type color watermark in corner
-                    Positioned(
-                      right: -12,
-                      bottom: -12,
-                      child: Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: accentColor.withValues(alpha: 0.15),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(
-                              right: showTeamButton ? 40 : 0,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    idDisplay,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.labelMedium
-                                        ?.copyWith(
-                                          color: theme
-                                              .colorScheme
-                                              .onSurfaceVariant,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                if (entry.isAlternateForm &&
-                                    entry.formBadgeText != null)
-                                  Flexible(
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: _resolveFormBadgeColor(
-                                          entry.formCategory,
-                                          theme,
-                                        ),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        entry.formBadgeText!,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: theme.textTheme.labelSmall
-                                            ?.copyWith(
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.bold,
-                                              color: _resolveFormBadgeTextColor(
-                                                entry.formCategory,
-                                                theme,
-                                              ),
-                                            ),
-                                      ),
-                                    ),
-                                  )
-                                else if (!entry.isAlternateForm &&
-                                    entry.hasAlternateForms)
-                                  Flexible(
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: theme
-                                            .colorScheme
-                                            .primaryContainer
-                                            .withValues(alpha: 0.6),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        _resolveBaseCardIndicator(l10n, entry),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: theme.textTheme.labelSmall
-                                            ?.copyWith(
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.bold,
-                                              color: theme.colorScheme.primary,
-                                            ),
-                                      ),
-                                    ),
-                                  )
-                                else if (genNumber > 0)
-                                  Flexible(
-                                    child: Text(
-                                      'Gen $genNumber',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.right,
-                                      style: theme.textTheme.labelSmall
-                                          ?.copyWith(
-                                            color: theme.colorScheme.outline,
-                                          ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            displayName,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            idDisplay,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleMedium?.copyWith(
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Expanded(
-                            child: Center(
-                              child: Image.network(
-                                entry.spriteUrl,
-                                fit: BoxFit.contain,
-                                loadingBuilder:
-                                    (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return Center(
-                                        child: SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            value:
-                                                loadingProgress
-                                                        .expectedTotalBytes !=
-                                                    null
-                                                ? loadingProgress
-                                                          .cumulativeBytesLoaded /
-                                                      loadingProgress
-                                                          .expectedTotalBytes!
-                                                : null,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Icon(
-                                    Icons.catching_pokemon,
-                                    size: 48,
-                                    color: theme.colorScheme.outlineVariant,
-                                  );
-                                },
+                        ),
+                        if (badgeText != null)
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: badgeColor,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                badgeText,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: badgeTextColor,
+                                ),
                               ),
                             ),
                           ),
-                          if (entry.types.isNotEmpty) ...[
-                            const SizedBox(height: 6),
-                            Padding(
-                              padding: EdgeInsets.only(
-                                right: showFavoriteButton ? 28 : 0,
-                                left: showCompareButton ? 28 : 0,
-                              ),
-                              child: Wrap(
-                                spacing: 4,
-                                runSpacing: 2,
-                                children: entry.types.map((type) {
-                                  final typeColor =
-                                      TypeColorScheme.getColorFromType(type);
-                                  final localizedName =
-                                      context.translateTypeOrNull(
-                                        type.apiName,
-                                      ) ??
-                                      type.name;
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: typeColor.withValues(alpha: 0.2),
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(
-                                        color: typeColor.withValues(alpha: 0.5),
-                                        width: 0.8,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      localizedName,
-                                      style: theme.textTheme.labelSmall
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 10,
-                                          ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Expanded(
+                      child: Center(
+                        child: Image.network(
+                          entry.customSpriteUrl ?? entry.officialArtworkUrl,
+                          width: _kImageSize,
+                          height: _kImageSize,
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.medium,
+                          loadingBuilder: (context, child, progress) {
+                            if (progress == null) return child;
+                            return const SizedBox.square(
+                              dimension: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            Icons.catching_pokemon,
+                            size: 48,
+                            color: theme.colorScheme.outlineVariant,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Leaves room for the favorite button.
+                    Padding(
+                      padding: const EdgeInsets.only(right: 36),
+                      child: SizedBox(
+                        height: 24,
+                        child: Wrap(
+                          spacing: 4,
+                          children: [
+                            for (final type in entry.types)
+                              TypeChip(type: type, compact: true),
                           ],
-                        ],
+                        ),
                       ),
                     ),
                   ],
@@ -475,91 +255,24 @@ class PokemonCard extends StatelessWidget {
               ),
             ),
           ),
-          if (showTeamButton)
-            Positioned(
-              top: 0,
-              right: 0,
-              child: Semantics(
-                button: true,
-                label: l10n.teamAddMember,
-                child: SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: IconButton(
-                    iconSize: 20,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 48,
-                      minHeight: 48,
-                    ),
-                    tooltip: l10n.teamAddMember,
-                    onPressed: () => _handleTeamPressed(context),
-                    icon: Icon(
-                      Icons.group_add_rounded,
-                      size: 20,
-                      color: theme.colorScheme.outline,
-                    ),
-                  ),
-                ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: IconButton(
+              tooltip: isFavorite
+                  ? l10n.removeFromFavorites
+                  : l10n.addToFavorites,
+              onPressed: () =>
+                  context.read<FavoritesCubit>().toggleFavorite(entry.summary),
+              icon: Icon(
+                isFavorite ? Icons.favorite : Icons.favorite_border,
+                size: 20,
+                color: isFavorite
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.outline,
               ),
             ),
-          if (showCompareButton)
-            Positioned(
-              bottom: 0,
-              left: 0,
-              child: Semantics(
-                button: true,
-                label: isComparing ? l10n.compareRemove : l10n.compareAdd,
-                child: SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: IconButton(
-                    iconSize: 20,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 48,
-                      minHeight: 48,
-                    ),
-                    tooltip: isComparing ? l10n.compareRemove : l10n.compareAdd,
-                    onPressed: () => _handleCompareToggle(context),
-                    icon: Icon(
-                      Icons.compare_arrows_rounded,
-                      size: 20,
-                      color: isComparing
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.outline,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          if (showFavoriteButton)
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Semantics(
-                button: true,
-                label: isFav ? l10n.removeFromFavorites : l10n.addToFavorites,
-                child: SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: IconButton(
-                    iconSize: 20,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 48,
-                      minHeight: 48,
-                    ),
-                    onPressed: () => _handleFavoriteToggle(context),
-                    icon: Icon(
-                      isFav ? Icons.favorite : Icons.favorite_border,
-                      size: 20,
-                      color: isFav ? Colors.red : theme.colorScheme.outline,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          ),
         ],
       ),
     );

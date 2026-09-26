@@ -59,16 +59,12 @@ class PreferencesState extends Equatable {
 /// Manages persistent application settings and preferences.
 @lazySingleton
 class PreferencesCubit extends HydratedCubit<PreferencesState> {
-  PreferencesCubit(
-    this._logger,
-    this._getCacheSizeUseCase,
-    this._clearCacheUseCase,
-  ) : super(const PreferencesState());
+  PreferencesCubit(this._logger, this._repository)
+    : super(const PreferencesState());
 
   static const _prefix = 'PreferencesCubit';
   final EnLogger _logger;
-  final GetCacheSizeUseCase _getCacheSizeUseCase;
-  final ClearCacheUseCase _clearCacheUseCase;
+  final IPokemonRepository _repository;
 
   /// Sets the application theme mode.
   void setThemeMode(ThemeMode mode) {
@@ -96,7 +92,7 @@ class PreferencesCubit extends HydratedCubit<PreferencesState> {
 
   /// Refreshes the approximate cache size.
   Future<void> refreshCacheSize() async {
-    final result = await _getCacheSizeUseCase();
+    final result = await _repository.getCacheSize();
     result.fold(
       (failure) =>
           _logger.error('Failed to get cache size: $failure', prefix: _prefix),
@@ -107,7 +103,7 @@ class PreferencesCubit extends HydratedCubit<PreferencesState> {
   /// Clears repository cache and refreshes cache size.
   Future<void> clearCache() async {
     _logger.info('Clearing application cache', prefix: _prefix);
-    final result = await _clearCacheUseCase();
+    final result = await _repository.clearCache();
     result.fold(
       (failure) =>
           _logger.error('Failed to clear cache: $failure', prefix: _prefix),

@@ -24,7 +24,6 @@ RawPokemon _$RawPokemonFromJson(Map<String, dynamic> json) => RawPokemon(
   cries: Cries.fromJson(json['cries'] as Map<String, dynamic>),
   baseExperience: (json['base_experience'] as num?)?.toInt(),
   isDefault: json['is_default'] as bool,
-  order: (json['order'] as num).toInt(),
   locationAreaEncounters: json['location_area_encounters'] as String,
   forms: (json['forms'] as List<dynamic>)
       .map((e) => NamedAPIResource.fromJson(e as Map<String, dynamic>))
@@ -54,7 +53,6 @@ Map<String, dynamic> _$RawPokemonToJson(RawPokemon instance) =>
       'height': instance.height,
       'base_experience': instance.baseExperience,
       'is_default': instance.isDefault,
-      'order': instance.order,
       'location_area_encounters': instance.locationAreaEncounters,
       'forms': instance.forms.map((e) => e.toJson()).toList(),
       'game_indices': instance.gameIndices.map((e) => e.toJson()).toList(),

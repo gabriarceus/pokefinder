@@ -27,7 +27,8 @@ review flags, even if the code around you uses it.
 | Widget reused by several screens | `lib/src/1_presentation/widgets/<area>/` |
 
 Export new domain files from `lib/src/3_domain/domain.dart`. Keep files focused: split a page
-when it passes ~400 lines (`comparison_page.dart` at 1000+ lines is the example to avoid).
+when it passes ~400 lines. `comparison_page.dart` was rewritten from 1079 to 456 lines for
+exactly this reason — it is the before/after example, not a file to copy.
 
 ## Blocs and cubits
 
@@ -45,25 +46,37 @@ when it passes ~400 lines (`comparison_page.dart` at 1000+ lines is the example 
   field in `copyWith`, use the `_unset` sentinel pattern (see `PokemonBlocSuccess.copyWith`).
 - Switch on sealed states with a Dart 3 `switch`. Do not add new `map(...)` helpers or builder
   wrapper widgets.
-- Ignore `RequestCancelledFailure` in handlers: it means a newer request replaced this one.
 - A bloc that emits success several times for the same entity (e.g. `PokemonBloc`: data, then
   encounters, then form) needs `listenWhen` on every `BlocListener` that runs side effects
   (audio, history, navigation). Without it the side effect repeats.
+- A one-shot request to open something is a value in the state (e.g. `HomeBlocState
+  .pendingNavigation` holding a `SearchNavigation`), compared by identity so the same request
+  twice still emits. Not a bool plus a "done" event.
 - An async handler that updates a selection must emit the selection first, then load. Show
   progress while loading, and roll back plus show the failure on error. Use `sequential()` when two
   quick events could read the same old state.
 
 ## PokeAPI data — adding an endpoint
 
+There is no use case layer and no remote data source any more: a bloc or cubit calls
+`IPokemonRepository` directly.
+
 1. Raw model with `@JsonSerializable` + `part '<file>.g.dart'`. Run `fvm dart run build_runner build`.
-2. Method on `IPokemonRemoteDataSource` + `PokemonRemoteDataSource`: call
-   `_dataRepository.fetchData<Map<String, dynamic>>(url, strategy: FetchStrategy.cacheFirst,
-   maxAge: _kDefaultMaxAge)` and wrap errors with `_mapError`. Build URLs in `PokeApiUrlHelper`.
-   Do not add more hard-coded `https://pokeapi.co/...` strings.
-3. Method on `IPokemonRepository` + `PokemonRepositoryImpl`: map `Raw*` → entity. Map a type from
-   its URL with `PokemonType.fromId(PokeApiUrlHelper.extractId(url))`.
+2. Method on `IPokemonRepository` + `PokemonRepositoryImpl`: build the URL in
+   `PokeApiUrlHelper`, then
+   `final response = await _cache.get<Map<String, dynamic>>(url);`
+   (`PokeApiCache` is cache-first with a 24 h window, stale-if-error, and per-URL request
+   sharing; `forceRefresh: true` bypasses the cache). Map `Raw*` → entity. Map a type from its
+   URL with `PokemonType.fromId(PokeApiUrlHelper.extractId(url))`. Do not add more hard-coded
+   `https://pokeapi.co/...` strings.
+3. Map every thrown error in the **one** `_toFailure(Object e)` at the bottom of
+   `PokemonRepositoryImpl`. Do not open a new try/catch per method.
 4. Add the same method to `MockPokemonRepository` (dev flavor), or the dev build fails.
 5. Add only the fields the UI reads. Unused entity fields are debt (see the review, O9).
+   Sprite URLs belong in the `PokemonSprites` value object, not as 16 flat fields on `Pokemon`.
+6. For anything shown in a list (favorites, history, teams, comparison) pass a `PokemonSummary`
+   (`id`, `name`, `spriteUrl`, `types`). Do not add a new per-feature copy of those four fields;
+   `PokemonBlocSuccess.summary` builds one from a detail state.
 
 ## Failures
 
@@ -79,19 +92,24 @@ when it passes ~400 lines (`comparison_page.dart` at 1000+ lines is the example 
 - Colors: the theme lives in `lib/src/1_presentation/theme/app_palette.dart`. Use
   `Theme.of(context).colorScheme` roles. Do not add new `Colors.*` literals or local
   `backgroundColor: AppPalette.brandRed` overrides; change the theme instead.
-- Type colors come only from `TypeColorScheme.getColorFromType`. Show a type with `TypeChip`
-  (localized label). `TypeImage` shows the English PokeAPI sprite.
-- Text on a colored surface: `contrastingTextColor(background)`. Pass the real color, never
-  `Colors.transparent`.
+- Type colors come only from `TypeColorScheme.getColorFromType` (opaque, one map). Show a type
+  with `TypeChip`, which carries the localized label. There is no `TypeImage`: the PokeAPI type
+  sprites contain English text, so they must not appear in the Italian UI.
+- Text on a colored surface: `contrastingTextColor(background)` to pick black/white text, and
+  `color.readableOn(brightness)` (`theme/readable_color.dart`) to make a color legible as an
+  accent on a surface. Pass the real color, never `Colors.transparent`.
 - Text styles: `Theme.of(context).textTheme` roles. No new `fontSize:` literals. Nothing under
-  `labelSmall`.
+  `labelSmall`. Section headings are the `SectionTitle` widget, not a repeated `Text`.
 - Spacing: multiples of 4 (4, 8, 12, 16, 24). Page padding 16 dp. Elements stacked in a column
   share the same left and right edges.
-- Cards: `SurfaceCard`. Label/value rows: `LabelValueRow`.
+- Cards: `SurfaceCard`. Label/value rows: `LabelValueRow`. "Nothing here yet" screens:
+  `EmptyStateView(icon, title, message, action)` — one widget for every page, not a per-page
+  layout.
 - Tap targets are 48 dp by default in Material 3. Do not add `minimumSize: Size(48, 48)` again.
   Add `Semantics` labels to icon-only buttons and to images that carry meaning.
-- Navigation: `context.push('/pokemon/${Uri.encodeComponent(name)}')` and the paths in
-  `router/app_router.dart`. Close sheets and dialogs with `context.pop()` / `Navigator.pop`.
+- Navigation: the `AppRoutes` helpers in `lib/src/1_presentation/router/app_routes.dart`
+  (`AppRoutes.pokemon(id)`, `AppRoutes.compare`, …), with `context.push` / `context.pop`. Do not
+  write route strings by hand. Close sheets and dialogs with `context.pop()` / `Navigator.pop`.
 - Before you push a route from a screen with a text field, call `unfocus()`, or the keyboard comes
   back when the user returns.
 

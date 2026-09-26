@@ -56,25 +56,17 @@ class RecentHistoryCubit extends HydratedCubit<RecentHistoryState> {
   final Clock _clock;
 
   /// Records a viewed Pokémon, moving it to the front if revisited and evicting beyond [kMaxRecentPokemon].
-  void addRecentPokemon({
-    required int id,
-    required String name,
-    required String spriteUrl,
-    List<PokemonType> types = const [],
-  }) {
+  void addRecentPokemon(PokemonSummary pokemon) {
     if (!state.isHistoryEnabled) return;
 
-    _logger.info('Recording recent Pokemon: $name (#$id)', prefix: _prefix);
-    final entry = RecentPokemon(
-      id: id,
-      name: name,
-      spriteUrl: spriteUrl,
-      types: types,
-      viewedAt: _clock.now(),
+    _logger.info(
+      'Recording recent Pokemon: ${pokemon.name} (#${pokemon.id})',
+      prefix: _prefix,
     );
+    final entry = RecentPokemon(pokemon: pokemon, viewedAt: _clock.now());
 
     final updated = List<RecentPokemon>.from(state.recentPokemon)
-      ..removeWhere((item) => item.id == id)
+      ..removeWhere((item) => item.pokemon.id == pokemon.id)
       ..insert(0, entry);
 
     if (updated.length > kMaxRecentPokemon) {
@@ -102,7 +94,9 @@ class RecentHistoryCubit extends HydratedCubit<RecentHistoryState> {
 
   /// Removes a single Pokémon from recently viewed history.
   void removeRecentPokemon(int id) {
-    final updated = state.recentPokemon.where((item) => item.id != id).toList();
+    final updated = state.recentPokemon
+        .where((item) => item.pokemon.id != id)
+        .toList();
     emit(state.copyWith(recentPokemon: updated));
   }
 

@@ -1,22 +1,23 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/pages/teams/team_name_dialog.dart';
-import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 import 'package:pokefinder/src/1_presentation/widgets/dialogs/confirmation_dialog.dart';
+import 'package:pokefinder/src/1_presentation/widgets/section_title.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
 /// Detail screen for one local team: members, type coverage, and stat summary.
 ///
 /// Members deep-link through the canonical `/pokemon/:nameOrId` route.
-/// The stat summary fetches each member through its own [PokemonBloc] (via
+/// The stat summary fetches each member through its own [PokemonDetailBloc] (via
 /// the shared factory, served offline from the Hive cache), so a failure on
 /// one member shows inline retry without destroying the rest.
 class TeamDetailPage extends StatelessWidget {
@@ -44,8 +45,6 @@ class TeamDetailPage extends StatelessWidget {
       content: t.teamDeleteMessage(name: teamName),
       confirmLabel: t.teamDelete,
       cancelLabel: t.cancel,
-      confirmBackgroundColor: AppPalette.brandRed,
-      confirmForegroundColor: AppPalette.onBrandRed,
     );
     if (confirmed == true && context.mounted) {
       context.read<TeamsCubit>().deleteTeam(teamId);
@@ -71,23 +70,14 @@ class TeamDetailPage extends StatelessWidget {
               team.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: AppPalette.onBrandRed),
             ),
-            backgroundColor: AppPalette.brandRed,
-            iconTheme: const IconThemeData(color: AppPalette.onBrandRed),
             actions: [
               IconButton(
-                style: const ButtonStyle(
-                  minimumSize: WidgetStatePropertyAll(Size(48, 48)),
-                ),
                 tooltip: t.teamRename,
                 icon: const Icon(Icons.edit_rounded),
                 onPressed: () => _renameTeam(context, team.name),
               ),
               IconButton(
-                style: const ButtonStyle(
-                  minimumSize: WidgetStatePropertyAll(Size(48, 48)),
-                ),
                 tooltip: t.teamDelete,
                 icon: const Icon(Icons.delete_rounded),
                 onPressed: () => _deleteTeam(context, team.name),
@@ -174,11 +164,8 @@ class _TeamNotFoundView extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 16),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(48),
-                ),
-                onPressed: () => context.go('/'),
+              FilledButton(
+                onPressed: () => context.go(AppRoutes.home),
                 child: Text(t.goHome),
               ),
             ],
@@ -201,13 +188,15 @@ class _DuplicateWarningBanner extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.amber.shade100,
+          color: theme.colorScheme.tertiaryContainer,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.amber.shade700),
         ),
         child: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.amber.shade900),
+            Icon(
+              Icons.warning_amber_rounded,
+              color: theme.colorScheme.onTertiaryContainer,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -217,14 +206,14 @@ class _DuplicateWarningBanner extends StatelessWidget {
                     t.teamDuplicateWarning,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.amber.shade900,
+                      color: theme.colorScheme.onTertiaryContainer,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     t.teamDuplicateMessage,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.amber.shade900,
+                      color: theme.colorScheme.onTertiaryContainer,
                     ),
                   ),
                 ],
@@ -264,11 +253,8 @@ class _TeamEmptyMembersView extends StatelessWidget {
             const SizedBox(height: 8),
             Text(t.teamEmptyMembersMessage, textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size.fromHeight(48),
-              ),
-              onPressed: () => context.push('/pokedex'),
+            FilledButton(
+              onPressed: () => context.push(AppRoutes.pokedex),
               child: Text(t.browsePokedex),
             ),
           ],
@@ -293,13 +279,13 @@ class _TeamMemberTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t();
-    final entry = member.toIndexEntry();
+    final entry = member.pokemon.toIndexEntry();
     final displayName = context.translatePokemonIndexEntry(entry);
     return Card(
       child: ListTile(
-        leading: member.spriteUrl.isNotEmpty
+        leading: member.pokemon.spriteUrl.isNotEmpty
             ? Image.network(
-                member.spriteUrl,
+                member.pokemon.spriteUrl,
                 width: 48,
                 height: 48,
                 fit: BoxFit.contain,
@@ -335,7 +321,7 @@ class _TeamMemberTile extends StatelessWidget {
             ),
           ],
         ),
-        onTap: () => context.push('/pokemon/${member.name}'),
+        onTap: () => context.push(AppRoutes.pokemon(member.pokemon.name)),
       ),
     );
   }
@@ -361,11 +347,7 @@ class _TeamSummaryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              t.teamSummary,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
+            SectionTitle(t.teamSummary),
             Text(
               t.teamTypeCoverage,
               style: Theme.of(context).textTheme.titleSmall,
@@ -406,7 +388,7 @@ class _TeamStatsSection extends StatefulWidget {
 }
 
 class _TeamStatsSectionState extends State<_TeamStatsSection> {
-  List<PokemonBloc> _blocs = const [];
+  List<PokemonDetailBloc> _blocs = const [];
   List<StreamSubscription<PokemonBlocState>> _subscriptions = const [];
   List<Pokemon?> _pokemons = const [];
   List<bool> _failed = const [];
@@ -436,8 +418,9 @@ class _TeamStatsSectionState extends State<_TeamStatsSection> {
   }
 
   void _initBlocs() {
-    final blocs = <PokemonBloc>[
-      for (final member in widget.members) createPokemonBloc(member.name),
+    final blocs = <PokemonDetailBloc>[
+      for (final member in widget.members)
+        createPokemonBloc(member.pokemon.name),
     ];
     _blocs = blocs;
     _pokemons = List<Pokemon?>.filled(blocs.length, null);
@@ -524,12 +507,16 @@ class _TeamStatsSectionState extends State<_TeamStatsSection> {
           const Divider(height: 16),
           Text(
             '${t.teamStatsSum}: ${MeasurementFormatter.formatInteger(summary.totalSum, locale: locale)}',
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Text(
             '${t.teamStatsAverage}: ${NumberFormat('0.0', locale).format(summary.totalAverage)}',
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
         ],
         for (var i = 0; i < widget.members.length; i++)
@@ -544,7 +531,7 @@ class _TeamStatsSectionState extends State<_TeamStatsSection> {
                     color: Theme.of(context).colorScheme.error,
                   ),
                   const SizedBox(width: 8),
-                  Expanded(child: Text(widget.members[i].name)),
+                  Expanded(child: Text(widget.members[i].pokemon.name)),
                   SizedBox(
                     width: 48,
                     height: 48,
@@ -552,7 +539,7 @@ class _TeamStatsSectionState extends State<_TeamStatsSection> {
                       tooltip: t.retryButton,
                       icon: const Icon(Icons.refresh_rounded),
                       onPressed: () => _blocs[i].add(
-                        FetchPokemonEvent(widget.members[i].name),
+                        FetchPokemonEvent(widget.members[i].pokemon.name),
                       ),
                     ),
                   ),

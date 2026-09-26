@@ -2,13 +2,10 @@ import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
-@LazySingleton(as: IPokemonRepository, env: [Environment.dev, 'mock'])
+@LazySingleton(as: IPokemonRepository, env: [Environment.dev])
 class MockPokemonRepository implements IPokemonRepository {
   @override
-  Future<Either<PokemonFailure, Pokemon>> getPokemon(
-    PokemonName name, {
-    CancellationToken? cancelToken,
-  }) async {
+  Future<Either<PokemonFailure, Pokemon>> getPokemon(PokemonName name) async {
     await Future.delayed(const Duration(seconds: 1));
 
     return const Right(
@@ -19,10 +16,6 @@ class MockPokemonRepository implements IPokemonRepository {
             'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png',
         weight: 69,
         height: 7,
-        typeImage1:
-            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/12.png',
-        typeImage2:
-            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/4.png',
         type1: PokemonType.grass,
         type2: PokemonType.poison,
         cry:
@@ -30,7 +23,6 @@ class MockPokemonRepository implements IPokemonRepository {
         stats: [45, 49, 49, 65, 65, 45],
         baseExperience: 64,
         isDefault: true,
-        order: 1,
         locationAreaEncounters:
             'https://pokeapi.co/api/v2/pokemon/1/encounters',
         cryLegacy:
@@ -44,31 +36,27 @@ class MockPokemonRepository implements IPokemonRepository {
         gameIndices: ['red', 'blue'],
         speciesName: 'bulbasaur',
         speciesUrl: 'https://pokeapi.co/api/v2/pokemon-species/1/',
-        spriteBackDefault:
-            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/1.png',
-        spriteFrontDefault:
-            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png',
-        spriteFrontShiny:
-            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/1.png',
-        spriteBackShiny:
-            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/shiny/1.png',
-        spriteFrontFemale: null,
-        spriteBackFemale: null,
-        spriteFrontShinyFemale: null,
-        spriteBackShinyFemale: null,
-        officialArtworkDefault:
-            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png',
-        officialArtworkShiny:
-            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/1.png',
-        homeDefault:
-            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/1.png',
-        homeFemale: null,
-        homeShiny:
-            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/1.png',
-        homeShinyFemale: null,
+        sprites: PokemonSprites(
+          backDefault:
+              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/1.png',
+          frontDefault:
+              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png',
+          frontShiny:
+              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/1.png',
+          backShiny:
+              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/shiny/1.png',
+          artworkDefault:
+              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png',
+          artworkShiny:
+              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/1.png',
+          homeDefault:
+              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/1.png',
+          homeShiny:
+              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/1.png',
+        ),
         abilities: [
-          PokemonAbility(name: 'overgrow', isHidden: false, slot: 1),
-          PokemonAbility(name: 'chlorophyll', isHidden: true, slot: 3),
+          PokemonAbility(name: 'overgrow', isHidden: false),
+          PokemonAbility(name: 'chlorophyll', isHidden: true),
         ],
         heldItems: [],
         moves: [],
@@ -78,18 +66,13 @@ class MockPokemonRepository implements IPokemonRepository {
 
   @override
   Future<Either<PokemonFailure, PokemonFormDetails>> getFormDetails(
-    String url, {
-    CancellationToken? cancelToken,
-  }) async {
+    String url,
+  ) async {
     return const Right(
       PokemonFormDetails(
         name: 'bulbasaur',
         type1: PokemonType.grass,
         type2: PokemonType.poison,
-        typeImage1:
-            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/grass.png',
-        typeImage2:
-            'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/sword-shield/poison.png',
         spriteDefault:
             'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png',
         spriteShiny:
@@ -104,12 +87,10 @@ class MockPokemonRepository implements IPokemonRepository {
 
   @override
   Future<Either<PokemonFailure, List<PokemonEncounter>>> getEncounters(
-    String url, {
-    CancellationToken? cancelToken,
-  }) async {
+    String url,
+  ) async {
     return const Right([
       PokemonEncounter(
-        locationAreaName: 'Kanto Route 1 Area',
         rawLocationAreaName: 'kanto-route-1-area',
         versions: ['red', 'blue'],
       ),
@@ -118,7 +99,6 @@ class MockPokemonRepository implements IPokemonRepository {
 
   @override
   Future<Either<PokemonFailure, List<PokemonIndexEntry>>> getPokemonIndex({
-    CancellationToken? cancelToken,
     bool forceRefresh = false,
   }) async {
     return const Right([
@@ -157,9 +137,8 @@ class MockPokemonRepository implements IPokemonRepository {
 
   @override
   Future<Either<PokemonFailure, Set<int>>> getPokemonIdsForType(
-    PokemonType type, {
-    CancellationToken? cancelToken,
-  }) async {
+    PokemonType type,
+  ) async {
     return switch (type) {
       PokemonType.grass => const Right({1, 2, 3}),
       PokemonType.poison => const Right({1, 2, 3}),
@@ -184,16 +163,7 @@ class MockPokemonRepository implements IPokemonRepository {
   }
 
   @override
-  Future<Either<PokemonFailure, List<String>>> getAllPokemonNames() async {
-    final indexResult = await getPokemonIndex();
-    return indexResult.map((entries) => entries.map((e) => e.name).toList());
-  }
-
-  @override
-  Future<Either<PokemonFailure, MoveDetail>> getMoveDetail(
-    String name, {
-    CancellationToken? cancelToken,
-  }) async {
+  Future<Either<PokemonFailure, MoveDetail>> getMoveDetail(String name) async {
     return Right(
       MoveDetail(
         id: 1,
@@ -213,9 +183,8 @@ class MockPokemonRepository implements IPokemonRepository {
 
   @override
   Future<Either<PokemonFailure, PokemonSpecies>> getPokemonSpecies(
-    String url, {
-    CancellationToken? cancelToken,
-  }) async {
+    String url,
+  ) async {
     return const Right(
       PokemonSpecies(
         id: 1,
@@ -239,9 +208,6 @@ class MockPokemonRepository implements IPokemonRepository {
         habitat: 'grassland',
         captureRate: 45,
         baseHappiness: 50,
-        growthRate: 'medium-slow',
-        genderRate: 1,
-        eggGroups: ['monster', 'plant'],
         evolutionChainUrl: 'https://pokeapi.co/api/v2/evolution-chain/1/',
       ),
     );
@@ -249,9 +215,8 @@ class MockPokemonRepository implements IPokemonRepository {
 
   @override
   Future<Either<PokemonFailure, EvolutionChain>> getEvolutionChain(
-    String url, {
-    CancellationToken? cancelToken,
-  }) async {
+    String url,
+  ) async {
     return const Right(
       EvolutionChain(
         id: 1,
@@ -298,9 +263,8 @@ class MockPokemonRepository implements IPokemonRepository {
 
   @override
   Future<Either<PokemonFailure, AbilityDetail>> getAbilityDetail(
-    String name, {
-    CancellationToken? cancelToken,
-  }) async {
+    String name,
+  ) async {
     return const Right(
       AbilityDetail(
         id: 65,

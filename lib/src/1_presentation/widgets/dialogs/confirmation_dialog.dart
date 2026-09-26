@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
-import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 
 /// Displays an alert dialog requesting user confirmation for an action.
 Future<bool?> showConfirmationDialog({
@@ -9,8 +8,6 @@ Future<bool?> showConfirmationDialog({
   required String content,
   required String confirmLabel,
   required String cancelLabel,
-  Color? confirmBackgroundColor,
-  Color? confirmForegroundColor,
 }) {
   return showDialog<bool>(
     context: context,
@@ -22,11 +19,7 @@ Future<bool?> showConfirmationDialog({
           onPressed: () => Navigator.of(dialogContext).pop(false),
           child: Text(cancelLabel),
         ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: confirmBackgroundColor,
-            foregroundColor: confirmForegroundColor,
-          ),
+        FilledButton(
           onPressed: () => Navigator.of(dialogContext).pop(true),
           child: Text(confirmLabel),
         ),
@@ -44,7 +37,5 @@ Future<bool?> showClearCacheConfirmationDialog(BuildContext context) {
     content: t.clearCacheConfirmation,
     confirmLabel: t.clear,
     cancelLabel: t.cancel,
-    confirmBackgroundColor: AppPalette.brandRed,
-    confirmForegroundColor: AppPalette.onBrandRed,
   );
 }

@@ -26,14 +26,12 @@ const _sampleSpecies = PokemonSpecies(
 void main() {
   late _MockPokemonRepository repository;
   late _MockEnLogger logger;
-  late GetPokemonSpeciesUseCase useCase;
   late SpeciesCubit cubit;
 
   setUp(() {
     repository = _MockPokemonRepository();
     logger = _MockEnLogger();
-    useCase = GetPokemonSpeciesUseCase(repository);
-    cubit = SpeciesCubit(useCase, logger);
+    cubit = SpeciesCubit(repository, logger);
   });
 
   tearDown(() async {
@@ -48,7 +46,6 @@ void main() {
     when(
       () => repository.getPokemonSpecies(
         'https://pokeapi.co/api/v2/pokemon-species/1/',
-        cancelToken: any(named: 'cancelToken'),
       ),
     ).thenAnswer((_) async => right(_sampleSpecies));
 
@@ -67,10 +64,7 @@ void main() {
 
   test('emits SpeciesLoading then SpeciesError on failure', () async {
     when(
-      () => repository.getPokemonSpecies(
-        any(),
-        cancelToken: any(named: 'cancelToken'),
-      ),
+      () => repository.getPokemonSpecies(any()),
     ).thenAnswer((_) async => left(const UnexpectedFailure('species error')));
 
     final emitted = <SpeciesState>[];
@@ -93,10 +87,7 @@ void main() {
     'recovering from error emits SpeciesLoading then SpeciesLoaded',
     () async {
       when(
-        () => repository.getPokemonSpecies(
-          any(),
-          cancelToken: any(named: 'cancelToken'),
-        ),
+        () => repository.getPokemonSpecies(any()),
       ).thenAnswer((_) async => left(const UnexpectedFailure('error')));
 
       await cubit.fetchSpecies('https://pokeapi.co/api/v2/pokemon-species/1/');
@@ -104,10 +95,7 @@ void main() {
       expect(cubit.state, isA<SpeciesError>());
 
       when(
-        () => repository.getPokemonSpecies(
-          any(),
-          cancelToken: any(named: 'cancelToken'),
-        ),
+        () => repository.getPokemonSpecies(any()),
       ).thenAnswer((_) async => right(_sampleSpecies));
 
       final emitted = <SpeciesState>[];

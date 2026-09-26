@@ -1,23 +1,22 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/src/3_domain/entities/damage_class.dart';
+import 'package:pokefinder/src/3_domain/entities/evolution_chain.dart';
 import 'package:pokefinder/src/3_domain/entities/move_detail.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
-import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
+import 'package:pokefinder/src/3_domain/helpers/pokeapi_url_helper.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
-import 'package:pokefinder/src/4_repository/datasources/abstract/i_pokemon_remote_datasource.dart';
-import 'package:pokefinder/src/4_repository/models/raw_encounter/raw_encounter.dart';
-import 'package:pokefinder/src/4_repository/models/raw_form_details/raw_form_details.dart';
-import 'package:pokefinder/src/3_domain/entities/evolution_chain.dart';
-import 'package:pokefinder/src/4_repository/models/raw_evolution_chain/raw_evolution_chain.dart';
-import 'package:pokefinder/src/4_repository/models/raw_move_detail/raw_move_detail.dart';
-import 'package:pokefinder/src/4_repository/models/raw_pokemon/raw_pokemon.dart';
+import 'package:pokefinder/src/4_repository/datasources/abstract/api_client.dart';
+import 'package:pokefinder/src/4_repository/datasources/implementations/poke_api_cache.dart';
 import 'package:pokefinder/src/4_repository/repositories/pokemon_repository_impl.dart';
 
-class _MockRemoteDataSource extends Mock implements IPokemonRemoteDataSource {}
+class _MockPokeApiCache extends Mock implements PokeApiCache {}
 
 /// PokeAPI type resource URL for the type with the given [id].
 String typeUrl(int id) => 'https://pokeapi.co/api/v2/type/$id/';
@@ -102,23 +101,64 @@ Map<String, dynamic> rawPokemonJson({
 }
 
 void main() {
-  setUpAll(() => registerFallbackValue(PokemonName('placeholder')));
-
-  late _MockRemoteDataSource dataSource;
+  late _MockPokeApiCache cache;
   late PokemonRepositoryImpl repository;
 
   setUp(() {
-    dataSource = _MockRemoteDataSource();
-    repository = PokemonRepositoryImpl(dataSource);
+    cache = _MockPokeApiCache();
+    repository = PokemonRepositoryImpl(cache);
   });
 
-  /// Maps [json] through the repository and returns the resulting entity.
-  Future<Pokemon> mapPokemon(Map<String, dynamic> json) async {
+  /// Serves [json] for every JSON-object cache read.
+  void stubJsonPayload(
+    Map<String, dynamic> json, {
+    bool forceRefresh = false,
+    bool isStale = false,
+  }) {
     when(
-      () => dataSource.getPokemon(any()),
-    ).thenAnswer((_) async => right(RawPokemon.fromJson(json)));
-    final result = await repository.getPokemon(PokemonName('venusaur'));
-    return result.getOrElse(() => throw StateError('expected a right'));
+      () => cache.get<Map<String, dynamic>>(any(), forceRefresh: forceRefresh),
+    ).thenAnswer((_) async => (data: json, isStale: isStale));
+  }
+
+  /// Serves [json] only for the JSON-object cache read targeting [url].
+  void stubJsonPayloadAt(
+    String url,
+    Map<String, dynamic> json, {
+    bool forceRefresh = false,
+    bool isStale = false,
+  }) {
+    when(
+      () => cache.get<Map<String, dynamic>>(url, forceRefresh: forceRefresh),
+    ).thenAnswer((_) async => (data: json, isStale: isStale));
+  }
+
+  /// Serves [json] for the cache read of [url] returning a bare JSON array.
+  void stubJsonListPayload(
+    String url,
+    List<dynamic> json, {
+    bool forceRefresh = false,
+    bool isStale = false,
+  }) {
+    when(
+      () => cache.get<List<dynamic>>(url, forceRefresh: forceRefresh),
+    ).thenAnswer((_) async => (data: json, isStale: isStale));
+  }
+
+  /// Unwraps the [Left] of an endpoint result, failing the test on a [Right].
+  PokemonFailure leftOf<T>(Either<PokemonFailure, T> result) =>
+      result.fold((failure) => failure, (_) => fail('expected a left'));
+
+  /// Unwraps the [Right] of an endpoint result, failing the test on a [Left].
+  T rightOf<T>(Either<PokemonFailure, T> result) =>
+      result.getOrElse(() => throw StateError('expected a right'));
+
+  /// Serves [json] from the cache and maps it into a [Pokemon].
+  Future<Pokemon> mapPokemon(
+    Map<String, dynamic> json, {
+    bool isStale = false,
+  }) async {
+    stubJsonPayload(json, isStale: isStale);
+    return rightOf(await repository.getPokemon(PokemonName('venusaur')));
   }
 
   group('getPokemon type mapping', () {
@@ -138,8 +178,6 @@ void main() {
 
       expect(pokemon.type1, PokemonType.grass);
       expect(pokemon.type2, PokemonType.poison);
-      expect(pokemon.typeImage1, endsWith('/12.png'));
-      expect(pokemon.typeImage2, endsWith('/4.png'));
     });
 
     test('leaves the second type unset for a single-type Pokémon', () async {
@@ -147,28 +185,23 @@ void main() {
 
       expect(pokemon.type1, PokemonType.grass);
       expect(pokemon.type2, isNull);
-      expect(pokemon.typeImage2, isEmpty);
     });
 
     test(
       'returns InvalidResponseFailure when types collection is empty',
       () async {
-        when(() => dataSource.getPokemon(any())).thenAnswer(
-          (_) async =>
-              right(RawPokemon.fromJson(rawPokemonJson(types: const []))),
-        );
+        stubJsonPayload(rawPokemonJson(types: const []));
 
         final result = await repository.getPokemon(PokemonName('venusaur'));
 
         expect(result.isLeft(), isTrue);
-        result.fold((failure) {
-          expect(failure, isA<InvalidResponseFailure>());
-          expect(failure.message, contains('has no types specified'));
-        }, (_) => fail('expected left'));
+        final failure = leftOf(result);
+        expect(failure, isA<InvalidResponseFailure>());
+        expect(failure.message, contains('has no types specified'));
       },
     );
 
-    test('an unknown type id maps to no type and no sprite', () async {
+    test('an unknown type id maps to no type', () async {
       final pokemon = await mapPokemon(
         rawPokemonJson(
           types: [
@@ -180,7 +213,7 @@ void main() {
       );
 
       expect(pokemon.type1, isNull);
-      expect(pokemon.typeImage1, isEmpty);
+      expect(pokemon.type2, isNull);
     });
   });
 
@@ -206,8 +239,8 @@ void main() {
         );
 
         expect(pokemon.abilities, const [
-          PokemonAbility(name: 'overgrow', isHidden: false, slot: 1),
-          PokemonAbility(name: 'chlorophyll', isHidden: true, slot: 3),
+          PokemonAbility(name: 'overgrow', isHidden: false),
+          PokemonAbility(name: 'chlorophyll', isHidden: true),
         ]);
       },
     );
@@ -314,8 +347,8 @@ void main() {
         );
 
         expect(pokemon.sprite, 'front.png');
-        expect(pokemon.officialArtworkDefault, isNull);
-        expect(pokemon.officialArtworkShiny, isNull);
+        expect(pokemon.sprites.artworkDefault, isNull);
+        expect(pokemon.sprites.artworkShiny, isNull);
       },
     );
 
@@ -350,20 +383,20 @@ void main() {
         );
 
         expect(pokemon.sprite, 'artwork.png');
-        expect(pokemon.spriteFrontDefault, 'front.png');
-        expect(pokemon.spriteBackDefault, 'back.png');
-        expect(pokemon.spriteFrontShiny, 'front-shiny.png');
-        expect(pokemon.spriteBackShiny, 'back-shiny.png');
-        expect(pokemon.spriteFrontFemale, 'front-female.png');
-        expect(pokemon.spriteBackFemale, 'back-female.png');
-        expect(pokemon.spriteFrontShinyFemale, 'front-shiny-female.png');
-        expect(pokemon.spriteBackShinyFemale, 'back-shiny-female.png');
-        expect(pokemon.officialArtworkDefault, 'artwork.png');
-        expect(pokemon.officialArtworkShiny, 'artwork-shiny.png');
-        expect(pokemon.homeDefault, 'home.png');
-        expect(pokemon.homeFemale, 'home-female.png');
-        expect(pokemon.homeShiny, 'home-shiny.png');
-        expect(pokemon.homeShinyFemale, 'home-shiny-female.png');
+        expect(pokemon.sprites.frontDefault, 'front.png');
+        expect(pokemon.sprites.backDefault, 'back.png');
+        expect(pokemon.sprites.frontShiny, 'front-shiny.png');
+        expect(pokemon.sprites.backShiny, 'back-shiny.png');
+        expect(pokemon.sprites.frontFemale, 'front-female.png');
+        expect(pokemon.sprites.backFemale, 'back-female.png');
+        expect(pokemon.sprites.frontShinyFemale, 'front-shiny-female.png');
+        expect(pokemon.sprites.backShinyFemale, 'back-shiny-female.png');
+        expect(pokemon.sprites.artworkDefault, 'artwork.png');
+        expect(pokemon.sprites.artworkShiny, 'artwork-shiny.png');
+        expect(pokemon.sprites.homeDefault, 'home.png');
+        expect(pokemon.sprites.homeFemale, 'home-female.png');
+        expect(pokemon.sprites.homeShiny, 'home-shiny.png');
+        expect(pokemon.sprites.homeShinyFemale, 'home-shiny-female.png');
       },
     );
 
@@ -393,14 +426,14 @@ void main() {
         );
 
         expect(pokemon.sprite, 'artwork.png');
-        expect(pokemon.spriteFrontFemale, isNull);
-        expect(pokemon.spriteBackFemale, isNull);
-        expect(pokemon.spriteFrontShinyFemale, isNull);
-        expect(pokemon.spriteBackShinyFemale, isNull);
-        expect(pokemon.homeDefault, isNull);
-        expect(pokemon.homeFemale, isNull);
-        expect(pokemon.homeShiny, isNull);
-        expect(pokemon.homeShinyFemale, isNull);
+        expect(pokemon.sprites.frontFemale, isNull);
+        expect(pokemon.sprites.backFemale, isNull);
+        expect(pokemon.sprites.frontShinyFemale, isNull);
+        expect(pokemon.sprites.backShinyFemale, isNull);
+        expect(pokemon.sprites.homeDefault, isNull);
+        expect(pokemon.sprites.homeFemale, isNull);
+        expect(pokemon.sprites.homeShiny, isNull);
+        expect(pokemon.sprites.homeShinyFemale, isNull);
       },
     );
 
@@ -422,16 +455,30 @@ void main() {
       );
 
       expect(pokemon.sprite, isEmpty);
-      expect(pokemon.officialArtworkDefault, isNull);
-      expect(pokemon.homeDefault, isNull);
+      expect(pokemon.sprites.artworkDefault, isNull);
+      expect(pokemon.sprites.homeDefault, isNull);
+    });
+  });
+
+  group('getPokemon staleness', () {
+    test('propagates the cache staleness flag onto the entity', () async {
+      final pokemon = await mapPokemon(rawPokemonJson(), isStale: true);
+
+      expect(pokemon.isStale, isTrue);
+    });
+
+    test('a fresh cache read is not marked stale', () async {
+      final pokemon = await mapPokemon(rawPokemonJson());
+
+      expect(pokemon.isStale, isFalse);
     });
   });
 
   group('getPokemon failures', () {
-    test('a datasource failure is propagated unchanged', () async {
+    test('a transport error is mapped to its PokemonFailure', () async {
       when(
-        () => dataSource.getPokemon(any()),
-      ).thenAnswer((_) async => left(const UnauthorizedFailure()));
+        () => cache.get<Map<String, dynamic>>(any(), forceRefresh: false),
+      ).thenThrow(ApiException(message: 'unauthorized', statusCode: 401));
 
       final result = await repository.getPokemon(PokemonName('venusaur'));
 
@@ -444,57 +491,166 @@ void main() {
     test(
       'a malformed payload becomes an InvalidResponseFailure instead of throwing',
       () async {
-        final json = rawPokemonJson(types: const []);
-        when(
-          () => dataSource.getPokemon(any()),
-        ).thenAnswer((_) async => right(RawPokemon.fromJson(json)));
+        stubJsonPayload(rawPokemonJson(types: const []));
 
         final result = await repository.getPokemon(PokemonName('venusaur'));
 
         expect(result.isLeft(), isTrue);
-        expect(
-          result.fold((l) => l, (_) => null),
-          isA<InvalidResponseFailure>(),
-        );
+        expect(leftOf(result), isA<InvalidResponseFailure>());
       },
     );
+
+    test('an invalid Pokémon name fails before the cache is consulted', () async {
+      // NOTE: `PokemonRepositoryImpl.getPokemon` evaluates
+      // `PokemonName.rightOrCrash()` *outside* `_fetch`'s try/catch, so the
+      // BadRequestFailure escapes as a thrown exception instead of a `Left`.
+      // Pre-refactor the whole body was wrapped in try/catch and returned
+      // `left(_mapRepoError(e))`. Left failing on purpose until `lib/` is fixed.
+      final result = await repository.getPokemon(PokemonName('   '));
+
+      expect(leftOf(result), isA<BadRequestFailure>());
+      verifyNever(
+        () => cache.get<Map<String, dynamic>>(any(), forceRefresh: false),
+      );
+    });
+  });
+
+  group('error mapping', () {
+    /// Runs [getPokemon] with the cache throwing [error] and returns the
+    /// resulting failure.
+    Future<PokemonFailure> failureFor(Object error) {
+      when(
+        () => cache.get<Map<String, dynamic>>(any(), forceRefresh: false),
+      ).thenThrow(error);
+      return repository
+          .getPokemon(PokemonName('venusaur'))
+          .then(leftOf<Pokemon>);
+    }
+
+    test('a connection error becomes NetworkUnavailableFailure', () async {
+      expect(
+        await failureFor(
+          ApiException(message: 'offline', isConnectionError: true),
+        ),
+        isA<NetworkUnavailableFailure>(),
+      );
+    });
+
+    test('a timeout becomes RequestTimeoutFailure', () async {
+      expect(
+        await failureFor(ApiException(message: 'slow', isReceiveTimeout: true)),
+        isA<RequestTimeoutFailure>(),
+      );
+    });
+
+    test('a 404 becomes PokemonNotFoundFailure', () async {
+      expect(
+        await failureFor(ApiException(message: 'missing', statusCode: 404)),
+        isA<PokemonNotFoundFailure>(),
+      );
+    });
+
+    test('a 400 becomes BadRequestFailure', () async {
+      expect(
+        await failureFor(ApiException(message: 'bad', statusCode: 400)),
+        isA<BadRequestFailure>(),
+      );
+    });
+
+    test('a 401 becomes UnauthorizedFailure', () async {
+      expect(
+        await failureFor(ApiException(message: 'nope', statusCode: 401)),
+        isA<UnauthorizedFailure>(),
+      );
+    });
+
+    test('a 429 becomes RateLimitedFailure', () async {
+      expect(
+        await failureFor(ApiException(message: 'slow down', statusCode: 429)),
+        isA<RateLimitedFailure>(),
+      );
+    });
+
+    test('a 5xx becomes ServerFailure carrying the status code', () async {
+      final failure = await failureFor(
+        ApiException(message: 'boom', statusCode: 503),
+      );
+
+      expect(failure, isA<ServerFailure>());
+      expect((failure as ServerFailure).statusCode, 503);
+    });
+
+    test('any other status code becomes UnexpectedFailure', () async {
+      expect(
+        await failureFor(ApiException(message: 'teapot', statusCode: 418)),
+        isA<UnexpectedFailure>(),
+      );
+    });
+
+    test('a socket exception becomes NetworkUnavailableFailure', () async {
+      expect(
+        await failureFor(const SocketException('no host')),
+        isA<NetworkUnavailableFailure>(),
+      );
+    });
+
+    test('an empty body becomes InvalidResponseFailure', () async {
+      expect(
+        await failureFor(EmptyResponseException('endpoint')),
+        isA<InvalidResponseFailure>(),
+      );
+    });
+
+    test('a parse error becomes InvalidResponseFailure', () async {
+      expect(
+        await failureFor(const FormatException('malformed data')),
+        isA<InvalidResponseFailure>(),
+      );
+    });
+
+    test('a storage error becomes StorageFailure', () async {
+      expect(
+        await failureFor(HiveError('box corrupted')),
+        isA<StorageFailure>(),
+      );
+    });
+
+    test('an unrecognized error becomes UnexpectedFailure', () async {
+      expect(
+        await failureFor(Exception('Unexpected crash')),
+        isA<UnexpectedFailure>(),
+      );
+    });
   });
 
   group('getFormDetails', () {
     test(
       'derives type sprites and official artwork from the form id',
       () async {
-        when(() => dataSource.getFormDetails(any())).thenAnswer(
-          (_) async => right(
-            RawFormDetails.fromJson({
-              'id': 10033,
-              'name': 'venusaur-mega',
-              'types': [
-                {
-                  'type': {'url': typeUrl(12)},
-                },
-                {
-                  'type': {'url': typeUrl(4)},
-                },
-              ],
-              'sprites': {
-                'front_default': 'mega.png',
-                'front_shiny': 'mega-shiny.png',
-              },
-            }),
-          ),
-        );
+        stubJsonPayloadAt('form/10033/', {
+          'id': 10033,
+          'name': 'venusaur-mega',
+          'types': [
+            {
+              'type': {'url': typeUrl(12)},
+            },
+            {
+              'type': {'url': typeUrl(4)},
+            },
+          ],
+          'sprites': {
+            'front_default': 'mega.png',
+            'front_shiny': 'mega-shiny.png',
+          },
+        });
 
-        final result = await repository.getFormDetails('form/10033/');
-        final details = result.getOrElse(
-          () => throw StateError('expected a right'),
-        );
+        final details = rightOf(await repository.getFormDetails('form/10033/'));
 
         expect(details.name, 'venusaur-mega');
         expect(details.type1, PokemonType.grass);
         expect(details.type2, PokemonType.poison);
-        expect(details.typeImage1, endsWith('/12.png'));
         expect(details.spriteDefault, 'mega.png');
+        expect(details.spriteShiny, 'mega-shiny.png');
         expect(details.artworkDefault, endsWith('official-artwork/10033.png'));
         expect(details.artworkShiny, endsWith('shiny/10033.png'));
       },
@@ -503,54 +659,43 @@ void main() {
     test(
       'returns InvalidResponseFailure when form types collection is empty',
       () async {
-        when(() => dataSource.getFormDetails(any())).thenAnswer(
-          (_) async => right(
-            RawFormDetails.fromJson({
-              'id': 10033,
-              'name': 'venusaur-mega',
-              'types': <Map<String, dynamic>>[],
-              'sprites': {'front_default': 'mega.png'},
-            }),
-          ),
-        );
+        stubJsonPayloadAt('form/10033/', {
+          'id': 10033,
+          'name': 'venusaur-mega',
+          'types': <Map<String, dynamic>>[],
+          'sprites': {'front_default': 'mega.png'},
+        });
 
         final result = await repository.getFormDetails('form/10033/');
 
         expect(result.isLeft(), isTrue);
-        result.fold((failure) {
-          expect(failure, isA<InvalidResponseFailure>());
-          expect(failure.message, contains('has no types specified'));
-        }, (_) => fail('expected left'));
+        final failure = leftOf(result);
+        expect(failure, isA<InvalidResponseFailure>());
+        expect(failure.message, contains('has no types specified'));
       },
     );
   });
 
   group('getEncounters', () {
-    test('exposes both the raw and the display-cased location name', () async {
-      when(() => dataSource.getEncounters(any())).thenAnswer(
-        (_) async => right([
-          RawEncounter.fromJson({
-            'location_area': {'name': 'viridian-forest-area', 'url': ''},
-            'version_details': [
-              {
-                'version': {'name': 'red', 'url': ''},
-              },
-              {
-                'version': {'name': 'blue', 'url': ''},
-              },
-            ],
-          }),
-        ]),
-      );
+    test('exposes the raw location name and the version list', () async {
+      stubJsonListPayload('encounters', [
+        {
+          'location_area': {'name': 'viridian-forest-area', 'url': ''},
+          'version_details': [
+            {
+              'version': {'name': 'red', 'url': ''},
+            },
+            {
+              'version': {'name': 'blue', 'url': ''},
+            },
+          ],
+        },
+      ]);
 
-      final result = await repository.getEncounters('encounters');
-      final encounters = result.getOrElse(
-        () => throw StateError('expected a right'),
-      );
+      final encounters = rightOf(await repository.getEncounters('encounters'));
 
       expect(encounters, const [
         PokemonEncounter(
-          locationAreaName: 'Viridian Forest Area',
           rawLocationAreaName: 'viridian-forest-area',
           versions: ['red', 'blue'],
         ),
@@ -560,43 +705,31 @@ void main() {
 
   group('getMoveDetail', () {
     test('keeps the first flavor text per language', () async {
-      when(
-        () => dataSource.getMoveDetail(
-          any(),
-          cancelToken: any(named: 'cancelToken'),
-        ),
-      ).thenAnswer(
-        (_) async => right(
-          RawMoveDetail.fromJson({
-            'id': 33,
-            'name': 'tackle',
-            'accuracy': 100,
-            'power': 40,
-            'pp': 35,
-            'type': {'name': 'normal', 'url': typeUrl(1)},
-            'damage_class': {'name': 'physical', 'url': ''},
-            'flavor_text_entries': [
-              {
-                'flavor_text': 'First english entry',
-                'language': {'name': 'en', 'url': ''},
-              },
-              {
-                'flavor_text': 'Later english entry',
-                'language': {'name': 'en', 'url': ''},
-              },
-              {
-                'flavor_text': 'Voce italiana',
-                'language': {'name': 'it', 'url': ''},
-              },
-            ],
-          }),
-        ),
-      );
+      stubJsonPayloadAt(PokeApiUrlHelper.moveUrl('tackle'), {
+        'id': 33,
+        'name': 'tackle',
+        'accuracy': 100,
+        'power': 40,
+        'pp': 35,
+        'type': {'name': 'normal', 'url': typeUrl(1)},
+        'damage_class': {'name': 'physical', 'url': ''},
+        'flavor_text_entries': [
+          {
+            'flavor_text': 'First english entry',
+            'language': {'name': 'en', 'url': ''},
+          },
+          {
+            'flavor_text': 'Later english entry',
+            'language': {'name': 'en', 'url': ''},
+          },
+          {
+            'flavor_text': 'Voce italiana',
+            'language': {'name': 'it', 'url': ''},
+          },
+        ],
+      });
 
-      final result = await repository.getMoveDetail('tackle');
-      final detail = result.getOrElse(
-        () => throw StateError('expected a right'),
-      );
+      final detail = rightOf(await repository.getMoveDetail('tackle'));
 
       expect(
         detail,
@@ -614,28 +747,68 @@ void main() {
     });
 
     test('an unrecognized damage class maps to null', () async {
-      when(
-        () => dataSource.getMoveDetail(
-          any(),
-          cancelToken: any(named: 'cancelToken'),
-        ),
-      ).thenAnswer(
-        (_) async => right(
-          RawMoveDetail.fromJson({
-            'id': 1,
-            'name': 'mystery',
-            'type': {'name': 'normal', 'url': typeUrl(1)},
-            'damage_class': {'name': 'quantum', 'url': ''},
-          }),
-        ),
-      );
+      stubJsonPayloadAt(PokeApiUrlHelper.moveUrl('mystery'), {
+        'id': 1,
+        'name': 'mystery',
+        'type': {'name': 'normal', 'url': typeUrl(1)},
+        'damage_class': {'name': 'quantum', 'url': ''},
+      });
 
-      final result = await repository.getMoveDetail('mystery');
-      final detail = result.getOrElse(
-        () => throw StateError('expected a right'),
-      );
+      final detail = rightOf(await repository.getMoveDetail('mystery'));
 
       expect(detail.damageClass, isNull);
+    });
+  });
+
+  group('getPokemonSpecies', () {
+    test('maps the species payload and normalizes its flavor texts', () async {
+      stubJsonPayloadAt('species/3/', {
+        'id': 3,
+        'name': 'venusaur',
+        'generation': {'name': 'generation-i', 'url': ''},
+        'habitat': {'name': 'grassland', 'url': ''},
+        'capture_rate': 45,
+        'base_happiness': 50,
+        'is_legendary': false,
+        'is_mythical': false,
+        'flavor_text_entries': [
+          {
+            'flavor_text':
+                'The plant blooms when it is absorbing\nsolar energy.',
+            'language': {'name': 'en', 'url': ''},
+            'version': {'name': 'red', 'url': ''},
+          },
+          {
+            'flavor_text': 'Voce italiana',
+            'language': {'name': 'it', 'url': ''},
+            'version': null,
+          },
+        ],
+        'genera': [
+          {
+            'genus': 'Seed Pokémon',
+            'language': {'name': 'en', 'url': ''},
+          },
+        ],
+        'evolution_chain': {'url': 'chain/1/'},
+      });
+
+      final species = rightOf(await repository.getPokemonSpecies('species/3/'));
+
+      expect(species.id, 3);
+      expect(species.name, 'venusaur');
+      expect(species.generation, 'generation-i');
+      expect(species.habitat, 'grassland');
+      expect(species.captureRate, 45);
+      expect(species.baseHappiness, 50);
+      expect(species.evolutionChainUrl, 'chain/1/');
+      expect(species.genera, {'en': 'Seed Pokémon'});
+      expect(species.flavorTexts.map((f) => (f.language, f.text)), [
+        ('en', 'The plant blooms when it is absorbing solar energy.'),
+        ('it', 'Voce italiana'),
+      ]);
+      // The null `version` of the italian entry degrades to an empty string.
+      expect(species.flavorTexts.last.version, '');
     });
   });
 
@@ -726,100 +899,154 @@ void main() {
     );
   });
 
-  group('clearCache', () {
-    test('delegates clearCache to remote data source', () async {
-      when(() => dataSource.clearCache()).thenAnswer((_) async => right(unit));
+  group('cache maintenance', () {
+    test('clearCache delegates to the cache and reports success', () async {
+      when(() => cache.clear()).thenAnswer((_) async {});
 
       final result = await repository.clearCache();
+
       expect(result, right(unit));
-      verify(() => dataSource.clearCache()).called(1);
+      verify(() => cache.clear()).called(1);
+    });
+
+    test('clearCache maps a storage error to a failure', () async {
+      when(() => cache.clear()).thenThrow(HiveError('box corrupted'));
+
+      final result = await repository.clearCache();
+
+      expect(leftOf(result), isA<StorageFailure>());
+    });
+
+    test('getCacheSize returns the byte size reported by the cache', () async {
+      when(() => cache.size()).thenAnswer((_) async => 4096);
+
+      final result = await repository.getCacheSize();
+
+      expect(result, right(4096));
+      verify(() => cache.size()).called(1);
+    });
+
+    test('getCacheSize maps a storage error to a failure', () async {
+      when(() => cache.size()).thenThrow(HiveError('box corrupted'));
+
+      final result = await repository.getCacheSize();
+
+      expect(leftOf(result), isA<StorageFailure>());
     });
   });
 
   group('getPokemonIndex', () {
+    /// Minimal `/pokemon` index payload.
+    Map<String, dynamic> indexJson(List<Map<String, dynamic>> results) => {
+      'count': results.length,
+      'next': null,
+      'previous': null,
+      'results': results,
+    };
+
     test(
-      'delegates getPokemonIndex to remote data source with cancelToken and forceRefresh',
+      'requests the index with forceRefresh and maps each result to an entry',
       () async {
-        const sampleEntries = [
-          PokemonIndexEntry(id: 1, name: 'bulbasaur', detailUrl: 'url1'),
-        ];
-        when(
-          () => dataSource.getPokemonIndex(
-            cancelToken: any(named: 'cancelToken'),
-            forceRefresh: any(named: 'forceRefresh'),
-          ),
-        ).thenAnswer((_) async => right(sampleEntries));
+        stubJsonPayloadAt(
+          PokeApiUrlHelper.pokemonIndexUrl(),
+          indexJson([
+            {
+              'name': 'bulbasaur',
+              'url': 'https://pokeapi.co/api/v2/pokemon/1/',
+            },
+            {'name': 'ivysaur', 'url': 'https://pokeapi.co/api/v2/pokemon/2/'},
+          ]),
+          forceRefresh: true,
+        );
 
         final result = await repository.getPokemonIndex(forceRefresh: true);
-        expect(result.isRight(), isTrue);
-        expect(result.getOrElse(() => []), equals(sampleEntries));
+
+        final entries = rightOf(result);
+        expect(entries.map((e) => (e.id, e.name, e.detailUrl)), [
+          (1, 'bulbasaur', 'https://pokeapi.co/api/v2/pokemon/1/'),
+          (2, 'ivysaur', 'https://pokeapi.co/api/v2/pokemon/2/'),
+        ]);
         verify(
-          () => dataSource.getPokemonIndex(
-            cancelToken: any(named: 'cancelToken'),
+          () => cache.get<Map<String, dynamic>>(
+            PokeApiUrlHelper.pokemonIndexUrl(),
             forceRefresh: true,
           ),
         ).called(1);
       },
     );
 
+    test('drops results without a resolvable id or a name', () async {
+      stubJsonPayloadAt(
+        PokeApiUrlHelper.pokemonIndexUrl(),
+        indexJson([
+          {'name': 'bulbasaur', 'url': 'https://pokeapi.co/api/v2/pokemon/1/'},
+          {'name': '', 'url': 'https://pokeapi.co/api/v2/pokemon/2/'},
+          {'name': 'ivysaur', 'url': 'not-a-url'},
+        ]),
+      );
+
+      final entries = rightOf(await repository.getPokemonIndex());
+
+      expect(entries.map((e) => e.name), ['bulbasaur']);
+    });
+
     test(
-      'returns UnexpectedFailure when remote data source throws unexpected error',
+      'returns UnexpectedFailure when the cache throws unexpectedly',
       () async {
         when(
-          () => dataSource.getPokemonIndex(
-            cancelToken: any(named: 'cancelToken'),
-            forceRefresh: any(named: 'forceRefresh'),
-          ),
+          () => cache.get<Map<String, dynamic>>(any(), forceRefresh: false),
         ).thenThrow(Exception('Unexpected crash'));
 
         final result = await repository.getPokemonIndex();
-        expect(result.isLeft(), isTrue);
-        result.fold(
-          (failure) => expect(failure, isA<UnexpectedFailure>()),
-          (_) => fail('expected left'),
-        );
+
+        expect(leftOf(result), isA<UnexpectedFailure>());
       },
     );
   });
 
   group('getPokemonIdsForType', () {
+    test('collects the ids of the pokemon listed for the type', () async {
+      stubJsonPayloadAt(PokeApiUrlHelper.typeUrl('fire'), {
+        'pokemon': [
+          {
+            'pokemon': {
+              'name': 'charmander',
+              'url': 'https://pokeapi.co/api/v2/pokemon/4/',
+            },
+          },
+          {
+            'pokemon': {
+              'name': 'charmeleon',
+              'url': 'https://pokeapi.co/api/v2/pokemon/5/',
+            },
+          },
+          {
+            'pokemon': {'name': 'broken', 'url': 'not-a-url'},
+          },
+        ],
+      });
+
+      final result = await repository.getPokemonIdsForType(PokemonType.fire);
+
+      expect(rightOf(result), {4, 5});
+      verify(
+        () => cache.get<Map<String, dynamic>>(
+          PokeApiUrlHelper.typeUrl('fire'),
+          forceRefresh: false,
+        ),
+      ).called(1);
+    });
+
     test(
-      'delegates getPokemonIdsForType to remote data source with cancelToken',
+      'returns UnexpectedFailure when the cache throws unexpectedly',
       () async {
         when(
-          () => dataSource.getPokemonIdsForType(
-            PokemonType.fire,
-            cancelToken: any(named: 'cancelToken'),
-          ),
-        ).thenAnswer((_) async => const Right({4, 5, 6}));
-
-        final result = await repository.getPokemonIdsForType(PokemonType.fire);
-        expect(result, const Right({4, 5, 6}));
-        verify(
-          () => dataSource.getPokemonIdsForType(
-            PokemonType.fire,
-            cancelToken: any(named: 'cancelToken'),
-          ),
-        ).called(1);
-      },
-    );
-
-    test(
-      'returns UnexpectedFailure when remote data source throws unexpected error',
-      () async {
-        when(
-          () => dataSource.getPokemonIdsForType(
-            PokemonType.fire,
-            cancelToken: any(named: 'cancelToken'),
-          ),
+          () => cache.get<Map<String, dynamic>>(any(), forceRefresh: false),
         ).thenThrow(Exception('Unexpected crash'));
 
         final result = await repository.getPokemonIdsForType(PokemonType.fire);
-        expect(result.isLeft(), isTrue);
-        result.fold(
-          (failure) => expect(failure, isA<UnexpectedFailure>()),
-          (_) => fail('expected left'),
-        );
+
+        expect(leftOf(result), isA<UnexpectedFailure>());
       },
     );
   });
@@ -828,7 +1055,7 @@ void main() {
     test(
       'maps raw evolution chain with compound trigger details to domain entity',
       () async {
-        final raw = RawEvolutionChain.fromJson({
+        stubJsonPayloadAt('chain/352/', {
           'id': 352,
           'chain': {
             'species': {
@@ -861,37 +1088,29 @@ void main() {
           },
         });
 
-        when(
-          () => dataSource.getEvolutionChain(
-            any(),
-            cancelToken: any(named: 'cancelToken'),
-          ),
-        ).thenAnswer((_) async => Right(raw));
-
         final result = await repository.getEvolutionChain('chain/352/');
 
         expect(result.isRight(), isTrue);
-        result.fold((_) => fail('expected right'), (chain) {
-          expect(chain.id, 352);
-          expect(chain.root.speciesName, 'inkay');
-          expect(chain.root.speciesId, 686);
-          expect(chain.root.evolvesTo.length, 1);
+        final chain = rightOf(result);
+        expect(chain.id, 352);
+        expect(chain.root.speciesName, 'inkay');
+        expect(chain.root.speciesId, 686);
+        expect(chain.root.evolvesTo.length, 1);
 
-          final malamarNode = chain.root.evolvesTo.first;
-          expect(malamarNode.speciesName, 'malamar');
-          expect(malamarNode.speciesId, 687);
-          expect(malamarNode.triggers.length, 1);
+        final malamarNode = chain.root.evolvesTo.first;
+        expect(malamarNode.speciesName, 'malamar');
+        expect(malamarNode.speciesId, 687);
+        expect(malamarNode.triggers.length, 1);
 
-          final trigger = malamarNode.triggers.first;
-          expect(trigger.triggerType, EvolutionTriggerType.levelUp);
-          expect(trigger.minLevel, 30);
-          expect(trigger.turnUpsideDown, isTrue);
-          expect(trigger.needsRain, isFalse);
-          expect(trigger.gender, 1);
-          expect(trigger.partySpecies, 'remoraid');
-          expect(trigger.partyType, 'dark');
-          expect(trigger.tradeSpecies, 'shelmet');
-        });
+        final trigger = malamarNode.triggers.first;
+        expect(trigger.triggerType, EvolutionTriggerType.levelUp);
+        expect(trigger.minLevel, 30);
+        expect(trigger.turnUpsideDown, isTrue);
+        expect(trigger.needsRain, isFalse);
+        expect(trigger.gender, 1);
+        expect(trigger.partySpecies, 'remoraid');
+        expect(trigger.partyType, 'dark');
+        expect(trigger.tradeSpecies, 'shelmet');
       },
     );
   });

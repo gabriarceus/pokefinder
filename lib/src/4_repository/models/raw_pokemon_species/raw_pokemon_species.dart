@@ -12,15 +12,9 @@ class RawPokemonSpecies {
     this.habitat,
     this.captureRate,
     this.baseHappiness,
-    this.growthRate,
-    this.genderRate,
-    this.eggGroups = const [],
     this.evolutionChain,
     this.flavorTextEntries = const [],
     this.genera = const [],
-    this.isBaby = false,
-    this.isLegendary = false,
-    this.isMythical = false,
   });
 
   final int id;
@@ -34,15 +28,6 @@ class RawPokemonSpecies {
   @JsonKey(name: 'base_happiness')
   final int? baseHappiness;
 
-  @JsonKey(name: 'growth_rate')
-  final NamedAPIResource? growthRate;
-
-  @JsonKey(name: 'gender_rate')
-  final int? genderRate;
-
-  @JsonKey(name: 'egg_groups')
-  final List<NamedAPIResource> eggGroups;
-
   @JsonKey(name: 'evolution_chain')
   final RawEvolutionChainResource? evolutionChain;
 
@@ -50,15 +35,6 @@ class RawPokemonSpecies {
   final List<RawSpeciesFlavorTextEntry> flavorTextEntries;
 
   final List<RawSpeciesGenusEntry> genera;
-
-  @JsonKey(name: 'is_baby')
-  final bool isBaby;
-
-  @JsonKey(name: 'is_legendary')
-  final bool isLegendary;
-
-  @JsonKey(name: 'is_mythical')
-  final bool isMythical;
 
   factory RawPokemonSpecies.fromJson(Map<String, dynamic> json) =>
       _$RawPokemonSpeciesFromJson(json);

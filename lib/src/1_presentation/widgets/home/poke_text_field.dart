@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
-import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/helpers/index_suggestions_filter.dart';
@@ -29,8 +28,6 @@ class PokeTextField extends StatelessWidget {
   final PokemonFailure? nameIndexFailure;
   final VoidCallback? onRetryIndex;
   final String? errorText;
-
-  static const Color textFieldBorderColor = AppPalette.brandRed;
 
   @override
   Widget build(BuildContext context) {
@@ -64,27 +61,16 @@ class PokeTextField extends StatelessWidget {
                 }
               },
               decoration: InputDecoration(
-                border: const OutlineInputBorder(
-                  borderSide: BorderSide(color: textFieldBorderColor),
-                ),
-                enabledBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: textFieldBorderColor),
-                ),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: textFieldBorderColor),
-                ),
+                border: const OutlineInputBorder(),
                 errorText: errorText,
                 labelText: AppLocalizations.of(context).searchTextField,
-                floatingLabelStyle: const TextStyle(
-                  color: textFieldBorderColor,
-                ),
                 suffixIcon: nameIndexFailure != null
                     ? Tooltip(
                         message: t.errorSuggestions,
                         child: IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.sync_problem_rounded,
-                            color: Colors.orange,
+                            color: Theme.of(context).colorScheme.error,
                           ),
                           onPressed: onRetryIndex,
                         ),
@@ -126,8 +112,7 @@ class PokeTextField extends StatelessWidget {
                     }
                   }
 
-                  final isDark =
-                      Theme.of(context).brightness == Brightness.dark;
+                  final colorScheme = Theme.of(context).colorScheme;
 
                   return InkWell(
                     onTap: () {
@@ -150,28 +135,16 @@ class PokeTextField extends StatelessWidget {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: isDark
-                                      ? Colors.purple.shade900.withValues(
-                                          alpha: 0.4,
-                                        )
-                                      : Colors.purple.shade50,
+                                  color: colorScheme.tertiaryContainer,
                                   borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(
-                                    color: isDark
-                                        ? Colors.purple.shade400
-                                        : Colors.purple.shade300,
-                                    width: 0.8,
-                                  ),
                                 ),
                                 child: Text(
                                   matchedEntry.formBadgeText!,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark
-                                        ? Colors.purple.shade200
-                                        : Colors.purple.shade900,
-                                  ),
+                                  style: Theme.of(context).textTheme.labelSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.onTertiaryContainer,
+                                      ),
                                 ),
                               ),
                           ],

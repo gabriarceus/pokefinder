@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
@@ -19,7 +20,7 @@ class AddToTeamOutcome {
   final String teamName;
 }
 
-/// Shows a bottom sheet to add [entry] to a local team.
+/// Shows a bottom sheet to add [pokemon] to a local team.
 ///
 /// Creates the team inline when needed, then reports the outcome with a
 /// snackbar on the caller's scaffold: confirmation with a view action on
@@ -27,23 +28,16 @@ class AddToTeamOutcome {
 /// team is full.
 Future<void> showAddToTeamSheet(
   BuildContext context,
-  PokemonIndexEntry entry,
+  PokemonSummary pokemon,
 ) async {
-  TeamsCubit? cubit;
-  try {
-    cubit = context.read<TeamsCubit>();
-  } catch (_) {
-    return;
-  }
-  final capturedCubit = cubit;
-  if (!context.mounted) return;
+  final capturedCubit = context.read<TeamsCubit>();
   final outcome = await showModalBottomSheet<AddToTeamOutcome>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
     builder: (sheetContext) => BlocProvider.value(
       value: capturedCubit,
-      child: _AddToTeamSheet(entry: entry),
+      child: _AddToTeamSheet(pokemon: pokemon),
     ),
   );
   if (outcome == null || !context.mounted) return;
@@ -60,7 +54,7 @@ Future<void> showAddToTeamSheet(
               label: t.teamView,
               onPressed: () {
                 if (context.mounted) {
-                  context.push('/teams/${outcome.teamId}');
+                  context.push(AppRoutes.team(outcome.teamId));
                 }
               },
             ),
@@ -78,7 +72,7 @@ Future<void> showAddToTeamSheet(
               label: t.teamView,
               onPressed: () {
                 if (context.mounted) {
-                  context.push('/teams/${outcome.teamId}');
+                  context.push(AppRoutes.team(outcome.teamId));
                 }
               },
             ),
@@ -94,9 +88,9 @@ Future<void> showAddToTeamSheet(
 }
 
 class _AddToTeamSheet extends StatelessWidget {
-  const _AddToTeamSheet({required this.entry});
+  const _AddToTeamSheet({required this.pokemon});
 
-  final PokemonIndexEntry entry;
+  final PokemonSummary pokemon;
 
   Future<void> _createAndAdd(BuildContext context) async {
     final t = context.t();
@@ -108,7 +102,7 @@ class _AddToTeamSheet extends StatelessWidget {
     if (name == null || !context.mounted) return;
     final cubit = context.read<TeamsCubit>();
     final teamId = cubit.createTeam(name);
-    final result = cubit.addMember(teamId: teamId, entry: entry);
+    final result = cubit.addMember(teamId: teamId, pokemon: pokemon);
     if (!context.mounted) return;
     Navigator.of(
       context,
@@ -168,7 +162,7 @@ class _AddToTeamSheet extends StatelessWidget {
                           onTap: () {
                             final result = context.read<TeamsCubit>().addMember(
                               teamId: team.id,
-                              entry: entry,
+                              pokemon: pokemon,
                             );
                             Navigator.of(context).pop(
                               AddToTeamOutcome(

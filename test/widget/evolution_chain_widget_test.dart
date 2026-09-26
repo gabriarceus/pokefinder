@@ -3,6 +3,7 @@ import 'package:en_logger/en_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:injectable/injectable.dart' hide test;
 import 'package:mocktail/mocktail.dart';
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/bootstrap.dart';
@@ -11,24 +12,23 @@ import 'package:pokefinder/src/1_presentation/widgets/detail/evolution_chain_wid
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
-class MockGetEvolutionChainUseCase extends Mock
-    implements GetEvolutionChainUseCase {}
+class _MockPokemonRepository extends Mock implements IPokemonRepository {}
 
 void main() {
-  late MockGetEvolutionChainUseCase mockGetEvolutionChainUseCase;
+  late _MockPokemonRepository mockPokemonRepository;
 
   setUpAll(() async {
-    await configureDependencies('mock');
-    registerFallbackValue(CancellationToken());
+    ensureHydratedStorage();
+    await configureDependencies(Environment.dev);
   });
 
   setUp(() {
-    mockGetEvolutionChainUseCase = MockGetEvolutionChainUseCase();
+    mockPokemonRepository = _MockPokemonRepository();
     if (getIt.isRegistered<EvolutionCubit>()) {
       getIt.unregister<EvolutionCubit>();
     }
     getIt.registerFactory<EvolutionCubit>(
-      () => EvolutionCubit(mockGetEvolutionChainUseCase, getIt<EnLogger>()),
+      () => EvolutionCubit(mockPokemonRepository, getIt<EnLogger>()),
     );
   });
 
@@ -37,8 +37,7 @@ void main() {
       getIt.unregister<EvolutionCubit>();
     }
     getIt.registerFactory<EvolutionCubit>(
-      () =>
-          EvolutionCubit(getIt<GetEvolutionChainUseCase>(), getIt<EnLogger>()),
+      () => EvolutionCubit(getIt<IPokemonRepository>(), getIt<EnLogger>()),
     );
   });
 
@@ -161,9 +160,8 @@ void main() {
       'renders linear evolution chain with trigger levels and navigates on tap',
       (tester) async {
         when(
-          () => mockGetEvolutionChainUseCase(
+          () => mockPokemonRepository.getEvolutionChain(
             'https://pokeapi.co/api/v2/evolution-chain/1/',
-            cancelToken: any(named: 'cancelToken'),
           ),
         ).thenAnswer((_) async => const Right(sampleLinearChain));
 
@@ -195,9 +193,8 @@ void main() {
       tester,
     ) async {
       when(
-        () => mockGetEvolutionChainUseCase(
+        () => mockPokemonRepository.getEvolutionChain(
           'https://pokeapi.co/api/v2/evolution-chain/67/',
-          cancelToken: any(named: 'cancelToken'),
         ),
       ).thenAnswer((_) async => const Right(sampleBranchedChain));
 
@@ -220,9 +217,8 @@ void main() {
 
     testWidgets('renders error state and retries on tap', (tester) async {
       when(
-        () => mockGetEvolutionChainUseCase(
+        () => mockPokemonRepository.getEvolutionChain(
           'https://pokeapi.co/api/v2/evolution-chain/1/',
-          cancelToken: any(named: 'cancelToken'),
         ),
       ).thenAnswer(
         (_) async => const Left(ServerFailure(500, 'Error loading chain')),
@@ -242,9 +238,8 @@ void main() {
 
         // Reset mock to success for retry
         when(
-          () => mockGetEvolutionChainUseCase(
+          () => mockPokemonRepository.getEvolutionChain(
             'https://pokeapi.co/api/v2/evolution-chain/1/',
-            cancelToken: any(named: 'cancelToken'),
           ),
         ).thenAnswer((_) async => const Right(sampleLinearChain));
 
@@ -260,9 +255,8 @@ void main() {
       'exposes proper semantics for current and non-current pokemon nodes',
       (tester) async {
         when(
-          () => mockGetEvolutionChainUseCase(
+          () => mockPokemonRepository.getEvolutionChain(
             'https://pokeapi.co/api/v2/evolution-chain/1/',
-            cancelToken: any(named: 'cancelToken'),
           ),
         ).thenAnswer((_) async => const Right(sampleLinearChain));
 

@@ -1,5 +1,7 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart' show CancelToken;
+import 'package:hive_ce/hive.dart';
 import 'package:injectable/injectable.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 import 'package:pokefinder/src/4_repository/repository.dart';
@@ -8,10 +10,7 @@ import 'package:pokefinder/src/4_repository/repository.dart';
 /// no type sprite and are excluded from the exposed form list.
 const _kUnknownFormSuffix = '-unknown';
 
-/// Builds the type-icon sprite URL for the given [type], or an empty string
-/// when [type] is null — unknown/unsupported types have no sprite in this set.
-String _typeSpriteUrl(PokemonType? type) =>
-    type == null ? '' : PokeApiUrlHelper.typeSpriteUrl(type.id);
+typedef _Json = Map<String, dynamic>;
 
 /// Builds the official-artwork URL for the Pokémon with the given [id],
 /// returning the shiny variant when [shiny] is true.
@@ -20,32 +19,28 @@ String _officialArtworkUrl(int id, {bool shiny = false}) =>
 
 @LazySingleton(as: IPokemonRepository, env: [Environment.prod])
 class PokemonRepositoryImpl implements IPokemonRepository {
-  PokemonRepositoryImpl(this._remoteDataSource);
+  PokemonRepositoryImpl(this._cache);
 
-  final IPokemonRemoteDataSource _remoteDataSource;
+  final PokeApiCache _cache;
 
   @override
-  Future<Either<PokemonFailure, Pokemon>> getPokemon(
-    PokemonName name, {
-    CancellationToken? cancelToken,
-  }) async {
-    try {
-      final result = await _remoteDataSource.getPokemon(
-        name,
-        cancelToken: _bridgeToDio(cancelToken),
-      );
-      return result.flatMap(_toDomain);
-    } catch (e) {
-      return left(_mapRepoError(e));
-    }
+  Future<Either<PokemonFailure, Pokemon>> getPokemon(PokemonName name) {
+    // `rightOrCrash` would throw a `PokemonFailure` out of this non-async
+    // method, before `_fetch` can map it, so the caller would see an
+    // exception instead of a `Left`. Validate first and return the failure.
+    return name.value.fold(
+      (failure) => Future.value(left(failure)),
+      (canonical) => _fetch<_Json, Pokemon>(
+        PokeApiUrlHelper.pokemonUrl(canonical),
+        (json, isStale) => _toPokemon(RawPokemon.fromJson(json), isStale),
+      ),
+    );
   }
 
-  Either<PokemonFailure, Pokemon> _toDomain(RawPokemon rawPokemon) {
+  Pokemon _toPokemon(RawPokemon rawPokemon, bool isStale) {
     if (rawPokemon.types.isEmpty) {
-      return left(
-        InvalidResponseFailure(
-          'Pokemon "${rawPokemon.name}" has no types specified.',
-        ),
+      throw FormatException(
+        'Pokemon "${rawPokemon.name}" has no types specified.',
       );
     }
 
@@ -53,9 +48,6 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     final type2 = rawPokemon.types.length > 1
         ? _typeFromUrl(rawPokemon.types[1].type.url)
         : null;
-
-    final typeImage1 = _typeSpriteUrl(type1);
-    final typeImage2 = _typeSpriteUrl(type2);
 
     final statMap = <String, int>{
       for (final s in rawPokemon.stats) s.stat.name: s.baseStat,
@@ -70,13 +62,7 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     ];
 
     final abilities = rawPokemon.abilities
-        .map(
-          (a) => PokemonAbility(
-            name: a.ability.name,
-            isHidden: a.isHidden,
-            slot: a.slot,
-          ),
-        )
+        .map((a) => PokemonAbility(name: a.ability.name, isHidden: a.isHidden))
         .toList();
 
     final heldItems = rawPokemon.heldItems
@@ -104,247 +90,196 @@ class PokemonRepositoryImpl implements IPokemonRepository {
         )
         .toList();
 
-    final officialArtworkDefault =
-        rawPokemon.sprites.other?.officialArtwork?.frontDefault;
-    final officialArtworkShiny =
-        rawPokemon.sprites.other?.officialArtwork?.frontShiny;
-    final home = rawPokemon.sprites.other?.home;
-
-    final sprite = SpriteGalleryHelper.resolvePrimarySprite(
-      artworkDefault: officialArtworkDefault,
-      frontDefault: rawPokemon.sprites.frontDefault,
-      frontShiny: rawPokemon.sprites.frontShiny,
-      backDefault: rawPokemon.sprites.backDefault,
+    final rawSprites = rawPokemon.sprites;
+    final artwork = rawSprites.other?.officialArtwork;
+    final home = rawSprites.other?.home;
+    final sprites = PokemonSprites(
+      frontDefault: rawSprites.frontDefault,
+      backDefault: rawSprites.backDefault,
+      frontShiny: rawSprites.frontShiny,
+      backShiny: rawSprites.backShiny,
+      frontFemale: rawSprites.frontFemale,
+      backFemale: rawSprites.backFemale,
+      frontShinyFemale: rawSprites.frontShinyFemale,
+      backShinyFemale: rawSprites.backShinyFemale,
+      artworkDefault: artwork?.frontDefault,
+      artworkShiny: artwork?.frontShiny,
+      homeDefault: home?.frontDefault,
+      homeFemale: home?.frontFemale,
+      homeShiny: home?.frontShiny,
+      homeShinyFemale: home?.frontShinyFemale,
     );
 
-    return right(
-      Pokemon(
-        id: rawPokemon.id,
-        name: rawPokemon.name,
-        sprite: sprite,
-        weight: rawPokemon.weight,
-        height: rawPokemon.height,
-        typeImage1: typeImage1,
-        typeImage2: typeImage2,
-        type1: type1,
-        type2: type2,
-        cry: rawPokemon.cries.latest,
-        stats: stats,
-        baseExperience: rawPokemon.baseExperience,
-        isDefault: rawPokemon.isDefault,
-        order: rawPokemon.order,
-        locationAreaEncounters: rawPokemon.locationAreaEncounters,
-        cryLegacy: rawPokemon.cries.legacy,
-        forms: rawPokemon.forms
-            .where((f) => !f.name.endsWith(_kUnknownFormSuffix))
-            .map((f) {
-              final (
-                formType1,
-                formType2,
-              ) = PokemonFormClassifier.resolveFormTypes(
-                formName: f.name,
-                baseType1: type1,
-                baseType2: type2,
-              );
-              return PokemonForm(
-                name: f.name,
-                url: f.url,
-                type1: formType1,
-                type2: formType2,
-              );
-            })
-            .toList(),
-        gameIndices: rawPokemon.gameIndices
-            .map((gi) => gi.version.name)
-            .toList(),
-        speciesName: rawPokemon.species.name,
-        speciesUrl: rawPokemon.species.url,
-        spriteBackDefault: rawPokemon.sprites.backDefault,
-        spriteFrontDefault: rawPokemon.sprites.frontDefault,
-        spriteFrontShiny: rawPokemon.sprites.frontShiny,
-        spriteBackShiny: rawPokemon.sprites.backShiny,
-        spriteFrontFemale: rawPokemon.sprites.frontFemale,
-        spriteBackFemale: rawPokemon.sprites.backFemale,
-        spriteFrontShinyFemale: rawPokemon.sprites.frontShinyFemale,
-        spriteBackShinyFemale: rawPokemon.sprites.backShinyFemale,
-        officialArtworkDefault: officialArtworkDefault,
-        officialArtworkShiny: officialArtworkShiny,
-        homeDefault: home?.frontDefault,
-        homeFemale: home?.frontFemale,
-        homeShiny: home?.frontShiny,
-        homeShinyFemale: home?.frontShinyFemale,
-        abilities: abilities,
-        heldItems: heldItems,
-        moves: moves,
-        isStale: rawPokemon.isStale,
+    return Pokemon(
+      id: rawPokemon.id,
+      name: rawPokemon.name,
+      sprite: SpriteGalleryHelper.resolvePrimarySprite(
+        artworkDefault: sprites.artworkDefault,
+        frontDefault: sprites.frontDefault,
+        frontShiny: sprites.frontShiny,
+        backDefault: sprites.backDefault,
       ),
+      weight: rawPokemon.weight,
+      height: rawPokemon.height,
+      type1: type1,
+      type2: type2,
+      cry: rawPokemon.cries.latest,
+      stats: stats,
+      baseExperience: rawPokemon.baseExperience,
+      isDefault: rawPokemon.isDefault,
+      locationAreaEncounters: rawPokemon.locationAreaEncounters,
+      cryLegacy: rawPokemon.cries.legacy,
+      forms: rawPokemon.forms
+          .where((f) => !f.name.endsWith(_kUnknownFormSuffix))
+          .map((f) {
+            final (
+              formType1,
+              formType2,
+            ) = PokemonFormClassifier.resolveFormTypes(
+              formName: f.name,
+              baseType1: type1,
+              baseType2: type2,
+            );
+            return PokemonForm(
+              name: f.name,
+              url: f.url,
+              type1: formType1,
+              type2: formType2,
+            );
+          })
+          .toList(),
+      gameIndices: rawPokemon.gameIndices.map((gi) => gi.version.name).toList(),
+      speciesName: rawPokemon.species.name,
+      speciesUrl: rawPokemon.species.url,
+      sprites: sprites,
+      abilities: abilities,
+      heldItems: heldItems,
+      moves: moves,
+      isStale: isStale,
     );
   }
 
   @override
   Future<Either<PokemonFailure, PokemonFormDetails>> getFormDetails(
-    String url, {
-    CancellationToken? cancelToken,
-  }) async {
-    try {
-      final result = await _remoteDataSource.getFormDetails(
-        url,
-        cancelToken: _bridgeToDio(cancelToken),
-      );
-      return result.flatMap((raw) {
-        if (raw.types.isEmpty) {
-          return left(
-            InvalidResponseFailure(
-              'Form "${raw.name}" has no types specified.',
-            ),
-          );
-        }
+    String url,
+  ) {
+    return _fetch<_Json, PokemonFormDetails>(url, (json, _) {
+      final raw = RawFormDetails.fromJson(json);
+      if (raw.types.isEmpty) {
+        throw FormatException('Form "${raw.name}" has no types specified.');
+      }
 
-        final type1 = _typeFromUrl(raw.types.first.type.url);
-        final type2 = raw.types.length > 1
-            ? _typeFromUrl(raw.types[1].type.url)
-            : null;
-        final typeImage1 = _typeSpriteUrl(type1);
-        final typeImage2 = _typeSpriteUrl(type2);
-        final artworkDefault = _officialArtworkUrl(raw.id);
-        final artworkShiny = _officialArtworkUrl(raw.id, shiny: true);
-        final spriteDefault = raw.sprites.frontDefault ?? artworkDefault;
-        final spriteShiny = raw.sprites.frontShiny ?? artworkShiny;
-        return right(
-          PokemonFormDetails(
-            name: raw.name,
-            type1: type1,
-            type2: type2,
-            typeImage1: typeImage1,
-            typeImage2: typeImage2,
-            spriteDefault: spriteDefault,
-            spriteShiny: spriteShiny,
-            artworkDefault: artworkDefault,
-            artworkShiny: artworkShiny,
-          ),
-        );
-      });
-    } catch (e) {
-      return left(_mapRepoError(e));
-    }
+      final type1 = _typeFromUrl(raw.types.first.type.url);
+      final type2 = raw.types.length > 1
+          ? _typeFromUrl(raw.types[1].type.url)
+          : null;
+      final artworkDefault = _officialArtworkUrl(raw.id);
+      final artworkShiny = _officialArtworkUrl(raw.id, shiny: true);
+      return PokemonFormDetails(
+        name: raw.name,
+        type1: type1,
+        type2: type2,
+        spriteDefault: raw.sprites.frontDefault ?? artworkDefault,
+        spriteShiny: raw.sprites.frontShiny ?? artworkShiny,
+        artworkDefault: artworkDefault,
+        artworkShiny: artworkShiny,
+      );
+    });
   }
 
   @override
   Future<Either<PokemonFailure, List<PokemonEncounter>>> getEncounters(
-    String url, {
-    CancellationToken? cancelToken,
-  }) async {
-    try {
-      final result = await _remoteDataSource.getEncounters(
-        url,
-        cancelToken: _bridgeToDio(cancelToken),
-      );
-      return result.map(
-        (rawList) => rawList.map((encounter) {
-          final rawLocationName = encounter.locationArea.name;
-          final versions = encounter.versionDetails
+    String url,
+  ) {
+    return _fetch<List<dynamic>, List<PokemonEncounter>>(url, (json, _) {
+      return json.map((item) {
+        final encounter = RawEncounter.fromJson(item as _Json);
+        return PokemonEncounter(
+          rawLocationAreaName: encounter.locationArea.name,
+          versions: encounter.versionDetails
               .map((d) => d.version.name)
-              .toList();
-          return PokemonEncounter(
-            locationAreaName: rawLocationName.toDisplayCase(),
-            rawLocationAreaName: rawLocationName,
-            versions: versions,
-          );
-        }).toList(),
-      );
-    } catch (e) {
-      return left(_mapRepoError(e));
-    }
+              .toList(),
+        );
+      }).toList();
+    });
   }
 
   @override
   Future<Either<PokemonFailure, List<PokemonIndexEntry>>> getPokemonIndex({
-    CancellationToken? cancelToken,
     bool forceRefresh = false,
-  }) async {
-    try {
-      final result = await _remoteDataSource.getPokemonIndex(
-        cancelToken: _bridgeToDio(cancelToken),
-        forceRefresh: forceRefresh,
-      );
-      return result.map(PokemonFormClassifier.enrichEntries);
-    } catch (e) {
-      return left(_mapRepoError(e));
-    }
+  }) {
+    return _fetch<_Json, List<PokemonIndexEntry>>(
+      PokeApiUrlHelper.pokemonIndexUrl(),
+      forceRefresh: forceRefresh,
+      (json, _) {
+        final entries = <PokemonIndexEntry>[];
+        for (final raw in json['results'] as List<dynamic>) {
+          final map = raw as _Json;
+          final name = map['name'] as String? ?? '';
+          final url = map['url'] as String? ?? '';
+          final id = PokeApiUrlHelper.extractId(url);
+          if (id > 0 && name.isNotEmpty) {
+            entries.add(PokemonIndexEntry(id: id, name: name, detailUrl: url));
+          }
+        }
+        return PokemonFormClassifier.enrichEntries(entries);
+      },
+    );
   }
 
   @override
   Future<Either<PokemonFailure, Set<int>>> getPokemonIdsForType(
-    PokemonType type, {
-    CancellationToken? cancelToken,
-  }) async {
-    try {
-      return await _remoteDataSource.getPokemonIdsForType(
-        type,
-        cancelToken: _bridgeToDio(cancelToken),
-      );
-    } catch (e) {
-      return left(_mapRepoError(e));
-    }
-  }
-
-  @override
-  Future<Either<PokemonFailure, List<String>>> getAllPokemonNames() async {
-    try {
-      return await _remoteDataSource.getAllPokemonNames();
-    } catch (e) {
-      return left(_mapRepoError(e));
-    }
-  }
-
-  @override
-  Future<Either<PokemonFailure, MoveDetail>> getMoveDetail(
-    String name, {
-    CancellationToken? cancelToken,
-  }) async {
-    try {
-      final result = await _remoteDataSource.getMoveDetail(
-        name,
-        cancelToken: _bridgeToDio(cancelToken),
-      );
-      return result.map((raw) {
-        final flavorTexts = <String, String>{};
-        for (final entry in raw.flavorTextEntries) {
-          // Just take the first flavor text we encounter for a language
-          // (sometimes there are multiple for different game versions).
-          if (!flavorTexts.containsKey(entry.language.name)) {
-            flavorTexts[entry.language.name] = entry.flavorText;
-          }
-        }
-
-        return MoveDetail(
-          id: raw.id,
-          name: raw.name,
-          accuracy: raw.accuracy,
-          power: raw.power,
-          pp: raw.pp,
-          type: _typeFromUrl(raw.type.url),
-          damageClass: DamageClass.fromApiName(raw.damageClass.name),
-          flavorTexts: flavorTexts,
+    PokemonType type,
+  ) {
+    return _fetch<_Json, Set<int>>(PokeApiUrlHelper.typeUrl(type.apiName), (
+      json,
+      _,
+    ) {
+      final ids = <int>{};
+      for (final item in json['pokemon'] as List<dynamic>? ?? const []) {
+        final pokemonMap = (item as _Json)['pokemon'] as _Json?;
+        if (pokemonMap == null) continue;
+        final id = PokeApiUrlHelper.extractId(
+          pokemonMap['url'] as String? ?? '',
         );
-      });
-    } catch (e) {
-      return left(_mapRepoError(e));
-    }
+        if (id > 0) ids.add(id);
+      }
+      return ids;
+    });
   }
 
   @override
-  Future<Either<PokemonFailure, PokemonSpecies>> getPokemonSpecies(
-    String url, {
-    CancellationToken? cancelToken,
-  }) async {
-    try {
-      final result = await _remoteDataSource.getPokemonSpecies(
-        url,
-        cancelToken: _bridgeToDio(cancelToken),
+  Future<Either<PokemonFailure, MoveDetail>> getMoveDetail(String name) {
+    return _fetch<_Json, MoveDetail>(PokeApiUrlHelper.moveUrl(name), (json, _) {
+      final raw = RawMoveDetail.fromJson(json);
+      final flavorTexts = <String, String>{};
+      for (final entry in raw.flavorTextEntries) {
+        // Just take the first flavor text we encounter for a language
+        // (sometimes there are multiple for different game versions).
+        flavorTexts.putIfAbsent(entry.language.name, () => entry.flavorText);
+      }
+
+      return MoveDetail(
+        id: raw.id,
+        name: raw.name,
+        accuracy: raw.accuracy,
+        power: raw.power,
+        pp: raw.pp,
+        type: _typeFromUrl(raw.type.url),
+        damageClass: DamageClass.fromApiName(raw.damageClass.name),
+        flavorTexts: flavorTexts,
       );
-      return result.map((raw) {
-        final flavorTexts = raw.flavorTextEntries
+    });
+  }
+
+  @override
+  Future<Either<PokemonFailure, PokemonSpecies>> getPokemonSpecies(String url) {
+    return _fetch<_Json, PokemonSpecies>(url, (json, _) {
+      final raw = RawPokemonSpecies.fromJson(json);
+      return PokemonSpecies(
+        id: raw.id,
+        name: raw.name,
+        flavorTexts: raw.flavorTextEntries
             .map(
               (entry) => PokemonSpeciesFlavorText(
                 text: TextNormalizer.cleanPokeApiText(entry.flavorText),
@@ -352,56 +287,27 @@ class PokemonRepositoryImpl implements IPokemonRepository {
                 version: entry.version?.name ?? '',
               ),
             )
-            .toList();
-
-        final genera = <String, String>{
-          for (final g in raw.genera) g.language.name: g.genus,
-        };
-
-        return PokemonSpecies(
-          id: raw.id,
-          name: raw.name,
-          flavorTexts: flavorTexts,
-          genera: genera,
-          generation: raw.generation?.name,
-          habitat: raw.habitat?.name,
-          captureRate: raw.captureRate,
-          baseHappiness: raw.baseHappiness,
-          growthRate: raw.growthRate?.name,
-          genderRate: raw.genderRate,
-          eggGroups: raw.eggGroups.map((e) => e.name).toList(),
-          evolutionChainUrl: raw.evolutionChain?.url,
-          isBaby: raw.isBaby,
-          isLegendary: raw.isLegendary,
-          isMythical: raw.isMythical,
-        );
-      });
-    } catch (e) {
-      return left(_mapRepoError(e));
-    }
+            .toList(),
+        genera: {for (final g in raw.genera) g.language.name: g.genus},
+        generation: raw.generation?.name,
+        habitat: raw.habitat?.name,
+        captureRate: raw.captureRate,
+        baseHappiness: raw.baseHappiness,
+        evolutionChainUrl: raw.evolutionChain?.url,
+      );
+    });
   }
 
   @override
-  Future<Either<PokemonFailure, EvolutionChain>> getEvolutionChain(
-    String url, {
-    CancellationToken? cancelToken,
-  }) async {
-    try {
-      final result = await _remoteDataSource.getEvolutionChain(
-        url,
-        cancelToken: _bridgeToDio(cancelToken),
-      );
-      return result.map((raw) {
-        return EvolutionChain(id: raw.id, root: _toEvolutionNode(raw.chain));
-      });
-    } catch (e) {
-      return left(_mapRepoError(e));
-    }
+  Future<Either<PokemonFailure, EvolutionChain>> getEvolutionChain(String url) {
+    return _fetch<_Json, EvolutionChain>(url, (json, _) {
+      final raw = RawEvolutionChain.fromJson(json);
+      return EvolutionChain(id: raw.id, root: _toEvolutionNode(raw.chain));
+    });
   }
 
   EvolutionNode _toEvolutionNode(RawChainLink link) {
-    final id = _idFromUrl(link.species.url);
-    final spriteUrl = _officialArtworkUrl(id);
+    final id = PokeApiUrlHelper.extractId(link.species.url);
     final triggers = link.evolutionDetails.map((d) {
       return EvolutionTriggerDetail(
         triggerType: EvolutionTriggerType.fromApiName(d.trigger?.name),
@@ -429,67 +335,79 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       speciesId: id,
       speciesName: link.species.name,
       speciesUrl: link.species.url,
-      spriteUrl: spriteUrl,
+      spriteUrl: _officialArtworkUrl(id),
       triggers: triggers,
       evolvesTo: link.evolvesTo.map(_toEvolutionNode).toList(),
     );
   }
 
   @override
-  Future<Either<PokemonFailure, AbilityDetail>> getAbilityDetail(
-    String name, {
-    CancellationToken? cancelToken,
-  }) async {
-    try {
-      final result = await _remoteDataSource.getAbilityDetail(
-        name,
-        cancelToken: _bridgeToDio(cancelToken),
-      );
-      return result.map((raw) {
-        final flavorTexts = <String, String>{};
-        for (final entry in raw.flavorTextEntries) {
-          if (!flavorTexts.containsKey(entry.language.name)) {
-            flavorTexts[entry.language.name] = TextNormalizer.cleanPokeApiText(
-              entry.flavorText,
-            );
-          }
-        }
-
-        final effects = <String, String>{};
-        final shortEffects = <String, String>{};
-        for (final entry in raw.effectEntries) {
-          effects[entry.language.name] = TextNormalizer.cleanPokeApiText(
-            entry.effect,
-          );
-          shortEffects[entry.language.name] = TextNormalizer.cleanPokeApiText(
-            entry.shortEffect,
-          );
-        }
-
-        return AbilityDetail(
-          id: raw.id,
-          name: raw.name,
-          flavorTexts: flavorTexts,
-          effects: effects,
-          shortEffects: shortEffects,
+  Future<Either<PokemonFailure, AbilityDetail>> getAbilityDetail(String name) {
+    return _fetch<_Json, AbilityDetail>(PokeApiUrlHelper.abilityUrl(name), (
+      json,
+      _,
+    ) {
+      final raw = RawAbilityDetail.fromJson(json);
+      final flavorTexts = <String, String>{};
+      for (final entry in raw.flavorTextEntries) {
+        flavorTexts.putIfAbsent(
+          entry.language.name,
+          () => TextNormalizer.cleanPokeApiText(entry.flavorText),
         );
-      });
-    } catch (e) {
-      return left(_mapRepoError(e));
+      }
+
+      final effects = <String, String>{};
+      final shortEffects = <String, String>{};
+      for (final entry in raw.effectEntries) {
+        effects[entry.language.name] = TextNormalizer.cleanPokeApiText(
+          entry.effect,
+        );
+        shortEffects[entry.language.name] = TextNormalizer.cleanPokeApiText(
+          entry.shortEffect,
+        );
+      }
+
+      return AbilityDetail(
+        id: raw.id,
+        name: raw.name,
+        flavorTexts: flavorTexts,
+        effects: effects,
+        shortEffects: shortEffects,
+      );
+    });
+  }
+
+  @override
+  Future<Either<PokemonFailure, Unit>> clearCache() async {
+    try {
+      await _cache.clear();
+      return right(unit);
+    } catch (error) {
+      return left(_toFailure(error));
     }
   }
 
-  int _idFromUrl(String url) => PokeApiUrlHelper.extractId(url);
-
-  PokemonFailure _mapRepoError(Object e) {
-    if (e is PokemonFailure) return e;
-    if (e is TypeError ||
-        e is FormatException ||
-        e is StateError ||
-        e is EmptyResponseException) {
-      return InvalidResponseFailure(e.toString());
+  @override
+  Future<Either<PokemonFailure, int>> getCacheSize() async {
+    try {
+      return right(await _cache.size());
+    } catch (error) {
+      return left(_toFailure(error));
     }
-    return UnexpectedFailure(e.toString());
+  }
+
+  /// Loads the JSON at [url] through the cache and maps it with [toEntity].
+  Future<Either<PokemonFailure, T>> _fetch<J, T>(
+    String url,
+    T Function(J json, bool isStale) toEntity, {
+    bool forceRefresh = false,
+  }) async {
+    try {
+      final response = await _cache.get<J>(url, forceRefresh: forceRefresh);
+      return right(toEntity(response.data, response.isStale));
+    } catch (error) {
+      return left(_toFailure(error));
+    }
   }
 
   /// Resolves the [PokemonType] referenced by a PokeAPI type [typeUrl], or
@@ -497,35 +415,38 @@ class PokemonRepositoryImpl implements IPokemonRepository {
   PokemonType? _typeFromUrl(String typeUrl) =>
       PokemonType.fromId(PokeApiUrlHelper.extractId(typeUrl));
 
-  @override
-  Future<Either<PokemonFailure, Unit>> clearCache() async {
-    try {
-      return await _remoteDataSource.clearCache();
-    } catch (e) {
-      return left(_mapRepoError(e));
+  /// Translates any error from the transport, cache or parsing into a
+  /// [PokemonFailure].
+  PokemonFailure _toFailure(Object error) {
+    switch (error) {
+      case ApiException(isConnectionError: true):
+        return const NetworkUnavailableFailure();
+      case ApiException(isTimeout: true):
+        return const RequestTimeoutFailure();
+      case ApiException(statusCode: 404):
+        return const PokemonNotFoundFailure();
+      case ApiException(statusCode: 401):
+        return const UnauthorizedFailure();
+      case ApiException(statusCode: 400):
+        return const BadRequestFailure();
+      case ApiException(statusCode: 429):
+        return const RateLimitedFailure();
+      case ApiException(:final int statusCode)
+          when statusCode >= 500 && statusCode < 600:
+        return ServerFailure(statusCode);
+      case ApiException(:final message):
+        return UnexpectedFailure(message);
+      case SocketException():
+        return const NetworkUnavailableFailure();
+      case FormatException() ||
+          TypeError() ||
+          StateError() ||
+          EmptyResponseException():
+        return InvalidResponseFailure(error.toString());
+      case HiveError(:final message):
+        return StorageFailure(message);
+      default:
+        return UnexpectedFailure(error.toString());
     }
   }
-
-  @override
-  Future<Either<PokemonFailure, int>> getCacheSize() async {
-    try {
-      return await _remoteDataSource.getCacheSize();
-    } catch (e) {
-      return left(_mapRepoError(e));
-    }
-  }
-}
-
-/// Bridges a domain [CancellationToken] to Dio's [CancelToken].
-///
-/// Returns `null` when [token] is `null`. The returned Dio token is
-/// cancelled automatically when the domain token fires.
-CancelToken? _bridgeToDio(CancellationToken? token) {
-  if (token == null) return null;
-  final dioToken = CancelToken();
-  token.onCancel(() => dioToken.cancel(token.reason));
-  if (token.isCancelled) {
-    dioToken.cancel(token.reason);
-  }
-  return dioToken;
 }

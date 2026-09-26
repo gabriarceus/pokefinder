@@ -11,14 +11,11 @@ import 'package:pokefinder/src/3_domain/domain.dart';
 
 class _MockEnLogger extends Mock implements EnLogger {}
 
-class _MockGetCacheSizeUseCase extends Mock implements GetCacheSizeUseCase {}
-
-class _MockClearCacheUseCase extends Mock implements ClearCacheUseCase {}
+class _MockPokemonRepository extends Mock implements IPokemonRepository {}
 
 void main() {
   late _MockEnLogger logger;
-  late _MockGetCacheSizeUseCase getCacheSizeUseCase;
-  late _MockClearCacheUseCase clearCacheUseCase;
+  late _MockPokemonRepository repository;
   late PreferencesCubit preferencesCubit;
   late RecentHistoryCubit recentHistoryCubit;
   late LanguageCubit languageCubit;
@@ -26,19 +23,16 @@ void main() {
   setUp(() {
     HydratedBloc.storage = InMemoryHydratedStorage();
     logger = _MockEnLogger();
-    getCacheSizeUseCase = _MockGetCacheSizeUseCase();
-    clearCacheUseCase = _MockClearCacheUseCase();
+    repository = _MockPokemonRepository();
 
     when(
-      () => getCacheSizeUseCase(),
+      () => repository.getCacheSize(),
     ).thenAnswer((_) async => const Right(1500000));
-    when(() => clearCacheUseCase()).thenAnswer((_) async => const Right(unit));
+    when(
+      () => repository.clearCache(),
+    ).thenAnswer((_) async => const Right(unit));
 
-    preferencesCubit = PreferencesCubit(
-      logger,
-      getCacheSizeUseCase,
-      clearCacheUseCase,
-    );
+    preferencesCubit = PreferencesCubit(logger, repository);
     recentHistoryCubit = RecentHistoryCubit(logger);
     languageCubit = LanguageCubit(logger);
   });
@@ -150,10 +144,12 @@ void main() {
     ) async {
       recentHistoryCubit.addRecentSearch('pikachu');
       recentHistoryCubit.addRecentPokemon(
-        id: 25,
-        name: 'pikachu',
-        spriteUrl: '',
-        types: [PokemonType.electric],
+        const PokemonSummary(
+          id: 25,
+          name: 'pikachu',
+          spriteUrl: '',
+          types: [PokemonType.electric],
+        ),
       );
 
       await tester.pumpWidget(buildSettingsWidget(tester));
@@ -180,7 +176,7 @@ void main() {
       await tester.pumpAndSettle();
       final dialogClearButton = find.descendant(
         of: find.byType(AlertDialog),
-        matching: find.widgetWithText(ElevatedButton, 'Clear'),
+        matching: find.widgetWithText(FilledButton, 'Clear'),
       );
       await tester.tap(dialogClearButton);
       await tester.pumpAndSettle();
@@ -189,18 +185,37 @@ void main() {
       expect(recentHistoryCubit.state.recentPokemon, isEmpty);
     });
 
-    testWidgets('displays cache size and clearing cache executes usecase', (
+    testWidgets('changes language via the segmented button', (tester) async {
+      await tester.pumpWidget(buildSettingsWidget(tester));
+      await tester.pumpAndSettle();
+
+      expect(languageCubit.state.languageId, Language.system.id);
+
+      await tester.tap(find.text('English'));
+      await tester.pumpAndSettle();
+      expect(languageCubit.state.languageId, Language.english.id);
+
+      await tester.tap(find.text('Italiano'));
+      await tester.pumpAndSettle();
+      expect(languageCubit.state.languageId, Language.italian.id);
+
+      await tester.tap(find.text('System').last);
+      await tester.pumpAndSettle();
+      expect(languageCubit.state.languageId, Language.system.id);
+    });
+
+    testWidgets('displays cache size and clearing cache hits the repository', (
       tester,
     ) async {
       await tester.pumpWidget(buildSettingsWidget(tester));
       await tester.pumpAndSettle();
 
       // Post-frame callback triggers refreshCacheSize
-      verify(() => getCacheSizeUseCase()).called(1);
+      verify(() => repository.getCacheSize()).called(1);
       expect(find.textContaining('1.4 MB'), findsOneWidget);
 
       // Open clear cache dialog
-      final clearButtons = find.widgetWithText(ElevatedButton, 'Clear');
+      final clearButtons = find.widgetWithText(FilledButton, 'Clear');
       await tester.tap(clearButtons.first);
       await tester.pumpAndSettle();
 
@@ -214,12 +229,12 @@ void main() {
       // Confirm clear
       final confirmDialogButton = find.descendant(
         of: find.byType(AlertDialog),
-        matching: find.widgetWithText(ElevatedButton, 'Clear'),
+        matching: find.widgetWithText(FilledButton, 'Clear'),
       );
       await tester.tap(confirmDialogButton);
       await tester.pumpAndSettle();
 
-      verify(() => clearCacheUseCase()).called(1);
+      verify(() => repository.clearCache()).called(1);
       expect(find.byType(SnackBar), findsOneWidget);
       expect(find.text('Cache cleared successfully'), findsOneWidget);
     });

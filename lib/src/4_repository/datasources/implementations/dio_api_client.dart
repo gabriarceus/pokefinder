@@ -13,7 +13,6 @@ class DioApiClient implements ApiClient {
     String path, {
     Map<String, dynamic>? queryParameters,
     Duration? timeout,
-    CancelToken? cancelToken,
   }) async {
     try {
       final options = timeout != null
@@ -24,7 +23,6 @@ class DioApiClient implements ApiClient {
         path,
         queryParameters: queryParameters,
         options: options,
-        cancelToken: cancelToken,
       );
       if (response.data == null) {
         throw EmptyResponseException(path);
@@ -43,7 +41,6 @@ class DioApiClient implements ApiClient {
       final isRecvTimeout = e.type == DioExceptionType.receiveTimeout;
       final isSndTimeout = e.type == DioExceptionType.sendTimeout;
       final isConnError = e.type == DioExceptionType.connectionError;
-      final isCancel = e.type == DioExceptionType.cancel;
 
       final message = _sanitizeErrorMessage(e);
 
@@ -54,7 +51,6 @@ class DioApiClient implements ApiClient {
         isReceiveTimeout: isRecvTimeout,
         isSendTimeout: isSndTimeout,
         isConnectionError: isConnError,
-        isCancelled: isCancel,
         responseBody: safeResponseBody,
       );
     } catch (e) {
@@ -76,9 +72,6 @@ class DioApiClient implements ApiClient {
     }
     if (e.type == DioExceptionType.connectionError) {
       return 'Network connection unavailable';
-    }
-    if (e.type == DioExceptionType.cancel) {
-      return 'Request was cancelled';
     }
     if (e.response?.statusCode != null) {
       return 'HTTP ${e.response!.statusCode}';

@@ -48,7 +48,7 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PokemonBloc, PokemonBlocState>(
+    return BlocBuilder<PokemonDetailBloc, PokemonBlocState>(
       builder: (context, state) {
         final String? selectedFormName;
         final bool isLoadingForm;
@@ -90,8 +90,7 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                   const SizedBox(height: 20),
                   Text(
                     context.t().formSelectorTitle,
-                    style: TextStyle(
-                      fontSize: 20,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).textTheme.titleLarge?.color,
                     ),
@@ -105,7 +104,7 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                         _localShowShiny
                             ? Icons.star_rounded
                             : Icons.star_border_rounded,
-                        color: Colors.amber,
+                        color: Theme.of(context).colorScheme.primary,
                         size: 28,
                       ),
                       title: Text(
@@ -121,8 +120,7 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                   const SizedBox(height: 8),
                   Text(
                     context.t().formSelectorForms,
-                    style: TextStyle(
-                      fontSize: 16,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).textTheme.titleMedium?.color,
                     ),
@@ -158,13 +156,15 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                                 Expanded(
                                   child: Text(
                                     formFailure.localizedMessage(context),
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.error,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.error,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                   ),
                                 ),
                               ],
@@ -176,7 +176,7 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                                 if (failedForm != null)
                                   TextButton.icon(
                                     onPressed: () {
-                                      context.read<PokemonBloc>().add(
+                                      context.read<PokemonDetailBloc>().add(
                                         SelectPokemonFormEvent(failedForm),
                                       );
                                     },
@@ -189,7 +189,7 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                                 const SizedBox(width: 8),
                                 TextButton.icon(
                                   onPressed: () {
-                                    context.read<PokemonBloc>().add(
+                                    context.read<PokemonDetailBloc>().add(
                                       SelectPokemonFormEvent(
                                         PokemonForm(
                                           name: widget.pokemon.name,
@@ -241,7 +241,7 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                                 onTap: () {
                                   if (state is PokemonBlocSuccess &&
                                       !state.isLoadingForm) {
-                                    context.read<PokemonBloc>().add(
+                                    context.read<PokemonDetailBloc>().add(
                                       SelectPokemonFormEvent(form),
                                     );
                                   }

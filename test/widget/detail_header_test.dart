@@ -10,16 +10,15 @@ import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 Widget _header({
   PokemonType? type1,
   PokemonType? type2,
-  String typeImage1 = '',
-  String typeImage2 = '',
+  String spriteDefault = 'front.png',
+  String spriteShiny = 'front-shiny.png',
 }) {
   return DetailHeader(
     selectedFormName: 'bulbasaur',
     pokemonId: 1,
-    typeImage1: typeImage1,
-    typeImage2: typeImage2,
     textColor: Colors.black,
-    spriteWidget: const SizedBox(width: 10, height: 10),
+    spriteDefault: spriteDefault,
+    spriteShiny: spriteShiny,
     type1: type1,
     type2: type2,
   );
@@ -56,7 +55,12 @@ Future<void> _pumpRouter(WidgetTester tester, GoRouter router) {
         supportedLocales: AppLocalizations.supportedLocales,
       ),
     );
-    await tester.pumpAndSettle();
+    // The sprite images never finish loading under `mockNetworkImagesFor`, so
+    // their loading spinner animates forever: pump a bounded number of frames
+    // instead of settling.
+    for (var i = 0; i < 12; i++) {
+      await tester.pump(const Duration(milliseconds: 200));
+    }
   });
 }
 
@@ -90,7 +94,9 @@ void main() {
       );
 
       await tester.tap(find.byTooltip('View matchups'));
-      await tester.pumpAndSettle();
+      for (var i = 0; i < 12; i++) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
 
       expect(find.byType(MatchupPage), findsOneWidget);
       expect(
@@ -116,7 +122,9 @@ void main() {
       expect(find.byTooltip('View matchups'), findsNWidgets(2));
 
       await tester.tap(find.byTooltip('View matchups').first);
-      await tester.pumpAndSettle();
+      for (var i = 0; i < 12; i++) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
 
       expect(find.byType(MatchupPage), findsOneWidget);
       expect(

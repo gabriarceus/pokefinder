@@ -4,102 +4,67 @@ import 'package:pokefinder/src/1_presentation/widgets/detail/contrasting_text_co
 import 'package:pokefinder/src/1_presentation/widgets/detail/type_color_scheme.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 
-/// An accessible chip displaying a Pokémon elemental type badge or localized text.
+/// A chip showing the localized name of a Pokémon [type] in its type color.
 ///
-/// Falls back to a high-contrast localized text chip when badge images fail to
-/// load or when an image URL is unavailable.
-class TypeChip extends StatefulWidget {
-  const TypeChip({super.key, required this.type, this.imageUrl});
+/// With [onSelected], the chip is a toggle: filled when [selected], outlined
+/// otherwise, with the same size in both states.
+class TypeChip extends StatelessWidget {
+  const TypeChip({
+    super.key,
+    required this.type,
+    this.compact = false,
+    this.selected = true,
+    this.onSelected,
+  });
 
   final PokemonType type;
-  final String? imageUrl;
 
-  @override
-  State<TypeChip> createState() => _TypeChipState();
-}
-
-class _TypeChipState extends State<TypeChip> {
-  bool _hasError = false;
-
-  @override
-  void didUpdateWidget(covariant TypeChip oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.imageUrl != widget.imageUrl ||
-        oldWidget.type != widget.type) {
-      _hasError = false;
-    }
-  }
+  /// Uses a smaller padding and label.
+  final bool compact;
+  final bool selected;
+  final ValueChanged<bool>? onSelected;
 
   @override
   Widget build(BuildContext context) {
-    final typeName = context.translateType(widget.type.apiName);
-    final typeColor = TypeColorScheme.getColorFromType(widget.type);
-    final textColor = contrastingTextColor(typeColor);
+    final theme = Theme.of(context);
+    final label = context.translateType(type.apiName);
+    final typeColor = TypeColorScheme.getColorFromType(type);
+    final labelStyle =
+        (compact ? theme.textTheme.labelSmall : theme.textTheme.labelMedium)
+            ?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: selected
+                  ? contrastingTextColor(typeColor)
+                  : theme.colorScheme.onSurface,
+            );
 
-    final showImage =
-        widget.imageUrl != null && widget.imageUrl!.isNotEmpty && !_hasError;
-
-    final Widget content;
-    if (showImage) {
-      content = Image.network(
-        widget.imageUrl!,
-        width: 144 * 0.75,
-        height: 32 * 0.75,
-        fit: BoxFit.contain,
-        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: child,
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted && !_hasError) {
-              setState(() {
-                _hasError = true;
-              });
-            }
-          });
-          return _buildTextChip(typeName, typeColor, textColor);
-        },
+    final onSelected = this.onSelected;
+    if (onSelected != null) {
+      return FilterChip(
+        label: Text(label),
+        labelStyle: labelStyle,
+        selected: selected,
+        showCheckmark: false,
+        selectedColor: typeColor,
+        backgroundColor: theme.colorScheme.surface,
+        side: BorderSide(color: typeColor, width: 1.5),
+        onSelected: onSelected,
       );
-    } else {
-      content = _buildTextChip(typeName, typeColor, textColor);
     }
 
     return Semantics(
-      label: typeName,
+      label: label,
       excludeSemantics: true,
       child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: compact ? 8 : 12,
+          vertical: compact ? 2 : 4,
+        ),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(showImage ? 4 : 12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: typeColor,
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: content,
-      ),
-    );
-  }
-
-  Widget _buildTextChip(String typeName, Color typeColor, Color textColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: typeColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        typeName,
-        style: TextStyle(
-          color: textColor,
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-        ),
+        child: Text(label, style: labelStyle),
       ),
     );
   }

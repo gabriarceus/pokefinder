@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
-import 'package:pokefinder/l10n/translation_helper.dart';
-import 'package:pokefinder/src/1_presentation/widgets/detail/type_color_scheme.dart';
+import 'package:pokefinder/src/1_presentation/widgets/detail/type_chip.dart';
+import 'package:pokefinder/src/1_presentation/widgets/section_title.dart';
 import 'package:pokefinder/src/2_application/bloc/pokedex_bloc/pokedex_bloc.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
 /// Modal bottom sheet allowing users to filter by types, generation, and sort order.
+///
+/// Filters apply at once; the bottom button closes the sheet.
 class PokedexFilterBottomSheet extends StatelessWidget {
   const PokedexFilterBottomSheet({super.key});
 
@@ -50,6 +52,7 @@ class PokedexFilterBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final bloc = context.read<PokedexBloc>();
 
     return DraggableScrollableSheet(
       initialChildSize: 0.75,
@@ -59,9 +62,23 @@ class PokedexFilterBottomSheet extends StatelessWidget {
       builder: (context, scrollController) {
         return BlocBuilder<PokedexBloc, PokedexState>(
           builder: (context, state) {
+            final filters = state.filters;
+            final formFilters = [
+              (PokedexFormFilter.canonicalOnly, t.formFilterCanonicalOnly),
+              (PokedexFormFilter.all, t.formFilterAll),
+              (PokedexFormFilter.mega, t.formFilterMega),
+              (PokedexFormFilter.regional, t.formFilterRegional),
+              (PokedexFormFilter.gmax, t.formFilterGmax),
+            ];
+            final sortOrders = [
+              (PokedexSortOrder.idAscending, t.sortIdAscending),
+              (PokedexSortOrder.idDescending, t.sortIdDescending),
+              (PokedexSortOrder.nameAscending, t.sortNameAscending),
+              (PokedexSortOrder.nameDescending, t.sortNameDescending),
+            ];
+
             return Column(
               children: [
-                // Drag handle
                 Center(
                   child: Container(
                     margin: const EdgeInsets.only(top: 8, bottom: 4),
@@ -73,7 +90,6 @@ class PokedexFilterBottomSheet extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Header
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -81,214 +97,87 @@ class PokedexFilterBottomSheet extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Text(
-                        t.filters,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
+                      Badge.count(
+                        count: filters.activeFilterCount,
+                        isLabelVisible: filters.activeFilterCount > 0,
+                        offset: const Offset(16, -4),
+                        child: Text(
+                          t.filters,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                      if (state.activeFilterCount > 0) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primary,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            state.activeFilterCount.toString(),
-                            style: TextStyle(
-                              color: theme.colorScheme.onPrimary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
                       const Spacer(),
                       TextButton(
-                        onPressed: state.hasActiveFilters
-                            ? () => context.read<PokedexBloc>().add(
-                                const PokedexClearFiltersEvent(),
-                              )
+                        onPressed: filters.hasActiveFilters
+                            ? () => bloc.add(const PokedexClearFiltersEvent())
                             : null,
                         child: Text(t.reset),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.of(context).pop(),
                       ),
                     ],
                   ),
                 ),
                 const Divider(height: 1),
-                // Content
                 Expanded(
                   child: ListView(
                     controller: scrollController,
                     padding: const EdgeInsets.all(16),
                     children: [
-                      // Forms Section
-                      Text(
-                        t.forms,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
+                      SectionTitle(t.forms),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          ChoiceChip(
-                            label: Text(t.formFilterCanonicalOnly),
-                            selected:
-                                state.formFilter ==
-                                PokedexFormFilter.canonicalOnly,
-                            onSelected: (selected) {
-                              if (selected) {
-                                context.read<PokedexBloc>().add(
-                                  const PokedexFormFilterChangedEvent(
-                                    PokedexFormFilter.canonicalOnly,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                          ChoiceChip(
-                            label: Text(t.formFilterAll),
-                            selected: state.formFilter == PokedexFormFilter.all,
-                            onSelected: (selected) {
-                              if (selected) {
-                                context.read<PokedexBloc>().add(
-                                  const PokedexFormFilterChangedEvent(
-                                    PokedexFormFilter.all,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                          ChoiceChip(
-                            label: Text(t.formFilterMega),
-                            selected:
-                                state.formFilter == PokedexFormFilter.mega,
-                            onSelected: (selected) {
-                              if (selected) {
-                                context.read<PokedexBloc>().add(
-                                  const PokedexFormFilterChangedEvent(
-                                    PokedexFormFilter.mega,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                          ChoiceChip(
-                            label: Text(t.formFilterRegional),
-                            selected:
-                                state.formFilter == PokedexFormFilter.regional,
-                            onSelected: (selected) {
-                              if (selected) {
-                                context.read<PokedexBloc>().add(
-                                  const PokedexFormFilterChangedEvent(
-                                    PokedexFormFilter.regional,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                          ChoiceChip(
-                            label: Text(t.formFilterGmax),
-                            selected:
-                                state.formFilter == PokedexFormFilter.gmax,
-                            onSelected: (selected) {
-                              if (selected) {
-                                context.read<PokedexBloc>().add(
-                                  const PokedexFormFilterChangedEvent(
-                                    PokedexFormFilter.gmax,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
+                          for (final (formFilter, label) in formFilters)
+                            ChoiceChip(
+                              label: Text(label),
+                              selected: filters.formFilter == formFilter,
+                              onSelected: (selected) {
+                                if (selected) {
+                                  bloc.add(
+                                    PokedexFormFilterChangedEvent(formFilter),
+                                  );
+                                }
+                              },
+                            ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       SwitchListTile.adaptive(
                         contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          t.includeCosmeticForms,
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                        value: state.includeCosmeticForms,
-                        onChanged: (value) {
-                          context.read<PokedexBloc>().add(
-                            PokedexCosmeticToggleChangedEvent(value),
-                          );
-                        },
+                        title: Text(t.includeCosmeticForms),
+                        value: filters.includeCosmeticForms,
+                        onChanged: (value) =>
+                            bloc.add(PokedexCosmeticToggleChangedEvent(value)),
                       ),
-                      const SizedBox(height: 20),
-
-                      // Types Section
-                      Text(
-                        t.types,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
+                      SectionTitle(t.types),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: _standardTypes.map((type) {
-                          final isSelected = state.selectedTypes.contains(type);
-                          final typeColor = TypeColorScheme.getColorFromType(
-                            type,
-                          );
-                          final label =
-                              context.translateTypeOrNull(type.apiName) ??
-                              type.name;
-
-                          return FilterChip(
-                            label: Text(label),
-                            selected: isSelected,
-                            selectedColor: typeColor.withValues(alpha: 0.3),
-                            checkmarkColor: typeColor,
-                            side: BorderSide(
-                              color: isSelected
-                                  ? typeColor
-                                  : theme.colorScheme.outlineVariant,
+                        children: [
+                          for (final type in _standardTypes)
+                            TypeChip(
+                              type: type,
+                              selected: filters.selectedTypes.contains(type),
+                              onSelected: (_) =>
+                                  bloc.add(PokedexTypeFilterToggledEvent(type)),
                             ),
-                            onSelected: (_) {
-                              context.read<PokedexBloc>().add(
-                                PokedexTypeFilterToggledEvent(type),
-                              );
-                            },
-                          );
-                        }).toList(),
+                        ],
                       ),
-                      const SizedBox(height: 20),
-
-                      // Generation Section
-                      Text(
-                        t.generation,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
+                      SectionTitle(t.generation),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: [
                           ChoiceChip(
                             label: Text(t.generationAll),
-                            selected: state.selectedGeneration == null,
+                            selected: filters.generation == null,
                             onSelected: (selected) {
                               if (selected) {
-                                context.read<PokedexBloc>().add(
+                                bloc.add(
                                   const PokedexGenerationFilterChangedEvent(
                                     null,
                                   ),
@@ -296,102 +185,41 @@ class PokedexFilterBottomSheet extends StatelessWidget {
                               }
                             },
                           ),
-                          ...List.generate(9, (index) {
-                            final gen = index + 1;
-                            return ChoiceChip(
+                          for (var gen = 1; gen <= 9; gen++)
+                            ChoiceChip(
                               label: Text(t.generationNum(number: gen)),
-                              selected: state.selectedGeneration == gen,
-                              onSelected: (selected) {
-                                context.read<PokedexBloc>().add(
-                                  PokedexGenerationFilterChangedEvent(
-                                    selected ? gen : null,
-                                  ),
-                                );
-                              },
-                            );
-                          }),
+                              selected: filters.generation == gen,
+                              onSelected: (selected) => bloc.add(
+                                PokedexGenerationFilterChangedEvent(
+                                  selected ? gen : null,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
-                      const SizedBox(height: 20),
-
-                      // Sort Section
-                      Text(
-                        t.sortBy,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
+                      SectionTitle(t.sortBy),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          ChoiceChip(
-                            label: Text(t.sortIdAscending),
-                            selected:
-                                state.sortOrder == PokedexSortOrder.idAscending,
-                            onSelected: (selected) {
-                              if (selected) {
-                                context.read<PokedexBloc>().add(
-                                  const PokedexSortOrderChangedEvent(
-                                    PokedexSortOrder.idAscending,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                          ChoiceChip(
-                            label: Text(t.sortIdDescending),
-                            selected:
-                                state.sortOrder ==
-                                PokedexSortOrder.idDescending,
-                            onSelected: (selected) {
-                              if (selected) {
-                                context.read<PokedexBloc>().add(
-                                  const PokedexSortOrderChangedEvent(
-                                    PokedexSortOrder.idDescending,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                          ChoiceChip(
-                            label: Text(t.sortNameAscending),
-                            selected:
-                                state.sortOrder ==
-                                PokedexSortOrder.nameAscending,
-                            onSelected: (selected) {
-                              if (selected) {
-                                context.read<PokedexBloc>().add(
-                                  const PokedexSortOrderChangedEvent(
-                                    PokedexSortOrder.nameAscending,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                          ChoiceChip(
-                            label: Text(t.sortNameDescending),
-                            selected:
-                                state.sortOrder ==
-                                PokedexSortOrder.nameDescending,
-                            onSelected: (selected) {
-                              if (selected) {
-                                context.read<PokedexBloc>().add(
-                                  const PokedexSortOrderChangedEvent(
-                                    PokedexSortOrder.nameDescending,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
+                          for (final (sortOrder, label) in sortOrders)
+                            ChoiceChip(
+                              label: Text(label),
+                              selected: filters.sortOrder == sortOrder,
+                              onSelected: (selected) {
+                                if (selected) {
+                                  bloc.add(
+                                    PokedexSortOrderChangedEvent(sortOrder),
+                                  );
+                                }
+                              },
+                            ),
                         ],
                       ),
-                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
-                // Bottom apply button
                 SafeArea(
                   top: false,
                   child: Padding(
@@ -401,10 +229,11 @@ class PokedexFilterBottomSheet extends StatelessWidget {
                     ),
                     child: SizedBox(
                       width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
+                      child: FilledButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: Text(t.apply),
+                        child: Text(
+                          t.showResults(count: state.filteredEntries.length),
+                        ),
                       ),
                     ),
                   ),

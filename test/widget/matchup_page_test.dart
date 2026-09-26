@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/matchups/matchup_page.dart';
 import 'package:pokefinder/src/1_presentation/router/app_router.dart';
+import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
 Widget _wrap(Widget child, {Locale locale = const Locale('en')}) {
@@ -45,19 +46,35 @@ void main() {
     });
   });
 
-  group('buildMatchupPath', () {
+  group('AppRoutes.matchups', () {
     test('returns base path when empty', () {
-      expect(buildMatchupPath(const []), equals('/matchups'));
+      expect(AppRoutes.matchups(), equals('/matchups'));
+      expect(AppRoutes.matchups(const []), equals('/matchups'));
     });
 
     test('encodes one or two slugs', () {
       expect(
-        buildMatchupPath(const [PokemonType.fire]),
+        AppRoutes.matchups(const [PokemonType.fire]),
         equals('/matchups?types=fire'),
       );
       expect(
-        buildMatchupPath(const [PokemonType.fire, PokemonType.flying]),
+        AppRoutes.matchups(const [PokemonType.fire, PokemonType.flying]),
         equals('/matchups?types=fire,flying'),
+      );
+    });
+
+    test('caps the preset at two types and drops non-battle types', () {
+      expect(
+        AppRoutes.matchups(const [
+          PokemonType.fire,
+          PokemonType.flying,
+          PokemonType.water,
+        ]),
+        equals('/matchups?types=fire,flying'),
+      );
+      expect(
+        AppRoutes.matchups(const [PokemonType.stellar]),
+        equals('/matchups'),
       );
     });
   });
@@ -98,7 +115,7 @@ void main() {
       await tester.pumpWidget(_wrap(const MatchupPage()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('Fire'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Fire'));
       await tester.pumpAndSettle();
 
       // Result groups announce via semantics labels.
@@ -188,7 +205,7 @@ void main() {
 
       expect(find.text('No defending type selected'), findsNothing);
 
-      await tester.tap(find.byTooltip('Fire'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Fire'));
       await tester.pumpAndSettle();
 
       expect(find.text('No defending type selected'), findsOneWidget);
@@ -216,7 +233,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('Water'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Water'));
       await tester.pumpAndSettle();
 
       // Oldest (Fire) dropped; defending is now Flying + Water.
@@ -234,7 +251,7 @@ void main() {
       await tester.pumpWidget(_wrap(const MatchupPage()));
       await tester.pumpAndSettle();
 
-      final size = tester.getSize(find.byTooltip('Fire'));
+      final size = tester.getSize(find.widgetWithText(FilterChip, 'Fire'));
       expect(size.width, greaterThanOrEqualTo(48.0));
       expect(size.height, greaterThanOrEqualTo(48.0));
     });
@@ -265,7 +282,7 @@ void main() {
 
   group('MatchupPage route', () {
     testWidgets('navigating to /matchups loads MatchupPage', (tester) async {
-      final router = createAppRouter(initialLocation: '/matchups');
+      final router = createAppRouter(initialLocation: AppRoutes.matchups());
       await tester.pumpWidget(
         MaterialApp.router(
           routerConfig: router,
@@ -281,7 +298,10 @@ void main() {
 
     testWidgets('query preset selects defending types', (tester) async {
       final router = createAppRouter(
-        initialLocation: '/matchups?types=fire,flying',
+        initialLocation: AppRoutes.matchups(const [
+          PokemonType.fire,
+          PokemonType.flying,
+        ]),
       );
       await tester.pumpWidget(
         MaterialApp.router(
@@ -337,14 +357,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final chipText = find.descendant(
-        of: find.byTooltip('Ghost'),
-        matching: find.text('Ghost'),
-      );
-      final element = tester.element(chipText);
-      final expected = Theme.of(element).colorScheme.onSurface;
-      final text = tester.widget<Text>(chipText);
-      expect(text.style?.color, expected);
+      // TypeChip hands its label color to the FilterChip's labelStyle.
+      final chip = find.widgetWithText(FilterChip, 'Ghost');
+      final expected = Theme.of(tester.element(chip)).colorScheme.onSurface;
+      expect(tester.widget<FilterChip>(chip).labelStyle?.color, expected);
     });
 
     testWidgets('unselected chip text uses onSurface in dark theme', (
@@ -355,14 +371,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final chipText = find.descendant(
-        of: find.byTooltip('Electric'),
-        matching: find.text('Electric'),
-      );
-      final element = tester.element(chipText);
-      final expected = Theme.of(element).colorScheme.onSurface;
-      final text = tester.widget<Text>(chipText);
-      expect(text.style?.color, expected);
+      final chip = find.widgetWithText(FilterChip, 'Electric');
+      final expected = Theme.of(tester.element(chip)).colorScheme.onSurface;
+      expect(tester.widget<FilterChip>(chip).labelStyle?.color, expected);
     });
 
     testWidgets('selected chip text uses contrasting color', (tester) async {
@@ -374,14 +385,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final chipText = find.descendant(
-        of: find.byTooltip('Fire'),
-        matching: find.text('Fire'),
+      final chip = find.widgetWithText(FilterChip, 'Fire');
+      final onSurface = Theme.of(tester.element(chip)).colorScheme.onSurface;
+      expect(
+        tester.widget<FilterChip>(chip).labelStyle?.color,
+        isNot(equals(onSurface)),
       );
-      final element = tester.element(chipText);
-      final onSurface = Theme.of(element).colorScheme.onSurface;
-      final text = tester.widget<Text>(chipText);
-      expect(text.style?.color, isNot(equals(onSurface)));
     });
   });
 
@@ -394,7 +403,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('Flying'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Flying'));
       await tester.pumpAndSettle();
 
       expect(

@@ -16,8 +16,6 @@
   "details": "Details",
   "backButton": "Back",
   "settings": "Settings",
-  "useDeviceLanguage": "Use device language",
-  "useDeviceLanguageInfo": "If enabled, the app will use your device's language.",
   "about": "About",
   "language": "Language",
   "weight": "Weight",
@@ -36,8 +34,20 @@
   "tabInfo": "Info",
   "tabStats": "Stats",
   "tabMoves": "Moves",
-  "tabItemsGames": "Items & Games",
+  "tabItemsGames": "Where to find",
   "baseExp": "Base Exp",
+  "baseExpValue": "{value} XP",
+  "@baseExpValue": {
+    "placeholders": {
+      "value": { "type": "int" }
+    }
+  },
+  "showResults": "{count, plural, =1{Show 1 result} other{Show {count} results}}",
+  "@showResults": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "order": "Order",
   "defaultForm": "Default Form",
   "yes": "Yes",
@@ -75,7 +85,6 @@
   "heldItems": "Wild Held Items",
   "heldItemsEmpty": "No wild items held",
   "rarity": "Rarity",
-  "species": "Species",
   "locationAreaEncounters": "Location Encounters",
   "gameIndices": "Game Versions",
   "spriteToggleShiny": "Toggle Shiny View",

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_sprites.dart';
 import 'package:pokefinder/src/3_domain/entities/sprite_variant.dart';
 import 'package:pokefinder/src/3_domain/helpers/sprite_gallery_helper.dart';
 
@@ -68,20 +69,22 @@ void main() {
     test('full payload exposes all 14 variants in fallback order', () {
       final pokemon = buildPokemon(
         sprite: 'primary.png',
-        spriteFrontDefault: 'front.png',
-        spriteBackDefault: 'back.png',
-        spriteFrontShiny: 'front-shiny.png',
-        spriteBackShiny: 'back-shiny.png',
-        spriteFrontFemale: 'front-female.png',
-        spriteBackFemale: 'back-female.png',
-        spriteFrontShinyFemale: 'front-shiny-female.png',
-        spriteBackShinyFemale: 'back-shiny-female.png',
-        officialArtworkDefault: 'art.png',
-        officialArtworkShiny: 'art-shiny.png',
-        homeDefault: 'home.png',
-        homeFemale: 'home-female.png',
-        homeShiny: 'home-shiny.png',
-        homeShinyFemale: 'home-shiny-female.png',
+        sprites: const PokemonSprites(
+          frontDefault: 'front.png',
+          backDefault: 'back.png',
+          frontShiny: 'front-shiny.png',
+          backShiny: 'back-shiny.png',
+          frontFemale: 'front-female.png',
+          backFemale: 'back-female.png',
+          frontShinyFemale: 'front-shiny-female.png',
+          backShinyFemale: 'back-shiny-female.png',
+          artworkDefault: 'art.png',
+          artworkShiny: 'art-shiny.png',
+          homeDefault: 'home.png',
+          homeFemale: 'home-female.png',
+          homeShiny: 'home-shiny.png',
+          homeShinyFemale: 'home-shiny-female.png',
+        ),
       );
 
       final variants = SpriteGalleryHelper.buildAllVariants(pokemon);
@@ -120,7 +123,7 @@ void main() {
     test('partial payload keeps null urls for missing optionals', () {
       final pokemon = buildPokemon(
         sprite: 'front.png',
-        officialArtworkDefault: 'art.png',
+        sprites: const PokemonSprites(artworkDefault: 'art.png'),
       );
 
       final variants = SpriteGalleryHelper.buildAllVariants(pokemon);
@@ -153,9 +156,11 @@ void main() {
     test('returns only non-empty urls in display order', () {
       final pokemon = buildPokemon(
         sprite: 'front.png',
-        spriteFrontShiny: 'shiny.png',
-        officialArtworkDefault: 'art.png',
-        homeDefault: 'home.png',
+        sprites: const PokemonSprites(
+          frontShiny: 'shiny.png',
+          artworkDefault: 'art.png',
+          homeDefault: 'home.png',
+        ),
       );
 
       final available = SpriteGalleryHelper.buildAvailableVariants(pokemon);

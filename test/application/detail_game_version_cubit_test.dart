@@ -37,7 +37,6 @@ void main() {
 
         final encounters = [
           const PokemonEncounter(
-            locationAreaName: 'Kanto Route 1',
             rawLocationAreaName: 'kanto-route-1',
             versions: ['red', 'blue', 'yellow'],
           ),

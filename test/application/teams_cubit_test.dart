@@ -122,29 +122,29 @@ void main() {
       final id = cubit.createTeam('Team');
 
       expect(
-        cubit.addMember(teamId: id, entry: _bulbasaur),
+        cubit.addMember(teamId: id, pokemon: _bulbasaur.summary),
         equals(TeamAddMemberResult.added),
       );
       expect(
-        cubit.addMember(teamId: id, entry: _charmander),
+        cubit.addMember(teamId: id, pokemon: _charmander.summary),
         equals(TeamAddMemberResult.added),
       );
 
       final members = cubit.state.teamById(id)!.members;
       expect(
-        members.map((m) => m.name).toList(),
+        members.map((m) => m.pokemon.name).toList(),
         equals(['bulbasaur', 'charmander']),
       );
       expect(members.first, isA<TeamMember>());
       expect(
-        members.first.types,
+        members.first.pokemon.types,
         equals([PokemonType.grass, PokemonType.poison]),
       );
     });
 
     test('addMember to a missing team reports teamNotFound', () {
       expect(
-        buildCubit().addMember(teamId: 'missing', entry: _bulbasaur),
+        buildCubit().addMember(teamId: 'missing', pokemon: _bulbasaur.summary),
         equals(TeamAddMemberResult.teamNotFound),
       );
     });
@@ -155,13 +155,13 @@ void main() {
       for (var i = 1; i <= kTeamMaxMembers; i++) {
         final result = cubit.addMember(
           teamId: id,
-          entry: PokemonIndexEntry(id: i, name: 'pokemon-$i', detailUrl: ''),
+          pokemon: PokemonSummary(id: i, name: 'pokemon-$i', spriteUrl: ''),
         );
         expect(result, equals(TeamAddMemberResult.added));
       }
 
       expect(
-        cubit.addMember(teamId: id, entry: _bulbasaur),
+        cubit.addMember(teamId: id, pokemon: _bulbasaur.summary),
         equals(TeamAddMemberResult.teamFull),
       );
       expect(cubit.state.teamById(id)!.members.length, equals(kTeamMaxMembers));
@@ -171,20 +171,20 @@ void main() {
     test('duplicate slugs warn but still add; forms stay distinct', () {
       final cubit = buildCubit();
       final id = cubit.createTeam('Team');
-      cubit.addMember(teamId: id, entry: _charizard);
+      cubit.addMember(teamId: id, pokemon: _charizard.summary);
 
       expect(
-        cubit.addMember(teamId: id, entry: _charizardMegaX),
+        cubit.addMember(teamId: id, pokemon: _charizardMegaX.summary),
         equals(TeamAddMemberResult.added),
       );
       expect(
-        cubit.addMember(teamId: id, entry: _charizard),
+        cubit.addMember(teamId: id, pokemon: _charizard.summary),
         equals(TeamAddMemberResult.addedWithDuplicateWarning),
       );
 
       final members = cubit.state.teamById(id)!.members;
       expect(
-        members.map((m) => m.name).toList(),
+        members.map((m) => m.pokemon.name).toList(),
         equals(['charizard', 'charizard-mega-x', 'charizard']),
       );
       expect(TeamSummaryHelper.hasDuplicateMembers(members), isTrue);
@@ -193,12 +193,12 @@ void main() {
     test('removeMemberAt and removeMember drop members', () {
       final cubit = buildCubit();
       final id = cubit.createTeam('Team');
-      cubit.addMember(teamId: id, entry: _bulbasaur);
-      cubit.addMember(teamId: id, entry: _charmander);
+      cubit.addMember(teamId: id, pokemon: _bulbasaur.summary);
+      cubit.addMember(teamId: id, pokemon: _charmander.summary);
 
       expect(cubit.removeMemberAt(id, 0), isTrue);
       expect(
-        cubit.state.teamById(id)!.members.map((m) => m.name).toList(),
+        cubit.state.teamById(id)!.members.map((m) => m.pokemon.name).toList(),
         equals(['charmander']),
       );
       expect(cubit.removeMember(id, 'CHARMANDER'), isTrue);
@@ -210,18 +210,18 @@ void main() {
     test('reorderMember and moveMemberToTop rearrange members', () {
       final cubit = buildCubit();
       final id = cubit.createTeam('Team');
-      cubit.addMember(teamId: id, entry: _bulbasaur);
-      cubit.addMember(teamId: id, entry: _charmander);
-      cubit.addMember(teamId: id, entry: _charizard);
+      cubit.addMember(teamId: id, pokemon: _bulbasaur.summary);
+      cubit.addMember(teamId: id, pokemon: _charmander.summary);
+      cubit.addMember(teamId: id, pokemon: _charizard.summary);
 
       expect(cubit.reorderMember(id, 0, 2), isTrue);
       expect(
-        cubit.state.teamById(id)!.members.map((m) => m.name).toList(),
+        cubit.state.teamById(id)!.members.map((m) => m.pokemon.name).toList(),
         equals(['charmander', 'charizard', 'bulbasaur']),
       );
       expect(cubit.moveMemberToTop(id, 2), isTrue);
       expect(
-        cubit.state.teamById(id)!.members.map((m) => m.name).toList(),
+        cubit.state.teamById(id)!.members.map((m) => m.pokemon.name).toList(),
         equals(['bulbasaur', 'charmander', 'charizard']),
       );
       expect(cubit.reorderMember(id, 0, 5), isFalse);
@@ -233,14 +233,14 @@ void main() {
     test('teams survive cubit restarts', () async {
       final cubit1 = buildCubit();
       final id = cubit1.createTeam('Persisted');
-      cubit1.addMember(teamId: id, entry: _bulbasaur);
+      cubit1.addMember(teamId: id, pokemon: _bulbasaur.summary);
       await cubit1.close();
 
       final cubit2 = buildCubit();
       final restored = cubit2.state.teamById(id);
       expect(restored?.name, equals('Persisted'));
       expect(
-        restored?.members.map((m) => m.name).toList(),
+        restored?.members.map((m) => m.pokemon.name).toList(),
         equals(['bulbasaur']),
       );
     });
@@ -269,7 +269,7 @@ void main() {
       expect(state.teams.length, equals(1));
       expect(state.teams.single.id, equals('good'));
       expect(
-        state.teams.single.members.map((m) => m.name).toList(),
+        state.teams.single.members.map((m) => m.pokemon.name).toList(),
         equals(['pikachu']),
       );
     });
@@ -319,12 +319,15 @@ void main() {
       expect(state.teams.length, equals(2));
       expect(state.teams.first.members, isEmpty);
       expect(
-        state.teams.last.members.map((m) => m.name).toList(),
+        state.teams.last.members.map((m) => m.pokemon.name).toList(),
         equals(['pikachu', 'bulbasaur']),
       );
-      expect(state.teams.last.members.first.spriteUrl, isEmpty);
-      expect(state.teams.last.members.first.types, isEmpty);
-      expect(state.teams.last.members.last.types, equals([PokemonType.fire]));
+      expect(state.teams.last.members.first.pokemon.spriteUrl, isEmpty);
+      expect(state.teams.last.members.first.pokemon.types, isEmpty);
+      expect(
+        state.teams.last.members.last.pokemon.types,
+        equals([PokemonType.fire]),
+      );
     });
   });
 }

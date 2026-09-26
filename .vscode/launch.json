@@ -2,18 +2,6 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Dev - Live API (Debug)",
-      "request": "launch",
-      "type": "dart",
-      "program": "lib/main.dart",
-      "flutterMode": "debug",
-      "args": [
-        "--flavor",
-        "dev",
-        "--dart-define=USE_MOCK=false"
-      ]
-    },
-    {
       "name": "Dev - Mock (Debug)",
       "request": "launch",
       "type": "dart",
@@ -21,20 +9,7 @@
       "flutterMode": "debug",
       "args": [
         "--flavor",
-        "dev",
-        "--dart-define=USE_MOCK=true"
-      ]
-    },
-    {
-      "name": "Dev - Live API (Profile)",
-      "request": "launch",
-      "type": "dart",
-      "program": "lib/main.dart",
-      "flutterMode": "profile",
-      "args": [
-        "--flavor",
-        "dev",
-        "--dart-define=USE_MOCK=false"
+        "dev"
       ]
     },
     {
@@ -45,8 +20,7 @@
       "flutterMode": "profile",
       "args": [
         "--flavor",
-        "dev",
-        "--dart-define=USE_MOCK=true"
+        "dev"
       ]
     },
     {

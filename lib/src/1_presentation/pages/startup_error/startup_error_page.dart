@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
-import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 
 /// Standalone fallback application shown when storage or dependency bootstrap fails.
 class StartupErrorApp extends StatelessWidget {
@@ -39,10 +38,10 @@ class StartupErrorPage extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
+                Icon(
                   Icons.error_outline_rounded,
                   size: 64,
-                  color: AppPalette.brandRed,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -59,12 +58,8 @@ class StartupErrorPage extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton.icon(
+                FilledButton.icon(
                   onPressed: onRetry,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppPalette.brandRed,
-                    foregroundColor: AppPalette.onBrandRed,
-                  ),
                   icon: const Icon(Icons.refresh),
                   label: Text(l10n.retryButton),
                 ),

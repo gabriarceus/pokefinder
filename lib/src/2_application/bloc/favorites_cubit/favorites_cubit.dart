@@ -23,16 +23,20 @@ class FavoritesState extends Equatable {
     final list = List<FavoritePokemon>.from(favorites);
     switch (sortOrder) {
       case FavoriteSortOrder.idAscending:
-        list.sort((a, b) => a.id.compareTo(b.id));
+        list.sort((a, b) => a.pokemon.id.compareTo(b.pokemon.id));
       case FavoriteSortOrder.idDescending:
-        list.sort((a, b) => b.id.compareTo(a.id));
+        list.sort((a, b) => b.pokemon.id.compareTo(a.pokemon.id));
       case FavoriteSortOrder.nameAscending:
         list.sort(
-          (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+          (a, b) => a.pokemon.name.toLowerCase().compareTo(
+            b.pokemon.name.toLowerCase(),
+          ),
         );
       case FavoriteSortOrder.nameDescending:
         list.sort(
-          (a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()),
+          (a, b) => b.pokemon.name.toLowerCase().compareTo(
+            a.pokemon.name.toLowerCase(),
+          ),
         );
       case FavoriteSortOrder.recentlyAdded:
         list.sort((a, b) => b.addedAt.compareTo(a.addedAt));
@@ -41,7 +45,7 @@ class FavoritesState extends Equatable {
   }
 
   /// Checks if [id] is present in [favorites].
-  bool isFavorite(int id) => favorites.any((f) => f.id == id);
+  bool isFavorite(int id) => favorites.any((f) => f.pokemon.id == id);
 
   FavoritesState copyWith({
     List<FavoritePokemon>? favorites,
@@ -68,39 +72,24 @@ class FavoritesCubit extends HydratedCubit<FavoritesState> {
   final EnLogger _logger;
   final Clock _clock;
 
-  /// Toggles favorite status for a Pokémon.
-  void toggleFavorite({
-    required int id,
-    required String name,
-    required String spriteUrl,
-    List<PokemonType> types = const [],
-  }) {
-    if (state.isFavorite(id)) {
-      removeFavorite(id);
+  /// Toggles favorite status for [pokemon].
+  void toggleFavorite(PokemonSummary pokemon) {
+    if (state.isFavorite(pokemon.id)) {
+      removeFavorite(pokemon.id);
     } else {
-      addFavorite(id: id, name: name, spriteUrl: spriteUrl, types: types);
+      addFavorite(pokemon);
     }
   }
 
-  /// Adds a Pokémon to favorites.
-  void addFavorite({
-    required int id,
-    required String name,
-    required String spriteUrl,
-    List<PokemonType> types = const [],
-  }) {
-    _logger.info('Adding favorite: $name (#$id)', prefix: _prefix);
+  /// Adds [pokemon] to favorites.
+  void addFavorite(PokemonSummary pokemon) {
+    _logger.info(
+      'Adding favorite: ${pokemon.name} (#${pokemon.id})',
+      prefix: _prefix,
+    );
     final updated = List<FavoritePokemon>.from(state.favorites)
-      ..removeWhere((f) => f.id == id)
-      ..add(
-        FavoritePokemon(
-          id: id,
-          name: name,
-          spriteUrl: spriteUrl,
-          types: types,
-          addedAt: _clock.now(),
-        ),
-      );
+      ..removeWhere((f) => f.pokemon.id == pokemon.id)
+      ..add(FavoritePokemon(pokemon: pokemon, addedAt: _clock.now()));
     emit(state.copyWith(favorites: updated));
   }
 
@@ -108,7 +97,7 @@ class FavoritesCubit extends HydratedCubit<FavoritesState> {
   void removeFavorite(int id) {
     _logger.info('Removing favorite ID: $id', prefix: _prefix);
     final updated = state.favorites
-        .where((element) => element.id != id)
+        .where((element) => element.pokemon.id != id)
         .toList();
     emit(state.copyWith(favorites: updated));
   }

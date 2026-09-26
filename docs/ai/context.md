@@ -25,14 +25,19 @@ also update the facts in this file and in the skills.
 `lib/src/` has numbered layers. Imports go presentation → application → domain ← repository.
 
 - `1_presentation/` — UI only: `pages/<screen>/`, `widgets/<area>/`, `theme/app_palette.dart`,
-  `router/app_router.dart`, `extensions/`, `di/presentation_bloc_factory.dart`.
+  `router/app_router.dart` + `router/app_routes.dart` (path builders), `extensions/`,
+  `di/presentation_bloc_factory.dart`. Shared building blocks live in `widgets/`:
+  `EmptyStateView`, `SectionTitle`, `LabelValueRow`, `SurfaceCard`.
 - `2_application/` — blocs and cubits in `bloc/<name>/`. `LanguageCubit` lives in
-  `hydrated_bloc/language_storage.dart`. `helpers/log_sanitizer.dart`.
+  `bloc/language_cubit/language_cubit.dart`. `helpers/log_sanitizer.dart`,
+  `helpers/move_name_resolver.dart`.
 - `3_domain/` — entities, `failures/pokemon_failure.dart` (sealed), `repositories/i_pokemon_repository.dart`,
-  `usecases/`, `helpers/` (pure Dart), `value_objects/`. **No Flutter imports.**
-- `4_repository/` — `datasources/` (abstract + implementations), `repositories/`
-  (`PokemonRepositoryImpl`, `MockPokemonRepository`, `DataRepository` cache layer),
-  `models/raw_*` (`@JsonSerializable` DTOs), `services/`, `interceptors/`.
+  `helpers/` (pure Dart), `value_objects/`. **No Flutter imports.** There is **no use case
+  layer**: blocs and cubits depend on `IPokemonRepository` directly.
+- `4_repository/` — `datasources/` (abstract `ApiClient`/`LocalStorage` + implementations),
+  `repositories/` (`PokemonRepositoryImpl`, `MockPokemonRepository`), `models/raw_*`
+  (`@JsonSerializable` DTOs), `services/`, `interceptors/`. The cache client is
+  `datasources/implementations/poke_api_cache.dart`; there is no remote data source.
 - `lib/bootstrap.dart` (DI setup, `RegisterModule`), `lib/main.dart` (startup + app root),
   `lib/bootstrap/mobile_storage_initializer.dart` (Hive + hydrated storage).
 
@@ -48,14 +53,20 @@ also update the facts in this file and in the skills.
   (`DetailGameVersionCubit`) are not injectable and are created inline in a `BlocProvider`.
 - Environments: `--flavor prod` → `Environment.prod` → `PokemonRepositoryImpl` (live PokeAPI).
   `--flavor dev` → `Environment.dev` → `MockPokemonRepository` (fixed offline data).
-  `--dart-define=USE_MOCK=true|false` overrides the flavor.
+  `Environment` is injectable's own class; `configureDependencies` takes its `String` value.
 
 ## Data, errors, logging
 
-- Dio → `DataRepository` (Hive cache, `FetchStrategy.cacheFirst`, 24 h `maxAge`, stale-if-error)
-  → `PokemonRemoteDataSource` → `PokemonRepositoryImpl` (maps `Raw*` → entities) → use case → bloc.
+- Dio → `PokeApiCache` (Hive cache, cache-first, 24 h window, stale-if-error, per-URL request
+  sharing) → `PokemonRepositoryImpl` (maps `Raw*` → entities, and **all** errors in one
+  `_toFailure`) → bloc.
 - Fallible calls return `Either<PokemonFailure, T>` (dartz). HTTP status → failure mapping lives
-  in `PokemonRemoteDataSource._mapError`. The UI shows failures with `failure.localizedMessage(context)`.
+  in that single `_toFailure` in `PokemonRepositoryImpl`. The UI shows failures with
+  `failure.localizedMessage(context)`.
+- Cache clearing and size also live on the repository (`clearCache()`, `getCacheSize()`); there
+  is no `ClearCacheUseCase`/`GetCacheSizeUseCase`.
+- `CancellationToken` and every `cancelToken:` parameter are gone. A superseded request is
+  dropped by `restartable()` plus `emit.isDone`.
 - Durable user state (hydrated cubits) is in the documents directory. The disposable API cache is
   in the temporary directory. "Clear cache" never touches favorites, teams or history.
 - Logging: `en_logger` with a `_prefix` per class. User input always goes through

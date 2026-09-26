@@ -13,16 +13,16 @@ import 'package:pokefinder/src/3_domain/domain.dart';
 /// non-injectable and are created inline here with their static dependencies
 /// resolved from the container.
 HomeBloc createHomeBloc(String userInput) {
-  final bloc = getIt<HomeBloc>()..add(FetchAllPokemonNamesEvent());
+  final bloc = getIt<HomeBloc>()..add(LoadIndex());
   if (userInput.isNotEmpty) {
-    bloc.add(UserInputEvent(userInput));
+    bloc.add(SearchInputChanged(userInput));
   }
   return bloc;
 }
 
-/// Creates the detail [PokemonBloc] for [pokemonName] and starts its fetch.
-PokemonBloc createPokemonBloc(String pokemonName) {
-  return getIt<PokemonBloc>()..add(FetchPokemonEvent(pokemonName));
+/// Creates the detail [PokemonDetailBloc] for [pokemonName] and starts its fetch.
+PokemonDetailBloc createPokemonBloc(String pokemonName) {
+  return getIt<PokemonDetailBloc>()..add(FetchPokemonEvent(pokemonName));
 }
 
 /// Creates the browsable Pokédex bloc and starts its index fetch.
@@ -50,9 +50,19 @@ MoveDetailCubit createMoveDetailCubit(String moveName) {
   return getIt<MoveDetailCubit>()..fetchMoveDetail(moveName);
 }
 
-/// Creates the runtime-data [DetailMovesCubit] for the given [moves].
-DetailMovesCubit createDetailMovesCubit({required List<PokemonMove> moves}) {
-  return DetailMovesCubit(moves: moves, logger: getIt<EnLogger>());
+/// Creates the runtime-data [DetailMovesCubit] for the given [moves],
+/// starting on [gameVersion].
+DetailMovesCubit createDetailMovesCubit({
+  required List<PokemonMove> moves,
+  required MoveNameResolver moveName,
+  required String gameVersion,
+}) {
+  return DetailMovesCubit(
+    moves: moves,
+    moveName: moveName,
+    logger: getIt<EnLogger>(),
+    gameVersion: gameVersion,
+  );
 }
 
 /// Resolves the shared cry-audio controller.

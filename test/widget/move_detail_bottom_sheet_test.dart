@@ -9,32 +9,28 @@ import 'package:pokefinder/src/1_presentation/widgets/detail/move_detail_bottom_
 import 'package:pokefinder/src/2_application/bloc/move_detail_cubit/move_detail_cubit.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
-class _MockGetMoveDetailUseCase extends Mock implements GetMoveDetailUseCase {}
+class _MockPokemonRepository extends Mock implements IPokemonRepository {}
 
 class _MockEnLogger extends Mock implements EnLogger {}
 
 void main() {
-  late _MockGetMoveDetailUseCase useCase;
+  late _MockPokemonRepository repository;
   late _MockEnLogger logger;
 
   setUp(() {
-    useCase = _MockGetMoveDetailUseCase();
+    repository = _MockPokemonRepository();
     logger = _MockEnLogger();
 
     final getIt = GetIt.instance;
     if (getIt.isRegistered<EnLogger>()) {
       getIt.unregister<EnLogger>();
     }
-    if (getIt.isRegistered<GetMoveDetailUseCase>()) {
-      getIt.unregister<GetMoveDetailUseCase>();
-    }
     if (getIt.isRegistered<MoveDetailCubit>()) {
       getIt.unregister<MoveDetailCubit>();
     }
     getIt.registerSingleton<EnLogger>(logger);
-    getIt.registerSingleton<GetMoveDetailUseCase>(useCase);
     getIt.registerFactory<MoveDetailCubit>(
-      () => MoveDetailCubit(useCase, logger),
+      () => MoveDetailCubit(repository, logger),
     );
   });
 
@@ -42,9 +38,6 @@ void main() {
     final getIt = GetIt.instance;
     if (getIt.isRegistered<MoveDetailCubit>()) {
       getIt.unregister<MoveDetailCubit>();
-    }
-    if (getIt.isRegistered<GetMoveDetailUseCase>()) {
-      getIt.unregister<GetMoveDetailUseCase>();
     }
     if (getIt.isRegistered<EnLogger>()) {
       getIt.unregister<EnLogger>();
@@ -56,7 +49,7 @@ void main() {
     (tester) async {
       const failure = NetworkUnavailableFailure();
       when(
-        () => useCase(any(), cancelToken: any(named: 'cancelToken')),
+        () => repository.getMoveDetail(any()),
       ).thenAnswer((_) async => left(failure));
 
       await tester.pumpWidget(
@@ -85,9 +78,7 @@ void main() {
       await tester.tap(retryFinder);
       await tester.pumpAndSettle();
 
-      verify(
-        () => useCase('tackle', cancelToken: any(named: 'cancelToken')),
-      ).called(2);
+      verify(() => repository.getMoveDetail('tackle')).called(2);
     },
   );
 }

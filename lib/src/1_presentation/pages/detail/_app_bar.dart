@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
-import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 
-class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
+/// Collapsing app bar of the detail page.
+///
+/// Shows [background] when expanded and keeps the toolbar and [bottom]
+/// pinned when collapsed. Icons and title use [foregroundColor].
+class DetailAppBar extends StatelessWidget {
   const DetailAppBar({
     super.key,
     required this.backgroundColor,
+    required this.foregroundColor,
+    required this.expandedHeight,
+    required this.background,
+    this.bottom,
     this.showShiny = false,
     this.isStale = false,
     this.onToggleShiny,
@@ -17,7 +25,11 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onTeam,
   });
 
-  final Color? backgroundColor;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final double expandedHeight;
+  final Widget background;
+  final PreferredSizeWidget? bottom;
   final bool showShiny;
   final bool isStale;
   final VoidCallback? onToggleShiny;
@@ -31,17 +43,18 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    final itemsColor = contrastingTextColor(backgroundColor);
-    return AppBar(
-      iconTheme: IconThemeData(color: itemsColor),
-      leading: BackButton(
-        color: itemsColor,
-        style: const ButtonStyle(
-          minimumSize: WidgetStatePropertyAll(Size(48, 48)),
-        ),
-      ),
-      title: Text(t.details, style: TextStyle(color: itemsColor)),
+    final isDarkForeground =
+        foregroundColor.computeLuminance() < backgroundColor.computeLuminance();
+    return SliverAppBar(
+      pinned: true,
+      expandedHeight: expandedHeight,
       backgroundColor: backgroundColor,
+      foregroundColor: foregroundColor,
+      surfaceTintColor: Colors.transparent,
+      systemOverlayStyle: isDarkForeground
+          ? SystemUiOverlayStyle.dark
+          : SystemUiOverlayStyle.light,
+      title: Text(t.details),
       actions: [
         if (isStale)
           Tooltip(
@@ -50,71 +63,57 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Icon(
                 Icons.cloud_off_rounded,
-                color: itemsColor.withValues(alpha: 0.75),
+                color: foregroundColor.withValues(alpha: 0.75),
                 size: 20,
               ),
             ),
           ),
         if (onToggleShiny != null)
           IconButton(
-            style: const ButtonStyle(
-              minimumSize: WidgetStatePropertyAll(Size(48, 48)),
-            ),
             icon: Icon(
               showShiny ? Icons.star_rounded : Icons.star_border_rounded,
-              color: showShiny ? Colors.amber : itemsColor,
             ),
             tooltip: t.spriteToggleShiny,
             onPressed: onToggleShiny,
           ),
         if (onShare != null)
           IconButton(
-            style: const ButtonStyle(
-              minimumSize: WidgetStatePropertyAll(Size(48, 48)),
-            ),
-            icon: Icon(Icons.link_rounded, color: itemsColor),
+            icon: const Icon(Icons.link_rounded),
             tooltip: t.shareLink,
             onPressed: onShare,
           ),
         if (onCompare != null)
           IconButton(
-            style: const ButtonStyle(
-              minimumSize: WidgetStatePropertyAll(Size(48, 48)),
-            ),
             icon: Icon(
-              Icons.compare_arrows_rounded,
-              color: isInComparison ? Colors.lightBlueAccent : itemsColor,
+              isInComparison
+                  ? Icons.playlist_add_check_rounded
+                  : Icons.compare_arrows_rounded,
             ),
             tooltip: isInComparison ? t.compareRemove : t.compareAdd,
             onPressed: onCompare,
           ),
         if (onTeam != null)
           IconButton(
-            style: const ButtonStyle(
-              minimumSize: WidgetStatePropertyAll(Size(48, 48)),
-            ),
-            icon: Icon(Icons.group_add_rounded, color: itemsColor),
+            icon: const Icon(Icons.group_add_rounded),
             tooltip: t.teamAddMember,
             onPressed: onTeam,
           ),
         if (onToggleFavorite != null)
           IconButton(
-            style: const ButtonStyle(
-              minimumSize: WidgetStatePropertyAll(Size(48, 48)),
-            ),
             icon: Icon(
               isFavorite
                   ? Icons.favorite_rounded
                   : Icons.favorite_border_rounded,
-              color: isFavorite ? Colors.redAccent : itemsColor,
             ),
             tooltip: isFavorite ? t.removeFromFavorites : t.addToFavorites,
             onPressed: onToggleFavorite,
           ),
       ],
+      flexibleSpace: FlexibleSpaceBar(
+        collapseMode: CollapseMode.pin,
+        background: background,
+      ),
+      bottom: bottom,
     );
   }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

@@ -1,27 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:injectable/injectable.dart' hide test;
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/main.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/_app_bar.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
+import 'package:pokefinder/src/1_presentation/pages/detail/widgets/detail_header.dart';
 import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/route_error/route_error_page.dart';
 import 'package:pokefinder/src/1_presentation/router/app_router.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/helpers/pokemon_share_link.dart';
 
+/// Pumps frames until [finder] matches.
+///
+/// `mockNetworkImagesFor` never completes the image request, so the detail
+/// header's loading spinner animates forever and `pumpAndSettle` never returns.
+Future<void> pumpUntilFound(WidgetTester tester, Finder finder) async {
+  for (var i = 0; i < 50 && finder.evaluate().isEmpty; i++) {
+    await tester.pump(const Duration(milliseconds: 200));
+  }
+}
+
+/// Pumps a bounded number of frames, so pending animations (snack bars,
+/// route transitions) reach their final state without waiting on the spinner.
+Future<void> pumpFrames(WidgetTester tester) async {
+  for (var i = 0; i < 12; i++) {
+    await tester.pump(const Duration(milliseconds: 200));
+  }
+}
+
 void main() {
   group('DetailAppBar share action', () {
     Widget buildAppBar({required Locale locale, VoidCallback? onShare}) {
+      // DetailAppBar is a sliver app bar: it must live in a scroll view.
       return MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         locale: locale,
         home: Scaffold(
-          appBar: DetailAppBar(backgroundColor: Colors.green, onShare: onShare),
+          body: CustomScrollView(
+            slivers: [
+              DetailAppBar(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                expandedHeight: kToolbarHeight + 120,
+                background: const SizedBox.shrink(),
+                onShare: onShare,
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 200)),
+            ],
+          ),
         ),
       );
     }
@@ -66,7 +98,7 @@ void main() {
   group('incoming share-link navigation', () {
     setUpAll(() async {
       ensureHydratedStorage();
-      await configureDependencies('mock');
+      await configureDependencies(Environment.dev);
     });
 
     Widget createRouterApp(String initialLocation) {
@@ -81,6 +113,10 @@ void main() {
             BlocProvider.value(value: getIt<FavoritesCubit>()),
           if (getIt.isRegistered<RecentHistoryCubit>())
             BlocProvider.value(value: getIt<RecentHistoryCubit>()),
+          if (getIt.isRegistered<ComparisonCubit>())
+            BlocProvider.value(value: getIt<ComparisonCubit>()),
+          if (getIt.isRegistered<TeamsCubit>())
+            BlocProvider.value(value: getIt<TeamsCubit>()),
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -98,16 +134,20 @@ void main() {
           expect(link, '/pokemon/pikachu');
 
           await tester.pumpWidget(createRouterApp(link!));
-          await tester.pumpAndSettle();
+          // The header only exists once the Pokémon has loaded, so waiting
+          // for it also lets the mock repository's fetch timer elapse.
+          await pumpUntilFound(tester, find.byType(DetailHeader));
 
-          expect(find.byType(Detail), findsOneWidget);
+          expect(find.byType(PokemonDetailPage), findsOneWidget);
           expect(
-            tester.widget<Detail>(find.byType(Detail)).pokemonName,
+            tester
+                .widget<PokemonDetailPage>(find.byType(PokemonDetailPage))
+                .pokemonName,
             'pikachu',
           );
 
           await tester.tap(find.byType(BackButton));
-          await tester.pumpAndSettle();
+          await pumpUntilFound(tester, find.byType(HomePage));
           expect(find.byType(HomePage), findsOneWidget);
         });
       },
@@ -124,10 +164,15 @@ void main() {
         await tester.pumpWidget(
           createRouterApp(buildPokemonCanonicalPath(identifier)!),
         );
-        await tester.pumpAndSettle();
+        await pumpUntilFound(tester, find.byType(DetailHeader));
 
-        expect(find.byType(Detail), findsOneWidget);
-        expect(tester.widget<Detail>(find.byType(Detail)).pokemonName, '25');
+        expect(find.byType(PokemonDetailPage), findsOneWidget);
+        expect(
+          tester
+              .widget<PokemonDetailPage>(find.byType(PokemonDetailPage))
+              .pokemonName,
+          '25',
+        );
       });
     });
 
@@ -138,14 +183,14 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(RouteErrorPage), findsOneWidget);
-      expect(find.byType(Detail), findsNothing);
+      expect(find.byType(PokemonDetailPage), findsNothing);
     });
   });
 
   group('Detail share copy end-to-end', () {
     setUpAll(() async {
       ensureHydratedStorage();
-      await configureDependencies('mock');
+      await configureDependencies(Environment.dev);
     });
 
     testWidgets(
@@ -171,15 +216,15 @@ void main() {
         await mockNetworkImagesFor(() async {
           final router = createAppRouter(initialLocation: '/pokemon/bulbasaur');
           await tester.pumpWidget(MyApp(router: router));
-          await tester.pumpAndSettle();
+          await pumpUntilFound(tester, find.byType(DetailHeader));
         });
 
-        expect(find.byType(Detail), findsOneWidget);
+        expect(find.byType(PokemonDetailPage), findsOneWidget);
         final shareButton = find.byTooltip('Copy link');
         expect(shareButton, findsOneWidget);
 
         await tester.tap(shareButton);
-        await tester.pumpAndSettle();
+        await pumpFrames(tester);
 
         expect(copiedText, '/pokemon/bulbasaur');
         expect(find.text('Link copied to clipboard'), findsOneWidget);

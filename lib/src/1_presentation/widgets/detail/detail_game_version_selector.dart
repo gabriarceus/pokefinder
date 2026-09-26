@@ -4,7 +4,7 @@ import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_game_version_cubit/detail_game_version_cubit.dart';
 
-/// Compact game version selector dropdown that controls game version context across all detail tabs.
+/// Compact dropdown that selects the game version shown by the detail tabs.
 class DetailGameVersionSelector extends StatelessWidget {
   const DetailGameVersionSelector({super.key, required this.typeColor});
 
@@ -20,9 +20,9 @@ class DetailGameVersionSelector extends StatelessWidget {
 
         final cubit = context.read<DetailGameVersionCubit>();
 
+        final textTheme = Theme.of(context).textTheme;
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0),
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
           decoration: BoxDecoration(
             color: Theme.of(
               context,
@@ -39,8 +39,7 @@ class DetailGameVersionSelector extends StatelessWidget {
                   context.t().filterByVersion,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
-                  style: TextStyle(
-                    fontSize: 11,
+                  style: textTheme.labelMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -67,8 +66,7 @@ class DetailGameVersionSelector extends StatelessWidget {
                           Icons.arrow_drop_down_rounded,
                           color: typeColor,
                         ),
-                        style: TextStyle(
-                          fontSize: 11,
+                        style: textTheme.labelLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.onSurface,
                         ),

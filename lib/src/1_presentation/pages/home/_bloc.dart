@@ -3,11 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/src/2_application/bloc/home_bloc/home_bloc.dart';
 
+/// Provides a [HomeBloc] to [child], with [userInput] as the initial search
+/// text.
 class HomePageProvider extends StatelessWidget {
-  /// inject [HomeBloc]
-  ///
-  /// on init add [UserInputEvent]
-
   const HomePageProvider({
     super.key,
     required this.userInput,
@@ -20,16 +18,5 @@ class HomePageProvider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(create: (_) => createHomeBloc(userInput), child: child);
-  }
-}
-
-class HomeBlocBuilder extends StatelessWidget {
-  const HomeBlocBuilder({super.key, required this.builder});
-
-  final Widget Function(BuildContext context, HomeBlocState state) builder;
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<HomeBloc, HomeBlocState>(builder: builder);
   }
 }

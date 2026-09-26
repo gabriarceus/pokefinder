@@ -1,84 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 
-class TypeColorScheme {
-  const TypeColorScheme({required this.type1, this.type2});
-
-  final PokemonType? type1;
-  final PokemonType? type2;
-
+/// Opaque display colors of the Pokémon types.
+abstract final class TypeColorScheme {
+  /// Returns the color of [type]; a null type uses the normal-type color.
   static Color getColorFromType(PokemonType? type) {
     return switch (type) {
-      PokemonType.normal => Colors.grey[300]!,
-      PokemonType.fighting => Colors.orange[600]!,
-      PokemonType.flying => Colors.cyan[200]!,
-      PokemonType.poison => Colors.deepPurpleAccent[100]!,
-      PokemonType.ground => Colors.orange[300]!,
-      PokemonType.rock => Colors.brown[300]!,
-      PokemonType.bug => Colors.lime[400]!,
-      PokemonType.ghost => Colors.indigo[300]!,
-      PokemonType.steel => Colors.blueGrey[200]!,
-      PokemonType.fire => Colors.red[500]!,
-      PokemonType.water => Colors.blue[300]!,
-      PokemonType.grass => Colors.green[400]!,
-      PokemonType.electric => Colors.yellow[600]!,
-      PokemonType.psychic => Colors.pink[300]!,
-      PokemonType.ice => Colors.cyanAccent[100]!,
-      PokemonType.dragon => Colors.deepPurple[900]!,
-      PokemonType.dark => Colors.black54,
-      PokemonType.fairy => Colors.pink[100]!,
-      PokemonType.stellar => Colors.deepPurple[300]!,
-      null => Colors.grey[300]!,
+      PokemonType.normal || null => const Color(0xFFA8A77A),
+      PokemonType.fighting => const Color(0xFFC22E28),
+      PokemonType.flying => const Color(0xFFA98FF3),
+      PokemonType.poison => const Color(0xFFA33EA1),
+      PokemonType.ground => const Color(0xFFE2BF65),
+      PokemonType.rock => const Color(0xFFB6A136),
+      PokemonType.bug => const Color(0xFFA6B91A),
+      PokemonType.ghost => const Color(0xFF735797),
+      PokemonType.steel => const Color(0xFFB7B7CE),
+      PokemonType.fire => const Color(0xFFEE8130),
+      PokemonType.water => const Color(0xFF6390F0),
+      PokemonType.grass => const Color(0xFF7AC74C),
+      PokemonType.electric => const Color(0xFFF7D02C),
+      PokemonType.psychic => const Color(0xFFF95587),
+      PokemonType.ice => const Color(0xFF96D9D6),
+      PokemonType.dragon => const Color(0xFF6F35FC),
+      PokemonType.dark => const Color(0xFF705746),
+      PokemonType.fairy => const Color(0xFFD685AD),
+      PokemonType.stellar => const Color(0xFF40B5A5),
     };
   }
 
-  Color _getColorFromType(PokemonType? type) => getColorFromType(type);
-
-  BoxDecoration getBackgroundDecoration() {
-    final color1 = _getColorFromType(type1);
-
+  /// Returns the background gradient for a Pokémon of [type1] and [type2].
+  ///
+  /// A single-type Pokémon fades to a lighter or darker shade of its color.
+  static LinearGradient gradient(PokemonType? type1, PokemonType? type2) {
+    final color1 = getColorFromType(type1);
+    final Color color2;
     if (type2 != null) {
-      final color2 = _getColorFromType(type2);
-      return BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [color1, color2],
-          stops: const [0.0, 0.4],
-        ),
-      );
+      color2 = getColorFromType(type2);
+    } else {
+      final hsl = HSLColor.fromColor(color1);
+      final shift = color1.computeLuminance() > 0.5 ? -0.2 : 0.2;
+      color2 = hsl
+          .withLightness((hsl.lightness + shift).clamp(0.0, 1.0))
+          .toColor();
     }
-
-    final isLight = color1.computeLuminance() > 0.5;
-    final color2 = isLight ? darken(color1, 0.2) : lighten(color1, 0.2);
-
-    return BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [color1, color2],
-        stops: const [0.0, 0.4],
-      ),
+    return LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [color1, color2],
+      stops: const [0.0, 0.4],
     );
-  }
-
-  Color darken(Color color, [double amount = .1]) {
-    assert(amount >= 0 && amount <= 1);
-    final hsl = HSLColor.fromColor(color);
-    final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
-    return hslDark.toColor();
-  }
-
-  Color lighten(Color color, [double amount = .1]) {
-    assert(amount >= 0 && amount <= 1);
-    final hsl = HSLColor.fromColor(color);
-    final hslLight = hsl.withLightness(
-      (hsl.lightness + amount).clamp(0.0, 1.0),
-    );
-    return hslLight.toColor();
-  }
-
-  Color colorFromType() {
-    return _getColorFromType(type1);
   }
 }

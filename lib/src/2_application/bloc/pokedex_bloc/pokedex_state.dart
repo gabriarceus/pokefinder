@@ -6,77 +6,38 @@ enum PokedexStatus { initial, loading, success, failure }
 @immutable
 final class PokedexState extends Equatable {
   const PokedexState({
-    required this.status,
-    required this.isRefreshing,
-    required this.allEntries,
-    required this.filteredEntries,
-    required this.visibleEntries,
-    required this.currentPage,
-    required this.pageSize,
-    required this.searchQuery,
-    required this.selectedTypes,
-    required this.selectedGeneration,
-    required this.sortOrder,
-    required this.typeIdMap,
-    this.formFilter = PokedexFormFilter.canonicalOnly,
-    this.includeCosmeticForms = false,
+    this.status = PokedexStatus.initial,
+    this.isRefreshing = false,
+    this.allEntries = const [],
+    this.filteredEntries = const [],
+    this.filters = const PokedexFilters(),
+    this.typeIdMap = const {},
+    this.loadingTypes = const {},
     this.failure,
+    this.typeFilterFailure,
     this.randomPokemonToNavigate,
   });
-
-  factory PokedexState.initial() {
-    return const PokedexState(
-      status: PokedexStatus.initial,
-      isRefreshing: false,
-      allEntries: [],
-      filteredEntries: [],
-      visibleEntries: [],
-      currentPage: 1,
-      pageSize: 24,
-      searchQuery: '',
-      selectedTypes: {},
-      selectedGeneration: null,
-      sortOrder: PokedexSortOrder.idAscending,
-      typeIdMap: {},
-      formFilter: PokedexFormFilter.canonicalOnly,
-      includeCosmeticForms: false,
-      failure: null,
-      randomPokemonToNavigate: null,
-    );
-  }
 
   final PokedexStatus status;
   final bool isRefreshing;
   final List<PokemonIndexEntry> allEntries;
-  final List<PokemonIndexEntry> filteredEntries;
-  final List<PokemonIndexEntry> visibleEntries;
-  final int currentPage;
-  final int pageSize;
-  final String searchQuery;
-  final Set<PokemonType> selectedTypes;
-  final int? selectedGeneration;
-  final PokedexSortOrder sortOrder;
-  final Map<PokemonType, Set<int>> typeIdMap;
-  final PokedexFormFilter formFilter;
-  final bool includeCosmeticForms;
-  final PokemonFailure? failure;
-  final PokemonIndexEntry? randomPokemonToNavigate;
 
-  bool get hasMore => visibleEntries.length < filteredEntries.length;
-  int get totalCount => filteredEntries.length;
-  int get activeFilterCount =>
-      (selectedTypes.isNotEmpty ? selectedTypes.length : 0) +
-      (selectedGeneration != null ? 1 : 0) +
-      (sortOrder != PokedexSortOrder.idAscending ? 1 : 0) +
-      (formFilter != PokedexFormFilter.canonicalOnly ? 1 : 0) +
-      (includeCosmeticForms ? 1 : 0);
-  bool get hasActiveFilters =>
-      searchQuery.isNotEmpty ||
-      selectedTypes.isNotEmpty ||
-      selectedGeneration != null ||
-      sortOrder != PokedexSortOrder.idAscending ||
-      formFilter != PokedexFormFilter.canonicalOnly ||
-      includeCosmeticForms;
+  /// [allEntries] after [filters] are applied.
+  final List<PokemonIndexEntry> filteredEntries;
+  final PokedexFilters filters;
+
+  /// Pokémon ids per type, loaded on demand for the type filter.
+  final Map<PokemonType, Set<int>> typeIdMap;
+
+  /// Selected types whose ids are still loading.
+  final Set<PokemonType> loadingTypes;
+
+  /// Failure of the last index load.
+  final PokemonFailure? failure;
+
+  /// Failure of the last type-id load; the type is removed from the selection.
+  final PokemonFailure? typeFilterFailure;
+  final PokemonIndexEntry? randomPokemonToNavigate;
 
   static const _unset = Object();
 
@@ -85,17 +46,11 @@ final class PokedexState extends Equatable {
     bool? isRefreshing,
     List<PokemonIndexEntry>? allEntries,
     List<PokemonIndexEntry>? filteredEntries,
-    List<PokemonIndexEntry>? visibleEntries,
-    int? currentPage,
-    int? pageSize,
-    String? searchQuery,
-    Set<PokemonType>? selectedTypes,
-    Object? selectedGeneration = _unset,
-    PokedexSortOrder? sortOrder,
+    PokedexFilters? filters,
     Map<PokemonType, Set<int>>? typeIdMap,
-    PokedexFormFilter? formFilter,
-    bool? includeCosmeticForms,
+    Set<PokemonType>? loadingTypes,
     Object? failure = _unset,
+    Object? typeFilterFailure = _unset,
     Object? randomPokemonToNavigate = _unset,
   }) {
     return PokedexState(
@@ -103,21 +58,15 @@ final class PokedexState extends Equatable {
       isRefreshing: isRefreshing ?? this.isRefreshing,
       allEntries: allEntries ?? this.allEntries,
       filteredEntries: filteredEntries ?? this.filteredEntries,
-      visibleEntries: visibleEntries ?? this.visibleEntries,
-      currentPage: currentPage ?? this.currentPage,
-      pageSize: pageSize ?? this.pageSize,
-      searchQuery: searchQuery ?? this.searchQuery,
-      selectedTypes: selectedTypes ?? this.selectedTypes,
-      selectedGeneration: identical(selectedGeneration, _unset)
-          ? this.selectedGeneration
-          : selectedGeneration as int?,
-      sortOrder: sortOrder ?? this.sortOrder,
+      filters: filters ?? this.filters,
       typeIdMap: typeIdMap ?? this.typeIdMap,
-      formFilter: formFilter ?? this.formFilter,
-      includeCosmeticForms: includeCosmeticForms ?? this.includeCosmeticForms,
+      loadingTypes: loadingTypes ?? this.loadingTypes,
       failure: identical(failure, _unset)
           ? this.failure
           : failure as PokemonFailure?,
+      typeFilterFailure: identical(typeFilterFailure, _unset)
+          ? this.typeFilterFailure
+          : typeFilterFailure as PokemonFailure?,
       randomPokemonToNavigate: identical(randomPokemonToNavigate, _unset)
           ? this.randomPokemonToNavigate
           : randomPokemonToNavigate as PokemonIndexEntry?,
@@ -130,17 +79,11 @@ final class PokedexState extends Equatable {
     isRefreshing,
     allEntries,
     filteredEntries,
-    visibleEntries,
-    currentPage,
-    pageSize,
-    searchQuery,
-    selectedTypes,
-    selectedGeneration,
-    sortOrder,
+    filters,
     typeIdMap,
-    formFilter,
-    includeCosmeticForms,
+    loadingTypes,
     failure,
+    typeFilterFailure,
     randomPokemonToNavigate,
   ];
 }

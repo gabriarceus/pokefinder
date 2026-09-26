@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:pokefinder/src/2_application/hydrated_bloc/language_storage.dart';
+import 'package:pokefinder/src/2_application/bloc/language_cubit/language_cubit.dart';
 import 'package:pokefinder/src/3_domain/entities/language.dart';
 
 class _MockEnLogger extends Mock implements EnLogger {}
@@ -54,35 +54,14 @@ void main() {
 
       expect(cubit.state.locale, isNull);
     });
-  });
 
-  group('system language toggle', () {
-    test('enabling it remembers the current manual choice', () {
+    test('selecting the system option goes back to the device language', () {
       final cubit = buildCubit()
         ..setLanguage(Language.italian.id)
-        ..enableSystemLanguage();
+        ..setLanguage(Language.system.id);
 
       expect(cubit.state.languageId, Language.system.id);
-      expect(cubit.state.lastManualLanguageId, Language.italian.id);
-    });
-
-    test('enabling it twice keeps the original manual choice', () {
-      final cubit = buildCubit()
-        ..setLanguage(Language.italian.id)
-        ..enableSystemLanguage()
-        ..enableSystemLanguage();
-
-      expect(cubit.state.lastManualLanguageId, Language.italian.id);
-    });
-
-    test('disabling it restores the remembered manual choice', () {
-      final cubit = buildCubit()
-        ..setLanguage(Language.italian.id)
-        ..enableSystemLanguage()
-        ..disableSystemLanguage();
-
-      expect(cubit.state.languageId, Language.italian.id);
-      expect(cubit.state.locale, const Locale('it', 'IT'));
+      expect(cubit.state.locale, isNull);
     });
   });
 
@@ -97,19 +76,18 @@ void main() {
     test('the system-language choice survives a cubit restart', () async {
       final cubit = buildCubit()
         ..setLanguage(Language.italian.id)
-        ..enableSystemLanguage();
+        ..setLanguage(Language.system.id);
       await cubit.close();
 
       final restored = buildCubit();
       expect(restored.state.languageId, Language.system.id);
-      expect(restored.state.lastManualLanguageId, Language.italian.id);
+      expect(restored.state.locale, isNull);
     });
 
-    test('a stored payload missing both keys falls back to the defaults', () {
+    test('a stored payload missing the key falls back to the default', () {
       final restored = buildCubit().fromJson(const {});
 
       expect(restored.languageId, Language.system.id);
-      expect(restored.lastManualLanguageId, Language.english.id);
     });
   });
 }
