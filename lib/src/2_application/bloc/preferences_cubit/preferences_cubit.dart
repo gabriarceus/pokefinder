@@ -101,15 +101,20 @@ class PreferencesCubit extends HydratedCubit<PreferencesState> {
   }
 
   /// Clears repository cache and refreshes cache size.
-  Future<void> clearCache() async {
+  ///
+  /// Returns whether the cache was cleared.
+  Future<bool> clearCache() async {
     _logger.info('Clearing application cache', prefix: _prefix);
     final result = await _repository.clearCache();
-    result.fold(
-      (failure) =>
-          _logger.error('Failed to clear cache: $failure', prefix: _prefix),
-      (_) {
+    return result.fold(
+      (failure) {
+        _logger.error('Failed to clear cache: $failure', prefix: _prefix);
+        return false;
+      },
+      (_) async {
         emit(state.copyWith(cacheSizeBytes: 0));
-        refreshCacheSize();
+        await refreshCacheSize();
+        return true;
       },
     );
   }

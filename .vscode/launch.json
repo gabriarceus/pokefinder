@@ -24,6 +24,20 @@
       ]
     },
     {
+      "name": "Dev - Live API (Debug)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "flutterMode": "debug",
+      "args": [
+        "--flavor",
+        "dev"
+      ],
+      "toolArgs": [
+        "--dart-define=USE_MOCK=false"
+      ]
+    },
+    {
       "name": "Prod (Debug)",
       "request": "launch",
       "type": "dart",

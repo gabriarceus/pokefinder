@@ -212,5 +212,25 @@ void main() {
       expect(cubit2.state.sortOrder, equals(FavoriteSortOrder.nameAscending));
       expect(cubit2.isFavorite(7), isTrue);
     });
+
+    test('evicts one corrupt record and keeps the rest', () async {
+      final cubit = buildCubit();
+
+      final state = cubit.fromJson({
+        'favorites': [
+          {
+            'id': 25,
+            'name': 'pikachu',
+            'spriteUrl': '',
+            'types': ['electric'],
+            'addedAt': '2026-01-01T00:00:00.000Z',
+          },
+          {'id': 0, 'name': '', 'addedAt': '2026-01-01T00:00:00.000Z'},
+          {'name': 'no-id', 'addedAt': '2026-01-01T00:00:00.000Z'},
+        ],
+      });
+
+      expect(state.favorites.map((f) => f.pokemon.name), ['pikachu']);
+    });
   });
 }

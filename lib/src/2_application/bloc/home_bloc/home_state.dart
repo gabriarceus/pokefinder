@@ -2,12 +2,14 @@ part of 'home_bloc.dart';
 
 /// A request to open the detail of [nameOrId].
 ///
-/// Compared by identity: two searches for the same name are two requests.
-class SearchNavigation {
-  // Not const: canonicalized instances would compare equal.
-  SearchNavigation(this.nameOrId);
+/// Compared by value: two searches for the same name are the same request.
+class SearchNavigation extends Equatable {
+  const SearchNavigation(this.nameOrId);
 
   final String nameOrId;
+
+  @override
+  List<Object?> get props => [nameOrId];
 }
 
 @immutable
@@ -23,6 +25,7 @@ final class HomeBlocState extends Equatable {
 
   factory HomeBlocState.initial() => const HomeBlocState(userInput: '');
 
+  /// Whether a nullable field should be cleared by [copyWith].
   static const _unset = Object();
 
   final String userInput;
@@ -44,7 +47,7 @@ final class HomeBlocState extends Equatable {
     bool? isIndexLoading,
     Object? searchFailure = _unset,
     Object? indexFailure = _unset,
-    SearchNavigation? pendingNavigation,
+    Object? pendingNavigation = _unset,
   }) {
     return HomeBlocState(
       userInput: userInput ?? this.userInput,
@@ -56,7 +59,9 @@ final class HomeBlocState extends Equatable {
       indexFailure: identical(indexFailure, _unset)
           ? this.indexFailure
           : indexFailure as PokemonFailure?,
-      pendingNavigation: pendingNavigation ?? this.pendingNavigation,
+      pendingNavigation: identical(pendingNavigation, _unset)
+          ? this.pendingNavigation
+          : pendingNavigation as SearchNavigation?,
     );
   }
 

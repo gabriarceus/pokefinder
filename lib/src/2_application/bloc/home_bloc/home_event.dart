@@ -19,3 +19,6 @@ class SearchSubmitted extends HomeBlocEvent {
 
 /// Loads the Pokémon index used for suggestions.
 class LoadIndex extends HomeBlocEvent {}
+
+/// The pending navigation request has been handled by the UI.
+class NavigationDone extends HomeBlocEvent {}

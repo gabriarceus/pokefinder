@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:clock/clock.dart';
 import 'package:en_logger/en_logger.dart';
@@ -64,7 +65,6 @@ void main() {
     final entry = CacheEntry<Map<String, dynamic>>(
       data: data,
       storedAt: storedAt ?? simulatedNow,
-      lastAccessedAt: storedAt ?? simulatedNow,
     );
     when(
       () => localStorage.readEntry<Map<String, dynamic>>(url),
@@ -341,6 +341,126 @@ void main() {
 
       expect(await cache.size(), 2048);
       verify(() => localStorage.getByteSize()).called(1);
+    });
+  });
+
+  group('clear() versus in-flight writes', () {
+    /// A network read of [url] that only completes when [release] is called.
+    late Completer<Map<String, dynamic>> pending;
+
+    setUp(() {
+      pending = Completer<Map<String, dynamic>>();
+      when(
+        () => apiClient.get<Map<String, dynamic>>(_endpoint),
+      ).thenAnswer((_) => pending.future);
+      stubCacheEntry(null);
+    });
+
+    test('discards a write from a request started before the clear', () async {
+      final request = cache.get<Map<String, dynamic>>(_endpoint);
+
+      await cache.clear();
+      pending.complete(_networkPayload);
+      await request;
+
+      verifyNever(() => localStorage.write<Map<String, dynamic>>(any(), any()));
+    });
+
+    test('evicts a write that lands after the clear', () async {
+      var releaseWrite = Completer<void>();
+      when(
+        () => localStorage.write<Map<String, dynamic>>(any(), any()),
+      ).thenAnswer((_) => releaseWrite.future);
+      when(() => localStorage.delete(any())).thenAnswer((_) async {});
+
+      final request = cache.get<Map<String, dynamic>>(_endpoint);
+      // The epoch is captured before the await, so the clear lands mid-write.
+      pending.complete(_networkPayload);
+      await Future<void>.delayed(Duration.zero);
+
+      await cache.clear();
+      releaseWrite.complete();
+      await request;
+
+      verify(() => localStorage.delete(_endpoint)).called(1);
+    });
+
+    test('writes normally once no clear intervened', () async {
+      final request = cache.get<Map<String, dynamic>>(_endpoint);
+      pending.complete(_networkPayload);
+      await request;
+
+      verify(
+        () => localStorage.write<Map<String, dynamic>>(_endpoint, any()),
+      ).called(1);
+    });
+  });
+
+  group('forceRefresh and payload types', () {
+    test('does not decode the discarded cached entry', () async {
+      stubCacheEntry(_cachedPayload);
+      stubNetworkPayload(_networkPayload);
+
+      final response = await cache.get<Map<String, dynamic>>(
+        _endpoint,
+        forceRefresh: true,
+      );
+
+      expect(response.data, _networkPayload);
+      expect(response.isStale, isFalse);
+      verifyNever(() => localStorage.readEntry<Map<String, dynamic>>(any()));
+    });
+
+    test('still falls back to the cached entry on failure', () async {
+      stubCacheEntry(_cachedPayload);
+      stubNetworkError(const SocketException('offline'));
+
+      final response = await cache.get<Map<String, dynamic>>(
+        _endpoint,
+        forceRefresh: true,
+      );
+
+      expect(response.data, _cachedPayload);
+      expect(response.isStale, isTrue);
+    });
+  });
+
+  group('request sharing', () {
+    test('joins an in-flight request for the same url and type', () async {
+      stubCacheEntry(null);
+      var calls = 0;
+      when(() => apiClient.get<Map<String, dynamic>>(_endpoint)).thenAnswer((
+        _,
+      ) async {
+        calls++;
+        return _networkPayload;
+      });
+
+      await Future.wait([
+        cache.get<Map<String, dynamic>>(_endpoint),
+        cache.get<Map<String, dynamic>>(_endpoint),
+      ]);
+
+      expect(calls, 1);
+    });
+
+    test('does not share a request across payload types', () async {
+      when(
+        () => localStorage.readEntry<List<dynamic>>(_endpoint),
+      ).thenAnswer((_) async => null);
+      stubCacheEntry(null);
+      when(
+        () => apiClient.get<Map<String, dynamic>>(_endpoint),
+      ).thenAnswer((_) async => _networkPayload);
+      when(
+        () => apiClient.get<List<dynamic>>(_endpoint),
+      ).thenAnswer((_) async => [1, 2]);
+
+      final asMap = await cache.get<Map<String, dynamic>>(_endpoint);
+      final asList = await cache.get<List<dynamic>>(_endpoint);
+
+      expect(asMap.data, _networkPayload);
+      expect(asList.data, [1, 2]);
     });
   });
 }

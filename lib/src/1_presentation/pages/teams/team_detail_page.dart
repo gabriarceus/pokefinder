@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
@@ -90,7 +91,7 @@ class TeamDetailPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _TeamSummaryCard(members: team.members),
+                      _TeamSummarySection(members: team.members),
                       const SizedBox(height: 12),
                       const _TeamEmptyMembersView(),
                     ],
@@ -103,7 +104,7 @@ class TeamDetailPage extends StatelessWidget {
                     children: [
                       if (hasDuplicates) const _DuplicateWarningBanner(),
                       if (hasDuplicates) const SizedBox(height: 12),
-                      _TeamSummaryCard(members: team.members),
+                      _TeamSummarySection(members: team.members),
                       Padding(
                         padding: const EdgeInsets.only(top: 12, bottom: 4),
                         child: Text(
@@ -329,65 +330,19 @@ class _TeamMemberTile extends StatelessWidget {
 
 /// Type coverage plus summed/average base stats for [members].
 ///
-/// Coverage renders from the lightweight refs (no network). Stats fetch each
-/// member below in [_TeamStatsSection].
-class _TeamSummaryCard extends StatelessWidget {
-  const _TeamSummaryCard({required this.members});
+/// Both sections read the same fetched [Pokemon]s, so one widget owns the
+/// fetch: the stored member refs carry no types unless the member was added
+/// from a detail screen, and coverage can only be complete once they resolve.
+class _TeamSummarySection extends StatefulWidget {
+  const _TeamSummarySection({required this.members});
 
   final List<TeamMember> members;
 
   @override
-  Widget build(BuildContext context) {
-    final t = context.t();
-    final coverage = TeamSummaryHelper.typeCoverage(members);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SectionTitle(t.teamSummary),
-            Text(
-              t.teamTypeCoverage,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: 6),
-            if (coverage.isEmpty)
-              Text(t.noData)
-            else
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [for (final type in coverage) TypeChip(type: type)],
-              ),
-            const Divider(height: 24),
-            Text(t.baseStats, style: Theme.of(context).textTheme.titleSmall),
-            const SizedBox(height: 8),
-            _TeamStatsSection(members: members),
-          ],
-        ),
-      ),
-    );
-  }
+  State<_TeamSummarySection> createState() => _TeamSummarySectionState();
 }
 
-/// Fetches each member's details and aggregates summed/average base stats.
-///
-/// Blocs are owned here (created through the shared factory, closed on
-/// dispose) and re-created only when the member set changes — reordering
-/// alone never refetches. Failures render per-member inline retry so one
-/// bad fetch never destroys the summary.
-class _TeamStatsSection extends StatefulWidget {
-  const _TeamStatsSection({required this.members});
-
-  final List<TeamMember> members;
-
-  @override
-  State<_TeamStatsSection> createState() => _TeamStatsSectionState();
-}
-
-class _TeamStatsSectionState extends State<_TeamStatsSection> {
+class _TeamSummarySectionState extends State<_TeamSummarySection> {
   List<PokemonDetailBloc> _blocs = const [];
   List<StreamSubscription<PokemonBlocState>> _subscriptions = const [];
   List<Pokemon?> _pokemons = const [];
@@ -400,7 +355,7 @@ class _TeamStatsSectionState extends State<_TeamStatsSection> {
   }
 
   @override
-  void didUpdateWidget(covariant _TeamStatsSection oldWidget) {
+  void didUpdateWidget(covariant _TeamSummarySection oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!_sameMemberOrder(oldWidget.members, widget.members)) {
       _disposeBlocs();
@@ -470,11 +425,53 @@ class _TeamStatsSectionState extends State<_TeamStatsSection> {
   Widget build(BuildContext context) {
     final t = context.t();
     final locale = Localizations.localeOf(context).languageCode;
-    if (widget.members.isEmpty) {
-      return Text(t.statsNotAvailable);
-    }
     final loaded = _pokemons.whereType<Pokemon>().toList();
-    if (loaded.isEmpty && !_failed.contains(true)) {
+    final isLoading = loaded.isEmpty && !_failed.contains(true);
+    // The stored refs are a usable answer only until the fetched members land.
+    final coverage = loaded.isEmpty
+        ? TeamSummaryHelper.typeCoverage(widget.members)
+        : TeamSummaryHelper.typeCoverageOfPokemons(loaded);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SectionTitle(t.teamSummary),
+            Text(
+              t.teamTypeCoverage,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 6),
+            if (coverage.isEmpty)
+              Text(isLoading ? '' : t.noData)
+            else
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [for (final type in coverage) TypeChip(type: type)],
+              ),
+            const Divider(height: 24),
+            Text(t.baseStats, style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 8),
+            _buildStats(context, t, locale, loaded, isLoading),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStats(
+    BuildContext context,
+    AppLocalizations t,
+    String locale,
+    List<Pokemon> loaded,
+    bool isLoading,
+  ) {
+    if (widget.members.isEmpty) return Text(t.statsNotAvailable);
+    if (isLoading) {
       return const Center(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 12),
@@ -494,6 +491,13 @@ class _TeamStatsSectionState extends State<_TeamStatsSection> {
         if (summary.isEmpty)
           Text(t.statsNotAvailable)
         else ...[
+          // Names the two columns, which are otherwise only implied by the
+          // per-row layout.
+          _TeamStatHeader(
+            sumLabel: t.teamStatsSumColumn,
+            statLabel: t.baseStats,
+            averageLabel: t.teamStatsAverageColumn,
+          ),
           for (var i = 0; i < StatKind.values.length; i++)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -547,6 +551,41 @@ class _TeamStatsSectionState extends State<_TeamStatsSection> {
               ),
             ),
       ],
+    );
+  }
+}
+
+/// Column header naming the summed and averaged stat of every row below.
+class _TeamStatHeader extends StatelessWidget {
+  const _TeamStatHeader({
+    required this.sumLabel,
+    required this.statLabel,
+    required this.averageLabel,
+  });
+
+  final String sumLabel;
+  final String statLabel;
+  final String averageLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(
+      context,
+    ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          SizedBox(width: 56, child: Text(sumLabel, style: style)),
+          Expanded(
+            child: Text(statLabel, textAlign: TextAlign.center, style: style),
+          ),
+          SizedBox(
+            width: 56,
+            child: Text(averageLabel, textAlign: TextAlign.right, style: style),
+          ),
+        ],
+      ),
     );
   }
 }

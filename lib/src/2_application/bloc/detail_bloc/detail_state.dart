@@ -56,20 +56,31 @@ final class PokemonBlocSuccess extends PokemonBlocState {
   PokemonFormDetails get formDetails =>
       selectedFormDetails ?? PokemonFormDetails.fromPokemon(pokemon);
 
-  /// Summary of the displayed form, with the base Pokémon's values where the
-  /// form has none.
+  /// Summary of the displayed form, keyed by the form's own identity so that
+  /// favouriting or viewing an alternate form never collides with its base
+  /// species. Types and the form lineage come from the base Pokémon.
   PokemonSummary get summary {
     final form = formDetails;
     final types = form.type1 != null
         ? [form.type1, form.type2]
         : [pokemon.type1, pokemon.type2];
     return PokemonSummary(
-      id: pokemon.id,
-      name: form.name.isNotEmpty ? form.name : pokemon.name,
-      spriteUrl: form.spriteDefault.isNotEmpty
-          ? form.spriteDefault
+      id: form.id,
+      name: form.name,
+      spriteUrl: form.artworkDefault.isNotEmpty
+          ? form.artworkDefault
           : pokemon.sprite,
       types: types.whereType<PokemonType>().toList(),
+      parentSpeciesId: PokemonFormClassifier.resolveParentSpeciesId(
+        pokemon.name,
+        id: pokemon.id,
+      ),
+      parentSpeciesName: pokemon.speciesName,
+      formCategory: PokemonFormClassifier.classifyCategory(
+        form.name,
+        id: form.id,
+      ),
+      regionalGroup: PokemonFormClassifier.resolveRegionalGroup(form.name),
     );
   }
 

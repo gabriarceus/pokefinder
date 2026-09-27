@@ -189,7 +189,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('Galleria Sprite'), findsOneWidget);
+        expect(find.text('Galleria delle sprite'), findsOneWidget);
         expect(find.text('Artwork ufficiale'), findsOneWidget);
         expect(find.text('Fronte (normale)'), findsOneWidget);
       });

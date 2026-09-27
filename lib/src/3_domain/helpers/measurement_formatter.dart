@@ -12,7 +12,8 @@ abstract final class MeasurementFormatter {
     UnitSystem system, {
     String? locale,
   }) {
-    final format = NumberFormat('0.0', locale);
+    // At most one decimal, so 8.5 kg sits next to 100 kg rather than 100.0 kg.
+    final format = NumberFormat('#,##0.#', locale);
     switch (system) {
       case UnitSystem.metric:
         return '${format.format(weightInKg)} kg';

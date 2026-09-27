@@ -154,7 +154,9 @@ void main() {
 
       expect(bloc.state.status, PokedexStatus.success);
       expect(bloc.state.allEntries.length, 4);
-      expect(bloc.state.failure, isA<NetworkUnavailableFailure>());
+      // The grid is still usable, so the refresh failure must not pin the
+      // offline banner for the rest of the session.
+      expect(bloc.state.failure, isNull);
       expect(bloc.state.isRefreshing, isFalse);
     });
   });

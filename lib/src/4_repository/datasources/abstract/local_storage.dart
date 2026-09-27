@@ -3,7 +3,6 @@ class CacheEntry<T> {
   const CacheEntry({
     required this.data,
     required this.storedAt,
-    required this.lastAccessedAt,
     this.schemaVersion = 1,
   });
 
@@ -12,9 +11,6 @@ class CacheEntry<T> {
 
   /// Timestamp when the entry was originally stored.
   final DateTime storedAt;
-
-  /// Timestamp when the entry was last accessed.
-  final DateTime lastAccessedAt;
 
   /// Schema version of the cache envelope.
   final int schemaVersion;
@@ -40,12 +36,6 @@ abstract class LocalStorage {
   ///
   /// Returns `null` if no entry exists or if the envelope is malformed/obsolete.
   Future<CacheEntry<T>?> readEntry<T>(String key);
-
-  /// Reads a previously stored JSON payload associated with [key].
-  ///
-  /// Returns `null` if no entry exists for [key], or if [maxAge] is
-  /// provided and the entry was stored longer ago than [maxAge].
-  Future<T?> read<T>(String key, {Duration? maxAge});
 
   /// Persists [data] under the given [key], overwriting any existing entry.
   Future<void> write<T>(String key, T data);

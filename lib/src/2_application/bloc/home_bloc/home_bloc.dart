@@ -20,6 +20,9 @@ class HomeBloc extends Bloc<HomeBlocEvent, HomeBlocState> {
     on<SearchInputChanged>(_onSearchInputChanged);
     on<SearchSubmitted>(_onSearchSubmitted);
     on<LoadIndex>(_onLoadIndex);
+    on<NavigationDone>(
+      (event, emit) => emit(state.copyWith(pendingNavigation: null)),
+    );
   }
 
   final IPokemonRepository _pokemonRepository;

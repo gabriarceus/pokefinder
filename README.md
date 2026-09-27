@@ -96,10 +96,11 @@ matching Xcode schemes), differing in application id suffix and display name. Ev
 Dependency injection environments are mapped to the build flavor: `--flavor dev`
 binds `Environment.dev` with `MockPokemonRepository` for deterministic offline development,
 while `--flavor prod` binds `Environment.prod` with `PokemonRepositoryImpl` for live PokeAPI data.
+Pass `--dart-define=USE_MOCK=false` to run a `dev` build against the live API.
 
 ## Data, caching, and i18n
 
-- PokeAPI v2 over Dio; responses cached in Hive by `PokeApiCache`, a feature-agnostic cache-first client with a 24 h window, stale-if-error fallback and per-URL request sharing. `PokemonRepositoryImpl` parses the JSON, maps it to entities and maps every error to a `PokemonFailure` in one place.
+- PokeAPI v2 over Dio; responses cached in Hive by `PokeApiCache`, a feature-agnostic cache-first client with a 24 h window, stale-if-error fallback, per-URL-and-type request sharing, and an epoch guard so a "Clear cache" discards writes already in flight. `PokemonRepositoryImpl` parses the JSON, maps it to entities and maps every error to a `PokemonFailure` in one place. It memoizes the enriched Pokédex index, which is also the only source of a Pokémon's alternate forms: `/pokemon/{name}` names just the Pokémon itself.
 - Durable user state (language, theme, favorites, teams, history) lives in documents storage; disposable API cache lives in temporary storage.
 - UI strings: `lib/l10n/app_en.arb` + `app_it.arb` → `AppLocalizations`. Bulk data translations (abilities, moves, items, locations) live in `lib/l10n/*_db.dart`, keyed by API value — see `docs/localization_policy.md`.
 - Logging redacts user queries at release level and truncates payloads — see `docs/logging_policy.md`.

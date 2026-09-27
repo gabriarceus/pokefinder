@@ -67,6 +67,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get language => 'Lingua';
 
   @override
+  String get useDeviceLanguage => 'Dispositivo';
+
+  @override
   String get weight => 'Peso';
 
   @override
@@ -115,7 +118,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tabMoves => 'Mosse';
 
   @override
-  String get tabItemsGames => 'Dove trovarlo';
+  String get tabItemsGames => 'Luoghi';
 
   @override
   String get baseExp => 'Esperienza di base ceduta';
@@ -238,7 +241,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get spriteToggleShiny => 'Mostra Shiny';
 
   @override
-  String get spriteTitle => 'Galleria Sprite';
+  String get spriteTitle => 'Galleria delle sprite';
 
   @override
   String get galleryArtworkDefault => 'Artwork ufficiale';
@@ -703,7 +706,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get formBadgeMegaIndicator => '⚡ Mega';
 
   @override
-  String get formBadgeRegionalIndicator => '🌍 Regionali';
+  String get formBadgeRegionalIndicator => '🌍 Forme regionali';
 
   @override
   String get formBadgeGmaxIndicator => '💥 Gigamax';
@@ -726,6 +729,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get addToFavorites => 'Aggiungi ai preferiti';
+
+  @override
+  String get cardActionsHint => 'Tieni premuto per altre azioni';
 
   @override
   String get removeFromFavorites => 'Rimuovi dai preferiti';
@@ -1254,7 +1260,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get teamTypeCoverage => 'Copertura tipi';
 
   @override
+  String get teamStatsSumColumn => 'Somma';
+
+  @override
   String get teamStatsSum => 'Totale (somma)';
+
+  @override
+  String get teamStatsAverageColumn => 'Media';
 
   @override
   String get teamStatsAverage => 'Media';

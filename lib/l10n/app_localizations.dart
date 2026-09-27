@@ -206,6 +206,12 @@ abstract class AppLocalizations {
   /// **'Language'**
   String get language;
 
+  /// No description provided for @useDeviceLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Device'**
+  String get useDeviceLanguage;
+
   /// No description provided for @weight.
   ///
   /// In en, this message translates to:
@@ -305,7 +311,7 @@ abstract class AppLocalizations {
   /// No description provided for @tabItemsGames.
   ///
   /// In en, this message translates to:
-  /// **'Where to find'**
+  /// **'Items'**
   String get tabItemsGames;
 
   /// No description provided for @baseExp.
@@ -1478,6 +1484,12 @@ abstract class AppLocalizations {
   /// **'Add to favorites'**
   String get addToFavorites;
 
+  /// No description provided for @cardActionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Long press for more actions'**
+  String get cardActionsHint;
+
   /// No description provided for @removeFromFavorites.
   ///
   /// In en, this message translates to:
@@ -2360,11 +2372,23 @@ abstract class AppLocalizations {
   /// **'Type coverage'**
   String get teamTypeCoverage;
 
+  /// No description provided for @teamStatsSumColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sum'**
+  String get teamStatsSumColumn;
+
   /// No description provided for @teamStatsSum.
   ///
   /// In en, this message translates to:
   /// **'Total (sum)'**
   String get teamStatsSum;
+
+  /// No description provided for @teamStatsAverageColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg'**
+  String get teamStatsAverageColumn;
 
   /// No description provided for @teamStatsAverage.
   ///

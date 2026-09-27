@@ -83,6 +83,9 @@ class PokemonIndexFilterHelper {
             entry.effectiveParentSpeciesId.toString().startsWith(
               normalizedQuery,
             );
+        if (matchesName || matchesId) return true;
+
+        // Only the surviving entries pay for the category keyword switch.
         final matchesCategory = switch (normalizedQuery) {
           'mega' => entry.formCategory == PokemonFormCategory.mega,
           'primal' => entry.formCategory == PokemonFormCategory.primal,
@@ -94,8 +97,7 @@ class PokemonIndexFilterHelper {
           'paldea' => entry.regionalGroup == PokemonRegionalGroup.paldea,
           _ => false,
         };
-
-        if (!matchesName && !matchesId && !matchesCategory) {
+        if (!matchesCategory) {
           return false;
         }
       }

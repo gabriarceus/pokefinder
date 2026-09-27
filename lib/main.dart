@@ -11,6 +11,11 @@ void main() {
   bootstrap(then: () => const MyApp());
 }
 
+/// Whether the `dev` flavor runs on the mock repository instead of PokeAPI.
+///
+/// Set `--dart-define=USE_MOCK=false` to point a dev build at the live API.
+const _kUseMockData = bool.fromEnvironment('USE_MOCK', defaultValue: true);
+
 /// Executes mobile application startup with isolated storage initialization.
 ///
 /// If storage or dependency setup fails, renders [StartupErrorApp] with a retry action
@@ -31,7 +36,7 @@ Future<void> bootstrap({
     }
 
     await configureDependencies(
-      appFlavor == 'dev' ? Environment.dev : Environment.prod,
+      appFlavor == 'dev' && _kUseMockData ? Environment.dev : Environment.prod,
     );
     run(then());
   } catch (error) {

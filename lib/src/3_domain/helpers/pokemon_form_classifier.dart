@@ -3,6 +3,7 @@ import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_regional_group.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 import 'package:pokefinder/src/3_domain/helpers/canonical_species_data.dart';
+import 'package:pokefinder/src/3_domain/helpers/mega_evolution_data.dart';
 import 'package:pokefinder/src/3_domain/helpers/string_casing_extensions.dart';
 
 /// Pure domain utility for classifying Pokémon alternate forms, resolving parent
@@ -61,6 +62,10 @@ class PokemonFormClassifier {
   }
 
   /// Classifies the [PokemonFormCategory] of a Pokémon from its wire name and ID.
+  ///
+  /// Purely structural: a `-mega` name yields [PokemonFormCategory.mega] even
+  /// for a species with no Mega Evolution. Use [hasMegaEvolution] to decide
+  /// whether a species advertises one.
   static PokemonFormCategory classifyCategory(String name, {int? id}) {
     if ((id != null && id > 0 && id <= 1025) ||
         (id == null && kCanonicalSpeciesNameToId.containsKey(name))) {
@@ -202,6 +207,38 @@ class PokemonFormClassifier {
     }
   }
 
+  /// Whether [name] is spelled as a Mega form (`-mega`, `-mega-x`, `-mega-y`,
+  /// `-mega-z`), regardless of whether the species actually has one.
+  static bool isMegaFormName(String name) {
+    final lower = name.toLowerCase();
+    return lower.endsWith('-mega') ||
+        lower.endsWith('-mega-x') ||
+        lower.endsWith('-mega-y') ||
+        lower.endsWith('-mega-z');
+  }
+
+  /// Whether the species [name] belongs to has a real Mega Evolution.
+  ///
+  /// The index ships `-mega` resources for species that never had one, so the
+  /// name alone cannot answer this.
+  static bool hasMegaEvolution(String name) {
+    if (!isMegaFormName(name)) return false;
+    var candidate = name.toLowerCase().split('-mega').first;
+    while (true) {
+      if (kMegaEvolutionSpecies.contains(candidate)) return true;
+      final cut = candidate.lastIndexOf('-');
+      if (cut < 0) return false;
+      candidate = candidate.substring(0, cut);
+    }
+  }
+
+  /// Whether [formName] is a form that actually exists in the games.
+  ///
+  /// Excludes the vestigial `-mega` resources the index ships for species with
+  /// no Mega Evolution.
+  static bool hasRealForm(String formName) =>
+      !isMegaFormName(formName) || hasMegaEvolution(formName);
+
   /// Enriches a list of [PokemonIndexEntry] with parent resolution, classification,
   /// and tracks available alternate forms on canonical species entries.
   static List<PokemonIndexEntry> enrichEntries(
@@ -236,7 +273,8 @@ class PokemonFormClassifier {
       );
       final speciesGen = resolveGeneration(parentId);
 
-      if (category != PokemonFormCategory.canonical) {
+      if (category != PokemonFormCategory.canonical &&
+          hasRealForm(entry.name)) {
         formsByParentId.putIfAbsent(parentId, () => {}).add(category);
       }
 
@@ -262,6 +300,10 @@ class PokemonFormClassifier {
     }).toList();
   }
 
+  /// Whether [formName] is a form that actually exists in the games.
+  ///
+  /// Excludes the vestigial `-mega` resources the index ships for species with
+  /// no Mega Evolution.
   static bool _isCosmetic(String name) {
     if (name.contains('-cap') ||
         name.contains('-costume') ||

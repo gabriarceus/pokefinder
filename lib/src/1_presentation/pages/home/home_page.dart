@@ -47,6 +47,8 @@ class _HomePageState extends State<HomePage> {
     // and the keyboard and the suggestions cover the buttons.
     _focusNode.unfocus();
     final nameOrId = navigation.nameOrId;
+    // Consume the request, so resubmitting the same term navigates again.
+    context.read<HomeBloc>().add(NavigationDone());
     context.push(AppRoutes.pokemon(nameOrId, search: nameOrId));
   }
 
@@ -91,7 +93,6 @@ class _HomePageState extends State<HomePage> {
                     child: BlocBuilder<HomeBloc, HomeBlocState>(
                       builder: (context, state) {
                         return Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             PokeTextField(

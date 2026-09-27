@@ -80,18 +80,26 @@ class PokemonIndexEntry extends Equatable {
   String get dexNumberDisplay =>
       '#${effectiveParentSpeciesId.toString().padLeft(4, '0')}';
 
-  /// Standard pixel front-default sprite URL derived from [id].
-  String get spriteUrl =>
-      customSpriteUrl ??
-      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$id.png';
-
-  /// Summary of this entry, with the [spriteUrl] image.
-  PokemonSummary get summary =>
-      PokemonSummary(id: id, name: name, spriteUrl: spriteUrl, types: types);
-
   /// High-resolution official artwork URL derived from [id].
   String get officialArtworkUrl =>
       'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$id.png';
+
+  /// Image this entry is rendered with, and the one every derived surface
+  /// inherits: the custom override when set, the official artwork otherwise.
+  String get displaySpriteUrl => customSpriteUrl ?? officialArtworkUrl;
+
+  /// Summary of this entry, carrying the artwork and the form lineage so a
+  /// round trip through a [PokemonSummary] keeps both.
+  PokemonSummary get summary => PokemonSummary(
+    id: id,
+    name: name,
+    spriteUrl: displaySpriteUrl,
+    types: types,
+    parentSpeciesId: parentSpeciesId,
+    parentSpeciesName: parentSpeciesName,
+    formCategory: formCategory,
+    regionalGroup: regionalGroup,
+  );
 
   /// Formats the [id] with a leading '#' and minimum 3 digits (e.g. "#025").
   String get formattedId => '#${id.toString().padLeft(3, '0')}';

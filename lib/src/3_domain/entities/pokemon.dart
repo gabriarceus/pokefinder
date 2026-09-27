@@ -150,6 +150,7 @@ class PokemonForm extends Equatable {
 
 class PokemonFormDetails extends Equatable {
   const PokemonFormDetails({
+    required this.id,
     required this.name,
     required this.type1,
     this.type2,
@@ -162,6 +163,7 @@ class PokemonFormDetails extends Equatable {
   /// Builds the default form details from a [Pokemon]'s own attributes,
   /// falling back to the base sprite when shiny/artwork variants are missing.
   factory PokemonFormDetails.fromPokemon(Pokemon pokemon) => PokemonFormDetails(
+    id: pokemon.id,
     name: pokemon.name,
     type1: pokemon.type1,
     type2: pokemon.type2,
@@ -174,6 +176,8 @@ class PokemonFormDetails extends Equatable {
         pokemon.sprite,
   );
 
+  /// Pokédex identifier of this exact form.
+  final int id;
   final String name;
   final PokemonType? type1;
   final PokemonType? type2;
@@ -184,6 +188,7 @@ class PokemonFormDetails extends Equatable {
 
   @override
   List<Object?> get props => [
+    id,
     name,
     type1,
     type2,

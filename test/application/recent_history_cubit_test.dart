@@ -155,5 +155,27 @@ void main() {
       expect(cubit2.state.recentSearches, equals(['pikachu']));
       expect(cubit2.state.isHistoryEnabled, isFalse);
     });
+
+    test('evicts one corrupt record and keeps the rest', () {
+      final cubit = buildCubit();
+
+      final state = cubit.fromJson({
+        'recentPokemon': [
+          {
+            'id': 25,
+            'name': 'pikachu',
+            'spriteUrl': '',
+            'types': ['electric'],
+            'viewedAt': '2026-01-01T00:00:00.000Z',
+          },
+          {'name': 'no-id', 'viewedAt': '2026-01-01T00:00:00.000Z'},
+          'not even a map',
+        ],
+        'recentSearches': ['pikachu'],
+      });
+
+      expect(state.recentPokemon.map((r) => r.pokemon.name), ['pikachu']);
+      expect(state.recentSearches, ['pikachu']);
+    });
   });
 }

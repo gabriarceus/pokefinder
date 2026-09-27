@@ -69,18 +69,6 @@ class TeamSummaryHelper {
     return false;
   }
 
-  /// Slugs that appear more than once in [members].
-  static List<String> duplicateMemberNames(List<TeamMember> members) {
-    final counts = <String, int>{};
-    for (final member in members) {
-      counts.update(member.memberKey, (count) => count + 1, ifAbsent: () => 1);
-    }
-    return counts.entries
-        .where((entry) => entry.value > 1)
-        .map((entry) => entry.key)
-        .toList();
-  }
-
   /// Union of elemental types across [members] in first-seen order.
   static List<PokemonType> typeCoverage(List<TeamMember> members) {
     final seen = <PokemonType>[];
@@ -128,6 +116,3 @@ class TeamSummaryHelper {
     );
   }
 }
-
-/// Whether another member can be added given [currentCount] members.
-bool canAddTeamMember(int currentCount) => currentCount < kTeamMaxMembers;

@@ -17,13 +17,10 @@ void main() {
       expect(entry.types, [PokemonType.electric]);
       expect(entry.formattedId, '#025');
       expect(
-        entry.spriteUrl,
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png',
-      );
-      expect(
         entry.officialArtworkUrl,
         'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png',
       );
+      expect(entry.displaySpriteUrl, entry.officialArtworkUrl);
     });
 
     test('respects customSpriteUrl when provided', () {
@@ -34,7 +31,7 @@ void main() {
         customSpriteUrl: 'https://custom.sprite/1.png',
       );
 
-      expect(entry.spriteUrl, 'https://custom.sprite/1.png');
+      expect(entry.displaySpriteUrl, 'https://custom.sprite/1.png');
     });
 
     test('correctly maps generation from Pokédex numeric ID ranges', () {
@@ -203,7 +200,7 @@ void main() {
       expect(updated.id, 4);
       expect(updated.name, 'charmander');
       expect(updated.types, [PokemonType.fire]);
-      expect(updated.spriteUrl, 'https://test/4.png');
+      expect(updated.displaySpriteUrl, 'https://test/4.png');
     });
 
     test('value equality and props', () {

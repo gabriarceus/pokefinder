@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_form_category.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_sprites.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
@@ -24,6 +25,7 @@ const _megaForm = PokemonForm(
 );
 
 const _megaDetails = PokemonFormDetails(
+  id: 10033,
   name: 'venusaur-mega',
   type1: PokemonType.grass,
   type2: PokemonType.poison,
@@ -132,7 +134,8 @@ void main() {
         );
         expect(firstSuccess.summary.id, pokemon.id);
         expect(firstSuccess.summary.name, 'venusaur');
-        expect(firstSuccess.summary.spriteUrl, pokemon.sprite);
+        // Lists render the high-resolution artwork, never the pixel sprite.
+        expect(firstSuccess.summary.spriteUrl, 'art.png');
         expect(firstSuccess.summary.types, [PokemonType.grass]);
       },
     );
@@ -303,7 +306,12 @@ void main() {
       // B2: formDetails/summary follow the selected form.
       expect(emitted.last.formDetails, _megaDetails);
       expect(emitted.last.summary.name, 'venusaur-mega');
-      expect(emitted.last.summary.spriteUrl, 'mega.png');
+      // Keyed by the form's own id, so favouriting a form never replaces the
+      // base species entry.
+      expect(emitted.last.summary.id, 10033);
+      expect(emitted.last.summary.spriteUrl, 'mega-art.png');
+      expect(emitted.last.summary.parentSpeciesId, 1);
+      expect(emitted.last.summary.formCategory, PokemonFormCategory.mega);
       expect(emitted.last.summary.types, [
         PokemonType.grass,
         PokemonType.poison,

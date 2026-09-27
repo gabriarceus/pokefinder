@@ -70,6 +70,7 @@ class MockPokemonRepository implements IPokemonRepository {
   ) async {
     return const Right(
       PokemonFormDetails(
+        id: 1,
         name: 'bulbasaur',
         type1: PokemonType.grass,
         type2: PokemonType.poison,

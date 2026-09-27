@@ -122,7 +122,7 @@ void main() {
         expect(find.byType(DetailHeader), findsOneWidget);
         expect(find.byType(TabBar), findsOneWidget);
 
-        for (final tabTitle in ['Stats', 'Moves', 'Where to find']) {
+        for (final tabTitle in ['Stats', 'Moves', 'Items']) {
           final tabFinder = find.text(tabTitle);
           await tester.tap(tabFinder, warnIfMissed: false);
           await pumpFrames(tester);

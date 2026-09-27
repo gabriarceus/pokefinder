@@ -45,26 +45,40 @@ also update the facts in this file and in the skills.
 
 - **App-lifetime cubits** are `@lazySingleton` and provided once at the app root in `lib/main.dart`:
   `PreferencesCubit`, `LanguageCubit`, `FavoritesCubit`, `RecentHistoryCubit`, `ComparisonCubit`,
-  `TeamsCubit`. All except `ComparisonCubit` are `HydratedCubit`s (persisted JSON).
+  `TeamsCubit`. All except `ComparisonCubit` are `HydratedCubit`s (persisted JSON). A
+  `HydratedCubit.fromJson` must drop a corrupt record and keep the rest, the way `TeamsCubit`
+  does — `PokemonSummary.fromJson` throws on a missing id or name.
+- `PokemonSummary.id` identifies the exact **form**, never the parent species, and it carries
+  `parentSpeciesId`/`formCategory`/`regionalGroup` so a round trip back to a
+  `PokemonIndexEntry` keeps the form lineage. Favourites, history, teams and comparison all key
+  on that id.
 - **Screen-scoped blocs** are `@injectable` and created only through
   `presentation_bloc_factory.dart` (`createPokemonBloc`, `createPokedexBloc`, …). No raw `getIt`
   in `1_presentation/`.
 - Cubits that need runtime data (`DetailMovesCubit`) or have no dependencies
   (`DetailGameVersionCubit`) are not injectable and are created inline in a `BlocProvider`.
 - Environments: `--flavor prod` → `Environment.prod` → `PokemonRepositoryImpl` (live PokeAPI).
-  `--flavor dev` → `Environment.dev` → `MockPokemonRepository` (fixed offline data).
+  `--flavor dev` → `Environment.dev` → `MockPokemonRepository` (fixed offline data), unless
+  `--dart-define=USE_MOCK=false` is passed, which points a dev build at the live API (there is a
+  "Dev - Live API" launch config for it).
   `Environment` is injectable's own class; `configureDependencies` takes its `String` value.
 
 ## Data, errors, logging
 
-- Dio → `PokeApiCache` (Hive cache, cache-first, 24 h window, stale-if-error, per-URL request
-  sharing) → `PokemonRepositoryImpl` (maps `Raw*` → entities, and **all** errors in one
-  `_toFailure`) → bloc.
+- Dio → `PokeApiCache` (Hive cache, cache-first, 24 h window, stale-if-error, per-URL-and-type
+  request sharing, and an epoch so a `clear()` discards writes already in flight) →
+  `PokemonRepositoryImpl` (maps `Raw*` → entities, and **all** errors in one `_toFailure`) → bloc.
+- `PokemonRepositoryImpl` memoizes the enriched Pokédex index for the app lifetime. It is the
+  source of a Pokémon's `forms`: `/pokemon/{name}` only ever names the Pokémon itself, so the
+  catalog is grouped by `effectiveParentSpeciesId` instead. `PokemonFormClassifier.hasRealForm`
+  filters the vestigial `-mega` entries the index ships for species with no Mega Evolution
+  (`kMegaEvolutionSpecies`).
 - Fallible calls return `Either<PokemonFailure, T>` (dartz). HTTP status → failure mapping lives
   in that single `_toFailure` in `PokemonRepositoryImpl`. The UI shows failures with
   `failure.localizedMessage(context)`.
 - Cache clearing and size also live on the repository (`clearCache()`, `getCacheSize()`); there
-  is no `ClearCacheUseCase`/`GetCacheSizeUseCase`.
+  is no `ClearCacheUseCase`/`GetCacheSizeUseCase`. `PreferencesCubit.clearCache()` returns whether
+  it succeeded, and the settings page reports the failure instead of always claiming success.
 - `CancellationToken` and every `cancelToken:` parameter are gone. A superseded request is
   dropped by `restartable()` plus `emit.isDone`.
 - Durable user state (hydrated cubits) is in the documents directory. The disposable API cache is
