@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
+import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 
 /// Navigation drawer of the home page.
 class HomeDrawer extends StatelessWidget {
@@ -11,12 +12,12 @@ class HomeDrawer extends StatelessWidget {
     final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final destinations = [
-      (Icons.catching_pokemon, t.browsePokedex, '/pokedex'),
-      (Icons.favorite_rounded, t.favorites, '/favorites'),
-      (Icons.compare_arrows_rounded, t.compareTitle, '/compare'),
-      (Icons.table_chart_rounded, t.matchupTitle, '/matchups'),
-      (Icons.groups_rounded, t.teamsTitle, '/teams'),
-      (Icons.tune_rounded, t.settings, '/settings'),
+      (Icons.catching_pokemon, t.browsePokedex, AppRoutes.pokedex),
+      (Icons.favorite_rounded, t.favorites, AppRoutes.favorites),
+      (Icons.compare_arrows_rounded, t.compareTitle, AppRoutes.compare),
+      (Icons.table_chart_rounded, t.matchupTitle, AppRoutes.matchups()),
+      (Icons.groups_rounded, t.teamsTitle, AppRoutes.teams),
+      (Icons.tune_rounded, t.settings, AppRoutes.settings),
     ];
 
     return Drawer(

@@ -19,7 +19,7 @@ void main() {
             UnitSystem.metric,
             locale: 'en',
           ),
-          equals('0.0 kg'),
+          equals('0 kg'),
         );
         expect(
           MeasurementFormatter.formatWeight(
@@ -27,7 +27,7 @@ void main() {
             UnitSystem.metric,
             locale: 'en',
           ),
-          equals('100.0 kg'),
+          equals('100 kg'),
         );
       });
 
@@ -47,7 +47,7 @@ void main() {
             UnitSystem.imperial,
             locale: 'en',
           ),
-          equals('0.0 lbs'),
+          equals('0 lbs'),
         );
       });
     });

@@ -57,6 +57,7 @@ const _megaForm = PokemonForm(
 );
 
 const _megaDetails = PokemonFormDetails(
+  id: 10033,
   name: 'venusaur-mega',
   type1: PokemonType.grass,
   type2: PokemonType.poison,

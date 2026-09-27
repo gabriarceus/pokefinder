@@ -102,27 +102,11 @@ extension GetItInjectableX on _i174.GetIt {
       ),
     );
     gh.lazySingleton<_i341.IPokemonRepository>(
-      () => _i907.PokemonRepositoryImpl(gh<_i579.PokeApiCache>()),
+      () => _i907.PokemonRepositoryImpl(
+        gh<_i579.PokeApiCache>(),
+        gh<_i463.EnLogger>(),
+      ),
       registerFor: {_prod},
-    );
-    gh.lazySingleton<_i199.ComparisonCubit>(
-      () => _i199.ComparisonCubit(
-        gh<_i463.EnLogger>(),
-        gh<_i341.IPokemonRepository>(),
-      ),
-    );
-    gh.lazySingleton<_i361.PreferencesCubit>(
-      () => _i361.PreferencesCubit(
-        gh<_i463.EnLogger>(),
-        gh<_i341.IPokemonRepository>(),
-      ),
-    );
-    gh.factoryParam<_i820.PokedexBloc, Duration?, dynamic>(
-      (searchDebounceDuration, _) => _i820.PokedexBloc(
-        gh<_i341.IPokemonRepository>(),
-        gh<_i463.EnLogger>(),
-        searchDebounceDuration: searchDebounceDuration,
-      ),
     );
     gh.factory<_i473.AbilityDetailCubit>(
       () => _i473.AbilityDetailCubit(
@@ -156,6 +140,25 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i56.HomeBloc>(
       () => _i56.HomeBloc(gh<_i341.IPokemonRepository>(), gh<_i463.EnLogger>()),
+    );
+    gh.lazySingleton<_i199.ComparisonCubit>(
+      () => _i199.ComparisonCubit(
+        gh<_i463.EnLogger>(),
+        gh<_i341.IPokemonRepository>(),
+      ),
+    );
+    gh.lazySingleton<_i361.PreferencesCubit>(
+      () => _i361.PreferencesCubit(
+        gh<_i463.EnLogger>(),
+        gh<_i341.IPokemonRepository>(),
+      ),
+    );
+    gh.factoryParam<_i820.PokedexBloc, Duration?, dynamic>(
+      (searchDebounceDuration, _) => _i820.PokedexBloc(
+        gh<_i341.IPokemonRepository>(),
+        gh<_i463.EnLogger>(),
+        searchDebounceDuration: searchDebounceDuration,
+      ),
     );
     return this;
   }

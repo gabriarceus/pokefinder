@@ -111,14 +111,14 @@ class HiveLocalStorage implements LocalStorage {
     }
 
     if (T != dynamic && data is! T) {
+      // Schema drift: the payload cannot be decoded as T, so evict it instead
+      // of re-decoding it on every read.
+      _accessOrder.remove(key);
+      await box.delete(key);
       return null;
     }
 
     final nowMs = _clock.now().millisecondsSinceEpoch;
-    final lastAccessedAtMs =
-        _accessOrder[key] ??
-        (envelope[_kLastAccessedAtKey] as int?) ??
-        storedAtMs;
 
     // Update in-memory access tracking without re-encoding the full payload to disk
     _recordAccess(key, nowMs);
@@ -126,21 +126,8 @@ class HiveLocalStorage implements LocalStorage {
     return CacheEntry<T>(
       data: data as T,
       storedAt: DateTime.fromMillisecondsSinceEpoch(storedAtMs),
-      lastAccessedAt: DateTime.fromMillisecondsSinceEpoch(lastAccessedAtMs),
       schemaVersion: version,
     );
-  }
-
-  @override
-  Future<T?> read<T>(String key, {Duration? maxAge}) async {
-    final entry = await readEntry<T>(key);
-    if (entry == null) return null;
-
-    if (maxAge != null && !entry.isFresh(maxAge, now: _clock.now())) {
-      return null;
-    }
-
-    return entry.data;
   }
 
   @override

@@ -3,6 +3,49 @@ import 'package:pokefinder/src/3_domain/domain.dart';
 
 void main() {
   group('PokemonFormClassifier', () {
+    group('real Mega Evolutions', () {
+      test('accepts the species that have one', () {
+        for (final name in [
+          'charizard-mega',
+          'charizard-mega-x',
+          'charizard-mega-y',
+          'absol-mega-z',
+          'meowstic-male-mega',
+          'magearna-original-mega',
+          'raichu-mega-x',
+        ]) {
+          expect(PokemonFormClassifier.hasRealForm(name), isTrue, reason: name);
+        }
+      });
+
+      test('rejects the vestigial index entries', () {
+        for (final name in [
+          'venusaur-mega',
+          'blastoise-mega',
+          'garchomp-mega',
+          'abomasnow-mega',
+          'staraptor-mega',
+        ]) {
+          expect(
+            PokemonFormClassifier.hasRealForm(name),
+            isFalse,
+            reason: name,
+          );
+        }
+      });
+
+      test('leaves non-mega forms alone', () {
+        for (final name in [
+          'charizard-gmax',
+          'vulpix-alola',
+          'rotom-wash',
+          'zygarde-10',
+        ]) {
+          expect(PokemonFormClassifier.hasRealForm(name), isTrue, reason: name);
+        }
+      });
+    });
+
     test('classifies all major form categories correctly', () {
       expect(
         PokemonFormClassifier.classifyCategory('charizard-mega-x', id: 10034),
@@ -416,9 +459,15 @@ void main() {
 
         final venusaur = enriched.firstWhere((e) => e.id == 3);
         expect(venusaur.hasAlternateForms, isTrue);
+        // B3: `venusaur-mega` ships in the index but Venusaur has no Mega
+        // Evolution, so only the real G-Max form is advertised.
         expect(
           venusaur.availableFormCategories,
-          containsAll([PokemonFormCategory.mega, PokemonFormCategory.gmax]),
+          containsAll([PokemonFormCategory.gmax]),
+        );
+        expect(
+          venusaur.availableFormCategories,
+          isNot(contains(PokemonFormCategory.mega)),
         );
 
         final megaVenusaur = enriched.firstWhere((e) => e.id == 10033);

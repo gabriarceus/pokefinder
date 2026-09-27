@@ -1,4 +1,6 @@
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_form_category.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_regional_group.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_sprites.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_summary.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
@@ -52,6 +54,19 @@ PokemonSummary buildSummary({
   String name = 'bulbasaur',
   String spriteUrl = 'sprite.png',
   List<PokemonType> types = const [PokemonType.grass],
+  int? parentSpeciesId,
+  String? parentSpeciesName,
+  PokemonFormCategory formCategory = PokemonFormCategory.canonical,
+  PokemonRegionalGroup? regionalGroup,
 }) {
-  return PokemonSummary(id: id, name: name, spriteUrl: spriteUrl, types: types);
+  return PokemonSummary(
+    id: id,
+    name: name,
+    spriteUrl: spriteUrl,
+    types: types,
+    parentSpeciesId: parentSpeciesId,
+    parentSpeciesName: parentSpeciesName,
+    formCategory: formCategory,
+    regionalGroup: regionalGroup,
+  );
 }

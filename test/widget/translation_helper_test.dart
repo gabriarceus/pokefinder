@@ -88,6 +88,24 @@ void main() {
       expect(find.text('Percorso 1 (Kanto)'), findsOneWidget);
     });
 
+    testWidgets('Translates Legends Arceus routes to Italian', (tester) async {
+      await tester.pumpWidget(
+        buildTestWidget(
+          locale: const Locale('it'),
+          builder: (context) => Column(
+            children: [
+              Text(context.translateLocation('hisui-route-1')),
+              Text(context.translateLocation('hisui-route-1-area')),
+              Text(context.translateLocation('mt-coronet-1f')),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Percorso 1 (Hisui)'), findsNWidgets(2));
+      expect(find.text('Monte Corona 1F'), findsOneWidget);
+    });
+
     testWidgets(
       'Falls back to the whole English name when part of a location has no translation',
       (tester) async {

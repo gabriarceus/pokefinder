@@ -27,7 +27,10 @@ class PokeApiCache {
   final EnLogger _logger;
   final Clock _clock;
 
-  /// Network requests currently running, keyed by URL.
+  /// Incremented by every [clear] so writes started before it can be dropped.
+  int _epoch = 0;
+
+  /// Network requests currently running, keyed by URL and payload type.
   final Map<String, Future<Object?>> _inFlight = {};
 
   /// Returns the JSON payload for [url].
@@ -40,53 +43,78 @@ class PokeApiCache {
     String url, {
     bool forceRefresh = false,
   }) async {
-    final entry = await _localStorage.readEntry<T>(url);
-    if (!forceRefresh &&
-        entry != null &&
-        entry.isFresh(_kMaxAge, now: _clock.now())) {
-      return (data: entry.data, isStale: false);
+    // Captured before the first await, so a clear() racing with the cache
+    // lookup still invalidates this request's write.
+    final epoch = _epoch;
+
+    // A forced refresh discards the cached entry, so decoding it up front
+    // would only pay for the stale-if-error fallback below.
+    CacheEntry<T>? entry;
+    if (!forceRefresh) {
+      entry = await _localStorage.readEntry<T>(url);
+      if (entry != null && entry.isFresh(_kMaxAge, now: _clock.now())) {
+        return (data: entry.data, isStale: false);
+      }
     }
 
     try {
       final data = await _fetchShared<T>(url);
-      await _persist(url, data);
+      await _persist(url, data, epoch);
       return (data: data, isStale: false);
     } catch (error) {
-      if (entry == null) rethrow;
+      final fallback = entry ?? await _localStorage.readEntry<T>(url);
+      if (fallback == null) rethrow;
       _logger.warning(
         'Request failed for $url ($error), serving the cached copy',
         prefix: _prefix,
       );
-      return (data: entry.data, isStale: true);
+      return (data: fallback.data, isStale: true);
     }
   }
 
   /// Removes every cached payload.
-  Future<void> clear() => _localStorage.clear();
+  Future<void> clear() async {
+    // Bumping first: a request already in flight sees a different epoch and
+    // drops its write instead of resurrecting what was just cleared.
+    _epoch++;
+    await _localStorage.clear();
+  }
 
   /// Returns the approximate size of the cached payloads, in bytes.
   Future<int> size() => _localStorage.getByteSize();
 
   /// Joins the running request for [url], or starts a new one.
   Future<T> _fetchShared<T>(String url) async {
-    final running = _inFlight[url];
+    final key = '$url#$T';
+    final running = _inFlight[key];
     if (running != null) return await running as T;
 
     final request = _apiClient.get<T>(url);
-    _inFlight[url] = request;
+    _inFlight[key] = request;
     try {
       return await request;
     } finally {
-      _inFlight.remove(url);
+      _inFlight.remove(key);
     }
   }
 
-  Future<void> _persist<T>(String url, T data) async {
+  /// Stores [data] under [url] unless a [clear] started after [epoch].
+  Future<void> _persist<T>(String url, T data, int epoch) async {
+    if (epoch != _epoch) {
+      _logger.info(
+        'Not caching $url: the cache was cleared while the request ran',
+        prefix: _prefix,
+      );
+      return;
+    }
     try {
       await _localStorage.write<T>(url, data);
     } catch (error) {
       // A failed write only costs a later refetch; the caller still gets data.
       _logger.error('Failed to cache $url: $error', prefix: _prefix);
     }
+    // A clear that landed while the write was in flight has already wiped the
+    // box, so this key is either ours or gone: either way it must not survive.
+    if (epoch != _epoch) await _localStorage.delete(url);
   }
 }

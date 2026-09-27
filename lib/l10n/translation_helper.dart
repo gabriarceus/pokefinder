@@ -18,6 +18,12 @@ const Map<String, Map<String, String>> _locationsByLocale = {'it': locationsDb};
 /// Italian word for "route" in location names.
 const Map<String, String> _routeWordByLocale = {'it': 'Percorso'};
 
+/// Suffixes PokeAPI appends to a location slug that the database keys without.
+const _kIgnoredSuffixes = ['-area'];
+
+/// Location slugs whose PokeAPI name differs from the one in the database.
+const Map<String, String> _slugAliases = {'mt-coronet': 'mount-coronet'};
+
 /// Returns the [languageCode] translation of [slug] from [dbByLocale], or the
 /// title-cased slug when there is none.
 String _translate(
@@ -39,33 +45,42 @@ final _floorPattern = RegExp(r'^(.+)-(b?\d+f)$');
 
 /// Returns the display name of the location [slug] in [languageCode].
 ///
-/// The name is translated as a whole or not at all: when any part has no
-/// translation, the whole title-cased English name is returned.
+/// Every part of the slug is translated or the whole title-cased English name
+/// is returned: a half-translated name is worse than an untranslated one.
 String translateLocationSlug(String slug, String languageCode) {
   final english = slug.toDisplayCase();
   final db = _locationsByLocale[languageCode];
   if (db == null) return english;
 
-  var key = slug.toLowerCase().trim();
+  final key = _stripIgnoredSuffixes(slug.toLowerCase().trim());
   final route = _routePattern.firstMatch(key);
   if (route != null) {
-    final region = usableTranslationOrNull(db[route.group(1)]);
+    final region = usableTranslationOrNull(db[_resolveAlias(route.group(1)!)]);
     final routeWord = _routeWordByLocale[languageCode];
     if (region == null || routeWord == null) return english;
     return '$routeWord ${route.group(2)} ($region)';
   }
 
-  if (!db.containsKey(key) && key.endsWith('-area')) {
-    key = key.substring(0, key.length - '-area'.length);
-  }
   final floor = _floorPattern.firstMatch(key);
   final base = floor != null && !db.containsKey(key) ? floor.group(1)! : key;
-  final translated = usableTranslationOrNull(db[base]);
+  final translated = usableTranslationOrNull(db[_resolveAlias(base)]);
   if (translated == null) return english;
   return base == key
       ? translated
       : '$translated ${floor!.group(2)!.toUpperCase()}';
 }
+
+String _stripIgnoredSuffixes(String key) {
+  var result = key;
+  for (final suffix in _kIgnoredSuffixes) {
+    if (result.endsWith(suffix) && result.length > suffix.length) {
+      result = result.substring(0, result.length - suffix.length);
+    }
+  }
+  return result;
+}
+
+String _resolveAlias(String key) => _slugAliases[key] ?? key;
 
 /// Localized names of game versions and version groups, keyed by slug.
 final Map<String, String Function(AppLocalizations)> _gameNames = {

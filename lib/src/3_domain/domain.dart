@@ -25,6 +25,7 @@ export 'entities/recent_pokemon.dart';
 export 'entities/unit_system.dart';
 export 'helpers/measurement_formatter.dart';
 export 'helpers/canonical_species_data.dart';
+export 'helpers/mega_evolution_data.dart';
 export 'helpers/pokemon_form_classifier.dart';
 export 'helpers/prefix_suggestions_filter.dart';
 export 'helpers/pokemon_index_filter_helper.dart';

@@ -127,13 +127,19 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
           'Failed to fetch Pokédex index: $failure',
           prefix: _prefix,
         );
-        emit(
-          state.copyWith(
-            status: state.allEntries.isEmpty ? PokedexStatus.failure : null,
-            isRefreshing: false,
-            failure: failure,
-          ),
-        );
+        // Entries already in memory keep the grid usable, so a failed refresh
+        // is not a catalog-wide failure and must not pin the offline banner.
+        if (state.allEntries.isEmpty) {
+          emit(
+            state.copyWith(
+              status: PokedexStatus.failure,
+              isRefreshing: false,
+              failure: failure,
+            ),
+          );
+        } else {
+          emit(state.copyWith(isRefreshing: false));
+        }
       },
       (entries) => emit(
         state.copyWith(

@@ -71,10 +71,12 @@ class GameVersionMappings {
   static String? latestVersionGroup(Iterable<String> versionGroups) {
     final ordered = _groupToVersions.keys.toList();
     String? latest;
+    var latestIndex = -1;
     for (final group in versionGroups) {
       final index = ordered.indexOf(group.toLowerCase());
-      if (index != -1 && (latest == null || index > ordered.indexOf(latest))) {
+      if (index > latestIndex) {
         latest = group;
+        latestIndex = index;
       }
     }
     return latest;
@@ -88,19 +90,4 @@ class GameVersionMappings {
   /// Returns the list of versions contained within [versionGroup].
   static List<String> versionsForGroup(String versionGroup) =>
       _groupToVersions[versionGroup.toLowerCase()] ?? [versionGroup];
-
-  /// Checks whether a move's [moveVersionGroup] matches the [selectedVersion].
-  /// When [selectedVersion] is 'all', always returns true.
-  static bool moveMatchesVersion({
-    required String moveVersionGroup,
-    required String selectedVersion,
-  }) {
-    if (selectedVersion.isEmpty || selectedVersion == 'all') return true;
-
-    final targetGroup = versionGroupFor(selectedVersion);
-    if (moveVersionGroup.toLowerCase() == targetGroup.toLowerCase()) {
-      return true;
-    }
-    return moveVersionGroup.toLowerCase() == selectedVersion.toLowerCase();
-  }
 }

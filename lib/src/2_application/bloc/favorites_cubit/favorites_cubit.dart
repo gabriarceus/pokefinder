@@ -120,10 +120,15 @@ class FavoritesCubit extends HydratedCubit<FavoritesState> {
   @override
   FavoritesState fromJson(Map<String, dynamic> json) {
     final rawList = json['favorites'] as List<dynamic>? ?? const [];
-    final favorites = rawList
-        .whereType<Map<String, dynamic>>()
-        .map(FavoritePokemon.fromJson)
-        .toList();
+    final favorites = <FavoritePokemon>[];
+    for (final raw in rawList) {
+      if (raw is! Map<String, dynamic>) continue;
+      try {
+        favorites.add(FavoritePokemon.fromJson(raw));
+      } catch (_) {
+        _logger.info('Evicting corrupt favorite record', prefix: _prefix);
+      }
+    }
     final sortIndex = json['sortOrder'] as int?;
     final sortOrder =
         (sortIndex != null &&

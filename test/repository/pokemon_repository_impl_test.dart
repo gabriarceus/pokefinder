@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
+import 'package:en_logger/en_logger.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:mocktail/mocktail.dart';
@@ -106,7 +107,7 @@ void main() {
 
   setUp(() {
     cache = _MockPokeApiCache();
-    repository = PokemonRepositoryImpl(cache);
+    repository = PokemonRepositoryImpl(cache, EnLogger());
   });
 
   /// Serves [json] for every JSON-object cache read.
@@ -151,6 +152,14 @@ void main() {
   /// Unwraps the [Right] of an endpoint result, failing the test on a [Left].
   T rightOf<T>(Either<PokemonFailure, T> result) =>
       result.getOrElse(() => throw StateError('expected a right'));
+
+  /// Minimal `/pokemon` index payload.
+  Map<String, dynamic> indexJson(List<Map<String, dynamic>> results) => {
+    'count': results.length,
+    'next': null,
+    'previous': null,
+    'results': results,
+  };
 
   /// Serves [json] from the cache and maps it into a [Pokemon].
   Future<Pokemon> mapPokemon(
@@ -936,14 +945,6 @@ void main() {
   });
 
   group('getPokemonIndex', () {
-    /// Minimal `/pokemon` index payload.
-    Map<String, dynamic> indexJson(List<Map<String, dynamic>> results) => {
-      'count': results.length,
-      'next': null,
-      'previous': null,
-      'results': results,
-    };
-
     test(
       'requests the index with forceRefresh and maps each result to an entry',
       () async {
@@ -1111,6 +1112,113 @@ void main() {
         expect(trigger.partySpecies, 'remoraid');
         expect(trigger.partyType, 'dark');
         expect(trigger.tradeSpecies, 'shelmet');
+      },
+    );
+  });
+
+  group('getPokemon alternate forms', () {
+    /// Index entry for the `charizard` family, as the live catalog ships it.
+    Map<String, dynamic> charizardIndex() => indexJson([
+      {'name': 'charizard', 'url': 'https://pokeapi.co/api/v2/pokemon/6/'},
+      {
+        'name': 'charizard-gmax',
+        'url': 'https://pokeapi.co/api/v2/pokemon/10037/',
+      },
+      {
+        'name': 'charizard-mega-x',
+        'url': 'https://pokeapi.co/api/v2/pokemon/10034/',
+      },
+      {
+        'name': 'charizard-mega-y',
+        'url': 'https://pokeapi.co/api/v2/pokemon/10035/',
+      },
+      {'name': 'pikachu', 'url': 'https://pokeapi.co/api/v2/pokemon/25/'},
+      {
+        'name': 'pikachu-cosplay',
+        'url': 'https://pokeapi.co/api/v2/pokemon/10082/',
+      },
+    ]);
+
+    setUp(() {
+      stubJsonPayloadAt(PokeApiUrlHelper.pokemonIndexUrl(), charizardIndex());
+    });
+
+    test(
+      'lists every catalog form of the species, not just the resource',
+      () async {
+        stubJsonPayloadAt(
+          PokeApiUrlHelper.pokemonUrl('charizard'),
+          rawPokemonJson(),
+        );
+
+        final pokemon = rightOf(
+          await repository.getPokemon(PokemonName('charizard')),
+        );
+
+        expect(
+          pokemon.forms.map((f) => f.name).toList(),
+          containsAll([
+            'charizard',
+            'charizard-gmax',
+            'charizard-mega-x',
+            'charizard-mega-y',
+          ]),
+        );
+        // Another species' forms and cosmetic costumes stay out.
+        expect(pokemon.forms.map((f) => f.name), isNot(contains('pikachu')));
+        expect(
+          pokemon.forms.map((f) => f.name),
+          isNot(contains('pikachu-cosplay')),
+        );
+      },
+    );
+
+    test('resolves the types of a form whose species type changes', () async {
+      stubJsonPayloadAt(
+        PokeApiUrlHelper.pokemonUrl('charizard'),
+        rawPokemonJson(
+          types: [
+            {
+              'type': {'url': typeUrl(6)},
+            },
+            {
+              'type': {'url': typeUrl(10)},
+            },
+          ],
+        ),
+      );
+
+      final pokemon = rightOf(
+        await repository.getPokemon(PokemonName('charizard')),
+      );
+
+      final megaX = pokemon.forms.firstWhere(
+        (f) => f.name == 'charizard-mega-x',
+      );
+      expect(megaX.type1, PokemonType.fire);
+      expect(megaX.type2, PokemonType.dragon);
+      expect(megaX.url, 'https://pokeapi.co/api/v2/pokemon/10034/');
+    });
+
+    test(
+      'falls back to the resource list when the catalog is unavailable',
+      () async {
+        when(
+          () => cache.get<Map<String, dynamic>>(
+            PokeApiUrlHelper.pokemonIndexUrl(),
+            forceRefresh: false,
+          ),
+        ).thenThrow(const SocketException('offline'));
+        stubJsonPayloadAt(
+          PokeApiUrlHelper.pokemonUrl('venusaur'),
+          rawPokemonJson(),
+        );
+
+        final pokemon = rightOf(
+          await repository.getPokemon(PokemonName('venusaur')),
+        );
+
+        expect(pokemon.forms.map((f) => f.name), ['venusaur']);
       },
     );
   });

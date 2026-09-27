@@ -1,4 +1,4 @@
-{
+﻿{
   "@@locale": "en",
   "searchTextField": "Search Pokémon",
   "searchButton": "Search",
@@ -18,6 +18,7 @@
   "settings": "Settings",
   "about": "About",
   "language": "Language",
+  "useDeviceLanguage": "Device",
   "weight": "Weight",
   "height": "Height",
   "pokemonCry": "Pokemon Cry",
@@ -34,7 +35,7 @@
   "tabInfo": "Info",
   "tabStats": "Stats",
   "tabMoves": "Moves",
-  "tabItemsGames": "Where to find",
+  "tabItemsGames": "Items",
   "baseExp": "Base Exp",
   "baseExpValue": "{value} XP",
   "@baseExpValue": {
@@ -273,6 +274,7 @@
   "favoritesEmptyTitle": "No Favorites Yet",
   "favoritesEmptyMessage": "Tap the heart icon on any Pokémon to add it to your favorites.",
   "addToFavorites": "Add to favorites",
+  "cardActionsHint": "Long press for more actions",
   "removeFromFavorites": "Remove from favorites",
   "removeFromHistory": "Remove from history",
   "sortRecentlyAdded": "Recently Added",
@@ -588,7 +590,9 @@
     }
   },
   "teamTypeCoverage": "Type coverage",
+  "teamStatsSumColumn": "Sum",
   "teamStatsSum": "Total (sum)",
+  "teamStatsAverageColumn": "Avg",
   "teamStatsAverage": "Average",
   "teamSummary": "Team summary",
   "teamMembers": "Members",

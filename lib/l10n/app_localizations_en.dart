@@ -66,6 +66,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get language => 'Language';
 
   @override
+  String get useDeviceLanguage => 'Device';
+
+  @override
   String get weight => 'Weight';
 
   @override
@@ -114,7 +117,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabMoves => 'Moves';
 
   @override
-  String get tabItemsGames => 'Where to find';
+  String get tabItemsGames => 'Items';
 
   @override
   String get baseExp => 'Base Exp';
@@ -725,6 +728,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addToFavorites => 'Add to favorites';
 
   @override
+  String get cardActionsHint => 'Long press for more actions';
+
+  @override
   String get removeFromFavorites => 'Remove from favorites';
 
   @override
@@ -1249,7 +1255,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamTypeCoverage => 'Type coverage';
 
   @override
+  String get teamStatsSumColumn => 'Sum';
+
+  @override
   String get teamStatsSum => 'Total (sum)';
+
+  @override
+  String get teamStatsAverageColumn => 'Avg';
 
   @override
   String get teamStatsAverage => 'Average';

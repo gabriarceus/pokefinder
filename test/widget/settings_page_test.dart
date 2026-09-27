@@ -199,7 +199,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(languageCubit.state.languageId, Language.italian.id);
 
-      await tester.tap(find.text('System').last);
+      await tester.tap(find.text('Device').last);
       await tester.pumpAndSettle();
       expect(languageCubit.state.languageId, Language.system.id);
     });
@@ -237,6 +237,29 @@ void main() {
       verify(() => repository.clearCache()).called(1);
       expect(find.byType(SnackBar), findsOneWidget);
       expect(find.text('Cache cleared successfully'), findsOneWidget);
+    });
+
+    testWidgets('reports a failed cache clear instead of claiming success', (
+      tester,
+    ) async {
+      when(
+        () => repository.clearCache(),
+      ).thenAnswer((_) async => left(const StorageFailure('disk full')));
+      await tester.pumpWidget(buildSettingsWidget(tester));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Clear').first);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.widgetWithText(FilledButton, 'Clear'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cache cleared successfully'), findsNothing);
+      expect(find.byType(SnackBar), findsOneWidget);
     });
   });
 }

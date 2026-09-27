@@ -96,9 +96,6 @@ class PokemonCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final isFavorite = context.select<FavoritesCubit, bool>(
-      (cubit) => cubit.isFavorite(entry.id),
-    );
     final displayName = context.translatePokemonIndexEntry(entry);
     final idDisplay = entry.isAlternateForm
         ? entry.dexNumberDisplay
@@ -148,6 +145,8 @@ class PokemonCard extends StatelessWidget {
           Semantics(
             button: true,
             label: fullLabel,
+            hint: l10n.cardActionsHint,
+            onLongPress: () => _showActions(context),
             excludeSemantics: true,
             child: InkWell(
               onTap: () => context.push(AppRoutes.pokemon(entry.name)),
@@ -216,7 +215,7 @@ class PokemonCard extends StatelessWidget {
                     Expanded(
                       child: Center(
                         child: Image.network(
-                          entry.customSpriteUrl ?? entry.officialArtworkUrl,
+                          entry.displaySpriteUrl,
                           width: _kImageSize,
                           height: _kImageSize,
                           fit: BoxFit.contain,
@@ -255,25 +254,39 @@ class PokemonCard extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: IconButton(
-              tooltip: isFavorite
-                  ? l10n.removeFromFavorites
-                  : l10n.addToFavorites,
-              onPressed: () =>
-                  context.read<FavoritesCubit>().toggleFavorite(entry.summary),
-              icon: Icon(
-                isFavorite ? Icons.favorite : Icons.favorite_border,
-                size: 20,
-                color: isFavorite
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.outline,
-              ),
-            ),
-          ),
+          Positioned(bottom: 0, right: 0, child: _FavoriteToggle(entry: entry)),
         ],
+      ),
+    );
+  }
+}
+
+/// Favorite toggle for [entry], anchored to the card's bottom-right corner.
+///
+/// Overlays the card so the image keeps its full 96 dp: the 48 dp Material tap
+/// target therefore wins over the card's own tap in that corner.
+class _FavoriteToggle extends StatelessWidget {
+  const _FavoriteToggle({required this.entry});
+
+  final PokemonIndexEntry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final isFavorite = context.select<FavoritesCubit, bool>(
+      (cubit) => cubit.isFavorite(entry.id),
+    );
+    return IconButton(
+      tooltip: isFavorite ? l10n.removeFromFavorites : l10n.addToFavorites,
+      onPressed: () =>
+          context.read<FavoritesCubit>().toggleFavorite(entry.summary),
+      icon: Icon(
+        isFavorite ? Icons.favorite : Icons.favorite_border,
+        size: 20,
+        color: isFavorite
+            ? theme.colorScheme.primary
+            : theme.colorScheme.outline,
       ),
     );
   }

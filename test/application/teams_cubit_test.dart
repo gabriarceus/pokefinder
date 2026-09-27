@@ -201,10 +201,9 @@ void main() {
         cubit.state.teamById(id)!.members.map((m) => m.pokemon.name).toList(),
         equals(['charmander']),
       );
-      expect(cubit.removeMember(id, 'CHARMANDER'), isTrue);
+      expect(cubit.removeMemberAt(id, 0), isTrue);
       expect(cubit.state.teamById(id)!.members, isEmpty);
       expect(cubit.removeMemberAt(id, 0), isFalse);
-      expect(cubit.removeMember(id, 'missing'), isFalse);
     });
 
     test('reorderMember and moveMemberToTop rearrange members', () {

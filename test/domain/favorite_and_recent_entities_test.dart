@@ -106,4 +106,80 @@ void main() {
       expect(restored.viewedAt, equals(now));
     });
   });
+
+  group('PokemonSummary form identity', () {
+    final now = DateTime.utc(2026, 9, 13, 12, 0, 0);
+
+    test('round-trips the form lineage through JSON', () {
+      const original = PokemonSummary(
+        id: 10034,
+        name: 'charizard-mega-x',
+        spriteUrl: 'https://example.com/10034.png',
+        types: [PokemonType.fire, PokemonType.dragon],
+        parentSpeciesId: 6,
+        parentSpeciesName: 'charizard',
+        formCategory: PokemonFormCategory.mega,
+      );
+
+      final restored = PokemonSummary.fromJson(original.toJson());
+
+      expect(restored, equals(original));
+    });
+
+    test('loads a record written before the lineage was stored', () {
+      final restored = PokemonSummary.fromJson({
+        'id': 6,
+        'name': 'charizard',
+        'spriteUrl': 'https://example.com/6.png',
+        'types': ['fire', 'flying'],
+      });
+
+      expect(restored.id, 6);
+      expect(restored.formCategory, PokemonFormCategory.canonical);
+      expect(restored.parentSpeciesId, isNull);
+      expect(restored.regionalGroup, isNull);
+    });
+
+    test('rebuilds an index entry that keeps the localized display name', () {
+      const summary = PokemonSummary(
+        id: 10103,
+        name: 'vulpix-alola',
+        spriteUrl: 'https://example.com/10103.png',
+        types: [PokemonType.ice],
+        parentSpeciesId: 37,
+        parentSpeciesName: 'vulpix',
+        formCategory: PokemonFormCategory.regional,
+        regionalGroup: PokemonRegionalGroup.alola,
+      );
+
+      final entry = summary.toIndexEntry();
+
+      expect(entry.id, 10103);
+      expect(entry.effectiveParentSpeciesId, 37);
+      expect(entry.getDisplayName(languageCode: 'en'), 'Alolan Vulpix');
+      expect(entry.getDisplayName(languageCode: 'it'), 'Vulpix di Alola');
+      expect(entry.formBadgeText, 'ALOLA');
+      // A round trip must not degrade the artwork back to the pixel sprite.
+      expect(entry.displaySpriteUrl, 'https://example.com/10103.png');
+    });
+
+    test('distinguishes a form from its base species by id', () {
+      final base = const PokemonSummary(
+        id: 6,
+        name: 'charizard',
+        spriteUrl: '',
+      );
+      final megaX = const PokemonSummary(
+        id: 10034,
+        name: 'charizard-mega-x',
+        spriteUrl: '',
+      );
+
+      expect(base, isNot(equals(megaX)));
+      expect(
+        FavoritePokemon(pokemon: base, addedAt: now),
+        isNot(equals(FavoritePokemon(pokemon: megaX, addedAt: now))),
+      );
+    });
+  });
 }

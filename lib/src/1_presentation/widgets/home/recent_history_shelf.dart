@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/l10n/app_localizations.dart';
+import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/2_application/bloc/recent_history_cubit/recent_history_cubit.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
@@ -123,7 +124,8 @@ class _RecentPokemonCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final pokemon = item.pokemon;
-    final displayName = pokemon.name.capitalize();
+    final entry = pokemon.toIndexEntry();
+    final displayName = context.translatePokemonIndexEntry(entry);
     final placeholder = Icon(
       Icons.catching_pokemon,
       size: 32,
@@ -158,7 +160,7 @@ class _RecentPokemonCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        '#${pokemon.id.toString().padLeft(3, '0')}',
+                        entry.dexNumberDisplay,
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.outline,
                           fontWeight: FontWeight.bold,

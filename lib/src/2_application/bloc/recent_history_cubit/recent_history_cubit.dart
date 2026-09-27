@@ -135,10 +135,15 @@ class RecentHistoryCubit extends HydratedCubit<RecentHistoryState> {
   @override
   RecentHistoryState fromJson(Map<String, dynamic> json) {
     final rawPokemon = json['recentPokemon'] as List<dynamic>? ?? const [];
-    final recentPokemon = rawPokemon
-        .whereType<Map<String, dynamic>>()
-        .map(RecentPokemon.fromJson)
-        .toList();
+    final recentPokemon = <RecentPokemon>[];
+    for (final raw in rawPokemon) {
+      if (raw is! Map<String, dynamic>) continue;
+      try {
+        recentPokemon.add(RecentPokemon.fromJson(raw));
+      } catch (_) {
+        _logger.info('Evicting corrupt history record', prefix: _prefix);
+      }
+    }
     final rawSearches = json['recentSearches'] as List<dynamic>? ?? const [];
     final recentSearches = rawSearches.map((e) => e.toString()).toList();
     final isEnabled = json['isHistoryEnabled'] as bool? ?? true;

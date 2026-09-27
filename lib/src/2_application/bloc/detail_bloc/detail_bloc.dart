@@ -10,6 +10,7 @@ import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_summary.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
+import 'package:pokefinder/src/3_domain/helpers/pokemon_form_classifier.dart';
 import 'package:pokefinder/src/3_domain/repositories/i_pokemon_repository.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
 

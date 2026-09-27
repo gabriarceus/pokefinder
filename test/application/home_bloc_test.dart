@@ -140,19 +140,25 @@ void main() {
       expect(bloc.state.searchFailure, isNull);
     });
 
-    test('submitting twice the same name emits a fresh navigation', () async {
+    test('repeat submission navigates again after NavigationDone', () async {
       bloc.add(SearchSubmitted('pikachu'));
       await pumpEventQueue();
       final first = bloc.state.pendingNavigation;
+
+      // The UI consumes the request, so the next submit re-emits it.
+      bloc.add(NavigationDone());
+      await pumpEventQueue();
+      expect(bloc.state.pendingNavigation, isNull);
 
       bloc.add(SearchSubmitted('pikachu'));
       await pumpEventQueue();
       final second = bloc.state.pendingNavigation;
 
       expect(first, isNotNull);
-      // Compared by identity, so the UI still navigates on the second submit.
-      expect(second, isNot(same(first)));
-      expect(second?.nameOrId, first?.nameOrId);
+      expect(second, isNotNull);
+      // Value equality, so a second identical submit would not be re-emitted
+      // if the UI forgot to clear the request.
+      expect(second, first);
     });
   });
 }

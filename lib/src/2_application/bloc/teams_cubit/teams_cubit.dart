@@ -167,16 +167,6 @@ class TeamsCubit extends HydratedCubit<TeamsState> {
     return true;
   }
 
-  /// Removes the first member matching [memberName] (normalized slug).
-  bool removeMember(String teamId, String memberName) {
-    final team = state.teamById(teamId);
-    if (team == null) return false;
-    final key = TeamSummaryHelper.normalizeMemberKey(memberName);
-    final index = team.members.indexWhere((member) => member.memberKey == key);
-    if (index == -1) return false;
-    return removeMemberAt(teamId, index);
-  }
-
   /// Moves the member from [oldIndex] to [newIndex] within team [teamId].
   ///
   /// [newIndex] is the final position (already adjusted for removal).

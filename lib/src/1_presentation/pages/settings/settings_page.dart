@@ -35,15 +35,16 @@ class _SettingsPageState extends State<SettingsPage> {
     final confirmed = await showClearCacheConfirmationDialog(context);
 
     if (confirmed == true && context.mounted) {
-      await context.read<PreferencesCubit>().clearCache();
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(t.cacheClearedSuccessfully),
-            behavior: SnackBarBehavior.floating,
+      final cleared = await context.read<PreferencesCubit>().clearCache();
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            cleared ? t.cacheClearedSuccessfully : t.errorUnexpected,
           ),
-        );
-      }
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -175,7 +176,7 @@ class _SettingsPageState extends State<SettingsPage> {
               segments: [
                 ButtonSegment(
                   value: Language.system.id,
-                  label: Text(t.themeSystem),
+                  label: Text(t.useDeviceLanguage),
                   icon: const Icon(Icons.phone_android_rounded),
                 ),
                 for (final language in Language.selectable)

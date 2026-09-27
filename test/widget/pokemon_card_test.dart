@@ -1,4 +1,4 @@
-import 'package:dartz/dartz.dart';
+﻿import 'package:dartz/dartz.dart';
 import 'package:en_logger/en_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -302,7 +302,7 @@ void main() {
 
           expect(find.text('#037'), findsOneWidget);
           expect(find.text('Vulpix'), findsOneWidget);
-          expect(find.text('🌍 Regionali'), findsOneWidget);
+          expect(find.text('🌍 Forme regionali'), findsOneWidget);
 
           final semanticsFinder = find.descendant(
             of: find.byType(PokemonCard),

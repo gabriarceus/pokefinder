@@ -146,7 +146,7 @@ class _DetailSuccessView extends StatelessWidget {
   /// Toggles the displayed Pokémon in the side-by-side comparison selection.
   void _toggleComparison(BuildContext context) {
     final cubit = context.read<ComparisonCubit>();
-    final wasSelected = cubit.isSelected(success.pokemon.id);
+    final wasSelected = cubit.isSelected(success.summary.id);
     final nowSelected = cubit.toggleEntry(success.summary);
     final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
     if (nowSelected) {
@@ -168,11 +168,12 @@ class _DetailSuccessView extends StatelessWidget {
   Widget build(BuildContext context) {
     final pokemon = success.pokemon;
     final formDetails = success.formDetails;
+    final summary = success.summary;
     final isFavorite = context.select<FavoritesCubit, bool>(
-      (cubit) => cubit.isFavorite(pokemon.id),
+      (cubit) => cubit.isFavorite(summary.id),
     );
     final isInComparison = context.select<ComparisonCubit, bool>(
-      (cubit) => cubit.isSelected(pokemon.id),
+      (cubit) => cubit.isSelected(summary.id),
     );
 
     final typeColor = TypeColorScheme.getColorFromType(formDetails.type1);
@@ -322,7 +323,7 @@ class _DetailTabBar extends StatelessWidget implements PreferredSizeWidget {
           Tab(text: t.tabInfo, icon: const Icon(Icons.info_outline)),
           Tab(text: t.tabStats, icon: const Icon(Icons.bar_chart)),
           Tab(text: t.tabMoves, icon: const Icon(Icons.bolt)),
-          Tab(text: t.tabItemsGames, icon: const Icon(Icons.map_outlined)),
+          Tab(text: t.tabItemsGames, icon: const Icon(Icons.category_outlined)),
         ],
       ),
     );
