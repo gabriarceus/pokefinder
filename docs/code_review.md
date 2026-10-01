@@ -22,12 +22,12 @@ first one ran out of context mid-way and left the test suite un-migrated.
 
 Still open, and the only real work left:
 
-| Item | What is left |
-|---|---|
-| **O11** | Not started. The `dev` flavor, `MockPokemonRepository` and `Environment.dev` still exist. Either delete them or keep them and close the item. |
-| **O16** | Only partially: the tests of deleted code are gone, but the suite is still large relative to the app. Re-measure before touching it. |
+| Item            | What is left                                                                                                                                                                                                                                                                                                     |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **O11**         | Not started. The `dev` flavor, `MockPokemonRepository` and `Environment.dev` still exist. Either delete them or keep them and close the item.                                                                                                                                                                    |
+| **O16**         | Only partially: the tests of deleted code are gone, but the suite is still large relative to the app. Re-measure before touching it.                                                                                                                                                                             |
 | **Device pass** | The visual items (A1–A11, B3, B7, B11, B12) were implemented from code, **not re-checked on the emulator**. Run the `verifying-ui-on-device` skill over the detail page, Home, the Pokédex grid, the drawer, the empty states and the filter sheet, in light and dark mode, before calling the visual work done. |
-| **M3 residue** | 24 `Colors.*` literals remain in `widgets/detail/game_version_color.dart`. They are per-game brand colors (data, not theme), so this is an accepted exception rather than an oversight. |
+| **M3 residue**  | 24 `Colors.*` literals remain in `widgets/detail/game_version_color.dart`. They are per-game brand colors (data, not theme), so this is an accepted exception rather than an oversight.                                                                                                                          |
 
 Verified state of the two baseline gates, after the test migration:
 
@@ -513,7 +513,7 @@ Update `README.md` when a step changes something it documents (use cases, flavor
      chips stay on one line. **A device pass must still confirm the header looks right at 2.0
      text scale** — the fix removes the overflow, it does not prove the result is pretty.
   2. `PokemonRepositoryImpl.getPokemon` called `name.rightOrCrash()` in a non-`async` method, so
-     an invalid name threw a `PokemonFailure` *synchronously*, before `_fetch`'s `try` could map
+     an invalid name threw a `PokemonFailure` _synchronously_, before `_fetch`'s `try` could map
      it. Callers got an exception instead of the `Left` that `IPokemonRepository` promises —
      a regression, since the pre-refactor version wrapped the body in a `try`. The exposed
      caller was `ComparisonCubit._load`, which builds a `PokemonName` from an entry name with no
@@ -523,7 +523,7 @@ Update `README.md` when a step changes something it documents (use cases, flavor
      `DetailBloc` already guarded with `isValid()` and was unaffected.
 - **One reported bug was a false positive — worth remembering.** The detail app-bar action
   buttons looked like they were 40×40, below the 48 dp minimum. They are not:
-  `find.byTooltip(...)` matches the `Tooltip` that `IconButton` builds *internally*, whose box
+  `find.byTooltip(...)` matches the `Tooltip` that `IconButton` builds _internally_, whose box
   is the 40 dp icon box, while the `IconButton` itself keeps Material 3's padded 48 dp target. A
   tap 22 dp from the button centre (inside a 48 dp target, outside a 40 dp box) does fire. The
   test was measuring the wrong widget. **When asserting a tap-target size, measure the tappable
@@ -532,7 +532,7 @@ Update `README.md` when a step changes something it documents (use cases, flavor
   from two tests. The test migration deleted those references.
 - `PokeApiUrlHelper.typeSpriteUrl` was deleted along with the last `TypeImage` caller (B14), and
   its test expectation with it. A PokeAPI type sprite is still the only way to get a per-type
-  *icon*, so if type icons are ever wanted again they must be bundled assets, not PokeAPI
+  _icon_, so if type icons are ever wanted again they must be bundled assets, not PokeAPI
   sprites, because those carry English text.
 - `RequestCancelledFailure` and `CancellationToken` are gone (O4). The failure taxonomy is
   smaller now, and the `Request cancelled` ARB strings may be unused — check before reusing.
