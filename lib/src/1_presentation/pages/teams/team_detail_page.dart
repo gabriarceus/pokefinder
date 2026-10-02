@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:go_router/go_router.dart';
@@ -18,7 +16,7 @@ import 'package:pokefinder/src/3_domain/domain.dart';
 /// Detail screen for one local team: members, type coverage, and stat summary.
 ///
 /// Members deep-link through the canonical `/pokemon/:nameOrId` route.
-/// The stat summary fetches each member through its own [PokemonDetailBloc] (via
+/// The stat summary fetches the members through one [PokemonListCubit] (via
 /// the shared factory, served offline from the Hive cache), so a failure on
 /// one member shows inline retry without destroying the rest.
 class TeamDetailPage extends StatelessWidget {
@@ -343,23 +341,17 @@ class _TeamSummarySection extends StatefulWidget {
 }
 
 class _TeamSummarySectionState extends State<_TeamSummarySection> {
-  List<PokemonDetailBloc> _blocs = const [];
-  List<StreamSubscription<PokemonBlocState>> _subscriptions = const [];
-  List<Pokemon?> _pokemons = const [];
-  List<bool> _failed = const [];
+  late final PokemonListCubit _cubit = createPokemonListCubit(_names);
 
-  @override
-  void initState() {
-    super.initState();
-    _initBlocs();
-  }
+  List<String> get _names => [
+    for (final member in widget.members) member.pokemon.name,
+  ];
 
   @override
   void didUpdateWidget(covariant _TeamSummarySection oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!_sameMemberOrder(oldWidget.members, widget.members)) {
-      _disposeBlocs();
-      _initBlocs();
+      _cubit.load(_names);
     }
   }
 
@@ -372,61 +364,31 @@ class _TeamSummarySectionState extends State<_TeamSummarySection> {
     return true;
   }
 
-  void _initBlocs() {
-    final blocs = <PokemonDetailBloc>[
-      for (final member in widget.members)
-        createPokemonBloc(member.pokemon.name),
-    ];
-    _blocs = blocs;
-    _pokemons = List<Pokemon?>.filled(blocs.length, null);
-    _failed = List<bool>.filled(blocs.length, false);
-    _subscriptions = [
-      for (final bloc in blocs) bloc.stream.listen((_) => _refresh()),
-    ];
-    _refresh();
-  }
-
-  void _refresh() {
-    if (!mounted) return;
-    var changed = false;
-    for (var i = 0; i < _blocs.length; i++) {
-      final state = _blocs[i].state;
-      final pokemon = state is PokemonBlocSuccess ? state.pokemon : null;
-      final failed = state is PokemonBlocFailure;
-      if (_pokemons[i] != pokemon || _failed[i] != failed) {
-        _pokemons[i] = pokemon;
-        _failed[i] = failed;
-        changed = true;
-      }
-    }
-    if (changed) setState(() {});
-  }
-
-  void _disposeBlocs() {
-    for (final sub in _subscriptions) {
-      sub.cancel();
-    }
-    for (final bloc in _blocs) {
-      bloc.close();
-    }
-    _subscriptions = const [];
-    _blocs = const [];
-    _pokemons = const [];
-    _failed = const [];
-  }
-
   @override
   void dispose() {
-    _disposeBlocs();
+    _cubit.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Reads `_cubit.state`, not the builder value: after a member change the
+    // builder value lags one frame behind `widget.members`.
+    return BlocBuilder<PokemonListCubit, List<PokemonLoad>>(
+      bloc: _cubit,
+      builder: (context, _) => _buildSummary(context, _cubit.state),
+    );
+  }
+
+  Widget _buildSummary(BuildContext context, List<PokemonLoad> loads) {
     final t = context.t();
     final locale = Localizations.localeOf(context).languageCode;
-    final loaded = _pokemons.whereType<Pokemon>().toList();
-    final isLoading = loaded.isEmpty && !_failed.contains(true);
+    final loaded = [
+      for (final load in loads)
+        if (load case PokemonLoaded(:final pokemon)) pokemon,
+    ];
+    final failed = [for (final load in loads) load is PokemonLoadFailed];
+    final isLoading = loaded.isEmpty && !failed.contains(true);
     // The stored refs are a usable answer only until the fetched members land.
     final coverage = loaded.isEmpty
         ? TeamSummaryHelper.typeCoverage(widget.members)
@@ -456,7 +418,7 @@ class _TeamSummarySectionState extends State<_TeamSummarySection> {
             const Divider(height: 24),
             Text(t.baseStats, style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 8),
-            _buildStats(context, t, locale, loaded, isLoading),
+            _buildStats(context, t, locale, loaded, failed, isLoading),
           ],
         ),
       ),
@@ -468,6 +430,7 @@ class _TeamSummarySectionState extends State<_TeamSummarySection> {
     AppLocalizations t,
     String locale,
     List<Pokemon> loaded,
+    List<bool> failed,
     bool isLoading,
   ) {
     if (widget.members.isEmpty) return Text(t.statsNotAvailable);
@@ -524,7 +487,7 @@ class _TeamSummarySectionState extends State<_TeamSummarySection> {
           ),
         ],
         for (var i = 0; i < widget.members.length; i++)
-          if (_failed[i])
+          if (failed[i])
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Row(
@@ -542,9 +505,7 @@ class _TeamSummarySectionState extends State<_TeamSummarySection> {
                     child: IconButton(
                       tooltip: t.retryButton,
                       icon: const Icon(Icons.refresh_rounded),
-                      onPressed: () => _blocs[i].add(
-                        FetchPokemonEvent(widget.members[i].pokemon.name),
-                      ),
+                      onPressed: () => _cubit.retry(i),
                     ),
                   ),
                 ],

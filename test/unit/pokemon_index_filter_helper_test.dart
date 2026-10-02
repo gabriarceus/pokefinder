@@ -63,6 +63,22 @@ void main() {
       expect(containsMatches.map((e) => e.name), ['pikachu', 'chikorita']);
     });
 
+    test('a name match still applies the type and generation filters', () {
+      final byType = PokemonIndexFilterHelper.filterAndSort(
+        entries: entries,
+        query: 'char',
+        selectedTypes: {PokemonType.flying},
+      );
+      expect(byType.map((e) => e.name), ['charizard']);
+
+      final byGeneration = PokemonIndexFilterHelper.filterAndSort(
+        entries: entries,
+        query: 'chi',
+        generation: 1,
+      );
+      expect(byGeneration, isEmpty);
+    });
+
     test('text search matches by numeric ID and formatted ID', () {
       final idMatches = PokemonIndexFilterHelper.filterAndSort(
         entries: entries,

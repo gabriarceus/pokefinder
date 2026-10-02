@@ -65,15 +65,26 @@ class DetailStatsTab extends StatelessWidget {
                     const SizedBox(height: 12),
                   ],
                   const Divider(),
-                  _StatValuesRow(
-                    label: t.compareTotal,
-                    // Empty min and max keep the total under the base column.
-                    values: [
-                      MeasurementFormatter.formatInteger(total, locale: locale),
-                      '',
-                      '',
-                    ],
-                  ),
+                  if (isCompact)
+                    Text(
+                      '${t.compareTotal}: ${MeasurementFormatter.formatInteger(total, locale: locale)}',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  else
+                    _StatValuesRow(
+                      label: t.compareTotal,
+                      // Empty min and max keep the total under the base column.
+                      values: [
+                        MeasurementFormatter.formatInteger(
+                          total,
+                          locale: locale,
+                        ),
+                        '',
+                        '',
+                      ],
+                    ),
                 ],
               );
             },

@@ -7,10 +7,11 @@ import 'package:injectable/injectable.dart' hide test;
 import 'package:mocktail/mocktail.dart';
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/bootstrap.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/evolution_chain_widget.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
+import '../helpers/in_memory_hydrated_storage.dart';
+import '../helpers/pump_app.dart';
 
 class _MockPokemonRepository extends Mock implements IPokemonRepository {}
 
@@ -115,44 +116,36 @@ void main() {
     ),
   );
 
-  Widget createTestWidget({
+  Future<void> pumpChain(
+    WidgetTester tester, {
     required String chainUrl,
     required String currentPokemon,
-    List<RouteBase>? routes,
   }) {
     final router = GoRouter(
       initialLocation: '/',
-      routes:
-          routes ??
-          [
-            GoRoute(
-              path: '/',
-              builder: (context, state) => Scaffold(
-                body: SingleChildScrollView(
-                  child: EvolutionChainWidget(
-                    evolutionChainUrl: chainUrl,
-                    currentPokemonName: currentPokemon,
-                    typeColor: Colors.green,
-                    textColor: Colors.black,
-                  ),
-                ),
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => Scaffold(
+            body: SingleChildScrollView(
+              child: EvolutionChainWidget(
+                evolutionChainUrl: chainUrl,
+                currentPokemonName: currentPokemon,
+                typeColor: Colors.green,
+                textColor: Colors.black,
               ),
             ),
-            GoRoute(
-              path: '/pokemon/:name',
-              builder: (context, state) => Scaffold(
-                body: Text('Pokemon: ${state.pathParameters['name']}'),
-              ),
-            ),
-          ],
+          ),
+        ),
+        GoRoute(
+          path: '/pokemon/:name',
+          builder: (context, state) =>
+              Scaffold(body: Text('Pokemon: ${state.pathParameters['name']}')),
+        ),
+      ],
     );
 
-    return MaterialApp.router(
-      routerConfig: router,
-      locale: const Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-    );
+    return tester.pumpApp(router: router);
   }
 
   group('EvolutionChainWidget Widget Tests', () {
@@ -166,11 +159,10 @@ void main() {
         ).thenAnswer((_) async => const Right(sampleLinearChain));
 
         await mockNetworkImagesFor(() async {
-          await tester.pumpWidget(
-            createTestWidget(
-              chainUrl: 'https://pokeapi.co/api/v2/evolution-chain/1/',
-              currentPokemon: 'bulbasaur',
-            ),
+          await pumpChain(
+            tester,
+            chainUrl: 'https://pokeapi.co/api/v2/evolution-chain/1/',
+            currentPokemon: 'bulbasaur',
           );
           await tester.pumpAndSettle();
 
@@ -199,11 +191,10 @@ void main() {
       ).thenAnswer((_) async => const Right(sampleBranchedChain));
 
       await mockNetworkImagesFor(() async {
-        await tester.pumpWidget(
-          createTestWidget(
-            chainUrl: 'https://pokeapi.co/api/v2/evolution-chain/67/',
-            currentPokemon: 'eevee',
-          ),
+        await pumpChain(
+          tester,
+          chainUrl: 'https://pokeapi.co/api/v2/evolution-chain/67/',
+          currentPokemon: 'eevee',
         );
         await tester.pumpAndSettle();
 
@@ -225,11 +216,10 @@ void main() {
       );
 
       await mockNetworkImagesFor(() async {
-        await tester.pumpWidget(
-          createTestWidget(
-            chainUrl: 'https://pokeapi.co/api/v2/evolution-chain/1/',
-            currentPokemon: 'bulbasaur',
-          ),
+        await pumpChain(
+          tester,
+          chainUrl: 'https://pokeapi.co/api/v2/evolution-chain/1/',
+          currentPokemon: 'bulbasaur',
         );
         await tester.pumpAndSettle();
 
@@ -261,11 +251,10 @@ void main() {
         ).thenAnswer((_) async => const Right(sampleLinearChain));
 
         await mockNetworkImagesFor(() async {
-          await tester.pumpWidget(
-            createTestWidget(
-              chainUrl: 'https://pokeapi.co/api/v2/evolution-chain/1/',
-              currentPokemon: 'bulbasaur',
-            ),
+          await pumpChain(
+            tester,
+            chainUrl: 'https://pokeapi.co/api/v2/evolution-chain/1/',
+            currentPokemon: 'bulbasaur',
           );
           await tester.pumpAndSettle();
 

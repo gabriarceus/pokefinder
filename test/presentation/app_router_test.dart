@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:injectable/injectable.dart' hide test;
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/bootstrap.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/comparison/comparison_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/favorites/favorites_page.dart';
@@ -18,6 +17,8 @@ import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 import 'package:pokefinder/src/4_repository/repositories/mock_pokemon_repository.dart';
+import '../helpers/in_memory_hydrated_storage.dart';
+import '../helpers/pump_app.dart';
 
 void main() {
   setUpAll(() async {
@@ -49,38 +50,28 @@ void main() {
     }
   }
 
-  Widget createRouterApp(
+  Future<void> pumpRouterApp(
+    WidgetTester tester,
     String initialLocation, {
     Locale locale = const Locale('en'),
   }) {
-    final router = createAppRouter(initialLocation: initialLocation);
-    return MultiBlocProvider(
-      providers: [
-        if (getIt.isRegistered<LanguageCubit>())
-          BlocProvider.value(value: getIt<LanguageCubit>()),
-        if (getIt.isRegistered<PreferencesCubit>())
-          BlocProvider.value(value: getIt<PreferencesCubit>()),
-        if (getIt.isRegistered<FavoritesCubit>())
-          BlocProvider.value(value: getIt<FavoritesCubit>()),
-        if (getIt.isRegistered<RecentHistoryCubit>())
-          BlocProvider.value(value: getIt<RecentHistoryCubit>()),
-        if (getIt.isRegistered<ComparisonCubit>())
-          BlocProvider.value(value: getIt<ComparisonCubit>()),
-        if (getIt.isRegistered<TeamsCubit>())
-          BlocProvider.value(value: getIt<TeamsCubit>()),
-      ],
-      child: MaterialApp.router(
-        routerConfig: router,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        locale: locale,
+    return tester.pumpApp(
+      router: createAppRouter(initialLocation: initialLocation),
+      cubits: TestAppCubits(
+        preferences: getIt<PreferencesCubit>(),
+        language: getIt<LanguageCubit>(),
+        favorites: getIt<FavoritesCubit>(),
+        recentHistory: getIt<RecentHistoryCubit>(),
+        comparison: getIt<ComparisonCubit>(),
+        teams: getIt<TeamsCubit>(),
       ),
+      locale: locale,
     );
   }
 
   group('AppRouter canonical routes', () {
     testWidgets('navigating to / loads HomePage', (tester) async {
-      await tester.pumpWidget(createRouterApp(AppRoutes.home));
+      await pumpRouterApp(tester, AppRoutes.home);
       await tester.pumpAndSettle();
 
       expect(find.byType(HomePage), findsOneWidget);
@@ -90,7 +81,7 @@ void main() {
       tester,
     ) async {
       await mockNetworkImagesFor(() async {
-        await tester.pumpWidget(createRouterApp(AppRoutes.pokemon('pikachu')));
+        await pumpRouterApp(tester, AppRoutes.pokemon('pikachu'));
         await settle(tester);
 
         expect(find.byType(PokemonDetailPage), findsOneWidget);
@@ -105,7 +96,7 @@ void main() {
       'navigating to /pokemon/25 resolves to Detail with numeric ID',
       (tester) async {
         await mockNetworkImagesFor(() async {
-          await tester.pumpWidget(createRouterApp(AppRoutes.pokemon('25')));
+          await pumpRouterApp(tester, AppRoutes.pokemon('25'));
           await settle(tester);
 
           expect(find.byType(PokemonDetailPage), findsOneWidget);
@@ -120,7 +111,7 @@ void main() {
     testWidgets(
       'navigating to invalid param /pokemon/invalid!param renders RouteErrorPage',
       (tester) async {
-        await tester.pumpWidget(createRouterApp('/pokemon/invalid!param'));
+        await pumpRouterApp(tester, '/pokemon/invalid!param');
         await tester.pumpAndSettle();
 
         expect(find.byType(RouteErrorPage), findsOneWidget);
@@ -131,7 +122,7 @@ void main() {
     testWidgets(
       'navigating to negative or zero ID /pokemon/0 renders RouteErrorPage',
       (tester) async {
-        await tester.pumpWidget(createRouterApp('/pokemon/0'));
+        await pumpRouterApp(tester, '/pokemon/0');
         await tester.pumpAndSettle();
 
         expect(find.byType(RouteErrorPage), findsOneWidget);
@@ -142,7 +133,7 @@ void main() {
     testWidgets('navigating to unknown route renders RouteErrorPage', (
       tester,
     ) async {
-      await tester.pumpWidget(createRouterApp('/random_unsupported_path'));
+      await pumpRouterApp(tester, '/random_unsupported_path');
       await tester.pumpAndSettle();
 
       expect(find.byType(RouteErrorPage), findsOneWidget);
@@ -151,11 +142,10 @@ void main() {
     testWidgets(
       'navigating to unknown route under Italian locale displays localized error',
       (tester) async {
-        await tester.pumpWidget(
-          createRouterApp(
-            '/random_unsupported_path',
-            locale: const Locale('it'),
-          ),
+        await pumpRouterApp(
+          tester,
+          '/random_unsupported_path',
+          locale: const Locale('it'),
         );
         await tester.pumpAndSettle();
 
@@ -171,7 +161,7 @@ void main() {
     testWidgets(
       'tapping Go to Home from RouteErrorPage navigates to HomePage',
       (tester) async {
-        await tester.pumpWidget(createRouterApp('/random_unsupported_path'));
+        await pumpRouterApp(tester, '/random_unsupported_path');
         await tester.pumpAndSettle();
 
         expect(find.byType(RouteErrorPage), findsOneWidget);
@@ -187,7 +177,7 @@ void main() {
       'returning from detail to home preserves search text and drops focus',
       (tester) async {
         await mockNetworkImagesFor(() async {
-          await tester.pumpWidget(createRouterApp(AppRoutes.home));
+          await pumpRouterApp(tester, AppRoutes.home);
           await tester.pumpAndSettle();
 
           // Type search query and maintain focus
@@ -217,7 +207,7 @@ void main() {
 
     testWidgets('navigating to /favorites loads FavoritesPage', (tester) async {
       await mockNetworkImagesFor(() async {
-        await tester.pumpWidget(createRouterApp(AppRoutes.favorites));
+        await pumpRouterApp(tester, AppRoutes.favorites);
         await settle(tester);
 
         expect(find.byType(FavoritesPage), findsOneWidget);
@@ -228,7 +218,7 @@ void main() {
       tester,
     ) async {
       await mockNetworkImagesFor(() async {
-        await tester.pumpWidget(createRouterApp(AppRoutes.pokedex));
+        await pumpRouterApp(tester, AppRoutes.pokedex);
         await settle(tester);
 
         expect(find.byType(PokedexBrowsePage), findsOneWidget);
@@ -238,7 +228,7 @@ void main() {
     testWidgets('navigating to /compare loads ComparisonPage', (tester) async {
       await mockNetworkImagesFor(() async {
         getIt<ComparisonCubit>().clear();
-        await tester.pumpWidget(createRouterApp(AppRoutes.compare));
+        await pumpRouterApp(tester, AppRoutes.compare);
         await settle(tester);
 
         expect(find.byType(ComparisonPage), findsOneWidget);
@@ -247,7 +237,7 @@ void main() {
 
     testWidgets('navigating to /settings loads SettingsPage', (tester) async {
       await mockNetworkImagesFor(() async {
-        await tester.pumpWidget(createRouterApp(AppRoutes.settings));
+        await pumpRouterApp(tester, AppRoutes.settings);
         await settle(tester);
 
         expect(find.byType(SettingsPage), findsOneWidget);
@@ -256,7 +246,7 @@ void main() {
 
     testWidgets('navigating to /teams loads TeamsListPage', (tester) async {
       await mockNetworkImagesFor(() async {
-        await tester.pumpWidget(createRouterApp(AppRoutes.teams));
+        await pumpRouterApp(tester, AppRoutes.teams);
         await settle(tester);
 
         expect(find.byType(TeamsListPage), findsOneWidget);
@@ -268,7 +258,7 @@ void main() {
     ) async {
       await mockNetworkImagesFor(() async {
         final teamId = getIt<TeamsCubit>().createTeam('Router Team');
-        await tester.pumpWidget(createRouterApp(AppRoutes.team(teamId)));
+        await pumpRouterApp(tester, AppRoutes.team(teamId));
         await settle(tester);
 
         expect(find.byType(TeamDetailPage), findsOneWidget);

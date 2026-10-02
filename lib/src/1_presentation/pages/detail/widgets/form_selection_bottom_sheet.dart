@@ -5,6 +5,7 @@ import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/extensions/form_name_formatter.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
+import 'package:pokefinder/src/1_presentation/theme/readable_color.dart';
 
 /// Bottom sheet that lets the user toggle shiny sprites and pick an
 /// alternate Pokémon form.
@@ -48,24 +49,28 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PokemonDetailBloc, PokemonBlocState>(
+    return BlocBuilder<PokemonDetailBloc, PokemonDetailState>(
       builder: (context, state) {
         final String? selectedFormName;
         final bool isLoadingForm;
-        final formFailure = state is PokemonBlocSuccess
+        final formFailure = state is PokemonDetailSuccess
             ? state.formFailure
             : null;
-        final failedForm = state is PokemonBlocSuccess
+        final failedForm = state is PokemonDetailSuccess
             ? state.failedForm
             : null;
 
-        if (state is PokemonBlocSuccess) {
+        if (state is PokemonDetailSuccess) {
           selectedFormName = state.selectedFormDetails?.name;
           isLoadingForm = state.isLoadingForm;
         } else {
           selectedFormName = widget.pokemon.name;
           isLoadingForm = false;
         }
+
+        final accentColor = widget.typeColor.readableOn(
+          Theme.of(context).brightness,
+        );
 
         return SafeArea(
           child: SingleChildScrollView(
@@ -112,7 +117,6 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                       value: _localShowShiny,
-                      activeThumbColor: widget.typeColor,
                       onChanged: _onShinyToggled,
                     ),
                   ),
@@ -239,7 +243,7 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                               label: displayFormName,
                               child: InkWell(
                                 onTap: () {
-                                  if (state is PokemonBlocSuccess &&
+                                  if (state is PokemonDetailSuccess &&
                                       !state.isLoadingForm) {
                                     context.read<PokemonDetailBloc>().add(
                                       SelectPokemonFormEvent(form),
@@ -264,7 +268,7 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                                           : Colors.transparent,
                                       border: Border.all(
                                         color: isSelected
-                                            ? widget.typeColor
+                                            ? accentColor
                                             : Colors.transparent,
                                         width: 1.5,
                                       ),
@@ -282,7 +286,7 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                                                   ? FontWeight.bold
                                                   : FontWeight.normal,
                                               color: isSelected
-                                                  ? widget.typeColor
+                                                  ? accentColor
                                                   : null,
                                             ),
                                           ),
@@ -290,7 +294,7 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                                         if (isSelected)
                                           Icon(
                                             Icons.check_circle,
-                                            color: widget.typeColor,
+                                            color: accentColor,
                                             size: 20,
                                           ),
                                       ],

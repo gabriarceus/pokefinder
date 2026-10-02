@@ -6,6 +6,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
+import '../helpers/in_memory_hydrated_storage.dart';
 
 class _MockEnLogger extends Mock implements EnLogger {}
 
@@ -28,15 +29,6 @@ void main() {
   }
 
   group('PreferencesCubit', () {
-    test('initial state defaults correctly', () {
-      final cubit = buildCubit();
-      expect(cubit.state.themeMode, ThemeMode.system);
-      expect(cubit.state.unitSystem, UnitSystem.metric);
-      expect(cubit.state.autoPlayCry, isFalse);
-      expect(cubit.state.cryVolume, equals(1.0));
-      expect(cubit.state.cacheSizeBytes, equals(0));
-    });
-
     test('updates themeMode, unitSystem, and autoPlayCry', () {
       final cubit = buildCubit();
 

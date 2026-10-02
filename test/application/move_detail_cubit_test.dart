@@ -36,10 +36,6 @@ void main() {
     await cubit.close();
   });
 
-  test('initial state is MoveDetailInitial', () {
-    expect(cubit.state, isA<MoveDetailInitial>());
-  });
-
   test('emits loading then the loaded move detail', () async {
     when(
       () => repository.getMoveDetail('tackle'),

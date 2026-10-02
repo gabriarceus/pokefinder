@@ -13,19 +13,18 @@ void main() {
           'meowstic-male-mega',
           'magearna-original-mega',
           'raichu-mega-x',
+          'venusaur-mega',
+          'blastoise-mega',
+          'garchomp-mega',
+          'abomasnow-mega',
+          'audino-mega',
         ]) {
           expect(PokemonFormClassifier.hasRealForm(name), isTrue, reason: name);
         }
       });
 
       test('rejects the vestigial index entries', () {
-        for (final name in [
-          'venusaur-mega',
-          'blastoise-mega',
-          'garchomp-mega',
-          'abomasnow-mega',
-          'staraptor-mega',
-        ]) {
+        for (final name in ['staraptor-mega', 'pikachu-mega']) {
           expect(
             PokemonFormClassifier.hasRealForm(name),
             isFalse,
@@ -459,15 +458,9 @@ void main() {
 
         final venusaur = enriched.firstWhere((e) => e.id == 3);
         expect(venusaur.hasAlternateForms, isTrue);
-        // B3: `venusaur-mega` ships in the index but Venusaur has no Mega
-        // Evolution, so only the real G-Max form is advertised.
         expect(
           venusaur.availableFormCategories,
-          containsAll([PokemonFormCategory.gmax]),
-        );
-        expect(
-          venusaur.availableFormCategories,
-          isNot(contains(PokemonFormCategory.mega)),
+          containsAll([PokemonFormCategory.mega, PokemonFormCategory.gmax]),
         );
 
         final megaVenusaur = enriched.firstWhere((e) => e.id == 10033);

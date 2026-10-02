@@ -242,21 +242,19 @@ void main() {
       cubit.close();
     });
 
-    test('the order is stable across repeated filtering', () {
-      final cubit = DetailMovesCubit(
-        moves: mixedMoves,
-        moveName: moveName,
-        logger: logger,
-      );
+    test('the order does not depend on the input order', () {
+      List<String> orderOf(List<PokemonMove> moves) {
+        final cubit = DetailMovesCubit(
+          moves: moves,
+          moveName: moveName,
+          logger: logger,
+        );
+        final names = cubit.state.filteredMoves.map((m) => m.name).toList();
+        cubit.close();
+        return names;
+      }
 
-      final first = cubit.state.filteredMoves.map((m) => m.name).toList();
-      // Re-running the filter with an unchanged query must not reorder.
-      cubit.updateSearchQuery('');
-      cubit.updateSelectedMethod(DetailMovesCubit.allMethodsFilter);
-
-      expect(cubit.state.filteredMoves.map((m) => m.name), first);
-
-      cubit.close();
+      expect(orderOf(mixedMoves.reversed.toList()), orderOf(mixedMoves));
     });
 
     test('ties on level are broken by display name, not by slug', () {

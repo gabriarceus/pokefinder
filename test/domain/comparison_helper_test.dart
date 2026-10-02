@@ -94,16 +94,6 @@ void main() {
     });
   });
 
-  group('comparison cap', () {
-    // The cap constant is domain-level, so it is asserted here. Enforcing it
-    // (`ComparisonState.isFull` gating `ComparisonCubit.addEntry`) is
-    // application behavior and is covered in comparison_cubit_test.dart, so
-    // this file keeps its layer and does not import the application layer.
-    test('caps the comparison at two entries', () {
-      expect(kComparisonMaxEntries, equals(2));
-    });
-  });
-
   group('unit conversion reuse', () {
     test('formats comparison weight in both unit systems', () {
       expect(

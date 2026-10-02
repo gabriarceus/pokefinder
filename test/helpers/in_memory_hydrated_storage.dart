@@ -1,6 +1,6 @@
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
-/// In-memory implementation of [Storage] for testing and fallback environments.
+/// In-memory implementation of [Storage].
 class InMemoryHydratedStorage implements Storage {
   final Map<String, dynamic> _entries = {};
 

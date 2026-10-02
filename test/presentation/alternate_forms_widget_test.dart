@@ -3,13 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:network_image_mock/network_image_mock.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/alternate_forms_widget.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 
 import '../fixtures/pokemon_fixture.dart';
+import '../helpers/pump_app.dart';
 
 class _MockPokemonBloc extends Mock implements PokemonDetailBloc {}
 
@@ -27,13 +27,12 @@ void main() {
     when(() => mockBloc.stream).thenAnswer((_) => const Stream.empty());
   });
 
-  Widget buildWidgetUnderTest({
+  Future<void> pumpWidgetUnderTest(
+    WidgetTester tester, {
     required Pokemon pokemon,
     String? selectedFormName,
   }) {
-    return MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
+    return tester.pumpApp(
       home: Scaffold(
         body: BlocProvider<PokemonDetailBloc>.value(
           value: mockBloc,
@@ -56,7 +55,7 @@ void main() {
         forms: [const PokemonForm(name: 'bulbasaur', url: 'url/1/')],
       );
 
-      await tester.pumpWidget(buildWidgetUnderTest(pokemon: pokemon));
+      await pumpWidgetUnderTest(tester, pokemon: pokemon);
       await tester.pumpAndSettle();
 
       expect(find.byType(AlternateFormsWidget), findsOneWidget);
@@ -94,9 +93,9 @@ void main() {
 
           when(
             () => mockBloc.state,
-          ).thenReturn(PokemonBlocSuccess(pokemon: pokemon));
+          ).thenReturn(PokemonDetailSuccess(pokemon: pokemon));
 
-          await tester.pumpWidget(buildWidgetUnderTest(pokemon: pokemon));
+          await pumpWidgetUnderTest(tester, pokemon: pokemon);
           await tester.pumpAndSettle();
 
           expect(find.text('Alternate Forms'), findsOneWidget);
@@ -126,10 +125,12 @@ void main() {
 
         when(
           () => mockBloc.state,
-        ).thenReturn(PokemonBlocSuccess(pokemon: pokemon));
+        ).thenReturn(PokemonDetailSuccess(pokemon: pokemon));
 
-        await tester.pumpWidget(
-          buildWidgetUnderTest(pokemon: pokemon, selectedFormName: 'meowth'),
+        await pumpWidgetUnderTest(
+          tester,
+          pokemon: pokemon,
+          selectedFormName: 'meowth',
         );
         await tester.pumpAndSettle();
 
@@ -161,10 +162,12 @@ void main() {
 
           when(
             () => mockBloc.state,
-          ).thenReturn(PokemonBlocSuccess(pokemon: pokemon));
+          ).thenReturn(PokemonDetailSuccess(pokemon: pokemon));
 
-          await tester.pumpWidget(
-            buildWidgetUnderTest(pokemon: pokemon, selectedFormName: 'meowth'),
+          await pumpWidgetUnderTest(
+            tester,
+            pokemon: pokemon,
+            selectedFormName: 'meowth',
           );
           await tester.pumpAndSettle();
 

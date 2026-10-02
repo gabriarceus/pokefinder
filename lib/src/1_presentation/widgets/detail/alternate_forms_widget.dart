@@ -137,7 +137,7 @@ class _AlternateFormCard extends StatelessWidget {
           if (!isSelected) {
             final bloc = context.read<PokemonDetailBloc>();
             final state = bloc.state;
-            if (state is PokemonBlocSuccess && !state.isLoadingForm) {
+            if (state is PokemonDetailSuccess && !state.isLoadingForm) {
               bloc.add(SelectPokemonFormEvent(form));
             }
           }

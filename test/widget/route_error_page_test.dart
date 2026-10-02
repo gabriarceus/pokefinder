@@ -1,23 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/route_error/route_error_page.dart';
+import '../helpers/pump_app.dart';
 
 void main() {
   group('RouteErrorPage', () {
     testWidgets('renders title, error message, and home action button', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('en'),
-          home: const RouteErrorPage(
-            rawParam: 'invalid!param',
-            errorMessage: 'Invalid Pokémon route parameter.',
-          ),
+      await tester.pumpApp(
+        home: const RouteErrorPage(
+          rawParam: 'invalid!param',
+          errorMessage: 'Invalid Pokémon route parameter.',
         ),
       );
 
@@ -31,13 +26,9 @@ void main() {
     });
 
     testWidgets('renders Italian localization correctly', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: Locale('it'),
-          home: RouteErrorPage(),
-        ),
+      await tester.pumpApp(
+        locale: const Locale('it'),
+        home: const RouteErrorPage(),
       );
 
       expect(find.text('Pagina non trovata'), findsNWidgets(2));
@@ -71,14 +62,7 @@ void main() {
         ],
       );
 
-      await tester.pumpWidget(
-        MaterialApp.router(
-          routerConfig: router,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('en'),
-        ),
-      );
+      await tester.pumpApp(router: router);
       await tester.pumpAndSettle();
 
       final buttonFinder = find.byType(FilledButton);

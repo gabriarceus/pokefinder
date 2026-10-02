@@ -1,22 +1,24 @@
 /// Species that have a Mega Evolution in the games.
 ///
-/// The Pokédex index contains a `-mega` entry for far more species than
-/// actually have one: `venusaur-mega` and `blastoise-mega` are leftovers from
-/// a cut feature and are shipped with artwork, cries and moves like any other
-/// form. Nothing in the payload distinguishes them, so the set is curated here.
+/// The Pokédex index contains a `-mega` entry for more species than actually
+/// have one, with artwork, cries and moves like any other form. Nothing in the
+/// payload distinguishes them, so the set is curated here.
 ///
 /// Entries with a base name outside this set are not offered as forms and do
 /// not make the base card advertise a Mega.
 const Set<String> kMegaEvolutionSpecies = {
+  'abomasnow',
   'absol',
   'aerodactyl',
   'aggron',
   'alakazam',
   'altaria',
   'ampharos',
+  'audino',
   'banette',
   'beedrill',
   'blacephalon',
+  'blastoise',
   'blaziken',
   'camerupt',
   'charizard',
@@ -24,9 +26,10 @@ const Set<String> kMegaEvolutionSpecies = {
   'diancie',
   'dragalge',
   'gallade',
-  'gengar',
-  'genesect',
+  'garchomp',
   'gardevoir',
+  'genesect',
+  'gengar',
   'glalie',
   'golurk',
   'greninja',
@@ -37,8 +40,8 @@ const Set<String> kMegaEvolutionSpecies = {
   'heracross',
   'hoopa',
   'houndoom',
-  'keldeo',
   'kangaskhan',
+  'keldeo',
   'kyogre',
   'kyurem',
   'latias',
@@ -56,8 +59,8 @@ const Set<String> kMegaEvolutionSpecies = {
   'metagross',
   'mewtwo',
   'naganadel',
-  'pidgeot',
   'pheromosa',
+  'pidgeot',
   'pinsir',
   'raichu',
   'rayquaza',
@@ -72,6 +75,7 @@ const Set<String> kMegaEvolutionSpecies = {
   'swampert',
   'tyranitar',
   'urshifu',
+  'venusaur',
   'vikavolt',
   'xurkitree',
   'zacian',

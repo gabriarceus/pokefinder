@@ -1,9 +1,9 @@
 part of 'detail_bloc.dart';
 
 @immutable
-abstract class PokemonBlocEvent {}
+abstract class PokemonDetailEvent {}
 
-class FetchPokemonEvent extends PokemonBlocEvent {
+class FetchPokemonEvent extends PokemonDetailEvent {
   FetchPokemonEvent(this.pokemonName);
 
   final String pokemonName;
@@ -19,7 +19,7 @@ class FetchPokemonEvent extends PokemonBlocEvent {
   int get hashCode => pokemonName.hashCode;
 }
 
-class SelectPokemonFormEvent extends PokemonBlocEvent {
+class SelectPokemonFormEvent extends PokemonDetailEvent {
   SelectPokemonFormEvent(this.form);
 
   final PokemonForm form;
@@ -35,7 +35,7 @@ class SelectPokemonFormEvent extends PokemonBlocEvent {
   int get hashCode => form.hashCode;
 }
 
-class RetryPokemonEncountersEvent extends PokemonBlocEvent {
+class RetryPokemonEncountersEvent extends PokemonDetailEvent {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -45,7 +45,7 @@ class RetryPokemonEncountersEvent extends PokemonBlocEvent {
   int get hashCode => runtimeType.hashCode;
 }
 
-class ClearPokemonFormFailureEvent extends PokemonBlocEvent {
+class ClearPokemonFormFailureEvent extends PokemonDetailEvent {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

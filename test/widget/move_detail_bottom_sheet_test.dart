@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/move_detail_bottom_sheet.dart';
 import 'package:pokefinder/src/2_application/bloc/move_detail_cubit/move_detail_cubit.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
+import '../helpers/pump_app.dart';
 
 class _MockPokemonRepository extends Mock implements IPokemonRepository {}
 
@@ -52,15 +52,11 @@ void main() {
         () => repository.getMoveDetail(any()),
       ).thenAnswer((_) async => left(failure));
 
-      await tester.pumpWidget(
-        const MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: MoveDetailBottomSheet(
-              moveName: 'tackle',
-              capitalizedName: 'Tackle',
-            ),
+      await tester.pumpApp(
+        home: const Scaffold(
+          body: MoveDetailBottomSheet(
+            moveName: 'tackle',
+            capitalizedName: 'Tackle',
           ),
         ),
       );

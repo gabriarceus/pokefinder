@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/widgets/pokedex/pokedex_filter_bottom_sheet.dart';
 import 'package:pokefinder/src/2_application/bloc/pokedex_bloc/pokedex_bloc.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
+
+import '../helpers/pump_app.dart';
 
 class _MockPokedexBloc extends Mock implements PokedexBloc {}
 
@@ -46,11 +47,8 @@ void main() {
     });
   }
 
-  Widget buildTestableWidget() {
-    return MaterialApp(
-      locale: const Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
+  Future<void> pumpSheet(WidgetTester tester) {
+    return tester.pumpApp(
       home: Scaffold(
         body: BlocProvider<PokedexBloc>.value(
           value: bloc,
@@ -62,14 +60,11 @@ void main() {
 
   /// Hosts the sheet behind [PokedexFilterBottomSheet.show], so that its single
   /// close action really dismisses a route.
-  Widget buildModalTestableWidget() {
-    return BlocProvider<PokedexBloc>.value(
-      value: bloc,
-      child: MaterialApp(
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
+  Future<void> pumpModalHost(WidgetTester tester) {
+    return tester.pumpApp(
+      home: BlocProvider<PokedexBloc>.value(
+        value: bloc,
+        child: Scaffold(
           body: Builder(
             builder: (context) => TextButton(
               onPressed: () => PokedexFilterBottomSheet.show(context),
@@ -89,7 +84,7 @@ void main() {
 
       when(() => bloc.state).thenReturn(const PokedexState());
 
-      await tester.pumpWidget(buildTestableWidget());
+      await pumpSheet(tester);
       await tester.pump();
 
       expect(find.text('Filters'), findsOneWidget);
@@ -107,7 +102,7 @@ void main() {
       (tester) async {
         when(() => bloc.state).thenReturn(const PokedexState());
 
-        await tester.pumpWidget(buildTestableWidget());
+        await pumpSheet(tester);
         await tester.pump();
 
         await tester.tap(find.text('Fire'));
@@ -126,7 +121,7 @@ void main() {
 
         when(() => bloc.state).thenReturn(const PokedexState());
 
-        await tester.pumpWidget(buildTestableWidget());
+        await pumpSheet(tester);
         await tester.pump();
 
         await tester.tap(find.text('Gen 1'));
@@ -145,7 +140,7 @@ void main() {
 
         when(() => bloc.state).thenReturn(const PokedexState());
 
-        await tester.pumpWidget(buildTestableWidget());
+        await pumpSheet(tester);
         await tester.pump();
 
         await tester.tap(find.text('Name: A - Z'));
@@ -168,7 +163,7 @@ void main() {
           ),
         );
 
-        await tester.pumpWidget(buildTestableWidget());
+        await pumpSheet(tester);
         await tester.pump();
 
         await tester.tap(find.text('Reset'));
@@ -185,7 +180,7 @@ void main() {
 
         when(() => bloc.state).thenReturn(const PokedexState());
 
-        await tester.pumpWidget(buildTestableWidget());
+        await pumpSheet(tester);
         await tester.pump();
 
         expect(find.text('Forms'), findsOneWidget);
@@ -209,7 +204,7 @@ void main() {
 
         when(() => bloc.state).thenReturn(const PokedexState());
 
-        await tester.pumpWidget(buildTestableWidget());
+        await pumpSheet(tester);
         await tester.pump();
 
         final switchFinder = find.byType(Switch);
@@ -239,7 +234,7 @@ void main() {
           ),
         );
 
-        await tester.pumpWidget(buildTestableWidget());
+        await pumpSheet(tester);
         await tester.pump();
 
         // The search text is not counted, the three filters are.
@@ -260,7 +255,7 @@ void main() {
           ),
         );
 
-        await tester.pumpWidget(buildModalTestableWidget());
+        await pumpModalHost(tester);
         await tester.tap(find.text('open'));
         await tester.pumpAndSettle();
 

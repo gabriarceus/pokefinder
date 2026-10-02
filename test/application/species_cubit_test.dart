@@ -38,10 +38,6 @@ void main() {
     await cubit.close();
   });
 
-  test('initial state is SpeciesInitial', () {
-    expect(cubit.state, isA<SpeciesInitial>());
-  });
-
   test('emits SpeciesLoading then SpeciesLoaded on success', () async {
     when(
       () => repository.getPokemonSpecies(

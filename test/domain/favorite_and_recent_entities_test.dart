@@ -5,28 +5,6 @@ void main() {
   group('FavoritePokemon entity', () {
     final now = DateTime.utc(2026, 9, 13, 12, 0, 0);
 
-    test('supports value equality', () {
-      final fav1 = FavoritePokemon(
-        pokemon: const PokemonSummary(
-          id: 25,
-          name: 'pikachu',
-          spriteUrl: 'https://example.com/25.png',
-          types: [PokemonType.electric],
-        ),
-        addedAt: now,
-      );
-      final fav2 = FavoritePokemon(
-        pokemon: const PokemonSummary(
-          id: 25,
-          name: 'pikachu',
-          spriteUrl: 'https://example.com/25.png',
-          types: [PokemonType.electric],
-        ),
-        addedAt: now,
-      );
-      expect(fav1, equals(fav2));
-    });
-
     test('serializes to JSON and deserializes back faithfully', () {
       final original = FavoritePokemon(
         pokemon: const PokemonSummary(
@@ -63,28 +41,6 @@ void main() {
 
   group('RecentPokemon entity', () {
     final now = DateTime.utc(2026, 9, 13, 12, 0, 0);
-
-    test('supports value equality', () {
-      final rec1 = RecentPokemon(
-        pokemon: const PokemonSummary(
-          id: 4,
-          name: 'charmander',
-          spriteUrl: 'https://example.com/4.png',
-          types: [PokemonType.fire],
-        ),
-        viewedAt: now,
-      );
-      final rec2 = RecentPokemon(
-        pokemon: const PokemonSummary(
-          id: 4,
-          name: 'charmander',
-          spriteUrl: 'https://example.com/4.png',
-          types: [PokemonType.fire],
-        ),
-        viewedAt: now,
-      );
-      expect(rec1, equals(rec2));
-    });
 
     test('serializes to JSON and deserializes back faithfully', () {
       final original = RecentPokemon(

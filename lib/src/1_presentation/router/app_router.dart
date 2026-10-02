@@ -37,7 +37,7 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
                 return RouteErrorPage(rawParam: rawParam);
               }
               final searchQuery = state.uri.queryParameters['search'];
-              return PokemonBlocProvider(
+              return PokemonDetailBlocProvider(
                 pokemonName: validated,
                 child: PokemonDetailPage(
                   pokemonName: validated,

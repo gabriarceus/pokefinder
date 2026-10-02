@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:injectable/injectable.dart' hide test;
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/bootstrap.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/widgets/detail_header.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/widgets/detail_tab_scroll_view.dart';
@@ -12,6 +11,8 @@ import 'package:pokefinder/src/1_presentation/widgets/detail/cry_play_button.dar
 import 'package:pokefinder/src/1_presentation/widgets/detail/type_chip.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
+import '../helpers/in_memory_hydrated_storage.dart';
+import '../helpers/pump_app.dart';
 
 /// Pumps frames until [finder] matches.
 ///
@@ -53,34 +54,24 @@ void main() {
 
     await mockNetworkImagesFor(() async {
       final router = createAppRouter(initialLocation: '/pokemon/$pokemon');
-      await tester.pumpWidget(
-        MultiBlocProvider(
-          providers: [
-            BlocProvider.value(value: getIt<PreferencesCubit>()),
-            BlocProvider.value(value: getIt<LanguageCubit>()),
-            BlocProvider.value(value: getIt<FavoritesCubit>()),
-            BlocProvider.value(value: getIt<RecentHistoryCubit>()),
-            BlocProvider.value(value: getIt<ComparisonCubit>()),
-            BlocProvider.value(value: getIt<TeamsCubit>()),
-          ],
-          child: MaterialApp.router(
-            routerConfig: router,
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            builder: (context, child) {
-              if (textScaleFactor != null) {
-                return MediaQuery(
-                  data: MediaQuery.of(
-                    context,
-                  ).copyWith(textScaler: TextScaler.linear(textScaleFactor)),
-                  child: child!,
-                );
-              }
-              return child!;
-            },
-          ),
+      await tester.pumpApp(
+        router: router,
+        cubits: TestAppCubits(
+          preferences: getIt<PreferencesCubit>(),
+          language: getIt<LanguageCubit>(),
+          favorites: getIt<FavoritesCubit>(),
+          recentHistory: getIt<RecentHistoryCubit>(),
+          comparison: getIt<ComparisonCubit>(),
+          teams: getIt<TeamsCubit>(),
         ),
+        builder: textScaleFactor == null
+            ? null
+            : (context, child) => MediaQuery(
+                data: MediaQuery.of(
+                  context,
+                ).copyWith(textScaler: TextScaler.linear(textScaleFactor)),
+                child: child!,
+              ),
       );
       // The header only exists once the Pokémon has loaded.
       await pumpUntilFound(tester, find.byType(DetailHeader));
@@ -122,7 +113,7 @@ void main() {
         expect(find.byType(DetailHeader), findsOneWidget);
         expect(find.byType(TabBar), findsOneWidget);
 
-        for (final tabTitle in ['Stats', 'Moves', 'Items']) {
+        for (final tabTitle in ['Stats', 'Moves', 'Locations']) {
           final tabFinder = find.text(tabTitle);
           await tester.tap(tabFinder, warnIfMissed: false);
           await pumpFrames(tester);
@@ -278,13 +269,8 @@ void main() {
     ) async {
       final semantics = tester.ensureSemantics();
       try {
-        await tester.pumpWidget(
-          const MaterialApp(
-            locale: Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(body: TypeChip(type: PokemonType.grass)),
-          ),
+        await tester.pumpApp(
+          home: const Scaffold(body: TypeChip(type: PokemonType.grass)),
         );
         await tester.pumpAndSettle();
 
@@ -302,15 +288,10 @@ void main() {
     ) async {
       final semantics = tester.ensureSemantics();
       try {
-        await tester.pumpWidget(
-          MaterialApp(
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: MediaQuery(
-              data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
-              child: const Scaffold(body: TypeChip(type: PokemonType.fighting)),
-            ),
+        await tester.pumpApp(
+          home: MediaQuery(
+            data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+            child: const Scaffold(body: TypeChip(type: PokemonType.fighting)),
           ),
         );
         await tester.pumpAndSettle();
@@ -326,25 +307,15 @@ void main() {
     testWidgets('rebuilds with the new type when the widget is updated', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          locale: Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: TypeChip(type: PokemonType.fighting)),
-        ),
+      await tester.pumpApp(
+        home: const Scaffold(body: TypeChip(type: PokemonType.fighting)),
       );
       await tester.pumpAndSettle();
 
       expect(find.text('Fighting'), findsOneWidget);
 
-      await tester.pumpWidget(
-        const MaterialApp(
-          locale: Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: TypeChip(type: PokemonType.water)),
-        ),
+      await tester.pumpApp(
+        home: const Scaffold(body: TypeChip(type: PokemonType.water)),
       );
       await tester.pumpAndSettle();
 

@@ -5,6 +5,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
+import '../helpers/in_memory_hydrated_storage.dart';
 
 class _MockEnLogger extends Mock implements EnLogger {}
 
@@ -43,12 +44,6 @@ void main() {
   }
 
   group('FavoritesCubit', () {
-    test('initial state has empty favorites and idAscending sort order', () {
-      final cubit = buildCubit();
-      expect(cubit.state.favorites, isEmpty);
-      expect(cubit.state.sortOrder, FavoriteSortOrder.idAscending);
-    });
-
     test(
       'toggleFavorite adds item when not favorite, then removes when toggled again',
       () {

@@ -19,7 +19,7 @@ class DetailFailure extends StatelessWidget {
     this.onEditSearch,
   });
 
-  final PokemonBlocFailure state;
+  final PokemonDetailFailure state;
   final String? pokemonName;
   final VoidCallback? onRetry;
   final VoidCallback? onEditSearch;

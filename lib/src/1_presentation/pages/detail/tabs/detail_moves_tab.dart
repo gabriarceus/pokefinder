@@ -19,6 +19,9 @@ class DetailMovesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final languageCode = Localizations.localeOf(context).languageCode;
     return BlocProvider(
+      // The resolver captures the language, so a language change needs a
+      // new cubit to sort and search with the new move names.
+      key: ValueKey(languageCode),
       create: (context) => createDetailMovesCubit(
         moves: pokemon.moves,
         moveName: MoveNameResolver(

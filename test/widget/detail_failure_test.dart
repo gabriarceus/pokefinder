@@ -1,17 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/failure.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
-
-Widget _wrapWithLocalizations(Widget child) {
-  return MaterialApp(
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
-    supportedLocales: AppLocalizations.supportedLocales,
-    home: child,
-  );
-}
+import '../helpers/pump_app.dart';
 
 void main() {
   testWidgets(
@@ -20,14 +12,12 @@ void main() {
       var retryCalled = false;
       var editCalled = false;
 
-      await tester.pumpWidget(
-        _wrapWithLocalizations(
-          DetailFailure(
-            state: PokemonBlocFailure(const NetworkUnavailableFailure()),
-            pokemonName: 'pikachu',
-            onRetry: () => retryCalled = true,
-            onEditSearch: () => editCalled = true,
-          ),
+      await tester.pumpApp(
+        home: DetailFailure(
+          state: PokemonDetailFailure(const NetworkUnavailableFailure()),
+          pokemonName: 'pikachu',
+          onRetry: () => retryCalled = true,
+          onEditSearch: () => editCalled = true,
         ),
       );
       await tester.pumpAndSettle();
@@ -56,12 +46,10 @@ void main() {
   testWidgets('DetailFailure displays PokemonNotFoundFailure correctly', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      _wrapWithLocalizations(
-        DetailFailure(
-          state: PokemonBlocFailure(PokemonNotFoundFailure()),
-          pokemonName: 'notapokemon',
-        ),
+    await tester.pumpApp(
+      home: DetailFailure(
+        state: PokemonDetailFailure(PokemonNotFoundFailure()),
+        pokemonName: 'notapokemon',
       ),
     );
     await tester.pumpAndSettle();
@@ -71,12 +59,10 @@ void main() {
   });
 
   testWidgets('DetailFailure displays ServerFailure correctly', (tester) async {
-    await tester.pumpWidget(
-      _wrapWithLocalizations(
-        DetailFailure(
-          state: PokemonBlocFailure(const ServerFailure(503)),
-          pokemonName: 'charizard',
-        ),
+    await tester.pumpApp(
+      home: DetailFailure(
+        state: PokemonDetailFailure(const ServerFailure(503)),
+        pokemonName: 'charizard',
       ),
     );
     await tester.pumpAndSettle();

@@ -2,37 +2,8 @@ import 'package:en_logger/en_logger.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:pokefinder/src/2_application/bloc/pokemon_load/pokemon_load.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
-
-/// Loading state of the details of one compared Pokémon.
-sealed class ComparisonDetail extends Equatable {
-  const ComparisonDetail();
-
-  @override
-  List<Object?> get props => [];
-}
-
-final class ComparisonDetailLoading extends ComparisonDetail {
-  const ComparisonDetailLoading();
-}
-
-final class ComparisonDetailLoaded extends ComparisonDetail {
-  const ComparisonDetailLoaded(this.pokemon);
-
-  final Pokemon pokemon;
-
-  @override
-  List<Object?> get props => [pokemon];
-}
-
-final class ComparisonDetailFailed extends ComparisonDetail {
-  const ComparisonDetailFailed(this.failure);
-
-  final PokemonFailure failure;
-
-  @override
-  List<Object?> get props => [failure];
-}
 
 /// In-memory selection of Pokémon for side-by-side comparison, with the
 /// details of each one.
@@ -46,7 +17,7 @@ class ComparisonState extends Equatable {
   final List<PokemonSummary> entries;
 
   /// Details of each entry, keyed by [PokemonSummary.id].
-  final Map<int, ComparisonDetail> details;
+  final Map<int, PokemonLoad> details;
 
   bool get isEmpty => entries.isEmpty;
   bool get isFull => entries.length >= kComparisonMaxEntries;
@@ -55,12 +26,12 @@ class ComparisonState extends Equatable {
   bool isSelected(int id) => entries.any((entry) => entry.id == id);
 
   /// Details of [entry]; loading until the first result arrives.
-  ComparisonDetail detailOf(PokemonSummary entry) =>
-      details[entry.id] ?? const ComparisonDetailLoading();
+  PokemonLoad detailOf(PokemonSummary entry) =>
+      details[entry.id] ?? const PokemonLoading();
 
   ComparisonState copyWith({
     List<PokemonSummary>? entries,
-    Map<int, ComparisonDetail>? details,
+    Map<int, PokemonLoad>? details,
   }) {
     return ComparisonState(
       entries: entries ?? this.entries,
@@ -109,7 +80,7 @@ class ComparisonCubit extends Cubit<ComparisonState> {
 
   /// Loads the details of [entry], replacing a previous failure.
   Future<void> loadDetails(PokemonSummary entry) async {
-    _setDetail(entry.id, const ComparisonDetailLoading());
+    _setDetail(entry.id, const PokemonLoading());
     final result = await _repository.getPokemon(PokemonName(entry.name));
     if (isClosed || !state.isSelected(entry.id)) return;
     result.fold((failure) {
@@ -117,8 +88,8 @@ class ComparisonCubit extends Cubit<ComparisonState> {
         'Failed to load ${entry.name} for comparison: $failure',
         prefix: _prefix,
       );
-      _setDetail(entry.id, ComparisonDetailFailed(failure));
-    }, (pokemon) => _setDetail(entry.id, ComparisonDetailLoaded(pokemon)));
+      _setDetail(entry.id, PokemonLoadFailed(failure));
+    }, (pokemon) => _setDetail(entry.id, PokemonLoaded(pokemon)));
   }
 
   /// Removes the entry with [id], if present.
@@ -149,7 +120,7 @@ class ComparisonCubit extends Cubit<ComparisonState> {
     emit(const ComparisonState());
   }
 
-  void _setDetail(int id, ComparisonDetail detail) {
+  void _setDetail(int id, PokemonLoad detail) {
     emit(state.copyWith(details: {...state.details, id: detail}));
   }
 }

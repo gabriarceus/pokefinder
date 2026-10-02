@@ -21,8 +21,13 @@ HomeBloc createHomeBloc(String userInput) {
 }
 
 /// Creates the detail [PokemonDetailBloc] for [pokemonName] and starts its fetch.
-PokemonDetailBloc createPokemonBloc(String pokemonName) {
+PokemonDetailBloc createPokemonDetailBloc(String pokemonName) {
   return getIt<PokemonDetailBloc>()..add(FetchPokemonEvent(pokemonName));
+}
+
+/// Creates a [PokemonListCubit] and starts loading [pokemonNames].
+PokemonListCubit createPokemonListCubit(List<String> pokemonNames) {
+  return getIt<PokemonListCubit>()..load(pokemonNames);
 }
 
 /// Creates the browsable Pokédex bloc and starts its index fetch.

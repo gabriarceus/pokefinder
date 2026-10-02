@@ -83,21 +83,22 @@ class PokemonIndexFilterHelper {
             entry.effectiveParentSpeciesId.toString().startsWith(
               normalizedQuery,
             );
-        if (matchesName || matchesId) return true;
-
-        // Only the surviving entries pay for the category keyword switch.
-        final matchesCategory = switch (normalizedQuery) {
-          'mega' => entry.formCategory == PokemonFormCategory.mega,
-          'primal' => entry.formCategory == PokemonFormCategory.primal,
-          'gmax' => entry.formCategory == PokemonFormCategory.gmax,
-          'regional' => entry.formCategory == PokemonFormCategory.regional,
-          'alola' => entry.regionalGroup == PokemonRegionalGroup.alola,
-          'galar' => entry.regionalGroup == PokemonRegionalGroup.galar,
-          'hisui' => entry.regionalGroup == PokemonRegionalGroup.hisui,
-          'paldea' => entry.regionalGroup == PokemonRegionalGroup.paldea,
-          _ => false,
-        };
-        if (!matchesCategory) {
+        // Only entries without a name or id match pay for the keyword switch.
+        final matchesQuery =
+            matchesName ||
+            matchesId ||
+            switch (normalizedQuery) {
+              'mega' => entry.formCategory == PokemonFormCategory.mega,
+              'primal' => entry.formCategory == PokemonFormCategory.primal,
+              'gmax' => entry.formCategory == PokemonFormCategory.gmax,
+              'regional' => entry.formCategory == PokemonFormCategory.regional,
+              'alola' => entry.regionalGroup == PokemonRegionalGroup.alola,
+              'galar' => entry.regionalGroup == PokemonRegionalGroup.galar,
+              'hisui' => entry.regionalGroup == PokemonRegionalGroup.hisui,
+              'paldea' => entry.regionalGroup == PokemonRegionalGroup.paldea,
+              _ => false,
+            };
+        if (!matchesQuery) {
           return false;
         }
       }

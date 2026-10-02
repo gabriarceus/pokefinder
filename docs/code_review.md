@@ -2,38 +2,31 @@
 
 Date: 2026-09-25 · Commit reviewed: `7ba359a` (main)
 
-## Status: the refactor is implemented — what is left is verification
+## Status: closed — every item has an outcome
 
-All items below have been implemented in `lib/`. The work was done across two sessions; the
-first one ran out of context mid-way and left the test suite un-migrated.
+All items below are done on the `improvements` branch, in the commits after `7ba359a`, except
+the ones the table marks "won't do" or "accepted". The last pass followed
+`docs/code_review_audit.md` (2026-10-01), which checked this list against the code; its defects
+are fixed too.
 
-**Read this first if you are continuing the work.** Current state of the tree:
+| Item            | Outcome                                                                                                                                                                                                                       |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **O11**         | Won't do. The `dev` flavor, `MockPokemonRepository` and `USE_MOCK` stay on purpose: the mock gives fast, offline, fixed data for layout checks, and `USE_MOCK=false` runs a dev build on the live API. Documented in `README.md` and `docs/ai/context.md`. |
+| **O8**          | Accepted as built. `SearchNavigation` uses value equality and `HomeBloc` keeps `NavigationDone`, which clears the pending value after the push, so the same search twice still navigates. Recent searches are deduplicated case-insensitively, so "Pikachu" and "pikachu" are one entry. |
+| **O6**          | Done. `comparison_page.dart` is 278 lines; the stat table is `pages/comparison/widgets/comparison_stats.dart`.                                                                                                                |
+| **A3**          | Done. No `filledButtonTheme` / `switchTheme` / `sliderTheme` is needed: the Material 3 defaults read the fidelity `primary`, checked on the emulator. The last local override (the form sheet switch) is gone.             |
+| **A7**          | Done. The English tab is "Locations". The detail body `Theme` also sets `secondaryContainer`, so tonal buttons and selected chips use the type color.                                                                      |
+| **M1**          | Done. No `catch (_)` around `context.read`, and widget tests share `test/helpers/pump_app.dart` (`pumpApp` + `TestAppCubits`). `InMemoryHydratedStorage` lives in `test/helpers/`.                                     |
+| **O16**         | Done. Tests of trivial code (defaults, `props`, constants, `release_hardening_test` duplicates) were deleted; coverage stays above 70 %.                                                                                   |
+| **M3 residue**  | Accepted. 29 `Colors.*` literals remain: 23 per-game brand colors in `widgets/detail/game_version_color.dart` (data, not theme), 3 stat colors in `theme/app_palette.dart` and black/white in `widgets/detail/contrasting_text_color.dart`. |
+| **Device pass** | Done on the Pixel 7 Pro emulator (`--flavor prod`, Italian): detail page and form sheet on Electric in light and dark, Pokédex and favorites cards at 360 dp, team summary, Settings, Home in dark. Not re-checked: header at text scale 2.0, offline banner, error page with network off, English locale. |
 
-- `lib/` is complete and `fvm flutter analyze` is clean. Do not redo these items.
-- The full remediation is on `main` in the commits after `7ba359a`; `fb762f2` is a
-  checkpoint of the first session's work in progress.
-- `README.md`, `docs/ai/context.md` and `docs/ai/skills/` have been updated to the new
-  architecture, so they no longer describe use cases, `DataRepository`,
-  `PokemonRemoteDataSource` or `CancellationToken`.
-- **Only the test suite needed migrating to the new APIs.** `test/` was rewritten to
-  `PokemonSummary`, `PokedexFilters`, `PokeApiCache`, `AppRoutes`, `PokemonDetailPage`,
-  `PokemonSprites` and the simplified widgets. The tests of removed code were deleted, not
-  rewritten, per O16.
-
-Still open, and the only real work left:
-
-| Item            | What is left                                                                                                                                                                                                                                                                                                     |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **O11**         | Not started. The `dev` flavor, `MockPokemonRepository` and `Environment.dev` still exist. Either delete them or keep them and close the item.                                                                                                                                                                    |
-| **O16**         | Only partially: the tests of deleted code are gone, but the suite is still large relative to the app. Re-measure before touching it.                                                                                                                                                                             |
-| **Device pass** | The visual items (A1–A11, B3, B7, B11, B12) were implemented from code, **not re-checked on the emulator**. Run the `verifying-ui-on-device` skill over the detail page, Home, the Pokédex grid, the drawer, the empty states and the filter sheet, in light and dark mode, before calling the visual work done. |
-| **M3 residue**  | 24 `Colors.*` literals remain in `widgets/detail/game_version_color.dart`. They are per-game brand colors (data, not theme), so this is an accepted exception rather than an oversight.                                                                                                                          |
-
-Verified state of the two baseline gates, after the test migration:
+Gates at the end of the work:
 
 ```
-fvm flutter analyze      # no issues
-fvm flutter test         # all tests pass
+fvm flutter analyze --fatal-infos   # no issues
+fvm flutter test                    # all tests pass
+./scripts/coverage.sh 70            # passes
 ```
 
 ---
@@ -534,8 +527,7 @@ Update `README.md` when a step changes something it documents (use cases, flavor
   its test expectation with it. A PokeAPI type sprite is still the only way to get a per-type
   _icon_, so if type icons are ever wanted again they must be bundled assets, not PokeAPI
   sprites, because those carry English text.
-- `RequestCancelledFailure` and `CancellationToken` are gone (O4). The failure taxonomy is
-  smaller now, and the `Request cancelled` ARB strings may be unused — check before reusing.
+- `RequestCancelledFailure` and `CancellationToken` are gone (O4).
 - The `comparison cap` rule lives in the domain as `kComparisonMaxEntries` but is enforced by
   `ComparisonState.isFull` in the application layer. Assert the constant in `test/domain/` and
   the enforcement in `test/application/`; do not import the application layer from a domain test.

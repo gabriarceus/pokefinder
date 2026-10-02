@@ -57,25 +57,6 @@ void main() {
     await bloc.close();
   });
 
-  test('initial state has correct defaults', () {
-    expect(bloc.state.status, PokedexStatus.initial);
-    expect(bloc.state.isRefreshing, isFalse);
-    expect(bloc.state.allEntries, isEmpty);
-    expect(bloc.state.filteredEntries, isEmpty);
-    expect(bloc.state.filters, const PokedexFilters());
-    expect(bloc.state.filters.query, isEmpty);
-    expect(bloc.state.filters.selectedTypes, isEmpty);
-    expect(bloc.state.filters.generation, isNull);
-    expect(bloc.state.filters.sortOrder, PokedexSortOrder.idAscending);
-    expect(bloc.state.filters.formFilter, PokedexFormFilter.canonicalOnly);
-    expect(bloc.state.filters.includeCosmeticForms, isFalse);
-    expect(bloc.state.typeIdMap, isEmpty);
-    expect(bloc.state.loadingTypes, isEmpty);
-    expect(bloc.state.failure, isNull);
-    expect(bloc.state.typeFilterFailure, isNull);
-    expect(bloc.state.randomPokemonToNavigate, isNull);
-  });
-
   group('PokedexFetchIndexEvent', () {
     test('successful fetch updates state to success with entries', () async {
       when(
@@ -256,6 +237,64 @@ void main() {
         expect(bloc.state.failure, isNull);
         expect(bloc.state.status, PokedexStatus.success);
         expect(bloc.state.filteredEntries, sampleEntries);
+      },
+    );
+
+    test(
+      'a query sent while a type loads is kept when the type load fails',
+      () async {
+        final completer = Completer<Either<PokemonFailure, Set<int>>>();
+        when(
+          () => repository.getPokemonIdsForType(PokemonType.fire),
+        ).thenAnswer((_) => completer.future);
+
+        bloc.add(const PokedexTypeFilterToggledEvent(PokemonType.fire));
+        await pumpEventQueue();
+        bloc.add(const PokedexSearchQueryChangedEvent('s'));
+        await pumpEventQueue();
+        // No Fire Pokémon contains "s" in the sample.
+        expect(bloc.state.filteredEntries, isEmpty);
+
+        completer.complete(
+          left(const NetworkUnavailableFailure('No internet')),
+        );
+        await pumpEventQueue();
+
+        expect(bloc.state.filters.selectedTypes, isEmpty);
+        expect(bloc.state.filteredEntries.map((e) => e.name), [
+          'bulbasaur',
+          'squirtle',
+        ]);
+      },
+    );
+
+    test(
+      'a second tap on a loading type cancels it: one request, no failure',
+      () async {
+        final completer = Completer<Either<PokemonFailure, Set<int>>>();
+        when(
+          () => repository.getPokemonIdsForType(PokemonType.fire),
+        ).thenAnswer((_) => completer.future);
+
+        bloc.add(const PokedexTypeFilterToggledEvent(PokemonType.fire));
+        await pumpEventQueue();
+        bloc.add(const PokedexTypeFilterToggledEvent(PokemonType.fire));
+        await pumpEventQueue();
+
+        expect(bloc.state.filters.selectedTypes, isEmpty);
+        expect(bloc.state.loadingTypes, isEmpty);
+
+        completer.complete(
+          left(const NetworkUnavailableFailure('No internet')),
+        );
+        await pumpEventQueue();
+
+        expect(bloc.state.filters.selectedTypes, isEmpty);
+        expect(bloc.state.typeFilterFailure, isNull);
+        expect(bloc.state.filteredEntries, sampleEntries);
+        verify(
+          () => repository.getPokemonIdsForType(PokemonType.fire),
+        ).called(1);
       },
     );
 

@@ -1,26 +1,26 @@
 part of 'detail_bloc.dart';
 
 @immutable
-sealed class PokemonBlocState extends Equatable {
-  const PokemonBlocState();
+sealed class PokemonDetailState extends Equatable {
+  const PokemonDetailState();
 }
 
-final class PokemonBlocInitial extends PokemonBlocState {
-  const PokemonBlocInitial();
+final class PokemonDetailInitial extends PokemonDetailState {
+  const PokemonDetailInitial();
 
   @override
   List<Object?> get props => [];
 }
 
-final class PokemonBlocLoading extends PokemonBlocState {
-  const PokemonBlocLoading();
+final class PokemonDetailLoading extends PokemonDetailState {
+  const PokemonDetailLoading();
 
   @override
   List<Object?> get props => [];
 }
 
-final class PokemonBlocFailure extends PokemonBlocState {
-  const PokemonBlocFailure(this.failure);
+final class PokemonDetailFailure extends PokemonDetailState {
+  const PokemonDetailFailure(this.failure);
 
   final PokemonFailure failure;
 
@@ -28,8 +28,8 @@ final class PokemonBlocFailure extends PokemonBlocState {
   List<Object?> get props => [failure];
 }
 
-final class PokemonBlocSuccess extends PokemonBlocState {
-  const PokemonBlocSuccess({
+final class PokemonDetailSuccess extends PokemonDetailState {
+  const PokemonDetailSuccess({
     required this.pokemon,
     this.selectedFormDetails,
     this.encounters,
@@ -84,7 +84,7 @@ final class PokemonBlocSuccess extends PokemonBlocState {
     );
   }
 
-  PokemonBlocSuccess copyWith({
+  PokemonDetailSuccess copyWith({
     Pokemon? pokemon,
     PokemonFormDetails? selectedFormDetails,
     List<PokemonEncounter>? encounters,
@@ -94,7 +94,7 @@ final class PokemonBlocSuccess extends PokemonBlocState {
     Object? encountersFailure = _unset,
     Object? failedForm = _unset,
   }) {
-    return PokemonBlocSuccess(
+    return PokemonDetailSuccess(
       pokemon: pokemon ?? this.pokemon,
       selectedFormDetails: selectedFormDetails ?? this.selectedFormDetails,
       encounters: encounters ?? this.encounters,

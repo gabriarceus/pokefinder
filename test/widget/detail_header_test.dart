@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:network_image_mock/network_image_mock.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/widgets/detail_header.dart';
 import 'package:pokefinder/src/1_presentation/pages/matchups/matchup_page.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
+import '../helpers/pump_app.dart';
 
 Widget _header({
   PokemonType? type1,
@@ -47,14 +47,7 @@ GoRouter _routerWithHeader(Widget header) {
 
 Future<void> _pumpRouter(WidgetTester tester, GoRouter router) {
   return mockNetworkImagesFor(() async {
-    await tester.pumpWidget(
-      MaterialApp.router(
-        routerConfig: router,
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-      ),
-    );
+    await tester.pumpApp(router: router);
     // The sprite images never finish loading under `mockNetworkImagesFor`, so
     // their loading spinner animates forever: pump a bounded number of frames
     // instead of settling.

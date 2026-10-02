@@ -29,10 +29,7 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
       _onSearchQueryChanged,
       transformer: restartable(),
     );
-    on<PokedexTypeFilterToggledEvent>(
-      _onTypeFilterToggled,
-      transformer: sequential(),
-    );
+    on<PokedexTypeFilterToggledEvent>(_onTypeFilterToggled);
     on<PokedexGenerationFilterChangedEvent>(
       (event, emit) => _applyFilters(
         emit,
@@ -174,6 +171,25 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
   ) async {
     final type = event.type;
     final selected = state.filters.selectedTypes;
+    // Concurrent on purpose: a second tap while the ids load must read the
+    // emitted selection and cancel it, not wait and re-add the type.
+    if (state.loadingTypes.contains(type)) {
+      _logger.info(
+        'Type filter cancelled while loading: ${type.name}',
+        prefix: _prefix,
+      );
+      final filters = state.filters.copyWith(
+        selectedTypes: {...selected}..remove(type),
+      );
+      emit(
+        state.copyWith(
+          filters: filters,
+          loadingTypes: {...state.loadingTypes}..remove(type),
+          filteredEntries: _filter(state.allEntries, filters, state.typeIdMap),
+        ),
+      );
+      return;
+    }
     final isAdding = !selected.contains(type);
     _logger.info(
       'Type filter toggled: ${type.name} (active: $isAdding)',
@@ -201,6 +217,7 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
     );
 
     final result = await _pokemonRepository.getPokemonIdsForType(type);
+    final wasCancelled = !state.loadingTypes.contains(type);
     final loadingTypes = {...state.loadingTypes}..remove(type);
 
     result.fold(
@@ -209,13 +226,20 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
           'Could not load IDs for type ${type.name}: $failure',
           prefix: _prefix,
         );
+        if (wasCancelled) return;
+        final filters = state.filters.copyWith(
+          selectedTypes: {...state.filters.selectedTypes}..remove(type),
+        );
         emit(
           state.copyWith(
-            filters: state.filters.copyWith(
-              selectedTypes: {...state.filters.selectedTypes}..remove(type),
-            ),
+            filters: filters,
             loadingTypes: loadingTypes,
             typeFilterFailure: failure,
+            filteredEntries: _filter(
+              state.allEntries,
+              filters,
+              state.typeIdMap,
+            ),
           ),
         );
       },

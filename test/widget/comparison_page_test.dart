@@ -7,7 +7,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:network_image_mock/network_image_mock.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/comparison/comparison_page.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/sprite_box_image.dart';
 import 'package:pokefinder/src/1_presentation/widgets/pokedex/pokemon_card.dart';
@@ -15,6 +14,8 @@ import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
 import '../fixtures/pokemon_fixture.dart';
+import '../helpers/in_memory_hydrated_storage.dart';
+import '../helpers/pump_app.dart';
 
 class _MockEnLogger extends Mock implements EnLogger {}
 
@@ -47,8 +48,6 @@ const _missingNoEntry = PokemonIndexEntry(
 void main() {
   late _MockEnLogger logger;
   late _MockPokemonRepository repository;
-  late FavoritesCubit favoritesCubit;
-  late PreferencesCubit preferencesCubit;
 
   setUpAll(() {
     // ComparisonCubit takes a PokemonName and PokemonCard reads the hydrated
@@ -60,18 +59,11 @@ void main() {
   setUp(() {
     logger = _MockEnLogger();
     repository = _MockPokemonRepository();
-    favoritesCubit = FavoritesCubit(logger);
-    preferencesCubit = PreferencesCubit(logger, repository);
     // The image cache is global: drop sprites resolved by earlier tests so a
     // deliberately unmocked request really fails again.
     PaintingBinding.instance.imageCache
       ..clear()
       ..clearLiveImages();
-  });
-
-  tearDown(() async {
-    await favoritesCubit.close();
-    await preferencesCubit.close();
   });
 
   /// Resolves [name] to a small deterministic Pokémon so the page has real
@@ -135,23 +127,20 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Widget buildHarness({
+  /// Pumps [child] in a scaffold, with [comparisonCubit] as the app's
+  /// comparison cubit.
+  Future<void> pumpHarness(
+    WidgetTester tester, {
     required ComparisonCubit comparisonCubit,
     required Widget child,
     Locale locale = const Locale('en'),
   }) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<ComparisonCubit>.value(value: comparisonCubit),
-        BlocProvider<FavoritesCubit>.value(value: favoritesCubit),
-        BlocProvider<PreferencesCubit>.value(value: preferencesCubit),
-      ],
-      child: MaterialApp(
-        locale: locale,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(body: child),
-      ),
+    final cubits = TestAppCubits(comparison: comparisonCubit);
+    addTearDown(cubits.close);
+    return tester.pumpApp(
+      home: Scaffold(body: child),
+      cubits: cubits,
+      locale: locale,
     );
   }
 
@@ -159,8 +148,10 @@ void main() {
     testWidgets('explains how to add entries', (tester) async {
       final cubit = buildComparisonCubit();
 
-      await tester.pumpWidget(
-        buildHarness(comparisonCubit: cubit, child: const ComparisonPage()),
+      await pumpHarness(
+        tester,
+        comparisonCubit: cubit,
+        child: const ComparisonPage(),
       );
       await settle(tester);
 
@@ -177,12 +168,11 @@ void main() {
     testWidgets('localizes the empty state in Italian', (tester) async {
       final cubit = buildComparisonCubit();
 
-      await tester.pumpWidget(
-        buildHarness(
-          comparisonCubit: cubit,
-          child: const ComparisonPage(),
-          locale: const Locale('it'),
-        ),
+      await pumpHarness(
+        tester,
+        comparisonCubit: cubit,
+        child: const ComparisonPage(),
+        locale: const Locale('it'),
       );
       await settle(tester);
 
@@ -198,8 +188,10 @@ void main() {
           ..addEntry(_bulbasaurEntry.summary)
           ..addEntry(_pikachuEntry.summary);
 
-        await tester.pumpWidget(
-          buildHarness(comparisonCubit: cubit, child: const ComparisonPage()),
+        await pumpHarness(
+          tester,
+          comparisonCubit: cubit,
+          child: const ComparisonPage(),
         );
         await settle(tester);
 
@@ -236,8 +228,10 @@ void main() {
           ..addEntry(_bulbasaurEntry.summary)
           ..addEntry(_pikachuEntry.summary);
 
-        await tester.pumpWidget(
-          buildHarness(comparisonCubit: cubit, child: const ComparisonPage()),
+        await pumpHarness(
+          tester,
+          comparisonCubit: cubit,
+          child: const ComparisonPage(),
         );
         await settle(tester);
 
@@ -265,8 +259,10 @@ void main() {
       final cubit = ComparisonCubit(logger, repository)
         ..addEntry(_bulbasaurEntry.summary);
 
-      await tester.pumpWidget(
-        buildHarness(comparisonCubit: cubit, child: const ComparisonPage()),
+      await pumpHarness(
+        tester,
+        comparisonCubit: cubit,
+        child: const ComparisonPage(),
       );
       await settle(tester);
 
@@ -293,8 +289,10 @@ void main() {
       await mockNetworkImagesFor(() async {
         final cubit = buildComparisonCubit()..addEntry(_bulbasaurEntry.summary);
 
-        await tester.pumpWidget(
-          buildHarness(comparisonCubit: cubit, child: const ComparisonPage()),
+        await pumpHarness(
+          tester,
+          comparisonCubit: cubit,
+          child: const ComparisonPage(),
         );
         await settle(tester);
 
@@ -314,8 +312,10 @@ void main() {
           ..addEntry(_bulbasaurEntry.summary)
           ..addEntry(_pikachuEntry.summary);
 
-        await tester.pumpWidget(
-          buildHarness(comparisonCubit: cubit, child: const ComparisonPage()),
+        await pumpHarness(
+          tester,
+          comparisonCubit: cubit,
+          child: const ComparisonPage(),
         );
         await settle(tester);
 
@@ -344,8 +344,10 @@ void main() {
             ..addEntry(_missingNoEntry.summary)
             ..addEntry(_charmanderEntry.summary);
 
-          await tester.pumpWidget(
-            buildHarness(comparisonCubit: cubit, child: const ComparisonPage()),
+          await pumpHarness(
+            tester,
+            comparisonCubit: cubit,
+            child: const ComparisonPage(),
           );
           await settle(tester);
 
@@ -375,8 +377,10 @@ void main() {
         final cubit = ComparisonCubit(logger, repository)
           ..addEntry(_bulbasaurEntry.summary);
 
-        await tester.pumpWidget(
-          buildHarness(comparisonCubit: cubit, child: const ComparisonPage()),
+        await pumpHarness(
+          tester,
+          comparisonCubit: cubit,
+          child: const ComparisonPage(),
         );
         await tester.pump();
 
@@ -399,14 +403,13 @@ void main() {
       await mockNetworkImagesFor(() async {
         final cubit = buildComparisonCubit();
 
-        await tester.pumpWidget(
-          buildHarness(
-            comparisonCubit: cubit,
-            child: const SizedBox(
-              width: 160,
-              height: 200,
-              child: PokemonCard(entry: _bulbasaurEntry),
-            ),
+        await pumpHarness(
+          tester,
+          comparisonCubit: cubit,
+          child: const SizedBox(
+            width: 160,
+            height: 200,
+            child: PokemonCard(entry: _bulbasaurEntry),
           ),
         );
         await settle(tester);
@@ -428,14 +431,13 @@ void main() {
       await mockNetworkImagesFor(() async {
         final cubit = buildComparisonCubit()..addEntry(_bulbasaurEntry.summary);
 
-        await tester.pumpWidget(
-          buildHarness(
-            comparisonCubit: cubit,
-            child: const SizedBox(
-              width: 160,
-              height: 200,
-              child: PokemonCard(entry: _bulbasaurEntry),
-            ),
+        await pumpHarness(
+          tester,
+          comparisonCubit: cubit,
+          child: const SizedBox(
+            width: 160,
+            height: 200,
+            child: PokemonCard(entry: _bulbasaurEntry),
           ),
         );
         await settle(tester);
@@ -458,14 +460,13 @@ void main() {
           ..addEntry(_bulbasaurEntry.summary)
           ..addEntry(_pikachuEntry.summary);
 
-        await tester.pumpWidget(
-          buildHarness(
-            comparisonCubit: cubit,
-            child: const SizedBox(
-              width: 160,
-              height: 200,
-              child: PokemonCard(entry: _charmanderEntry),
-            ),
+        await pumpHarness(
+          tester,
+          comparisonCubit: cubit,
+          child: const SizedBox(
+            width: 160,
+            height: 200,
+            child: PokemonCard(entry: _charmanderEntry),
           ),
         );
         await settle(tester);

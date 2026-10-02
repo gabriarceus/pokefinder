@@ -4,8 +4,8 @@ import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart'
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 
 /// Provides a [PokemonDetailBloc] to [child] and starts loading [pokemonName].
-class PokemonBlocProvider extends StatelessWidget {
-  const PokemonBlocProvider({
+class PokemonDetailBlocProvider extends StatelessWidget {
+  const PokemonDetailBlocProvider({
     super.key,
     required this.child,
     required this.pokemonName,
@@ -17,7 +17,7 @@ class PokemonBlocProvider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => createPokemonBloc(pokemonName),
+      create: (_) => createPokemonDetailBloc(pokemonName),
       child: child,
     );
   }

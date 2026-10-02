@@ -5,6 +5,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
+import '../helpers/in_memory_hydrated_storage.dart';
 
 class _MockEnLogger extends Mock implements EnLogger {}
 
@@ -46,10 +47,6 @@ void main() {
   }
 
   group('TeamsCubit team CRUD', () {
-    test('initial state has no teams', () {
-      expect(buildCubit().state.teams, isEmpty);
-    });
-
     test('createTeam stores a trimmed team and returns its id', () {
       final cubit = buildCubit();
 

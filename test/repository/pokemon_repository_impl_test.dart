@@ -24,6 +24,7 @@ String typeUrl(int id) => 'https://pokeapi.co/api/v2/type/$id/';
 
 /// Minimal PokeAPI `/pokemon/{name}` payload, overridable per section.
 Map<String, dynamic> rawPokemonJson({
+  String name = 'venusaur',
   List<Map<String, dynamic>>? types,
   List<Map<String, dynamic>>? abilities,
   List<Map<String, dynamic>>? forms,
@@ -33,7 +34,7 @@ Map<String, dynamic> rawPokemonJson({
 }) {
   return {
     'id': 3,
-    'name': 'venusaur',
+    'name': name,
     'weight': 1000,
     'height': 20,
     'base_experience': 263,
@@ -509,19 +510,17 @@ void main() {
       },
     );
 
-    test('an invalid Pokémon name fails before the cache is consulted', () async {
-      // NOTE: `PokemonRepositoryImpl.getPokemon` evaluates
-      // `PokemonName.rightOrCrash()` *outside* `_fetch`'s try/catch, so the
-      // BadRequestFailure escapes as a thrown exception instead of a `Left`.
-      // Pre-refactor the whole body was wrapped in try/catch and returned
-      // `left(_mapRepoError(e))`. Left failing on purpose until `lib/` is fixed.
-      final result = await repository.getPokemon(PokemonName('   '));
+    test(
+      'an invalid Pokémon name fails before the cache is consulted',
+      () async {
+        final result = await repository.getPokemon(PokemonName('   '));
 
-      expect(leftOf(result), isA<BadRequestFailure>());
-      verifyNever(
-        () => cache.get<Map<String, dynamic>>(any(), forceRefresh: false),
-      );
-    });
+        expect(leftOf(result), isA<BadRequestFailure>());
+        verifyNever(
+          () => cache.get<Map<String, dynamic>>(any(), forceRefresh: false),
+        );
+      },
+    );
   });
 
   group('error mapping', () {
@@ -992,6 +991,40 @@ void main() {
     });
 
     test(
+      'a fresh index is kept in memory, a stale one is read again',
+      () async {
+        final index = indexJson([
+          {'name': 'bulbasaur', 'url': 'https://pokeapi.co/api/v2/pokemon/1/'},
+        ]);
+        Future<void> readTwice({required bool isStale}) async {
+          stubJsonPayloadAt(
+            PokeApiUrlHelper.pokemonIndexUrl(),
+            index,
+            isStale: isStale,
+          );
+          await repository.getPokemonIndex();
+          await repository.getPokemonIndex();
+        }
+
+        await readTwice(isStale: true);
+        verify(
+          () => cache.get<Map<String, dynamic>>(
+            PokeApiUrlHelper.pokemonIndexUrl(),
+            forceRefresh: false,
+          ),
+        ).called(2);
+
+        await readTwice(isStale: false);
+        verify(
+          () => cache.get<Map<String, dynamic>>(
+            PokeApiUrlHelper.pokemonIndexUrl(),
+            forceRefresh: false,
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
       'returns UnexpectedFailure when the cache throws unexpectedly',
       () async {
         when(
@@ -1148,7 +1181,7 @@ void main() {
       () async {
         stubJsonPayloadAt(
           PokeApiUrlHelper.pokemonUrl('charizard'),
-          rawPokemonJson(),
+          rawPokemonJson(name: 'charizard'),
         );
 
         final pokemon = rightOf(
@@ -1173,10 +1206,25 @@ void main() {
       },
     );
 
+    test('a numeric id lists the same forms as the name', () async {
+      stubJsonPayloadAt(
+        PokeApiUrlHelper.pokemonUrl('6'),
+        rawPokemonJson(name: 'charizard'),
+      );
+
+      final pokemon = rightOf(await repository.getPokemon(PokemonName('6')));
+
+      expect(
+        pokemon.forms.map((f) => f.name),
+        containsAll(['charizard', 'charizard-mega-x', 'charizard-mega-y']),
+      );
+    });
+
     test('resolves the types of a form whose species type changes', () async {
       stubJsonPayloadAt(
         PokeApiUrlHelper.pokemonUrl('charizard'),
         rawPokemonJson(
+          name: 'charizard',
           types: [
             {
               'type': {'url': typeUrl(6)},

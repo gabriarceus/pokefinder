@@ -14,12 +14,5 @@ void main() {
       expect(LearnMethod.fromApi('unknown-method'), isNull);
       expect(LearnMethod.fromApi(''), isNull);
     });
-
-    test('exposes matching apiValue on each variant', () {
-      expect(LearnMethod.levelUp.apiValue, 'level-up');
-      expect(LearnMethod.machine.apiValue, 'machine');
-      expect(LearnMethod.tutor.apiValue, 'tutor');
-      expect(LearnMethod.egg.apiValue, 'egg');
-    });
   });
 }

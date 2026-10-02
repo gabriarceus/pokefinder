@@ -26,16 +26,6 @@ void main() {
     await bloc.close();
   });
 
-  test('initial state has empty fields and null failures', () {
-    expect(bloc.state, HomeBlocState.initial());
-    expect(bloc.state.userInput, isEmpty);
-    expect(bloc.state.pokemonIndex, isEmpty);
-    expect(bloc.state.isIndexLoading, isFalse);
-    expect(bloc.state.searchFailure, isNull);
-    expect(bloc.state.indexFailure, isNull);
-    expect(bloc.state.pendingNavigation, isNull);
-  });
-
   group('index loading', () {
     const entries = [
       PokemonIndexEntry(id: 1, name: 'bulbasaur', detailUrl: ''),

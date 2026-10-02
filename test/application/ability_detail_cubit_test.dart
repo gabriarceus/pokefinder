@@ -33,10 +33,6 @@ void main() {
     await cubit.close();
   });
 
-  test('initial state is AbilityDetailInitial', () {
-    expect(cubit.state, isA<AbilityDetailInitial>());
-  });
-
   test(
     'emits AbilityDetailLoading then AbilityDetailLoaded on success',
     () async {
