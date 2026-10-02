@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/helpers/evolution_trigger_formatter.dart';
 import 'package:pokefinder/src/3_domain/entities/evolution_chain.dart';
+import '../../helpers/pump_app.dart';
 
 void main() {
   group('EvolutionTriggerFormatter', () {
@@ -305,17 +306,13 @@ void main() {
     testWidgets('formats with Italian localization', (tester) async {
       late AppLocalizations l10n;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('it'),
-          home: Builder(
-            builder: (context) {
-              l10n = AppLocalizations.of(context);
-              return const SizedBox.shrink();
-            },
-          ),
+      await tester.pumpApp(
+        locale: const Locale('it'),
+        home: Builder(
+          builder: (context) {
+            l10n = AppLocalizations.of(context);
+            return const SizedBox.shrink();
+          },
         ),
       );
 

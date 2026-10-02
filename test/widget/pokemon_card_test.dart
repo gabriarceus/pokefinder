@@ -1,20 +1,14 @@
-﻿import 'package:dartz/dartz.dart';
-import 'package:en_logger/en_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:network_image_mock/network_image_mock.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:pokefinder/src/1_presentation/widgets/pokedex/pokemon_card.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
-
-class _MockEnLogger extends Mock implements EnLogger {}
-
-class _MockPokemonRepository extends Mock implements IPokemonRepository {}
+import '../helpers/in_memory_hydrated_storage.dart';
+import '../helpers/pump_app.dart';
 
 const _pikachu = PokemonIndexEntry(
   id: 25,
@@ -24,28 +18,18 @@ const _pikachu = PokemonIndexEntry(
 );
 
 void main() {
+  late TestAppCubits cubits;
   late FavoritesCubit favoritesCubit;
   late ComparisonCubit comparisonCubit;
 
-  setUpAll(() {
-    registerFallbackValue(PokemonName('bulbasaur'));
-    ensureHydratedStorage();
-  });
-
   setUp(() {
     HydratedBloc.storage = InMemoryHydratedStorage();
-    favoritesCubit = FavoritesCubit(_MockEnLogger());
-    final repository = _MockPokemonRepository();
-    when(
-      () => repository.getPokemon(any()),
-    ).thenAnswer((_) async => left(const NetworkUnavailableFailure('offline')));
-    comparisonCubit = ComparisonCubit(_MockEnLogger(), repository);
+    cubits = TestAppCubits();
+    favoritesCubit = cubits.favorites;
+    comparisonCubit = cubits.comparison;
   });
 
-  tearDown(() async {
-    await favoritesCubit.close();
-    await comparisonCubit.close();
-  });
+  tearDown(() => cubits.close());
 
   /// Lets the mocked image requests complete, then settles the animations.
   Future<void> settle(WidgetTester tester) async {
@@ -59,7 +43,8 @@ void main() {
   }
 
   /// [onPokemon] is called with the raw route param when the card is tapped.
-  Widget buildTestableWidget(
+  Future<void> pumpCard(
+    WidgetTester tester,
     Widget child, {
     Locale locale = const Locale('en'),
     void Function(String? nameOrId)? onPokemon,
@@ -80,30 +65,18 @@ void main() {
         ),
       ],
     );
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<FavoritesCubit>.value(value: favoritesCubit),
-        BlocProvider<ComparisonCubit>.value(value: comparisonCubit),
-      ],
-      child: MaterialApp.router(
-        routerConfig: router,
-        locale: locale,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-      ),
-    );
+    return tester.pumpApp(router: router, cubits: cubits, locale: locale);
   }
 
   group('PokemonCard', () {
     testWidgets('renders number, name, and sprite image', (tester) async {
       await mockNetworkImagesFor(() async {
-        await tester.pumpWidget(
-          buildTestableWidget(
-            const SizedBox(
-              width: 160,
-              height: 180,
-              child: PokemonCard(entry: _pikachu),
-            ),
+        await pumpCard(
+          tester,
+          const SizedBox(
+            width: 160,
+            height: 180,
+            child: PokemonCard(entry: _pikachu),
           ),
         );
         await settle(tester);
@@ -127,11 +100,10 @@ void main() {
           detailUrl: 'https://pokeapi.co/api/v2/pokemon/1/',
         );
 
-        await tester.pumpWidget(
-          buildTestableWidget(
-            SizedBox(width: 160, height: 180, child: PokemonCard(entry: entry)),
-            onPokemon: (value) => navigatedTo = value,
-          ),
+        await pumpCard(
+          tester,
+          SizedBox(width: 160, height: 180, child: PokemonCard(entry: entry)),
+          onPokemon: (value) => navigatedTo = value,
         );
         await settle(tester);
 
@@ -152,13 +124,12 @@ void main() {
           detailUrl: '',
         );
 
-        await tester.pumpWidget(
-          buildTestableWidget(
-            const SizedBox(
-              width: 150,
-              height: 160,
-              child: PokemonCard(entry: entry),
-            ),
+        await pumpCard(
+          tester,
+          const SizedBox(
+            width: 150,
+            height: 160,
+            child: PokemonCard(entry: entry),
           ),
         );
         await settle(tester);
@@ -173,13 +144,12 @@ void main() {
       'exposes accessible semantics label with types and excludes children semantics',
       (tester) async {
         await mockNetworkImagesFor(() async {
-          await tester.pumpWidget(
-            buildTestableWidget(
-              const SizedBox(
-                width: 160,
-                height: 180,
-                child: PokemonCard(entry: _pikachu),
-              ),
+          await pumpCard(
+            tester,
+            const SizedBox(
+              width: 160,
+              height: 180,
+              child: PokemonCard(entry: _pikachu),
             ),
           );
           await settle(tester);
@@ -214,13 +184,12 @@ void main() {
             speciesGeneration: 1,
           );
 
-          await tester.pumpWidget(
-            buildTestableWidget(
-              const SizedBox(
-                width: 160,
-                height: 180,
-                child: PokemonCard(entry: megaCharizard),
-              ),
+          await pumpCard(
+            tester,
+            const SizedBox(
+              width: 160,
+              height: 180,
+              child: PokemonCard(entry: megaCharizard),
             ),
           );
           await settle(tester);
@@ -245,13 +214,12 @@ void main() {
             availableFormCategories: [PokemonFormCategory.mega],
           );
 
-          await tester.pumpWidget(
-            buildTestableWidget(
-              const SizedBox(
-                width: 160,
-                height: 180,
-                child: PokemonCard(entry: baseCharizard),
-              ),
+          await pumpCard(
+            tester,
+            const SizedBox(
+              width: 160,
+              height: 180,
+              child: PokemonCard(entry: baseCharizard),
             ),
           );
           await settle(tester);
@@ -288,15 +256,14 @@ void main() {
             availableFormCategories: [PokemonFormCategory.regional],
           );
 
-          await tester.pumpWidget(
-            buildTestableWidget(
-              const SizedBox(
-                width: 160,
-                height: 180,
-                child: PokemonCard(entry: baseVulpix),
-              ),
-              locale: const Locale('it'),
+          await pumpCard(
+            tester,
+            const SizedBox(
+              width: 160,
+              height: 180,
+              child: PokemonCard(entry: baseVulpix),
             ),
+            locale: const Locale('it'),
           );
           await settle(tester);
 
@@ -323,13 +290,12 @@ void main() {
       tester,
     ) async {
       await mockNetworkImagesFor(() async {
-        await tester.pumpWidget(
-          buildTestableWidget(
-            const SizedBox(
-              width: 160,
-              height: 180,
-              child: PokemonCard(entry: _pikachu),
-            ),
+        await pumpCard(
+          tester,
+          const SizedBox(
+            width: 160,
+            height: 180,
+            child: PokemonCard(entry: _pikachu),
           ),
         );
         await settle(tester);
@@ -357,13 +323,12 @@ void main() {
       (tester) async {
         await mockNetworkImagesFor(() async {
           // Non-favorite state (Add to favorites)
-          await tester.pumpWidget(
-            buildTestableWidget(
-              const SizedBox(
-                width: 160,
-                height: 180,
-                child: PokemonCard(entry: _pikachu),
-              ),
+          await pumpCard(
+            tester,
+            const SizedBox(
+              width: 160,
+              height: 180,
+              child: PokemonCard(entry: _pikachu),
             ),
           );
           await settle(tester);
@@ -400,13 +365,12 @@ void main() {
       tester,
     ) async {
       await mockNetworkImagesFor(() async {
-        await tester.pumpWidget(
-          buildTestableWidget(
-            const SizedBox(
-              width: 160,
-              height: 180,
-              child: PokemonCard(entry: _pikachu),
-            ),
+        await pumpCard(
+          tester,
+          const SizedBox(
+            width: 160,
+            height: 180,
+            child: PokemonCard(entry: _pikachu),
           ),
         );
         await settle(tester);

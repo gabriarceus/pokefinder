@@ -9,6 +9,7 @@ import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 import 'package:pokefinder/src/4_repository/repositories/mock_pokemon_repository.dart';
 import 'package:pokefinder/src/4_repository/repositories/pokemon_repository_impl.dart';
+import '../helpers/in_memory_hydrated_storage.dart';
 
 void main() {
   group('bootstrap startup and error recovery', () {

@@ -85,6 +85,30 @@ void main() {
       verify(() => errorHandler.next(err)).called(1);
     });
 
+    test('truncates payloads longer than maxPayloadLength', () {
+      final options = RequestOptions(path: '/pokemon/1');
+      final shortPayload = 'A' * 100;
+
+      interceptor.onResponse(
+        Response(requestOptions: options, data: shortPayload, statusCode: 200),
+        _MockResponseInterceptorHandler(),
+      );
+      interceptor.onResponse(
+        Response(requestOptions: options, data: 'B' * 1500, statusCode: 200),
+        _MockResponseInterceptorHandler(),
+      );
+
+      verify(
+        () => logger.debug('  Response: $shortPayload', prefix: 'HTTP'),
+      ).called(1);
+      verify(
+        () => logger.debug(
+          any(that: contains('... [truncated 500 chars]')),
+          prefix: 'HTTP',
+        ),
+      ).called(1);
+    });
+
     test('non-verbose mode logs summary without headers or body', () {
       final quietInterceptor = LoggingInterceptor(
         logger: logger,

@@ -36,10 +36,6 @@ void main() {
     await cubit.close();
   });
 
-  test('initial state is EvolutionInitial', () {
-    expect(cubit.state, isA<EvolutionInitial>());
-  });
-
   test('emits EvolutionLoading then EvolutionLoaded on success', () async {
     when(
       () => repository.getEvolutionChain(

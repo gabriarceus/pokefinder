@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/settings/settings_page.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
+import '../helpers/in_memory_hydrated_storage.dart';
+import '../helpers/pump_app.dart';
 
 class _MockEnLogger extends Mock implements EnLogger {}
 
@@ -16,6 +17,7 @@ class _MockPokemonRepository extends Mock implements IPokemonRepository {}
 void main() {
   late _MockEnLogger logger;
   late _MockPokemonRepository repository;
+  late TestAppCubits cubits;
   late PreferencesCubit preferencesCubit;
   late RecentHistoryCubit recentHistoryCubit;
   late LanguageCubit languageCubit;
@@ -32,39 +34,28 @@ void main() {
       () => repository.clearCache(),
     ).thenAnswer((_) async => const Right(unit));
 
-    preferencesCubit = PreferencesCubit(logger, repository);
-    recentHistoryCubit = RecentHistoryCubit(logger);
-    languageCubit = LanguageCubit(logger);
+    cubits = TestAppCubits(
+      preferences: PreferencesCubit(logger, repository),
+      recentHistory: RecentHistoryCubit(logger),
+      language: LanguageCubit(logger),
+    );
+    preferencesCubit = cubits.preferences;
+    recentHistoryCubit = cubits.recentHistory;
+    languageCubit = cubits.language;
   });
 
-  tearDown(() {
-    preferencesCubit.close();
-    recentHistoryCubit.close();
-    languageCubit.close();
-  });
+  tearDown(() => cubits.close());
 
-  Widget buildSettingsWidget(WidgetTester tester) {
+  Future<void> pumpSettings(WidgetTester tester) {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1.0;
 
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<PreferencesCubit>.value(value: preferencesCubit),
-        BlocProvider<RecentHistoryCubit>.value(value: recentHistoryCubit),
-        BlocProvider<LanguageCubit>.value(value: languageCubit),
-      ],
-      child: const MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        locale: Locale('en'),
-        home: SettingsPage(),
-      ),
-    );
+    return tester.pumpApp(home: const SettingsPage(), cubits: cubits);
   }
 
   group('SettingsPage', () {
     testWidgets('renders all preference sections', (tester) async {
-      await tester.pumpWidget(buildSettingsWidget(tester));
+      await pumpSettings(tester);
       await tester.pumpAndSettle();
 
       expect(find.text('Settings'), findsOneWidget);
@@ -78,7 +69,7 @@ void main() {
     });
 
     testWidgets('changes theme mode via segmented button', (tester) async {
-      await tester.pumpWidget(buildSettingsWidget(tester));
+      await pumpSettings(tester);
       await tester.pumpAndSettle();
 
       expect(preferencesCubit.state.themeMode, ThemeMode.system);
@@ -93,7 +84,7 @@ void main() {
     });
 
     testWidgets('changes unit system via segmented button', (tester) async {
-      await tester.pumpWidget(buildSettingsWidget(tester));
+      await pumpSettings(tester);
       await tester.pumpAndSettle();
 
       expect(preferencesCubit.state.unitSystem, UnitSystem.metric);
@@ -107,7 +98,7 @@ void main() {
     testWidgets('toggles auto-play cry and updates volume slider', (
       tester,
     ) async {
-      await tester.pumpWidget(buildSettingsWidget(tester));
+      await pumpSettings(tester);
       await tester.pumpAndSettle();
 
       expect(preferencesCubit.state.autoPlayCry, isFalse);
@@ -128,7 +119,7 @@ void main() {
     });
 
     testWidgets('toggles keep history switch', (tester) async {
-      await tester.pumpWidget(buildSettingsWidget(tester));
+      await pumpSettings(tester);
       await tester.pumpAndSettle();
 
       expect(recentHistoryCubit.state.isHistoryEnabled, isTrue);
@@ -152,7 +143,7 @@ void main() {
         ),
       );
 
-      await tester.pumpWidget(buildSettingsWidget(tester));
+      await pumpSettings(tester);
       await tester.pumpAndSettle();
 
       // Tap Clear history tile
@@ -186,7 +177,7 @@ void main() {
     });
 
     testWidgets('changes language via the segmented button', (tester) async {
-      await tester.pumpWidget(buildSettingsWidget(tester));
+      await pumpSettings(tester);
       await tester.pumpAndSettle();
 
       expect(languageCubit.state.languageId, Language.system.id);
@@ -207,7 +198,7 @@ void main() {
     testWidgets('displays cache size and clearing cache hits the repository', (
       tester,
     ) async {
-      await tester.pumpWidget(buildSettingsWidget(tester));
+      await pumpSettings(tester);
       await tester.pumpAndSettle();
 
       // Post-frame callback triggers refreshCacheSize
@@ -245,7 +236,7 @@ void main() {
       when(
         () => repository.clearCache(),
       ).thenAnswer((_) async => left(const StorageFailure('disk full')));
-      await tester.pumpWidget(buildSettingsWidget(tester));
+      await pumpSettings(tester);
       await tester.pumpAndSettle();
 
       await tester.tap(find.widgetWithText(FilledButton, 'Clear').first);

@@ -23,9 +23,9 @@ const _prefix = 'DetailBloc';
 
 /// Manages the state for fetching, displaying, and switching Pokémon forms.
 @injectable
-class PokemonDetailBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
+class PokemonDetailBloc extends Bloc<PokemonDetailEvent, PokemonDetailState> {
   PokemonDetailBloc(this._repository, this._logger)
-    : super(const PokemonBlocInitial()) {
+    : super(const PokemonDetailInitial()) {
     _registerEventHandlers();
   }
 
@@ -44,14 +44,14 @@ class PokemonDetailBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
 
   FutureOr<void> onFetchPokemon(
     FetchPokemonEvent event,
-    Emitter<PokemonBlocState> emit,
+    Emitter<PokemonDetailState> emit,
   ) async {
     final name = PokemonName(event.pokemonName);
     if (!name.isValid()) {
       return;
     }
 
-    emit(const PokemonBlocLoading());
+    emit(const PokemonDetailLoading());
     _logger.info(
       'Fetching data for Pokemon: ${name.rightOrCrash()}',
       prefix: _prefix,
@@ -68,7 +68,7 @@ class PokemonDetailBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
           'Failed to fetch Pokemon: ${failure.message}',
           prefix: _prefix,
         );
-        emit(PokemonBlocFailure(failure));
+        emit(PokemonDetailFailure(failure));
       },
       (pokemon) async {
         _logger.info(
@@ -79,7 +79,7 @@ class PokemonDetailBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
         final defaultFormDetails = PokemonFormDetails.fromPokemon(pokemon);
 
         emit(
-          PokemonBlocSuccess(
+          PokemonDetailSuccess(
             pokemon: pokemon,
             selectedFormDetails: defaultFormDetails,
             isLoadingEncounters: true,
@@ -94,7 +94,7 @@ class PokemonDetailBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
         if (emit.isDone) return;
 
         final currentState = state;
-        if (currentState is PokemonBlocSuccess &&
+        if (currentState is PokemonDetailSuccess &&
             currentState.pokemon.id == pokemon.id) {
           encountersResult.fold(
             (failure) {
@@ -122,10 +122,10 @@ class PokemonDetailBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
 
   FutureOr<void> onRetryEncounters(
     RetryPokemonEncountersEvent event,
-    Emitter<PokemonBlocState> emit,
+    Emitter<PokemonDetailState> emit,
   ) async {
     final currentState = state;
-    if (currentState is! PokemonBlocSuccess) return;
+    if (currentState is! PokemonDetailSuccess) return;
 
     emit(
       currentState.copyWith(isLoadingEncounters: true, encountersFailure: null),
@@ -143,7 +143,7 @@ class PokemonDetailBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
     if (emit.isDone) return;
 
     final latestState = state;
-    if (latestState is PokemonBlocSuccess &&
+    if (latestState is PokemonDetailSuccess &&
         latestState.pokemon.id == currentState.pokemon.id) {
       encountersResult.fold(
         (failure) {
@@ -169,10 +169,10 @@ class PokemonDetailBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
 
   FutureOr<void> onSelectPokemonForm(
     SelectPokemonFormEvent event,
-    Emitter<PokemonBlocState> emit,
+    Emitter<PokemonDetailState> emit,
   ) async {
     final currentState = state;
-    if (currentState is! PokemonBlocSuccess) return;
+    if (currentState is! PokemonDetailSuccess) return;
 
     if (event.form.name == currentState.pokemon.name) {
       final defaultFormDetails = PokemonFormDetails.fromPokemon(
@@ -202,7 +202,7 @@ class PokemonDetailBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
     if (emit.isDone) return;
 
     final updatedState = state;
-    if (updatedState is! PokemonBlocSuccess) return;
+    if (updatedState is! PokemonDetailSuccess) return;
 
     result.fold(
       (failure) {
@@ -229,10 +229,10 @@ class PokemonDetailBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
 
   FutureOr<void> onClearFormFailure(
     ClearPokemonFormFailureEvent event,
-    Emitter<PokemonBlocState> emit,
+    Emitter<PokemonDetailState> emit,
   ) {
     final currentState = state;
-    if (currentState is PokemonBlocSuccess) {
+    if (currentState is PokemonDetailSuccess) {
       emit(currentState.copyWith(formFailure: null, failedForm: null));
     }
   }

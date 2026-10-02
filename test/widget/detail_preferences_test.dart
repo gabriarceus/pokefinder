@@ -9,6 +9,7 @@ import 'package:pokefinder/src/1_presentation/pages/detail/widgets/detail_header
 import 'package:pokefinder/src/1_presentation/router/app_router.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
+import '../helpers/in_memory_hydrated_storage.dart';
 
 class _MockCryAudioController extends Mock implements CryAudioController {}
 
@@ -156,7 +157,7 @@ void main() {
       (tester) async {
         await pumpDetailApp(tester, pokemon: 'bulbasaur');
 
-        // The bloc emits PokemonBlocSuccess for the data, then again for the
+        // The bloc emits PokemonDetailSuccess for the data, then again for the
         // background encounters: both carry the same Pokémon id, so the
         // listenWhen must collapse them into a single cry playback.
         verify(() => audioController.play(any())).called(1);

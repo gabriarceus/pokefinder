@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:en_logger/en_logger.dart';
 import 'package:equatable/equatable.dart';
+import 'package:pokefinder/src/2_application/bloc/detail_game_version_cubit/detail_game_version_state.dart';
 import 'package:pokefinder/src/2_application/helpers/move_name_resolver.dart';
 import 'package:pokefinder/src/3_domain/entities/learn_method.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
@@ -59,7 +60,7 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
     required List<PokemonMove> moves,
     required MoveNameResolver moveName,
     required EnLogger logger,
-    String gameVersion = allVersions,
+    String gameVersion = DetailGameVersionState.allVersions,
   }) : _moves = moves,
        _moveName = moveName,
        _logger = logger,
@@ -83,9 +84,6 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
   /// Filter sentinel that selects moves of any learn method.
   static const allMethodsFilter = 'all';
 
-  /// Game version sentinel that selects the latest version group.
-  static const allVersions = 'all';
-
   void updateSearchQuery(String query) {
     emit(state.copyWith(searchQuery: query));
     _filterMoves();
@@ -99,9 +97,10 @@ class DetailMovesCubit extends Cubit<DetailMovesState> {
 
   /// Shows the moves of the version group that contains [gameVersion].
   ///
-  /// [allVersions] selects the most recent version group of the Pokémon.
+  /// [DetailGameVersionState.allVersions] selects the most recent version
+  /// group of the Pokémon.
   void selectGameVersion(String gameVersion) {
-    final versionGroup = gameVersion == allVersions
+    final versionGroup = gameVersion == DetailGameVersionState.allVersions
         ? GameVersionMappings.latestVersionGroup(
                 _moves.map((m) => m.versionGroup),
               ) ??

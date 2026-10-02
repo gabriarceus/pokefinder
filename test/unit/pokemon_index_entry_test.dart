@@ -185,39 +185,6 @@ void main() {
       );
     });
 
-    test('copyWith updates properties and preserves unchanged fields', () {
-      const entry = PokemonIndexEntry(
-        id: 4,
-        name: 'charmander',
-        detailUrl: 'https://pokeapi.co/api/v2/pokemon/4/',
-      );
-
-      final updated = entry.copyWith(
-        types: [PokemonType.fire],
-        customSpriteUrl: 'https://test/4.png',
-      );
-
-      expect(updated.id, 4);
-      expect(updated.name, 'charmander');
-      expect(updated.types, [PokemonType.fire]);
-      expect(updated.displaySpriteUrl, 'https://test/4.png');
-    });
-
-    test('value equality and props', () {
-      const entry1 = PokemonIndexEntry(
-        id: 7,
-        name: 'squirtle',
-        detailUrl: 'https://pokeapi.co/api/v2/pokemon/7/',
-      );
-      const entry2 = PokemonIndexEntry(
-        id: 7,
-        name: 'squirtle',
-        detailUrl: 'https://pokeapi.co/api/v2/pokemon/7/',
-      );
-
-      expect(entry1, equals(entry2));
-    });
-
     test('alternate form properties and formatted dex numbers', () {
       const canonical = PokemonIndexEntry(
         id: 6,

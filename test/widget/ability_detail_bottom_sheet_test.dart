@@ -5,10 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:injectable/injectable.dart' hide test;
 import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/bootstrap.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/ability_detail_bottom_sheet.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
+import '../helpers/in_memory_hydrated_storage.dart';
+import '../helpers/pump_app.dart';
 
 class _MockPokemonRepository extends Mock implements IPokemonRepository {}
 
@@ -39,11 +40,11 @@ void main() {
     );
   });
 
-  Widget createTestWidget({required String abilityName}) {
-    return MaterialApp(
-      locale: const Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
+  Future<void> pumpTestWidget(
+    WidgetTester tester, {
+    required String abilityName,
+  }) {
+    return tester.pumpApp(
       home: Scaffold(
         body: Builder(
           builder: (context) => Center(
@@ -85,7 +86,7 @@ void main() {
         ),
       );
 
-      await tester.pumpWidget(createTestWidget(abilityName: 'overgrow'));
+      await pumpTestWidget(tester, abilityName: 'overgrow');
       await tester.tap(find.text('Open Sheet'));
       await tester.pump(); // Start opening sheet
 
@@ -115,7 +116,7 @@ void main() {
             const Left(ServerFailure(500, 'Failed to load ability details.')),
       );
 
-      await tester.pumpWidget(createTestWidget(abilityName: 'chlorophyll'));
+      await pumpTestWidget(tester, abilityName: 'chlorophyll');
       await tester.tap(find.text('Open Sheet'));
       await tester.pumpAndSettle();
 

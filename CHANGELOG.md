@@ -13,8 +13,9 @@ All notable changes to this project will be documented in this file, following t
   detail screen, drag-reorder plus move-to-top, and per-member deep links to
   the canonical `/pokemon/:nameOrId` route. Team summary shows type coverage
   plus summed and average base stats, reusing the comparison stat components;
-  each member fetches through its own detail bloc (offline cache) so one
-  failure shows inline retry without destroying the summary. Duplicate slugs
+  the members load through one `PokemonListCubit` (offline cache, no
+  encounters) so one failure shows inline retry without destroying the
+  summary. Duplicate slugs
   warn inline but stay allowed, so forms (distinct slugs, classifier display
   names) remain distinct members; the 7th member is rejected with guidance;
   corrupt records are evicted with a log and never crash the list. Entry via
@@ -33,8 +34,8 @@ All notable changes to this project will be documented in this file, following t
   side on phone portrait, plus an aligned `[first] <stat> [second]` stat table
   driven by `buildComparisonStatRows` with leader highlighting and a shared
   total row. Single entries reuse the shared `CompactStatRow` with the detail
-  screen. Each side fetches through its own detail bloc, so a failure shows
-  inline retry without destroying the valid side; per-entry canonical share
+  screen. Each side loads on its own, so a failure shows inline retry without
+  destroying the valid side; per-entry canonical share
   links, guarded sprite placeholders, compare-button tooltips, remove-one,
   clear-all, empty state, EN + IT strings, and Pokédex badge navigation
   included.
@@ -52,8 +53,6 @@ All notable changes to this project will be documented in this file, following t
 - Italian item-name database (`lib/l10n/items_db.dart`, generated from PokeAPI)
   with `translateItem` title-case fallback, plus `translation_coverage_test`
   failing CI on raw-slug or ALL-CAPS rendering.
-- `GetMoveDetailUseCase` with cancellation support, mirroring the
-  species/evolution/ability flows.
 - `docs/logging_policy.md` (redaction, truncation, debug vs release) and
   `docs/localization_policy.md` (canonical vs localized names, fallback rule).
 - MIT license (`LICENSE.md`) covering the project source.
@@ -74,9 +73,6 @@ All notable changes to this project will be documented in this file, following t
 - Presentation blocs/cubits resolve exclusively through
   `lib/src/1_presentation/di/presentation_bloc_factory.dart` (single documented
   construction point); no raw `getIt` calls remain in `1_presentation/`.
-- `MoveDetailCubit` goes through `GetMoveDetailUseCase` like the
-  species/evolution/ability flows; the move-detail repository path accepts
-  cancellation tokens end to end.
 - Evolution trigger badges localize embedded item/move/type names in Italian;
   unknown learn methods and generation codes fall back to title case.
 - Applied tall-style formatter; moved `path`, `yaml` to `dev_dependencies`; upgraded dependencies; replaced `com.example` IDs with production IDs; `post_build.dart` aborts on dirty worktree / failure.
@@ -85,8 +81,10 @@ All notable changes to this project will be documented in this file, following t
 - Data layer collapsed from seven layers to two. `PokeApiCache` is a
   cache-first JSON client (24 h window, stale-if-error, per-URL request
   sharing) and `PokemonRepositoryImpl` parses, maps to entities and maps every
-  error in one place. The double error mapping, the per-endpoint copy-paste
-  fetch methods and the cache-epoch write guard are gone.
+  error in one place. The double error mapping and the per-endpoint copy-paste
+  fetch methods are gone. The cache-epoch write guard stays: a "clear cache"
+  that runs during a request can no longer be undone by that request's late
+  write.
 - Blocs and cubits call `IPokemonRepository` directly. The nine pass-through
   use cases (one line each, and not used consistently anyway) are gone.
 - One `PokemonSummary` (id, name, sprite, types) replaces the four near
@@ -98,11 +96,12 @@ All notable changes to this project will be documented in this file, following t
   listener, bottom spinner and load-more event; the lazy `SliverGrid` renders
   the filtered entries directly.
 - The comparison page loads its own details through `ComparisonCubit` with
-  `getPokemon` only. It went from 1079 to 456 lines and no longer nests one
-  detail bloc per side.
-- Home search uses a `SearchNavigation` value compared by identity instead of a
-  navigation flag plus a "done" event, and the index is loaded with a single
-  `LoadIndex` event.
+  `getPokemon` only. It went from 1079 lines to 278 plus a separate stat table
+  widget, and no longer nests one detail bloc per side. The team summary uses
+  the same loading state (`PokemonLoad`) through `PokemonListCubit`.
+- Home search keeps the pending navigation as a `SearchNavigation` value
+  instead of a bool flag, and the index is loaded with a single `LoadIndex`
+  event.
 - Routes are built with the `AppRoutes` helpers instead of ~30 string literals;
   the per-type `TypeColorScheme` is one opaque color map, and text legibility
   on a colored surface goes through one `readableOn` helper.
@@ -116,7 +115,22 @@ All notable changes to this project will be documented in this file, following t
   horizontal strip, header sprite placeholder, the redundant "Species" section
   removed, and `showCheckmark: false` on selectable type chips.
 - Tests of deleted code were deleted rather than rewritten, and the suite was
-  migrated to the new APIs.
+  migrated to the new APIs. Widget tests share one `pumpApp` helper
+  (`test/helpers/pump_app.dart`) instead of about 30 hand-built app shells,
+  `InMemoryHydratedStorage` moved from `lib/` to `test/helpers/`, and tests of
+  trivial code (defaults, `props`, constants) were deleted.
+- `PokemonFormClassifier` hides the `-mega` entries the Pokédex index ships for
+  species without a Mega Evolution (curated `kMegaEvolutionSpecies`).
+- Favorites, history, teams and comparison key on the exact form
+  (`PokemonSummary.id`) and keep the form lineage across a JSON round trip.
+- A corrupt stored favorite, history or team record is dropped with a log and
+  the rest still loads. "Clear cache" reports a failure in Settings instead of
+  showing success.
+- English tab label "Items" is now "Locations", to match the content (Italian
+  "Luoghi"). Tonal buttons and selected chips on the detail page use the type
+  color like the rest of the content card.
+- `PokemonBloc*` state, event and provider names now use the
+  `PokemonDetail*` prefix, like `PokemonDetailBloc`.
 
 ### Fixed
 
@@ -132,9 +146,10 @@ All notable changes to this project will be documented in this file, following t
 - Pokédex type filter showed "No Pokémon found" on a slow or failing type
   request: the selection is now applied immediately with a loading marker on
   the chip, the type ids load in the background, a failure deselects the type
-  again and is reported in a SnackBar instead of looking like zero results,
-  and taps are processed sequentially so two quick taps no longer lose an
-  update.
+  again and is reported in a SnackBar instead of looking like zero results.
+  A search or filter change made while the type loads is kept after a
+  failure, and a second tap on a loading type cancels it instead of selecting
+  it again with a second request.
 - Detail page played the cry and re-recorded history on every state emission
   (data, encounters, form loading, form loaded). Side effects now run once per
   Pokémon.
@@ -170,8 +185,8 @@ All notable changes to this project will be documented in this file, following t
   half-translated location names are fully translated or fall back to English,
   and the English-text PokeAPI type sprites (`TypeImage`) are gone in favour of
   the localized `TypeChip`.
-- Comparing Pokémon downloaded each one's encounters, which the comparison
-  page never shows.
+- Comparing Pokémon and opening a team downloaded each member's encounters,
+  which neither page shows.
 - Detail header no longer collapses: the page is a `NestedScrollView` with a
   pinned `SliverAppBar`, so the Moves tab is not limited to three rows.
 - The Pokédex had two conflicting game-version selectors, one of them inert on
@@ -191,6 +206,24 @@ All notable changes to this project will be documented in this file, following t
   could not shrink below, and the type chips wrapped to a second line. The
   sprite now shrinks to the space the collapsing app bar gives it and the
   chips stay on one line.
+- Pokédex search ignored the generation, type and form filters for any entry
+  whose name or number matched the query.
+- Searching by number (`25`) opened the Pokémon with only its default form;
+  the forms list now matches a search by name.
+- Mega Venusaur, Blastoise, Garchomp, Abomasnow and Audino were hidden as
+  vestigial index entries.
+- The form sheet showed the selected form in the raw type color (yellow on a
+  light sheet for Electric); it uses the readable accent now, and the shiny
+  switch follows the theme.
+- Pokédex card type chips could paint outside the card on a narrow screen;
+  they share one row and shorten the label instead.
+- Italian detail page showed "Generation I" and English habitat names; both
+  are localized now.
+- After a language change, the Moves tab kept sorting by the old language.
+- An offline (stale) copy of the Pokédex index was kept for the whole session,
+  so alternate forms did not refresh when the network came back.
+- The compact Stats tab showed the total in a three-column row without its
+  header; it is one line now.
 
 ### Removed
 

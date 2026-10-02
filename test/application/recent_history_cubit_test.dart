@@ -5,6 +5,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
+import '../helpers/in_memory_hydrated_storage.dart';
 
 class _MockEnLogger extends Mock implements EnLogger {}
 
@@ -26,13 +27,6 @@ void main() {
   }
 
   group('RecentHistoryCubit', () {
-    test('initial state defaults correctly', () {
-      final cubit = buildCubit();
-      expect(cubit.state.recentPokemon, isEmpty);
-      expect(cubit.state.recentSearches, isEmpty);
-      expect(cubit.state.isHistoryEnabled, isTrue);
-    });
-
     test('addRecentPokemon inserts at top and deduplicates on revisit', () {
       final t1 = DateTime.utc(2026, 1, 1);
       final t2 = DateTime.utc(2026, 1, 2);

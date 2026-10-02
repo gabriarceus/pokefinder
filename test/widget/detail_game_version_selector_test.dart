@@ -2,25 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:injectable/injectable.dart' hide test;
 import 'package:pokefinder/bootstrap.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_game_version_selector.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 import '../fixtures/pokemon_fixture.dart';
+import '../helpers/pump_app.dart';
 
 void main() {
   setUpAll(() async {
     await configureDependencies(Environment.dev);
   });
 
-  Widget createTestWidget({
+  Future<void> pumpTestWidget(
+    WidgetTester tester, {
     required DetailGameVersionCubit cubit,
     Color typeColor = Colors.red,
   }) {
-    return MaterialApp(
-      locale: const Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
+    return tester.pumpApp(
       home: Scaffold(
         body: BlocProvider<DetailGameVersionCubit>.value(
           value: cubit,
@@ -36,7 +34,7 @@ void main() {
     ) async {
       final cubit = DetailGameVersionCubit();
 
-      await tester.pumpWidget(createTestWidget(cubit: cubit));
+      await pumpTestWidget(tester, cubit: cubit);
       await tester.pumpAndSettle();
 
       expect(find.byType(DropdownButton<String>), findsNothing);
@@ -74,7 +72,7 @@ void main() {
 
         cubit.initialize(samplePokemon);
 
-        await tester.pumpWidget(createTestWidget(cubit: cubit));
+        await pumpTestWidget(tester, cubit: cubit);
         await tester.pumpAndSettle();
 
         expect(find.byType(DropdownButton<String>), findsOneWidget);
@@ -112,7 +110,7 @@ void main() {
         ],
       );
 
-      await tester.pumpWidget(createTestWidget(cubit: cubit));
+      await pumpTestWidget(tester, cubit: cubit);
       await tester.pumpAndSettle();
 
       expect(cubit.state.availableVersions, ['red', 'blue']);

@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokefinder/l10n/abilities_db.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/l10n/items_db.dart';
 import 'package:pokefinder/l10n/locations_db.dart';
 import 'package:pokefinder/l10n/moves_db.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
+import '../helpers/pump_app.dart';
 
 /// Coverage contract for bulk slug translations (abilities, moves, items,
 /// locations): every rendered key has an EN title-case rendering and either
 /// an IT database entry or the explicitly documented title-case fallback.
 /// Unknown slugs must never surface as raw hyphenated slugs or ALL-CAPS text.
 void main() {
-  Widget buildTestWidget({
+  Future<void> pumpTestWidget(
+    WidgetTester tester, {
     required Locale locale,
     required Widget Function(BuildContext context) builder,
   }) {
-    return MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
+    return tester.pumpApp(
       locale: locale,
       home: Scaffold(body: Builder(builder: builder)),
     );
@@ -68,22 +67,20 @@ void main() {
 
   group('translateItem', () {
     testWidgets('resolves known items in Italian', (tester) async {
-      await tester.pumpWidget(
-        buildTestWidget(
-          locale: const Locale('it'),
-          builder: (context) => Text(context.translateItem('kings-rock')),
-        ),
+      await pumpTestWidget(
+        tester,
+        locale: const Locale('it'),
+        builder: (context) => Text(context.translateItem('kings-rock')),
       );
       await tester.pumpAndSettle();
       expect(find.text('Roccia di Re'), findsOneWidget);
     });
 
     testWidgets('falls back to title case in English', (tester) async {
-      await tester.pumpWidget(
-        buildTestWidget(
-          locale: const Locale('en'),
-          builder: (context) => Text(context.translateItem('kings-rock')),
-        ),
+      await pumpTestWidget(
+        tester,
+        locale: const Locale('en'),
+        builder: (context) => Text(context.translateItem('kings-rock')),
       );
       await tester.pumpAndSettle();
       expect(find.text('Kings Rock'), findsOneWidget);
@@ -93,12 +90,10 @@ void main() {
       tester,
     ) async {
       for (final locale in [const Locale('en'), const Locale('it')]) {
-        await tester.pumpWidget(
-          buildTestWidget(
-            locale: locale,
-            builder: (context) =>
-                Text(context.translateItem('mystery-item-xyz')),
-          ),
+        await pumpTestWidget(
+          tester,
+          locale: locale,
+          builder: (context) => Text(context.translateItem('mystery-item-xyz')),
         );
         await tester.pumpAndSettle();
         expect(find.text('Mystery Item Xyz'), findsOneWidget);
@@ -111,17 +106,16 @@ void main() {
   group('fallback contract for all slug translators', () {
     testWidgets('unknown slugs never render raw or in caps', (tester) async {
       for (final locale in [const Locale('en'), const Locale('it')]) {
-        await tester.pumpWidget(
-          buildTestWidget(
-            locale: locale,
-            builder: (context) => Column(
-              children: [
-                Text(context.translateAbility('mystery-ability-xyz')),
-                Text(context.translateMove('mystery-move-xyz')),
-                Text(context.translateItem('mystery-item-xyz')),
-                Text(context.translateLocation('mystery-location-xyz')),
-              ],
-            ),
+        await pumpTestWidget(
+          tester,
+          locale: locale,
+          builder: (context) => Column(
+            children: [
+              Text(context.translateAbility('mystery-ability-xyz')),
+              Text(context.translateMove('mystery-move-xyz')),
+              Text(context.translateItem('mystery-item-xyz')),
+              Text(context.translateLocation('mystery-location-xyz')),
+            ],
           ),
         );
         await tester.pumpAndSettle();

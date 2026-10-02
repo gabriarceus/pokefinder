@@ -13,6 +13,8 @@ export 'package:pokefinder/src/2_application/bloc/ability_detail_cubit/ability_d
 export 'package:pokefinder/src/2_application/bloc/ability_detail_cubit/ability_detail_state.dart';
 export 'package:pokefinder/src/2_application/bloc/detail_game_version_cubit/detail_game_version_cubit.dart';
 export 'package:pokefinder/src/2_application/bloc/comparison_cubit/comparison_cubit.dart';
+export 'package:pokefinder/src/2_application/bloc/pokemon_list_cubit/pokemon_list_cubit.dart';
+export 'package:pokefinder/src/2_application/bloc/pokemon_load/pokemon_load.dart';
 export 'package:pokefinder/src/2_application/bloc/teams_cubit/teams_cubit.dart';
 export 'package:pokefinder/src/2_application/bloc/language_cubit/language_cubit.dart';
 

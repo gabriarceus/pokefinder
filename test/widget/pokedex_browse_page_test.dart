@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:network_image_mock/network_image_mock.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/comparison/comparison_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/pokedex_browse/pokedex_browse_page.dart';
 import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
@@ -16,6 +15,8 @@ import 'package:pokefinder/src/1_presentation/widgets/pokedex/pokemon_card.dart'
 import 'package:pokefinder/src/1_presentation/widgets/pokedex/pokemon_card_skeleton.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
+import '../helpers/in_memory_hydrated_storage.dart';
+import '../helpers/pump_app.dart';
 
 class _MockPokedexBloc extends Mock implements PokedexBloc {}
 
@@ -25,8 +26,8 @@ class _MockPokemonRepository extends Mock implements IPokemonRepository {}
 
 void main() {
   late _MockPokedexBloc bloc;
+  late TestAppCubits cubits;
   late ComparisonCubit comparisonCubit;
-  late FavoritesCubit favoritesCubit;
   late StreamController<PokedexState> streamController;
 
   final sampleEntries = [
@@ -63,35 +64,31 @@ void main() {
     when(
       () => repository.getPokemon(any()),
     ).thenAnswer((_) async => left(const UnexpectedFailure('offline')));
-    comparisonCubit = ComparisonCubit(_MockEnLogger(), repository);
     HydratedBloc.storage = InMemoryHydratedStorage();
-    favoritesCubit = FavoritesCubit(_MockEnLogger());
+    cubits = TestAppCubits(
+      comparison: ComparisonCubit(_MockEnLogger(), repository),
+    );
+    comparisonCubit = cubits.comparison;
     streamController = StreamController<PokedexState>.broadcast();
     when(() => bloc.stream).thenAnswer((_) => streamController.stream);
   });
 
   tearDown(() async {
     await streamController.close();
-    await comparisonCubit.close();
-    await favoritesCubit.close();
+    await cubits.close();
   });
 
-  Widget buildTestableWidget(Size screenSize) {
-    return MaterialApp(
-      locale: const Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
+  /// Pumps the browse page on a screen of [screenSize].
+  Future<void> pumpPage(WidgetTester tester, Size screenSize) {
+    return tester.pumpApp(
       home: MediaQuery(
         data: MediaQueryData(size: screenSize),
-        child: MultiBlocProvider(
-          providers: [
-            BlocProvider<PokedexBloc>.value(value: bloc),
-            BlocProvider<ComparisonCubit>.value(value: comparisonCubit),
-            BlocProvider<FavoritesCubit>.value(value: favoritesCubit),
-          ],
+        child: BlocProvider<PokedexBloc>.value(
+          value: bloc,
           child: const PokedexBrowsePage(),
         ),
       ),
+      cubits: cubits,
     );
   }
 
@@ -101,7 +98,7 @@ void main() {
         const PokedexState().copyWith(status: PokedexStatus.loading),
       );
 
-      await tester.pumpWidget(buildTestableWidget(const Size(400, 800)));
+      await pumpPage(tester, const Size(400, 800));
       await tester.pump();
 
       expect(find.byType(PokemonCardSkeleton), findsWidgets);
@@ -119,7 +116,7 @@ void main() {
           ),
         );
 
-        await tester.pumpWidget(buildTestableWidget(const Size(400, 800)));
+        await pumpPage(tester, const Size(400, 800));
         await tester.pump();
 
         expect(find.byType(PokemonCard), findsNWidgets(3));
@@ -141,7 +138,7 @@ void main() {
           ),
         );
 
-        await tester.pumpWidget(buildTestableWidget(const Size(400, 800)));
+        await pumpPage(tester, const Size(400, 800));
         await tester.pump();
 
         expect(
@@ -171,7 +168,7 @@ void main() {
           ),
         );
 
-        await tester.pumpWidget(buildTestableWidget(const Size(400, 800)));
+        await pumpPage(tester, const Size(400, 800));
         await tester.pump();
 
         expect(find.byType(LinearProgressIndicator), findsOneWidget);
@@ -194,7 +191,7 @@ void main() {
         );
         when(() => bloc.state).thenReturn(initialState);
 
-        await tester.pumpWidget(buildTestableWidget(const Size(400, 800)));
+        await pumpPage(tester, const Size(400, 800));
         await tester.pump();
         expect(find.byType(SnackBar), findsNothing);
 
@@ -230,7 +227,7 @@ void main() {
         ),
       );
 
-      await tester.pumpWidget(buildTestableWidget(const Size(400, 800)));
+      await pumpPage(tester, const Size(400, 800));
       await tester.pump();
 
       expect(
@@ -258,12 +255,12 @@ void main() {
         );
 
         // Phone size (390 x 844)
-        await tester.pumpWidget(buildTestableWidget(const Size(390, 844)));
+        await pumpPage(tester, const Size(390, 844));
         await tester.pump();
         expect(find.byType(PokemonCard), findsNWidgets(3));
 
         // Tablet size (1024 x 768)
-        await tester.pumpWidget(buildTestableWidget(const Size(1024, 768)));
+        await pumpPage(tester, const Size(1024, 768));
         await tester.pump();
         expect(find.byType(PokemonCard), findsNWidgets(3));
       });
@@ -279,7 +276,7 @@ void main() {
         );
         when(() => bloc.state).thenReturn(state);
 
-        await tester.pumpWidget(buildTestableWidget(const Size(400, 800)));
+        await pumpPage(tester, const Size(400, 800));
         await tester.pump();
 
         final updatedState = state.copyWith(
@@ -306,7 +303,7 @@ void main() {
           );
           when(() => bloc.state).thenReturn(refreshingState);
 
-          await tester.pumpWidget(buildTestableWidget(const Size(400, 800)));
+          await pumpPage(tester, const Size(400, 800));
           await tester.pump();
 
           // Trigger pull to refresh gesture
@@ -366,7 +363,7 @@ void main() {
             ),
           );
 
-          await tester.pumpWidget(buildTestableWidget(const Size(400, 800)));
+          await pumpPage(tester, const Size(400, 800));
           await tester.pump();
 
           final cardTitles = find
@@ -408,7 +405,7 @@ void main() {
         comparisonCubit.addEntry(sampleEntries[0].summary);
         comparisonCubit.addEntry(sampleEntries[1].summary);
 
-        await tester.pumpWidget(buildTestableWidget(const Size(400, 800)));
+        await pumpPage(tester, const Size(400, 800));
         await tester.pump();
 
         expect(find.text('2'), findsOneWidget);
@@ -431,33 +428,19 @@ void main() {
           routes: [
             GoRoute(
               path: AppRoutes.pokedex,
-              builder: (context, state) => MultiBlocProvider(
-                providers: [
-                  BlocProvider<PokedexBloc>.value(value: bloc),
-                  BlocProvider<ComparisonCubit>.value(value: comparisonCubit),
-                  BlocProvider<FavoritesCubit>.value(value: favoritesCubit),
-                ],
+              builder: (context, state) => BlocProvider<PokedexBloc>.value(
+                value: bloc,
                 child: const PokedexBrowsePage(),
               ),
             ),
             GoRoute(
               path: AppRoutes.compare,
-              builder: (context, state) => BlocProvider<ComparisonCubit>.value(
-                value: comparisonCubit,
-                child: const ComparisonPage(),
-              ),
+              builder: (context, state) => const ComparisonPage(),
             ),
           ],
         );
 
-        await tester.pumpWidget(
-          MaterialApp.router(
-            routerConfig: router,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            locale: const Locale('en'),
-          ),
-        );
+        await tester.pumpApp(router: router, cubits: cubits);
         await tester.pump();
 
         await tester.tap(find.byTooltip('Compare'));

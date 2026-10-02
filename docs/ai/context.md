@@ -15,10 +15,11 @@ The rules in this repo win on conflict.
 
 ## Known issues — read before a refactor
 
-`docs/code_review.md` lists known bugs, UI problems and planned simplifications, each with file
-and line. Some existing code is flagged there as a pattern **not** to copy (empty `catch (_) {}`
-around `context.read`, hard-coded colors and font sizes, string routes). When a task fixes an item,
-also update the facts in this file and in the skills.
+`docs/code_review.md` lists the bugs, UI problems and simplifications found in the last review,
+each with file and line, and the outcome of each item. The patterns it flagged (empty
+`catch (_) {}` around `context.read`, hard-coded colors and font sizes, string routes) are gone
+from the code; do not bring them back. When a task changes a fact described here, also update
+this file and the skills.
 
 ## Architecture — layered, dependencies point inward
 
@@ -53,8 +54,10 @@ also update the facts in this file and in the skills.
   `PokemonIndexEntry` keeps the form lineage. Favourites, history, teams and comparison all key
   on that id.
 - **Screen-scoped blocs** are `@injectable` and created only through
-  `presentation_bloc_factory.dart` (`createPokemonBloc`, `createPokedexBloc`, …). No raw `getIt`
-  in `1_presentation/`.
+  `presentation_bloc_factory.dart` (`createPokemonDetailBloc`, `createPokedexBloc`, …). No raw `getIt`
+  in `1_presentation/`. A screen that needs several Pokémon at once (team summary) uses one
+  `PokemonListCubit` (`getPokemon` only, one `PokemonLoad` per name), not one detail bloc per
+  Pokémon: the detail bloc also downloads encounters.
 - Cubits that need runtime data (`DetailMovesCubit`) or have no dependencies
   (`DetailGameVersionCubit`) are not injectable and are created inline in a `BlocProvider`.
 - Environments: `--flavor prod` → `Environment.prod` → `PokemonRepositoryImpl` (live PokeAPI).
@@ -68,7 +71,8 @@ also update the facts in this file and in the skills.
 - Dio → `PokeApiCache` (Hive cache, cache-first, 24 h window, stale-if-error, per-URL-and-type
   request sharing, and an epoch so a `clear()` discards writes already in flight) →
   `PokemonRepositoryImpl` (maps `Raw*` → entities, and **all** errors in one `_toFailure`) → bloc.
-- `PokemonRepositoryImpl` memoizes the enriched Pokédex index for the app lifetime. It is the
+- `PokemonRepositoryImpl` memoizes a fresh enriched Pokédex index for the app lifetime (a stale
+  offline copy is served but not kept, so the next call retries the network). It is the
   source of a Pokémon's `forms`: `/pokemon/{name}` only ever names the Pokémon itself, so the
   catalog is grouped by `effectiveParentSpeciesId` instead. `PokemonFormClassifier.hasRealForm`
   filters the vestigial `-mega` entries the index ships for species with no Mega Evolution

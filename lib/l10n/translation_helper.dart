@@ -142,6 +142,32 @@ final Map<String, String Function(AppLocalizations)> _gameNames = {
   'scarlet-violet': (t) => t.gameGroupScarletViolet,
 };
 
+/// Localized names of species habitats, keyed by slug.
+final Map<String, String Function(AppLocalizations)> _habitatNames = {
+  'cave': (t) => t.habitatCave,
+  'forest': (t) => t.habitatForest,
+  'grassland': (t) => t.habitatGrassland,
+  'mountain': (t) => t.habitatMountain,
+  'rare': (t) => t.habitatRare,
+  'rough-terrain': (t) => t.habitatRoughTerrain,
+  'sea': (t) => t.habitatSea,
+  'urban': (t) => t.habitatUrban,
+  'waters-edge': (t) => t.habitatWatersEdge,
+};
+
+/// Generation numbers keyed by the roman numeral of a `generation-<n>` slug.
+const Map<String, int> _generationNumbers = {
+  'i': 1,
+  'ii': 2,
+  'iii': 3,
+  'iv': 4,
+  'v': 5,
+  'vi': 6,
+  'vii': 7,
+  'viii': 8,
+  'ix': 9,
+};
+
 extension TranslationExtension on BuildContext {
   String get _languageCode => Localizations.localeOf(this).languageCode;
 
@@ -173,6 +199,20 @@ extension TranslationExtension on BuildContext {
 
   /// Returns the localized name of the Pokémon [typeName], or null when the
   /// value is not a recognized type.
+  /// Returns the localized label of a `generation-<roman>` slug (`Gen 1`),
+  /// falling back to display case for an unknown slug.
+  String translateGeneration(String slug) {
+    final number = _generationNumbers[slug.replaceFirst('generation-', '')];
+    if (number == null) return slug.toDisplayCase();
+    return AppLocalizations.of(this).generationNum(number: number);
+  }
+
+  /// Returns the localized name of a species habitat slug, falling back to
+  /// display case for an unknown slug.
+  String translateHabitat(String slug) =>
+      _habitatNames[slug]?.call(AppLocalizations.of(this)) ??
+      slug.toDisplayCase();
+
   String? translateTypeOrNull(String typeName) {
     return AppLocalizations.of(this).translateTypeOrNull(typeName);
   }

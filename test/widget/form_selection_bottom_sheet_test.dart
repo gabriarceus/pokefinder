@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/widgets/form_selection_bottom_sheet.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 
 import '../fixtures/pokemon_fixture.dart';
+import '../helpers/pump_app.dart';
 
 class _MockPokemonBloc extends Mock implements PokemonDetailBloc {}
 
@@ -43,7 +43,7 @@ void main() {
         ],
       );
 
-      final successState = PokemonBlocSuccess(
+      final successState = PokemonDetailSuccess(
         pokemon: pokemon,
         selectedFormDetails: PokemonFormDetails.fromPokemon(pokemon),
         formFailure: const NetworkUnavailableFailure(),
@@ -52,20 +52,16 @@ void main() {
 
       when(() => bloc.state).thenReturn(successState);
 
-      await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: BlocProvider<PokemonDetailBloc>.value(
-            value: bloc,
-            child: Scaffold(
-              body: FormSelectionBottomSheet(
-                pokemon: pokemon,
-                typeColor: Colors.green,
-                textColor: Colors.white,
-                showShiny: false,
-                onShinyChanged: (_) {},
-              ),
+      await tester.pumpApp(
+        home: BlocProvider<PokemonDetailBloc>.value(
+          value: bloc,
+          child: Scaffold(
+            body: FormSelectionBottomSheet(
+              pokemon: pokemon,
+              typeColor: Colors.green,
+              textColor: Colors.white,
+              showShiny: false,
+              onShinyChanged: (_) {},
             ),
           ),
         ),
@@ -114,32 +110,28 @@ void main() {
         ],
       );
 
-      final successState = PokemonBlocSuccess(
+      final successState = PokemonDetailSuccess(
         pokemon: pokemon,
         selectedFormDetails: PokemonFormDetails.fromPokemon(pokemon),
       );
 
       when(() => bloc.state).thenReturn(successState);
 
-      await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: MediaQuery(
-            data: const MediaQueryData(
-              size: Size(320, 568),
-              textScaler: TextScaler.linear(2.0),
-            ),
-            child: Scaffold(
-              body: BlocProvider<PokemonDetailBloc>.value(
-                value: bloc,
-                child: FormSelectionBottomSheet(
-                  pokemon: pokemon,
-                  typeColor: Colors.green,
-                  textColor: Colors.white,
-                  showShiny: false,
-                  onShinyChanged: (_) {},
-                ),
+      await tester.pumpApp(
+        home: MediaQuery(
+          data: const MediaQueryData(
+            size: Size(320, 568),
+            textScaler: TextScaler.linear(2.0),
+          ),
+          child: Scaffold(
+            body: BlocProvider<PokemonDetailBloc>.value(
+              value: bloc,
+              child: FormSelectionBottomSheet(
+                pokemon: pokemon,
+                typeColor: Colors.green,
+                textColor: Colors.white,
+                showShiny: false,
+                onShinyChanged: (_) {},
               ),
             ),
           ),

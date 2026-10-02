@@ -49,7 +49,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> {
   }
 
   /// Runs once per loaded Pokémon, not on later emissions for the same one.
-  void _onPokemonLoaded(BuildContext context, PokemonBlocSuccess state) {
+  void _onPokemonLoaded(BuildContext context, PokemonDetailSuccess state) {
     context.read<RecentHistoryCubit>().addRecentPokemon(state.summary);
 
     final query = widget.searchQuery?.trim() ?? '';
@@ -66,21 +66,22 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<PokemonDetailBloc, PokemonBlocState>(
+    return BlocListener<PokemonDetailBloc, PokemonDetailState>(
       listenWhen: (previous, current) =>
-          current is PokemonBlocSuccess &&
-          (previous is! PokemonBlocSuccess ||
+          current is PokemonDetailSuccess &&
+          (previous is! PokemonDetailSuccess ||
               previous.pokemon.id != current.pokemon.id),
       listener: (context, state) =>
-          _onPokemonLoaded(context, state as PokemonBlocSuccess),
-      child: BlocBuilder<PokemonDetailBloc, PokemonBlocState>(
+          _onPokemonLoaded(context, state as PokemonDetailSuccess),
+      child: BlocBuilder<PokemonDetailBloc, PokemonDetailState>(
         builder: (context, state) => switch (state) {
-          PokemonBlocInitial() || PokemonBlocLoading() => const DetailLoading(),
-          PokemonBlocFailure() => DetailFailure(
+          PokemonDetailInitial() ||
+          PokemonDetailLoading() => const DetailLoading(),
+          PokemonDetailFailure() => DetailFailure(
             state: state,
             pokemonName: widget.pokemonName,
           ),
-          PokemonBlocSuccess() => _DetailSuccessView(
+          PokemonDetailSuccess() => _DetailSuccessView(
             success: state,
             audioController: _audioController,
             showShiny: _showShiny,
@@ -100,7 +101,7 @@ class _DetailSuccessView extends StatelessWidget {
     required this.onShinyChanged,
   });
 
-  final PokemonBlocSuccess success;
+  final PokemonDetailSuccess success;
   final CryAudioController audioController;
   final bool showShiny;
   final ValueChanged<bool> onShinyChanged;
@@ -186,13 +187,13 @@ class _DetailSuccessView extends StatelessWidget {
       create: (_) =>
           DetailGameVersionCubit()
             ..initialize(pokemon, encounters: success.encounters),
-      child: BlocListener<PokemonDetailBloc, PokemonBlocState>(
+      child: BlocListener<PokemonDetailBloc, PokemonDetailState>(
         listenWhen: (prev, curr) =>
-            prev is PokemonBlocSuccess &&
-            curr is PokemonBlocSuccess &&
+            prev is PokemonDetailSuccess &&
+            curr is PokemonDetailSuccess &&
             prev.encounters != curr.encounters,
         listener: (context, state) {
-          final current = state as PokemonBlocSuccess;
+          final current = state as PokemonDetailSuccess;
           context.read<DetailGameVersionCubit>().initialize(
             current.pokemon,
             encounters: current.encounters,
@@ -259,6 +260,14 @@ class _DetailSuccessView extends StatelessWidget {
                   colorScheme: Theme.of(context).colorScheme.copyWith(
                     primary: accentColor,
                     onPrimary: contrastingTextColor(accentColor),
+                    // Tonal buttons and selected chips read this role.
+                    secondaryContainer: Color.alphaBlend(
+                      typeColor.withValues(alpha: 0.24),
+                      Theme.of(context).colorScheme.surface,
+                    ),
+                    onSecondaryContainer: Theme.of(
+                      context,
+                    ).colorScheme.onSurface,
                   ),
                 ),
                 child: TabBarView(

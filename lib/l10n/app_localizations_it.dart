@@ -76,9 +76,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get height => 'Altezza';
 
   @override
-  String get pokemonCry => 'Verso del Pokemon';
-
-  @override
   String get baseStats => 'Statistiche Base';
 
   @override
@@ -293,9 +290,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statsMax => 'Max';
-
-  @override
-  String get gameSelectorLabel => 'Gioco:';
 
   @override
   String get noData => 'Nessun dato disponibile';
@@ -575,15 +569,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get editSearchButton => 'Modifica ricerca';
 
   @override
-  String get errorEncounters => 'Impossibile caricare gli incontri.';
-
-  @override
-  String get errorFormDetails => 'Impossibile caricare i dettagli della forma.';
-
-  @override
-  String get errorMoveDetails => 'Impossibile caricare i dettagli della mossa.';
-
-  @override
   String get defaultFormRollback => 'Ripristina forma predefinita';
 
   @override
@@ -624,11 +609,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get filters => 'Filtri';
-
-  @override
-  String filterCount({required int count}) {
-    return '$count attivi';
-  }
 
   @override
   String get types => 'Tipi';
@@ -812,9 +792,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get cancel => 'Annulla';
 
   @override
-  String get confirm => 'Conferma';
-
-  @override
   String get clear => 'Svuota';
 
   @override
@@ -827,13 +804,34 @@ class AppLocalizationsIt extends AppLocalizations {
   String get baseHappiness => 'Amicizia base';
 
   @override
-  String get growthRate => 'Crescita';
-
-  @override
   String get habitat => 'Habitat';
 
   @override
-  String get eggGroups => 'Gruppi uovo';
+  String get habitatCave => 'Grotta';
+
+  @override
+  String get habitatForest => 'Foresta';
+
+  @override
+  String get habitatGrassland => 'Prateria';
+
+  @override
+  String get habitatMountain => 'Montagna';
+
+  @override
+  String get habitatRare => 'Raro';
+
+  @override
+  String get habitatRoughTerrain => 'Terreno accidentato';
+
+  @override
+  String get habitatSea => 'Mare';
+
+  @override
+  String get habitatUrban => 'Città';
+
+  @override
+  String get habitatWatersEdge => 'Riva dell\'acqua';
 
   @override
   String get flavorText => 'Descrizione Pokédex';
@@ -915,17 +913,6 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get movesUnavailableForVersion =>
       'Nessuna mossa trovata per questa versione.';
-
-  @override
-  String get errorSpecies =>
-      'Impossibile caricare le informazioni sulla specie.';
-
-  @override
-  String get errorEvolutionChain => 'Impossibile caricare la catena evolutiva.';
-
-  @override
-  String get errorAbilityDetail =>
-      'Impossibile caricare i dettagli dell\'abilità.';
 
   @override
   String evolutionTriggerLevelUpsideDown({required int level}) {
@@ -1091,9 +1078,6 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get aboutDataSourceDescription =>
       'Tutti i dati, gli sprite e le risorse dei Pokémon provengono da PokeAPI.';
-
-  @override
-  String get aboutPokeApiWebsite => 'Sito web PokeAPI';
 
   @override
   String get aboutDisclaimer => 'Dichiarazione di non responsabilità';

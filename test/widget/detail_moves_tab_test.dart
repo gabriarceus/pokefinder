@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:injectable/injectable.dart' hide test;
 import 'package:pokefinder/bootstrap.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/tabs/detail_moves_tab.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
 import '../fixtures/pokemon_fixture.dart';
+import '../helpers/pump_app.dart';
 
 void main() {
   setUpAll(() async {
@@ -31,14 +31,12 @@ void main() {
 
   final samplePokemon = buildPokemon(moves: sampleMoves);
 
-  Widget createTestWidget({
+  Future<void> pumpTestWidget(
+    WidgetTester tester, {
     required DetailGameVersionCubit gameVersionCubit,
     Pokemon? pokemon,
   }) {
-    return MaterialApp(
-      locale: const Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
+    return tester.pumpApp(
       home: Scaffold(
         body: SizedBox(
           width: 400,
@@ -70,9 +68,7 @@ void main() {
         final gameVersionCubit = DetailGameVersionCubit()
           ..initialize(samplePokemon);
 
-        await tester.pumpWidget(
-          createTestWidget(gameVersionCubit: gameVersionCubit),
-        );
+        await pumpTestWidget(tester, gameVersionCubit: gameVersionCubit);
         await tester.pumpAndSettle();
 
         // The single merged selector is shown next to the moves.
@@ -92,9 +88,7 @@ void main() {
         // 'diamond' belongs to the 'diamond-pearl' version group.
         gameVersionCubit.selectVersion('diamond');
 
-        await tester.pumpWidget(
-          createTestWidget(gameVersionCubit: gameVersionCubit),
-        );
+        await pumpTestWidget(tester, gameVersionCubit: gameVersionCubit);
         await tester.pumpAndSettle();
 
         // The selector is no longer duplicated per tab, so it stays visible.
@@ -112,9 +106,7 @@ void main() {
           ..initialize(samplePokemon);
         gameVersionCubit.selectVersion('red');
 
-        await tester.pumpWidget(
-          createTestWidget(gameVersionCubit: gameVersionCubit),
-        );
+        await pumpTestWidget(tester, gameVersionCubit: gameVersionCubit);
         await tester.pumpAndSettle();
 
         // Unavailable notice displayed
@@ -131,9 +123,7 @@ void main() {
         final gameVersionCubit = DetailGameVersionCubit()
           ..initialize(samplePokemon);
 
-        await tester.pumpWidget(
-          createTestWidget(gameVersionCubit: gameVersionCubit),
-        );
+        await pumpTestWidget(tester, gameVersionCubit: gameVersionCubit);
         await tester.pumpAndSettle();
 
         // Initially on 'all'
@@ -163,9 +153,7 @@ void main() {
         ..initialize(samplePokemon);
       gameVersionCubit.selectVersion('diamond');
 
-      await tester.pumpWidget(
-        createTestWidget(gameVersionCubit: gameVersionCubit),
-      );
+      await pumpTestWidget(tester, gameVersionCubit: gameVersionCubit);
       await tester.pumpAndSettle();
 
       expect(find.text('Tackle'), findsOneWidget);

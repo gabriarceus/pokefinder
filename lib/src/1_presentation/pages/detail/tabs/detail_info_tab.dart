@@ -279,10 +279,13 @@ class _SpeciesSection extends StatelessWidget {
         if (species.generation != null)
           LabelValueRow(
             label: t.generation,
-            value: species.generation!.toDisplayCase(),
+            value: context.translateGeneration(species.generation!),
           ),
         if (species.habitat != null)
-          LabelValueRow(label: t.habitat, value: species.habitat!.capitalize()),
+          LabelValueRow(
+            label: t.habitat,
+            value: context.translateHabitat(species.habitat!),
+          ),
         if (species.captureRate != null)
           LabelValueRow(label: t.captureRate, value: '${species.captureRate}'),
         if (species.baseHappiness != null)

@@ -27,8 +27,8 @@ review flags, even if the code around you uses it.
 | Widget reused by several screens | `lib/src/1_presentation/widgets/<area>/` |
 
 Export new domain files from `lib/src/3_domain/domain.dart`. Keep files focused: split a page
-when it passes ~400 lines. `comparison_page.dart` was rewritten from 1079 to 456 lines for
-exactly this reason — it is the before/after example, not a file to copy.
+when it passes ~400 lines. `comparison_page.dart` went from 1079 lines to 278 plus
+`widgets/comparison_stats.dart` for exactly this reason.
 
 ## Blocs and cubits
 
@@ -41,20 +41,23 @@ exactly this reason — it is the before/after example, not a file to copy.
   old JSON.
 - Current time → inject `Clock` (`package:clock`, default `const Clock()`), then `_clock.now()`.
   See `FavoritesCubit`.
-- States: a sealed class for loading/failure/success flows (`PokemonBlocState`) or one
+- States: a sealed class for loading/failure/success flows (`PokemonDetailState`) or one
   `Equatable` state with `copyWith` for filter-like screens (`PokedexState`). To clear a nullable
-  field in `copyWith`, use the `_unset` sentinel pattern (see `PokemonBlocSuccess.copyWith`).
+  field in `copyWith`, use the `_unset` sentinel pattern (see `PokemonDetailSuccess.copyWith`).
 - Switch on sealed states with a Dart 3 `switch`. Do not add new `map(...)` helpers or builder
   wrapper widgets.
-- A bloc that emits success several times for the same entity (e.g. `PokemonBloc`: data, then
+- A bloc that emits success several times for the same entity (e.g. `PokemonDetailBloc`: data, then
   encounters, then form) needs `listenWhen` on every `BlocListener` that runs side effects
   (audio, history, navigation). Without it the side effect repeats.
 - A one-shot request to open something is a value in the state (e.g. `HomeBlocState
-  .pendingNavigation` holding a `SearchNavigation`), compared by identity so the same request
-  twice still emits. Not a bool plus a "done" event.
+  .pendingNavigation` holding a `SearchNavigation`), not a bool flag. The screen sends a "done"
+  event (`NavigationDone`) after it navigates, which clears the value, so the same request twice
+  still emits.
 - An async handler that updates a selection must emit the selection first, then load. Show
-  progress while loading, and roll back plus show the failure on error. Use `sequential()` when two
-  quick events could read the same old state.
+  progress while loading, and roll back plus show the failure on error. On rollback, recompute
+  everything derived from the selection (e.g. `filteredEntries`): other events may have run
+  meanwhile. A second tap on an item that is still loading cancels it (see
+  `PokedexBloc._onTypeFilterToggled`).
 
 ## PokeAPI data — adding an endpoint
 
@@ -76,7 +79,7 @@ There is no use case layer and no remote data source any more: a bloc or cubit c
    Sprite URLs belong in the `PokemonSprites` value object, not as 16 flat fields on `Pokemon`.
 6. For anything shown in a list (favorites, history, teams, comparison) pass a `PokemonSummary`
    (`id`, `name`, `spriteUrl`, `types`). Do not add a new per-feature copy of those four fields;
-   `PokemonBlocSuccess.summary` builds one from a detail state.
+   `PokemonDetailSuccess.summary` builds one from a detail state.
 
 ## Failures
 
@@ -118,7 +121,7 @@ There is no use case layer and no remote data source any more: a bloc or cubit c
 - New UI string → add the key to **both** `lib/l10n/app_en.arb` and `app_it.arb`, run
   `fvm flutter gen-l10n`, check that `untranslated_messages.txt` is `{}`. Read it with `context.t()`.
 - Search for an existing key first. No ALL-CAPS in ARB; use `.toUpperCase()` in Dart.
-- No user-visible literal in Dart (`'Gen $n'`, `'XP'` are known debt).
+- No user-visible literal in Dart: numbers with units (`Gen $n`, `XP`) are ARB placeholders too.
 - PokeAPI slugs (moves, abilities, items, locations, game versions, types) → `context.translateX`
   from `lib/l10n/translation_helper.dart`. Unknown slugs fall back to `toDisplayCase()`, never to
   a raw slug. `test/widget/translation_coverage_test.dart` enforces this.
@@ -136,7 +139,12 @@ There is no use case layer and no remote data source any more: a bloc or cubit c
 - Mocks: `mocktail`. Register fallbacks with `registerFallbackValue` in `setUpAll`.
 - Shared data: `test/fixtures/pokemon_fixture.dart`.
 - Widgets with `Image.network` → wrap the pump in `mockNetworkImagesFor(...)`.
-- Hydrated cubits → `HydratedBloc.storage = InMemoryHydratedStorage();` in `setUp`.
+- Widget tests pump through `tester.pumpApp(home: …)` or `pumpApp(router: …)` from
+  `test/helpers/pump_app.dart`: app themes, localizations and the six app cubits
+  (`TestAppCubits`, real cubits with mock logger; pass your own instance to assert on it). Do not
+  build a new `MaterialApp` + `MultiBlocProvider` shell per file.
+- Hydrated cubits → `HydratedBloc.storage = InMemoryHydratedStorage();` in `setUp`
+  (`test/helpers/in_memory_hydrated_storage.dart`; test-only, not in `lib/`).
 - Test behavior through the public API. When you delete code, delete its tests too; do not keep
   tests only for the 70% coverage gate.
 

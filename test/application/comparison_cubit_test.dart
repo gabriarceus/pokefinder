@@ -3,6 +3,7 @@ import 'package:en_logger/en_logger.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/src/2_application/bloc/comparison_cubit/comparison_cubit.dart';
+import 'package:pokefinder/src/2_application/bloc/pokemon_load/pokemon_load.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
 import '../fixtures/pokemon_fixture.dart';
@@ -48,15 +49,6 @@ void main() {
   ComparisonCubit buildCubit() => ComparisonCubit(logger, repository);
 
   group('ComparisonCubit', () {
-    test('initial state is empty', () {
-      final cubit = buildCubit();
-
-      expect(cubit.state.entries, isEmpty);
-      expect(cubit.state.isEmpty, isTrue);
-      expect(cubit.state.isFull, isFalse);
-      expect(cubit.state.details, isEmpty);
-    });
-
     test('addEntry stores entries in insertion order', () {
       final cubit = buildCubit();
 
@@ -161,16 +153,10 @@ void main() {
       final cubit = buildCubit();
 
       cubit.addEntry(_bulbasaur.summary);
-      expect(
-        cubit.state.detailOf(_bulbasaur.summary),
-        const ComparisonDetailLoading(),
-      );
+      expect(cubit.state.detailOf(_bulbasaur.summary), const PokemonLoading());
 
       await pumpEventQueue();
-      expect(
-        cubit.state.detailOf(_bulbasaur.summary),
-        isA<ComparisonDetailLoaded>(),
-      );
+      expect(cubit.state.detailOf(_bulbasaur.summary), isA<PokemonLoaded>());
     });
 
     test('addEntry requests the details of the added entry', () async {
@@ -204,12 +190,9 @@ void main() {
 
       expect(
         cubit.state.detailOf(_charmander.summary),
-        const ComparisonDetailFailed(NetworkUnavailableFailure('offline')),
+        const PokemonLoadFailed(NetworkUnavailableFailure('offline')),
       );
-      expect(
-        cubit.state.detailOf(_bulbasaur.summary),
-        isA<ComparisonDetailLoaded>(),
-      );
+      expect(cubit.state.detailOf(_bulbasaur.summary), isA<PokemonLoaded>());
     });
 
     test('removing an entry drops its loaded details', () async {

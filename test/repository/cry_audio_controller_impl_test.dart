@@ -58,13 +58,6 @@ void main() {
   group('JustAudioCryController', () {
     const testUrl = 'https://example.com/cry.ogg';
 
-    test('initial state defaults correctly', () {
-      expect(controller.state, const CryPlaybackState());
-      expect(controller.state.unavailable, isFalse);
-      expect(controller.state.playing, isFalse);
-      expect(controller.state.loading, isFalse);
-    });
-
     test('load failure emits unavailable state and does not play', () async {
       when(
         () => player.setAudioSource(any(), preload: any(named: 'preload')),

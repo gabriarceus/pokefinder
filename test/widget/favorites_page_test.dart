@@ -1,45 +1,24 @@
-import 'package:dartz/dartz.dart';
-import 'package:en_logger/en_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:network_image_mock/network_image_mock.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/favorites/favorites_page.dart';
 import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:pokefinder/src/1_presentation/widgets/pokedex/pokemon_card.dart';
-import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
-
-class _MockEnLogger extends Mock implements EnLogger {}
-
-class _MockPokemonRepository extends Mock implements IPokemonRepository {}
+import '../helpers/in_memory_hydrated_storage.dart';
+import '../helpers/pump_app.dart';
 
 void main() {
-  late FavoritesCubit favoritesCubit;
-  late ComparisonCubit comparisonCubit;
-
-  setUpAll(() {
-    registerFallbackValue(PokemonName('bulbasaur'));
-    ensureHydratedStorage();
-  });
+  late TestAppCubits cubits;
 
   setUp(() {
     HydratedBloc.storage = InMemoryHydratedStorage();
-    favoritesCubit = FavoritesCubit(_MockEnLogger());
-    final repository = _MockPokemonRepository();
-    when(
-      () => repository.getPokemon(any()),
-    ).thenAnswer((_) async => left(const NetworkUnavailableFailure('offline')));
-    comparisonCubit = ComparisonCubit(_MockEnLogger(), repository);
+    cubits = TestAppCubits();
   });
 
-  tearDown(() async {
-    await favoritesCubit.close();
-    await comparisonCubit.close();
-  });
+  tearDown(() => cubits.close());
 
   /// Lets the mocked image requests complete, then settles the animations.
   ///
@@ -55,26 +34,12 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Widget buildTestableWidget({GoRouter? router}) {
-    final app = router != null
-        ? MaterialApp.router(
-            routerConfig: router,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            locale: const Locale('en'),
-          )
-        : const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            locale: Locale('en'),
-            home: FavoritesPage(),
-          );
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<FavoritesCubit>.value(value: favoritesCubit),
-        BlocProvider<ComparisonCubit>.value(value: comparisonCubit),
-      ],
-      child: app,
+  /// Pumps the favorites page, or [router] when given.
+  Future<void> pumpFavorites(WidgetTester tester, {GoRouter? router}) {
+    return tester.pumpApp(
+      home: router == null ? const FavoritesPage() : null,
+      router: router,
+      cubits: cubits,
     );
   }
 
@@ -83,7 +48,7 @@ void main() {
       tester,
     ) async {
       await mockNetworkImagesFor(() async {
-        await tester.pumpWidget(buildTestableWidget());
+        await pumpFavorites(tester);
         await settle(tester);
 
         expect(find.text('Favorites'), findsOneWidget);
@@ -121,7 +86,7 @@ void main() {
           ],
         );
 
-        await tester.pumpWidget(buildTestableWidget(router: router));
+        await pumpFavorites(tester, router: router);
         await settle(tester);
 
         await tester.tap(find.text('Browse Pokédex'));
@@ -135,7 +100,7 @@ void main() {
       tester,
     ) async {
       await mockNetworkImagesFor(() async {
-        favoritesCubit.addFavorite(
+        cubits.favorites.addFavorite(
           const PokemonSummary(
             id: 25,
             name: 'pikachu',
@@ -143,7 +108,7 @@ void main() {
             types: [PokemonType.electric],
           ),
         );
-        favoritesCubit.addFavorite(
+        cubits.favorites.addFavorite(
           const PokemonSummary(
             id: 1,
             name: 'bulbasaur',
@@ -152,7 +117,7 @@ void main() {
           ),
         );
 
-        await tester.pumpWidget(buildTestableWidget());
+        await pumpFavorites(tester);
         await settle(tester);
 
         expect(find.byType(PokemonCard), findsNWidgets(2));
@@ -164,7 +129,7 @@ void main() {
 
     testWidgets('changes sort order via sort popup menu', (tester) async {
       await mockNetworkImagesFor(() async {
-        favoritesCubit.addFavorite(
+        cubits.favorites.addFavorite(
           const PokemonSummary(
             id: 25,
             name: 'pikachu',
@@ -172,7 +137,7 @@ void main() {
             types: [PokemonType.electric],
           ),
         );
-        favoritesCubit.addFavorite(
+        cubits.favorites.addFavorite(
           const PokemonSummary(
             id: 1,
             name: 'bulbasaur',
@@ -181,7 +146,7 @@ void main() {
           ),
         );
 
-        await tester.pumpWidget(buildTestableWidget());
+        await pumpFavorites(tester);
         await settle(tester);
 
         // Open sort menu
@@ -198,7 +163,10 @@ void main() {
         await tester.tap(find.text('Name: A - Z'));
         await settle(tester);
 
-        expect(favoritesCubit.state.sortOrder, FavoriteSortOrder.nameAscending);
+        expect(
+          cubits.favorites.state.sortOrder,
+          FavoriteSortOrder.nameAscending,
+        );
       });
     });
 
@@ -206,7 +174,7 @@ void main() {
       'removing a favorite updates the grid and transitions to empty state',
       (tester) async {
         await mockNetworkImagesFor(() async {
-          favoritesCubit.addFavorite(
+          cubits.favorites.addFavorite(
             const PokemonSummary(
               id: 25,
               name: 'pikachu',
@@ -215,7 +183,7 @@ void main() {
             ),
           );
 
-          await tester.pumpWidget(buildTestableWidget());
+          await pumpFavorites(tester);
           await settle(tester);
 
           expect(find.byType(PokemonCard), findsOneWidget);

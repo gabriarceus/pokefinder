@@ -240,11 +240,19 @@ class PokemonCard extends StatelessWidget {
                       padding: const EdgeInsets.only(right: 36),
                       child: SizedBox(
                         height: 24,
-                        child: Wrap(
-                          spacing: 4,
+                        // A Row, not a Wrap: a second line would paint
+                        // outside the fixed height without reporting it.
+                        child: Row(
                           children: [
-                            for (final type in entry.types)
-                              TypeChip(type: type, compact: true),
+                            for (final (index, type) in entry.types.indexed)
+                              Flexible(
+                                child: Padding(
+                                  padding: EdgeInsets.only(
+                                    left: index == 0 ? 0 : 4,
+                                  ),
+                                  child: TypeChip(type: type, compact: true),
+                                ),
+                              ),
                           ],
                         ),
                       ),

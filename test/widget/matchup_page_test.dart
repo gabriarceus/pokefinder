@@ -1,19 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/matchups/matchup_page.dart';
 import 'package:pokefinder/src/1_presentation/router/app_router.dart';
 import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
-Widget _wrap(Widget child, {Locale locale = const Locale('en')}) {
-  return MaterialApp(
-    locale: locale,
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
-    supportedLocales: AppLocalizations.supportedLocales,
-    home: Scaffold(body: child),
-  );
-}
+import '../helpers/pump_app.dart';
 
 void main() {
   group('parseMatchupTypesParam', () {
@@ -83,7 +75,7 @@ void main() {
     testWidgets('shows empty title and message when nothing selected', (
       tester,
     ) async {
-      await tester.pumpWidget(_wrap(const MatchupPage()));
+      await tester.pumpApp(home: const Scaffold(body: MatchupPage()));
       await tester.pumpAndSettle();
 
       expect(find.text('Type matchups'), findsOneWidget);
@@ -98,8 +90,9 @@ void main() {
     });
 
     testWidgets('localizes empty state in Italian', (tester) async {
-      await tester.pumpWidget(
-        _wrap(const MatchupPage(), locale: const Locale('it')),
+      await tester.pumpApp(
+        home: const Scaffold(body: MatchupPage()),
+        locale: const Locale('it'),
       );
       await tester.pumpAndSettle();
 
@@ -112,7 +105,7 @@ void main() {
     testWidgets('selecting a type shows weak and resistant groups', (
       tester,
     ) async {
-      await tester.pumpWidget(_wrap(const MatchupPage()));
+      await tester.pumpApp(home: const Scaffold(body: MatchupPage()));
       await tester.pumpAndSettle();
 
       await tester.tap(find.widgetWithText(FilterChip, 'Fire'));
@@ -148,9 +141,9 @@ void main() {
     });
 
     testWidgets('dual selection shows the 4x group', (tester) async {
-      await tester.pumpWidget(
-        _wrap(
-          const MatchupPage(
+      await tester.pumpApp(
+        home: const Scaffold(
+          body: MatchupPage(
             initialDefending: [PokemonType.fire, PokemonType.flying],
           ),
         ),
@@ -178,9 +171,9 @@ void main() {
     testWidgets('preset from detail types announces defending selection', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        _wrap(
-          const MatchupPage(
+      await tester.pumpApp(
+        home: const Scaffold(
+          body: MatchupPage(
             initialDefending: [PokemonType.grass, PokemonType.poison],
           ),
         ),
@@ -198,8 +191,10 @@ void main() {
     });
 
     testWidgets('tapping a selected type deselects it', (tester) async {
-      await tester.pumpWidget(
-        _wrap(const MatchupPage(initialDefending: [PokemonType.fire])),
+      await tester.pumpApp(
+        home: const Scaffold(
+          body: MatchupPage(initialDefending: [PokemonType.fire]),
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -212,8 +207,10 @@ void main() {
     });
 
     testWidgets('clear selection returns to the empty state', (tester) async {
-      await tester.pumpWidget(
-        _wrap(const MatchupPage(initialDefending: [PokemonType.water])),
+      await tester.pumpApp(
+        home: const Scaffold(
+          body: MatchupPage(initialDefending: [PokemonType.water]),
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -224,9 +221,9 @@ void main() {
     });
 
     testWidgets('selecting a third type replaces the oldest', (tester) async {
-      await tester.pumpWidget(
-        _wrap(
-          const MatchupPage(
+      await tester.pumpApp(
+        home: const Scaffold(
+          body: MatchupPage(
             initialDefending: [PokemonType.fire, PokemonType.flying],
           ),
         ),
@@ -248,7 +245,7 @@ void main() {
     });
 
     testWidgets('selector meets 48x48 touch targets', (tester) async {
-      await tester.pumpWidget(_wrap(const MatchupPage()));
+      await tester.pumpApp(home: const Scaffold(body: MatchupPage()));
       await tester.pumpAndSettle();
 
       final size = tester.getSize(find.widgetWithText(FilterChip, 'Fire'));
@@ -263,14 +260,17 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
 
-      await tester.pumpWidget(
-        MediaQuery(
-          data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
-          child: _wrap(
-            const MatchupPage(
-              initialDefending: [PokemonType.fire, PokemonType.flying],
-            ),
+      await tester.pumpApp(
+        home: const Scaffold(
+          body: MatchupPage(
+            initialDefending: [PokemonType.fire, PokemonType.flying],
           ),
+        ),
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: const TextScaler.linear(2.0)),
+          child: child!,
         ),
       );
       await tester.pumpAndSettle();
@@ -283,13 +283,7 @@ void main() {
   group('MatchupPage route', () {
     testWidgets('navigating to /matchups loads MatchupPage', (tester) async {
       final router = createAppRouter(initialLocation: AppRoutes.matchups());
-      await tester.pumpWidget(
-        MaterialApp.router(
-          routerConfig: router,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-        ),
-      );
+      await tester.pumpApp(router: router);
       await tester.pumpAndSettle();
 
       expect(find.byType(MatchupPage), findsOneWidget);
@@ -303,13 +297,7 @@ void main() {
           PokemonType.flying,
         ]),
       );
-      await tester.pumpWidget(
-        MaterialApp.router(
-          routerConfig: router,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-        ),
-      );
+      await tester.pumpApp(router: router);
       await tester.pumpAndSettle();
 
       expect(find.byType(MatchupPage), findsOneWidget);
@@ -325,35 +313,12 @@ void main() {
   });
 
   group('MatchupPage chip contrast', () {
-    Widget wrapThemed(Widget child, {required bool dark}) {
-      final scheme = dark
-          ? ColorScheme.fromSeed(
-              seedColor: Colors.deepPurple,
-              brightness: Brightness.dark,
-            )
-          : ColorScheme.fromSeed(seedColor: Colors.deepPurple);
-      return MaterialApp(
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        theme: ThemeData(colorScheme: scheme, useMaterial3: true),
-        darkTheme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.deepPurple,
-            brightness: Brightness.dark,
-          ),
-          useMaterial3: true,
-        ),
-        themeMode: dark ? ThemeMode.dark : ThemeMode.light,
-        home: Scaffold(body: child),
-      );
-    }
-
     testWidgets('unselected chip text uses onSurface in light theme', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        wrapThemed(MatchupPage(initialDefending: const []), dark: false),
+      await tester.pumpApp(
+        home: Scaffold(body: MatchupPage(initialDefending: const [])),
+        themeMode: ThemeMode.light,
       );
       await tester.pumpAndSettle();
 
@@ -366,8 +331,9 @@ void main() {
     testWidgets('unselected chip text uses onSurface in dark theme', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        wrapThemed(MatchupPage(initialDefending: const []), dark: true),
+      await tester.pumpApp(
+        home: Scaffold(body: MatchupPage(initialDefending: const [])),
+        themeMode: ThemeMode.dark,
       );
       await tester.pumpAndSettle();
 
@@ -377,11 +343,11 @@ void main() {
     });
 
     testWidgets('selected chip text uses contrasting color', (tester) async {
-      await tester.pumpWidget(
-        wrapThemed(
-          MatchupPage(initialDefending: const [PokemonType.fire]),
-          dark: false,
+      await tester.pumpApp(
+        home: Scaffold(
+          body: MatchupPage(initialDefending: const [PokemonType.fire]),
         ),
+        themeMode: ThemeMode.light,
       );
       await tester.pumpAndSettle();
 
@@ -398,8 +364,8 @@ void main() {
     testWidgets('rebuild with equal list preserves user selection', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        _wrap(MatchupPage(initialDefending: [PokemonType.fire])),
+      await tester.pumpApp(
+        home: Scaffold(body: MatchupPage(initialDefending: [PokemonType.fire])),
       );
       await tester.pumpAndSettle();
 
@@ -415,8 +381,8 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.pumpWidget(
-        _wrap(MatchupPage(initialDefending: [PokemonType.fire])),
+      await tester.pumpApp(
+        home: Scaffold(body: MatchupPage(initialDefending: [PokemonType.fire])),
       );
       await tester.pumpAndSettle();
 
@@ -431,14 +397,14 @@ void main() {
     });
 
     testWidgets('rebuild with changed list updates selection', (tester) async {
-      await tester.pumpWidget(
-        _wrap(MatchupPage(initialDefending: [PokemonType.fire])),
+      await tester.pumpApp(
+        home: Scaffold(body: MatchupPage(initialDefending: [PokemonType.fire])),
       );
       await tester.pumpAndSettle();
 
-      await tester.pumpWidget(
-        _wrap(
-          MatchupPage(
+      await tester.pumpApp(
+        home: Scaffold(
+          body: MatchupPage(
             initialDefending: const [PokemonType.water, PokemonType.grass],
           ),
         ),

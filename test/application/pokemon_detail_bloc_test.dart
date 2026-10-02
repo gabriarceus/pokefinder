@@ -61,13 +61,13 @@ void main() {
   tearDown(() => bloc.close());
 
   /// Drives a successful fetch to completion and returns the resulting state.
-  Future<PokemonBlocSuccess> fetchSuccessfully(Pokemon pokemon) async {
+  Future<PokemonDetailSuccess> fetchSuccessfully(Pokemon pokemon) async {
     when(
       () => repository.getPokemon(any()),
     ).thenAnswer((_) async => right(pokemon));
     bloc.add(FetchPokemonEvent(pokemon.name));
     await pumpEventQueue();
-    return bloc.state as PokemonBlocSuccess;
+    return bloc.state as PokemonDetailSuccess;
   }
 
   group('fetching a Pokémon', () {
@@ -75,7 +75,7 @@ void main() {
       bloc.add(FetchPokemonEvent('   '));
       await pumpEventQueue();
 
-      expect(bloc.state, isA<PokemonBlocInitial>());
+      expect(bloc.state, isA<PokemonDetailInitial>());
       verifyNever(() => repository.getPokemon(any()));
     });
 
@@ -84,7 +84,7 @@ void main() {
         () => repository.getPokemon(any()),
       ).thenAnswer((_) async => left(const BadRequestFailure()));
 
-      final emitted = <PokemonBlocState>[];
+      final emitted = <PokemonDetailState>[];
       final subscription = bloc.stream.listen(emitted.add);
 
       bloc.add(FetchPokemonEvent('missingno'));
@@ -92,8 +92,8 @@ void main() {
       await subscription.cancel();
 
       expect(emitted, [
-        PokemonBlocLoading(),
-        PokemonBlocFailure(const BadRequestFailure()),
+        PokemonDetailLoading(),
+        PokemonDetailFailure(const BadRequestFailure()),
       ]);
     });
 
@@ -111,15 +111,15 @@ void main() {
           () => repository.getPokemon(any()),
         ).thenAnswer((_) async => right(pokemon));
 
-        final emitted = <PokemonBlocState>[];
+        final emitted = <PokemonDetailState>[];
         final subscription = bloc.stream.listen(emitted.add);
 
         bloc.add(FetchPokemonEvent('venusaur'));
         await pumpEventQueue();
         await subscription.cancel();
 
-        expect(emitted.first, PokemonBlocLoading());
-        final firstSuccess = emitted[1] as PokemonBlocSuccess;
+        expect(emitted.first, PokemonDetailLoading());
+        final firstSuccess = emitted[1] as PokemonDetailSuccess;
         expect(firstSuccess.pokemon, pokemon);
         expect(firstSuccess.isLoadingEncounters, isTrue);
         expect(
@@ -203,7 +203,7 @@ void main() {
         staleEncounters.complete(right(_encounters));
         await pumpEventQueue();
 
-        final state = bloc.state as PokemonBlocSuccess;
+        final state = bloc.state as PokemonDetailSuccess;
         expect(state.pokemon.id, 2);
         expect(state.encounters, isEmpty);
       },
@@ -232,7 +232,7 @@ void main() {
 
         // The superseded request resolving must not surface a failure, nor
         // revert the state away from the newer, already loaded Pokémon.
-        final emittedAfterIvysaur = <PokemonBlocState>[];
+        final emittedAfterIvysaur = <PokemonDetailState>[];
         final subscription = bloc.stream.listen(emittedAfterIvysaur.add);
 
         staleFetch.complete(left(const NetworkUnavailableFailure()));
@@ -240,7 +240,7 @@ void main() {
         await subscription.cancel();
 
         expect(emittedAfterIvysaur, isEmpty);
-        final state = bloc.state as PokemonBlocSuccess;
+        final state = bloc.state as PokemonDetailSuccess;
         expect(state.pokemon.id, 2);
         expect(state.pokemon.name, 'ivysaur');
         // Sanity check on the fixture that the first request would have
@@ -266,7 +266,7 @@ void main() {
       bloc.add(RetryPokemonEncountersEvent());
       await pumpEventQueue();
 
-      final updatedState = bloc.state as PokemonBlocSuccess;
+      final updatedState = bloc.state as PokemonDetailSuccess;
       expect(updatedState.isLoadingEncounters, isFalse);
       expect(updatedState.encounters, _encounters);
       expect(updatedState.encountersFailure, isNull);
@@ -278,7 +278,7 @@ void main() {
       bloc.add(SelectPokemonFormEvent(_megaForm));
       await pumpEventQueue();
 
-      expect(bloc.state, isA<PokemonBlocInitial>());
+      expect(bloc.state, isA<PokemonDetailInitial>());
       verifyNever(() => repository.getFormDetails(any()));
     });
 
@@ -290,8 +290,8 @@ void main() {
         () => repository.getFormDetails(_megaForm.url),
       ).thenAnswer((_) async => right(_megaDetails));
 
-      final emitted = <PokemonBlocSuccess>[];
-      final subscription = bloc.stream.cast<PokemonBlocSuccess>().listen(
+      final emitted = <PokemonDetailSuccess>[];
+      final subscription = bloc.stream.cast<PokemonDetailSuccess>().listen(
         emitted.add,
       );
 
@@ -330,7 +330,7 @@ void main() {
         bloc.add(SelectPokemonFormEvent(_megaForm));
         await pumpEventQueue();
 
-        final state = bloc.state as PokemonBlocSuccess;
+        final state = bloc.state as PokemonDetailSuccess;
         expect(state.isLoadingForm, isFalse);
         expect(state.formFailure, const UnexpectedFailure('nope'));
         expect(state.failedForm, _megaForm);
@@ -351,14 +351,14 @@ void main() {
       bloc.add(SelectPokemonFormEvent(_megaForm));
       await pumpEventQueue();
 
-      var state = bloc.state as PokemonBlocSuccess;
+      var state = bloc.state as PokemonDetailSuccess;
       expect(state.formFailure, isNotNull);
       expect(state.failedForm, isNotNull);
 
       bloc.add(ClearPokemonFormFailureEvent());
       await pumpEventQueue();
 
-      state = bloc.state as PokemonBlocSuccess;
+      state = bloc.state as PokemonDetailSuccess;
       expect(state.formFailure, isNull);
       expect(state.failedForm, isNull);
     });
@@ -375,7 +375,7 @@ void main() {
         bloc.add(SelectPokemonFormEvent(_megaForm));
         await pumpEventQueue();
         expect(
-          (bloc.state as PokemonBlocSuccess).selectedFormDetails,
+          (bloc.state as PokemonDetailSuccess).selectedFormDetails,
           _megaDetails,
         );
 
@@ -387,7 +387,7 @@ void main() {
         await pumpEventQueue();
 
         expect(
-          (bloc.state as PokemonBlocSuccess).selectedFormDetails,
+          (bloc.state as PokemonDetailSuccess).selectedFormDetails,
           PokemonFormDetails.fromPokemon(pokemon),
         );
         verify(() => repository.getFormDetails(any())).called(1);
@@ -406,9 +406,9 @@ void main() {
         bloc.add(FetchPokemonEvent('pikachu'));
         await pumpEventQueue();
 
-        expect(bloc.state, isA<PokemonBlocFailure>());
+        expect(bloc.state, isA<PokemonDetailFailure>());
         expect(
-          (bloc.state as PokemonBlocFailure).failure,
+          (bloc.state as PokemonDetailFailure).failure,
           isA<NetworkUnavailableFailure>(),
         );
 
@@ -420,8 +420,8 @@ void main() {
         bloc.add(FetchPokemonEvent('pikachu'));
         await pumpEventQueue();
 
-        expect(bloc.state, isA<PokemonBlocSuccess>());
-        expect((bloc.state as PokemonBlocSuccess).pokemon.name, 'pikachu');
+        expect(bloc.state, isA<PokemonDetailSuccess>());
+        expect((bloc.state as PokemonDetailSuccess).pokemon.name, 'pikachu');
       },
     );
 
@@ -438,8 +438,8 @@ void main() {
       bloc.add(FetchPokemonEvent('pikachu'));
       await pumpEventQueue();
 
-      expect(bloc.state, isA<PokemonBlocSuccess>());
-      final success = bloc.state as PokemonBlocSuccess;
+      expect(bloc.state, isA<PokemonDetailSuccess>());
+      final success = bloc.state as PokemonDetailSuccess;
       expect(success.pokemon.name, 'pikachu');
       expect(success.pokemon.isStale, isTrue);
     });

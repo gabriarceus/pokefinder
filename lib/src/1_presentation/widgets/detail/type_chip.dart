@@ -48,6 +48,7 @@ class TypeChip extends StatelessWidget {
         selectedColor: typeColor,
         backgroundColor: theme.colorScheme.surface,
         side: BorderSide(color: typeColor, width: 1.5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         onSelected: onSelected,
       );
     }
@@ -64,7 +65,12 @@ class TypeChip extends StatelessWidget {
           color: typeColor,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Text(label, style: labelStyle),
+        child: Text(
+          label,
+          style: labelStyle,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
     );
   }

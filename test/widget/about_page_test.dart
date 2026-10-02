@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/about/about_page.dart';
 
+import '../helpers/pump_app.dart';
+
 void main() {
-  Widget buildAboutPage(
+  Future<void> pumpAboutPage(
     WidgetTester tester, {
     Locale locale = const Locale('en'),
     Future<PackageInfo>? packageInfoFuture,
@@ -17,9 +18,7 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
 
-    return MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
+    return tester.pumpApp(
       locale: locale,
       home: AboutPage(
         packageInfoFuture:
@@ -41,7 +40,7 @@ void main() {
     testWidgets('renders app header with version and build number in English', (
       tester,
     ) async {
-      await tester.pumpWidget(buildAboutPage(tester));
+      await pumpAboutPage(tester);
       await tester.pumpAndSettle();
 
       expect(find.text('PokéFinder'), findsWidgets);
@@ -55,7 +54,7 @@ void main() {
     });
 
     testWidgets('renders PokeAPI attribution and disclaimer', (tester) async {
-      await tester.pumpWidget(buildAboutPage(tester));
+      await pumpAboutPage(tester);
       await tester.pumpAndSettle();
 
       expect(find.text('Data Source'), findsOneWidget);
@@ -76,7 +75,7 @@ void main() {
     });
 
     testWidgets('renders Open Source Licenses and links', (tester) async {
-      await tester.pumpWidget(buildAboutPage(tester));
+      await pumpAboutPage(tester);
       await tester.pumpAndSettle();
 
       expect(find.text('Open Source Licenses'), findsWidgets);
@@ -95,7 +94,7 @@ void main() {
     testWidgets('tapping Open Source Licenses opens LicensePage', (
       tester,
     ) async {
-      await tester.pumpWidget(buildAboutPage(tester));
+      await pumpAboutPage(tester);
       await tester.pumpAndSettle();
 
       final licenseTile = find.widgetWithText(ListTile, 'Open Source Licenses');
@@ -108,9 +107,7 @@ void main() {
     });
 
     testWidgets('renders localized content in Italian', (tester) async {
-      await tester.pumpWidget(
-        buildAboutPage(tester, locale: const Locale('it')),
-      );
+      await pumpAboutPage(tester, locale: const Locale('it'));
       await tester.pumpAndSettle();
 
       expect(find.text('Informazioni su PokéFinder'), findsOneWidget);
@@ -132,9 +129,7 @@ void main() {
       'displays progress indicator while packageInfoFuture is pending',
       (tester) async {
         final completer = Completer<PackageInfo>();
-        await tester.pumpWidget(
-          buildAboutPage(tester, packageInfoFuture: completer.future),
-        );
+        await pumpAboutPage(tester, packageInfoFuture: completer.future);
         await tester.pump();
 
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
@@ -158,32 +153,28 @@ void main() {
     testWidgets('updates version display when packageInfoFuture changes', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        buildAboutPage(
-          tester,
-          packageInfoFuture: Future.value(
-            PackageInfo(
-              appName: 'PokéFinder',
-              packageName: 'com.gabriarceus.pokefinder',
-              version: '1.0.0',
-              buildNumber: '1',
-            ),
+      await pumpAboutPage(
+        tester,
+        packageInfoFuture: Future.value(
+          PackageInfo(
+            appName: 'PokéFinder',
+            packageName: 'com.gabriarceus.pokefinder',
+            version: '1.0.0',
+            buildNumber: '1',
           ),
         ),
       );
       await tester.pumpAndSettle();
       expect(find.text('Version 1.0.0 (Build 1)'), findsOneWidget);
 
-      await tester.pumpWidget(
-        buildAboutPage(
-          tester,
-          packageInfoFuture: Future.value(
-            PackageInfo(
-              appName: 'PokéFinder',
-              packageName: 'com.gabriarceus.pokefinder',
-              version: '1.1.0',
-              buildNumber: '2',
-            ),
+      await pumpAboutPage(
+        tester,
+        packageInfoFuture: Future.value(
+          PackageInfo(
+            appName: 'PokéFinder',
+            packageName: 'com.gabriarceus.pokefinder',
+            version: '1.1.0',
+            buildNumber: '2',
           ),
         ),
       );
@@ -195,17 +186,15 @@ void main() {
       tester,
     ) async {
       var callCount = 0;
-      await tester.pumpWidget(
-        buildAboutPage(
-          tester,
-          urlLauncher: (uri) async {
-            callCount++;
-            if (callCount == 1) {
-              return false;
-            }
-            throw Exception('Platform error');
-          },
-        ),
+      await pumpAboutPage(
+        tester,
+        urlLauncher: (uri) async {
+          callCount++;
+          if (callCount == 1) {
+            return false;
+          }
+          throw Exception('Platform error');
+        },
       );
       await tester.pumpAndSettle();
 

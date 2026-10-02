@@ -6,7 +6,6 @@ import 'package:injectable/injectable.dart' hide test;
 import 'package:mocktail/mocktail.dart';
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/bootstrap.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/failure.dart';
 import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
@@ -17,6 +16,8 @@ import 'package:pokefinder/src/1_presentation/widgets/home/pokeball_widget.dart'
 import 'package:pokefinder/src/1_presentation/widgets/home/poke_text_field.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
+import '../helpers/in_memory_hydrated_storage.dart';
+import '../helpers/pump_app.dart';
 
 class _MockPokemonRepository extends Mock implements IPokemonRepository {}
 
@@ -49,25 +50,19 @@ void main() {
       PokemonFailure? nameIndexFailure,
       VoidCallback? onRetryIndex,
     }) {
-      return tester.pumpWidget(
-        MaterialApp(
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: PokeTextField(
-              controller: controller,
-              focusNode: focusNode,
-              allEntries: allNames
-                  .map(
-                    (name) =>
-                        PokemonIndexEntry(id: 1, name: name, detailUrl: ''),
-                  )
-                  .toList(),
-              onChanged: reportedInputs.add,
-              nameIndexFailure: nameIndexFailure,
-              onRetryIndex: onRetryIndex,
-            ),
+      return tester.pumpApp(
+        home: Scaffold(
+          body: PokeTextField(
+            controller: controller,
+            focusNode: focusNode,
+            allEntries: allNames
+                .map(
+                  (name) => PokemonIndexEntry(id: 1, name: name, detailUrl: ''),
+                )
+                .toList(),
+            onChanged: reportedInputs.add,
+            nameIndexFailure: nameIndexFailure,
+            onRetryIndex: onRetryIndex,
           ),
         ),
       );
@@ -182,18 +177,13 @@ void main() {
     testWidgets('renders inline error text when errorText is provided', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: PokeTextField(
-              controller: controller,
-              focusNode: focusNode,
-              onChanged: reportedInputs.add,
-              errorText: 'Bad request. Please try again.',
-            ),
+      await tester.pumpApp(
+        home: Scaffold(
+          body: PokeTextField(
+            controller: controller,
+            focusNode: focusNode,
+            onChanged: reportedInputs.add,
+            errorText: 'Bad request. Please try again.',
           ),
         ),
       );
@@ -205,18 +195,13 @@ void main() {
       tester,
     ) async {
       String? submittedValue;
-      await tester.pumpWidget(
-        MaterialApp(
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: PokeTextField(
-              controller: controller,
-              focusNode: focusNode,
-              onChanged: reportedInputs.add,
-              onSubmitted: (val) => submittedValue = val,
-            ),
+      await tester.pumpApp(
+        home: Scaffold(
+          body: PokeTextField(
+            controller: controller,
+            focusNode: focusNode,
+            onChanged: reportedInputs.add,
+            onSubmitted: (val) => submittedValue = val,
           ),
         ),
       );
@@ -253,40 +238,24 @@ void main() {
 
       await mockNetworkImagesFor(() async {
         final router = createAppRouter(initialLocation: '/');
-        await tester.pumpWidget(
-          MultiBlocProvider(
-            providers: [
-              if (getIt.isRegistered<LanguageCubit>())
-                BlocProvider.value(value: getIt<LanguageCubit>()),
-              if (getIt.isRegistered<PreferencesCubit>())
-                BlocProvider.value(value: getIt<PreferencesCubit>()),
-              if (getIt.isRegistered<FavoritesCubit>())
-                BlocProvider.value(value: getIt<FavoritesCubit>()),
-              if (getIt.isRegistered<RecentHistoryCubit>())
-                BlocProvider.value(value: getIt<RecentHistoryCubit>()),
-              if (getIt.isRegistered<TeamsCubit>())
-                BlocProvider.value(value: getIt<TeamsCubit>()),
-              if (getIt.isRegistered<ComparisonCubit>())
-                BlocProvider.value(value: getIt<ComparisonCubit>()),
-            ],
-            child: MaterialApp.router(
-              routerConfig: router,
-              locale: const Locale('en'),
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              builder: (context, child) {
-                if (textScaleFactor != null) {
-                  return MediaQuery(
-                    data: MediaQuery.of(
-                      context,
-                    ).copyWith(textScaler: TextScaler.linear(textScaleFactor)),
-                    child: child!,
-                  );
-                }
-                return child!;
-              },
-            ),
+        await tester.pumpApp(
+          router: router,
+          cubits: TestAppCubits(
+            preferences: getIt<PreferencesCubit>(),
+            language: getIt<LanguageCubit>(),
+            favorites: getIt<FavoritesCubit>(),
+            recentHistory: getIt<RecentHistoryCubit>(),
+            comparison: getIt<ComparisonCubit>(),
+            teams: getIt<TeamsCubit>(),
           ),
+          builder: textScaleFactor == null
+              ? null
+              : (context, child) => MediaQuery(
+                  data: MediaQuery.of(
+                    context,
+                  ).copyWith(textScaler: TextScaler.linear(textScaleFactor)),
+                  child: child!,
+                ),
         );
         await tester.pumpAndSettle();
       });

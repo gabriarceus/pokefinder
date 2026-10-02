@@ -53,27 +53,21 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       // Best effort: a Pokémon without alternate forms is still fully usable,
       // so a catalog miss must not fail the request.
       final catalog = await _loadCatalog();
+      final raw = RawPokemon.fromJson(response.data);
       return right(
-        _toPokemon(
-          RawPokemon.fromJson(response.data),
-          response.isStale,
-          forms: _formsFor(canonical, response.data, catalog),
-        ),
+        _toPokemon(raw, response.isStale, forms: _formsFor(raw, catalog)),
       );
     } catch (error) {
       return left(_toFailure(error));
     }
   }
 
-  /// Builds the form list of the Pokémon named [name] from [catalog],
-  /// falling back to the resource's own `forms` array when the catalog is
-  /// unavailable.
+  /// Builds the form list of [raw] from [catalog], falling back to the
+  /// resource's own `forms` array when the catalog is unavailable.
   List<PokemonForm> _formsFor(
-    String name,
-    _Json json,
+    RawPokemon raw,
     List<PokemonIndexEntry>? catalog,
   ) {
-    final raw = RawPokemon.fromJson(json);
     final type1 = raw.types.isEmpty
         ? null
         : _typeFromUrl(raw.types.first.type.url);
@@ -82,7 +76,7 @@ class PokemonRepositoryImpl implements IPokemonRepository {
         : null;
 
     if (catalog != null) {
-      final forms = _catalogFormsFor(name, type1, type2, catalog);
+      final forms = _catalogFormsFor(raw.name, type1, type2, catalog);
       if (forms.isNotEmpty) return forms;
     }
     return _resourceFormsFor(raw, type1, type2);
@@ -313,13 +307,19 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     final memoized = _catalog;
     if (!forceRefresh && memoized != null) return right(memoized);
 
+    var isStale = false;
     final result = await _fetch<_Json, List<PokemonIndexEntry>>(
       PokeApiUrlHelper.pokemonIndexUrl(),
-      _toIndexEntries,
+      (json, stale) {
+        isStale = stale;
+        return _toIndexEntries(json);
+      },
       forceRefresh: forceRefresh,
     );
     return result.fold((failure) => left(failure), (entries) {
-      _catalog = entries;
+      // A stale offline copy is served but not kept, so the next call
+      // tries the network again.
+      if (!isStale) _catalog = entries;
       return right(entries);
     });
   }
@@ -338,7 +338,7 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     }, (entries) => entries);
   }
 
-  List<PokemonIndexEntry> _toIndexEntries(_Json json, bool _) {
+  List<PokemonIndexEntry> _toIndexEntries(_Json json) {
     final entries = <PokemonIndexEntry>[];
     for (final raw in json['results'] as List<dynamic>) {
       final map = raw as _Json;

@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:injectable/injectable.dart' hide test;
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/bootstrap.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/main.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/_app_bar.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/detail_page.dart';
@@ -14,6 +13,8 @@ import 'package:pokefinder/src/1_presentation/pages/route_error/route_error_page
 import 'package:pokefinder/src/1_presentation/router/app_router.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/helpers/pokemon_share_link.dart';
+import '../helpers/in_memory_hydrated_storage.dart';
+import '../helpers/pump_app.dart';
 
 /// Pumps frames until [finder] matches.
 ///
@@ -35,11 +36,13 @@ Future<void> pumpFrames(WidgetTester tester) async {
 
 void main() {
   group('DetailAppBar share action', () {
-    Widget buildAppBar({required Locale locale, VoidCallback? onShare}) {
+    Future<void> pumpAppBar(
+      WidgetTester tester, {
+      required Locale locale,
+      VoidCallback? onShare,
+    }) {
       // DetailAppBar is a sliver app bar: it must live in a scroll view.
-      return MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
+      return tester.pumpApp(
         locale: locale,
         home: Scaffold(
           body: CustomScrollView(
@@ -62,8 +65,10 @@ void main() {
       tester,
     ) async {
       var shared = 0;
-      await tester.pumpWidget(
-        buildAppBar(locale: const Locale('en'), onShare: () => shared++),
+      await pumpAppBar(
+        tester,
+        locale: const Locale('en'),
+        onShare: () => shared++,
       );
       await tester.pumpAndSettle();
 
@@ -77,9 +82,7 @@ void main() {
     });
 
     testWidgets('localizes the share tooltip in Italian', (tester) async {
-      await tester.pumpWidget(
-        buildAppBar(locale: const Locale('it'), onShare: () {}),
-      );
+      await pumpAppBar(tester, locale: const Locale('it'), onShare: () {});
       await tester.pumpAndSettle();
 
       expect(find.byTooltip('Copia link'), findsOneWidget);
@@ -88,7 +91,7 @@ void main() {
     testWidgets('hides the share button when no handler is provided', (
       tester,
     ) async {
-      await tester.pumpWidget(buildAppBar(locale: const Locale('en')));
+      await pumpAppBar(tester, locale: const Locale('en'));
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.link_rounded), findsNothing);
@@ -101,27 +104,16 @@ void main() {
       await configureDependencies(Environment.dev);
     });
 
-    Widget createRouterApp(String initialLocation) {
-      final router = createAppRouter(initialLocation: initialLocation);
-      return MultiBlocProvider(
-        providers: [
-          if (getIt.isRegistered<LanguageCubit>())
-            BlocProvider.value(value: getIt<LanguageCubit>()),
-          if (getIt.isRegistered<PreferencesCubit>())
-            BlocProvider.value(value: getIt<PreferencesCubit>()),
-          if (getIt.isRegistered<FavoritesCubit>())
-            BlocProvider.value(value: getIt<FavoritesCubit>()),
-          if (getIt.isRegistered<RecentHistoryCubit>())
-            BlocProvider.value(value: getIt<RecentHistoryCubit>()),
-          if (getIt.isRegistered<ComparisonCubit>())
-            BlocProvider.value(value: getIt<ComparisonCubit>()),
-          if (getIt.isRegistered<TeamsCubit>())
-            BlocProvider.value(value: getIt<TeamsCubit>()),
-        ],
-        child: MaterialApp.router(
-          routerConfig: router,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
+    Future<void> pumpRouterApp(WidgetTester tester, String initialLocation) {
+      return tester.pumpApp(
+        router: createAppRouter(initialLocation: initialLocation),
+        cubits: TestAppCubits(
+          preferences: getIt<PreferencesCubit>(),
+          language: getIt<LanguageCubit>(),
+          favorites: getIt<FavoritesCubit>(),
+          recentHistory: getIt<RecentHistoryCubit>(),
+          comparison: getIt<ComparisonCubit>(),
+          teams: getIt<TeamsCubit>(),
         ),
       );
     }
@@ -133,7 +125,7 @@ void main() {
           final link = buildPokemonCanonicalPath('pikachu');
           expect(link, '/pokemon/pikachu');
 
-          await tester.pumpWidget(createRouterApp(link!));
+          await pumpRouterApp(tester, link!);
           // The header only exists once the Pokémon has loaded, so waiting
           // for it also lets the mock repository's fetch timer elapse.
           await pumpUntilFound(tester, find.byType(DetailHeader));
@@ -161,9 +153,7 @@ void main() {
         final identifier = parsePokemonShareLink(uri.toString());
         expect(identifier, '25');
 
-        await tester.pumpWidget(
-          createRouterApp(buildPokemonCanonicalPath(identifier)!),
-        );
+        await pumpRouterApp(tester, buildPokemonCanonicalPath(identifier)!);
         await pumpUntilFound(tester, find.byType(DetailHeader));
 
         expect(find.byType(PokemonDetailPage), findsOneWidget);
@@ -179,7 +169,7 @@ void main() {
     testWidgets('an invalid shared link hits the router error screen', (
       tester,
     ) async {
-      await tester.pumpWidget(createRouterApp('/pokemon/invalid!param'));
+      await pumpRouterApp(tester, '/pokemon/invalid!param');
       await tester.pumpAndSettle();
 
       expect(find.byType(RouteErrorPage), findsOneWidget);

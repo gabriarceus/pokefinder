@@ -28,6 +28,8 @@ import 'src/2_application/bloc/language_cubit/language_cubit.dart' as _i336;
 import 'src/2_application/bloc/move_detail_cubit/move_detail_cubit.dart'
     as _i539;
 import 'src/2_application/bloc/pokedex_bloc/pokedex_bloc.dart' as _i820;
+import 'src/2_application/bloc/pokemon_list_cubit/pokemon_list_cubit.dart'
+    as _i824;
 import 'src/2_application/bloc/preferences_cubit/preferences_cubit.dart'
     as _i361;
 import 'src/2_application/bloc/recent_history_cubit/recent_history_cubit.dart'
@@ -149,6 +151,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i361.PreferencesCubit>(
       () => _i361.PreferencesCubit(
+        gh<_i463.EnLogger>(),
+        gh<_i341.IPokemonRepository>(),
+      ),
+    );
+    gh.factory<_i824.PokemonListCubit>(
+      () => _i824.PokemonListCubit(
         gh<_i463.EnLogger>(),
         gh<_i341.IPokemonRepository>(),
       ),
