@@ -350,12 +350,6 @@
   "abilityShortEffect": "Summary",
   "allGameVersions": "All Versions",
   "filterByVersion": "Game Version",
-  "baseSpeciesDataNotice": "Appearance & types reflect {formName}. Stats, moves, and abilities reflect the base species.",
-  "@baseSpeciesDataNotice": {
-    "placeholders": {
-      "formName": { "type": "String" }
-    }
-  },
   "encountersUnavailableForVersion": "No encounters found for this game version.",
   "heldItemsUnavailableForVersion": "No held items found for this game version.",
   "movesUnavailableForVersion": "No moves found for this game version.",
@@ -592,5 +586,4 @@
   "teamPickEmpty": "No teams yet — create one first.",
   "teamView": "View"
 }
-
 

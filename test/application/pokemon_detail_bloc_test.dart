@@ -5,6 +5,7 @@ import 'package:en_logger/en_logger.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
+import 'package:pokefinder/src/2_application/helpers/log_sanitizer.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_form_category.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_sprites.dart';
@@ -24,16 +25,27 @@ const _megaForm = PokemonForm(
   url: 'https://pokeapi.co/api/v2/pokemon-form/10033/',
 );
 
-const _megaDetails = PokemonFormDetails(
+final _megaPokemon = buildPokemon(
   id: 10033,
   name: 'venusaur-mega',
   type1: PokemonType.grass,
   type2: PokemonType.poison,
-  spriteDefault: 'mega.png',
-  spriteShiny: 'mega-shiny.png',
-  artworkDefault: 'mega-art.png',
-  artworkShiny: 'mega-art-shiny.png',
+  sprite: 'mega.png',
+  speciesName: 'venusaur',
+  weight: 1555,
+  height: 24,
+  cry: 'mega.ogg',
+  stats: [80, 100, 123, 122, 120, 80],
+  abilities: [PokemonAbility(name: 'thick-fat', isHidden: false)],
+  locationAreaEncounters: 'mega/encounters',
+  sprites: PokemonSprites(
+    frontShiny: 'mega-shiny.png',
+    artworkDefault: 'mega-art.png',
+    artworkShiny: 'mega-art-shiny.png',
+  ),
 );
+
+final _megaDetails = PokemonFormDetails.fromPokemon(_megaPokemon);
 
 const _encounters = [
   PokemonEncounter(rawLocationAreaName: 'Viridian Forest', versions: ['red']),
@@ -63,7 +75,13 @@ void main() {
   /// Drives a successful fetch to completion and returns the resulting state.
   Future<PokemonDetailSuccess> fetchSuccessfully(Pokemon pokemon) async {
     when(
-      () => repository.getPokemon(any()),
+      () => repository.getPokemon(
+        any(
+          that: predicate<PokemonName>(
+            (name) => name.rightOrCrash() == pokemon.name,
+          ),
+        ),
+      ),
     ).thenAnswer((_) async => right(pokemon));
     bloc.add(FetchPokemonEvent(pokemon.name));
     await pumpEventQueue();
@@ -71,6 +89,23 @@ void main() {
   }
 
   group('fetching a Pokémon', () {
+    test('fetch logs follow the query sanitizer policy', () async {
+      expect(
+        sanitizeQueryForLog('distinctive-nonexistent-name', isRelease: true),
+        '[REDACTED]',
+      );
+      when(
+        () => repository.getPokemon(any()),
+      ).thenAnswer((_) async => left(const PokemonNotFoundFailure()));
+      bloc.add(FetchPokemonEvent('distinctive-nonexistent-name'));
+      await pumpEventQueue();
+      verify(
+        () => logger.info(
+          'Fetching data for Pokemon: ${sanitizeQueryForLog('distinctive-nonexistent-name')}',
+          prefix: 'DetailBloc',
+        ),
+      ).called(1);
+    });
     test('a blank name is rejected without hitting the repository', () async {
       bloc.add(FetchPokemonEvent('   '));
       await pumpEventQueue();
@@ -274,12 +309,126 @@ void main() {
   });
 
   group('switching form', () {
+    test('obsolete switches do not replace the latest selection', () async {
+      final base = buildPokemon(id: 3, name: 'venusaur');
+      await fetchSuccessfully(base);
+      final pending = Completer<Either<PokemonFailure, Pokemon>>();
+      when(
+        () => repository.getPokemon(
+          any(
+            that: predicate<PokemonName>(
+              (name) => name.rightOrCrash() == _megaForm.name,
+            ),
+          ),
+        ),
+      ).thenAnswer((_) => pending.future);
+      bloc.add(SelectPokemonFormEvent(_megaForm));
+      await pumpEventQueue();
+      bloc.add(
+        SelectPokemonFormEvent(PokemonForm(name: base.name, url: 'base')),
+      );
+      await pumpEventQueue();
+      pending.complete(right(_megaPokemon));
+      await pumpEventQueue();
+      final state = bloc.state as PokemonDetailSuccess;
+      expect(state.pokemon, base);
+      expect(state.isLoadingForm, isFalse);
+      expect(state.formFailure, isNull);
+    });
+
+    test('a failed switch retains full detail and can be retried', () async {
+      final base = buildPokemon(id: 3, name: 'venusaur');
+      await fetchSuccessfully(base);
+      when(
+        () => repository.getPokemon(
+          any(
+            that: predicate<PokemonName>(
+              (name) => name.rightOrCrash() == _megaForm.name,
+            ),
+          ),
+        ),
+      ).thenAnswer((_) async => left(const NetworkUnavailableFailure()));
+      bloc.add(SelectPokemonFormEvent(_megaForm));
+      await pumpEventQueue();
+      expect((bloc.state as PokemonDetailSuccess).pokemon, base);
+      expect((bloc.state as PokemonDetailSuccess).summary.id, 3);
+      when(
+        () => repository.getPokemon(
+          any(
+            that: predicate<PokemonName>(
+              (name) => name.rightOrCrash() == _megaForm.name,
+            ),
+          ),
+        ),
+      ).thenAnswer((_) async => right(_megaPokemon));
+      bloc.add(SelectPokemonFormEvent(_megaForm));
+      await pumpEventQueue();
+      final state = bloc.state as PokemonDetailSuccess;
+      expect(state.pokemon, _megaPokemon);
+      expect(state.formFailure, isNull);
+      expect(state.failedForm, isNull);
+      verify(() => repository.getEncounters('mega/encounters')).called(1);
+    });
+
+    test(
+      'a form switch discards old encounters and their late failure',
+      () async {
+        final pending =
+            Completer<Either<PokemonFailure, List<PokemonEncounter>>>();
+        final base = buildPokemon(id: 3, name: 'venusaur');
+        when(
+          () => repository.getEncounters(base.locationAreaEncounters),
+        ).thenAnswer((_) => pending.future);
+        await fetchSuccessfully(base);
+        when(
+          () => repository.getPokemon(
+            any(
+              that: predicate<PokemonName>(
+                (name) => name.rightOrCrash() == _megaForm.name,
+              ),
+            ),
+          ),
+        ).thenAnswer((_) async => right(_megaPokemon));
+        bloc.add(SelectPokemonFormEvent(_megaForm));
+        await pumpEventQueue();
+        pending.complete(left(const NetworkUnavailableFailure()));
+        await pumpEventQueue();
+        final state = bloc.state as PokemonDetailSuccess;
+        expect(state.pokemon, _megaPokemon);
+        expect(state.encounters, isEmpty);
+        expect(state.encountersFailure, isNull);
+        expect(state.isLoadingEncounters, isFalse);
+      },
+    );
+
+    test('a new fetch supersedes a pending form switch', () async {
+      await fetchSuccessfully(buildPokemon(id: 3, name: 'venusaur'));
+      final pending = Completer<Either<PokemonFailure, Pokemon>>();
+      when(
+        () => repository.getPokemon(
+          any(
+            that: predicate<PokemonName>(
+              (name) => name.rightOrCrash() == _megaForm.name,
+            ),
+          ),
+        ),
+      ).thenAnswer((_) => pending.future);
+      bloc.add(SelectPokemonFormEvent(_megaForm));
+      await pumpEventQueue();
+      final other = buildPokemon(id: 25, name: 'pikachu');
+      await fetchSuccessfully(other);
+      pending.complete(left(const NetworkUnavailableFailure()));
+      await pumpEventQueue();
+      final state = bloc.state as PokemonDetailSuccess;
+      expect(state.pokemon, other);
+      expect(state.formFailure, isNull);
+    });
     test('is ignored before a Pokémon has been loaded', () async {
       bloc.add(SelectPokemonFormEvent(_megaForm));
       await pumpEventQueue();
 
       expect(bloc.state, isA<PokemonDetailInitial>());
-      verifyNever(() => repository.getFormDetails(any()));
+      verifyNever(() => repository.getPokemon(any()));
     });
 
     test('loads the details of a non-default form', () async {
@@ -287,8 +436,14 @@ void main() {
         buildPokemon(name: 'venusaur', forms: [_megaForm]),
       );
       when(
-        () => repository.getFormDetails(_megaForm.url),
-      ).thenAnswer((_) async => right(_megaDetails));
+        () => repository.getPokemon(
+          any(
+            that: predicate<PokemonName>(
+              (name) => name.rightOrCrash() == _megaForm.name,
+            ),
+          ),
+        ),
+      ).thenAnswer((_) async => right(_megaPokemon));
 
       final emitted = <PokemonDetailSuccess>[];
       final subscription = bloc.stream.cast<PokemonDetailSuccess>().listen(
@@ -310,7 +465,8 @@ void main() {
       // base species entry.
       expect(emitted.last.summary.id, 10033);
       expect(emitted.last.summary.spriteUrl, 'mega-art.png');
-      expect(emitted.last.summary.parentSpeciesId, 1);
+      expect(emitted.last.pokemon, _megaPokemon);
+      expect(emitted.last.summary.parentSpeciesId, 3);
       expect(emitted.last.summary.formCategory, PokemonFormCategory.mega);
       expect(emitted.last.summary.types, [
         PokemonType.grass,
@@ -324,7 +480,13 @@ void main() {
         final pokemon = buildPokemon(name: 'venusaur', forms: [_megaForm]);
         await fetchSuccessfully(pokemon);
         when(
-          () => repository.getFormDetails(any()),
+          () => repository.getPokemon(
+            any(
+              that: predicate<PokemonName>(
+                (name) => name.rightOrCrash() == _megaForm.name,
+              ),
+            ),
+          ),
         ).thenAnswer((_) async => left(const UnexpectedFailure('nope')));
 
         bloc.add(SelectPokemonFormEvent(_megaForm));
@@ -345,7 +507,13 @@ void main() {
       final pokemon = buildPokemon(name: 'venusaur', forms: [_megaForm]);
       await fetchSuccessfully(pokemon);
       when(
-        () => repository.getFormDetails(any()),
+        () => repository.getPokemon(
+          any(
+            that: predicate<PokemonName>(
+              (name) => name.rightOrCrash() == _megaForm.name,
+            ),
+          ),
+        ),
       ).thenAnswer((_) async => left(const UnexpectedFailure('nope')));
 
       bloc.add(SelectPokemonFormEvent(_megaForm));
@@ -363,36 +531,45 @@ void main() {
       expect(state.failedForm, isNull);
     });
 
-    test(
-      'reselecting the base form restores it without a network call',
-      () async {
-        final pokemon = buildPokemon(name: 'venusaur', forms: [_megaForm]);
-        await fetchSuccessfully(pokemon);
-        when(
-          () => repository.getFormDetails(any()),
-        ).thenAnswer((_) async => right(_megaDetails));
-
-        bloc.add(SelectPokemonFormEvent(_megaForm));
-        await pumpEventQueue();
-        expect(
-          (bloc.state as PokemonDetailSuccess).selectedFormDetails,
-          _megaDetails,
-        );
-
-        bloc.add(
-          SelectPokemonFormEvent(
-            PokemonForm(name: pokemon.name, url: 'ignored'),
+    test('reselecting the base form reloads its full detail', () async {
+      final pokemon = buildPokemon(name: 'venusaur', forms: [_megaForm]);
+      await fetchSuccessfully(pokemon);
+      when(
+        () => repository.getPokemon(
+          any(
+            that: predicate<PokemonName>(
+              (name) => name.rightOrCrash() == _megaForm.name,
+            ),
           ),
-        );
-        await pumpEventQueue();
+        ),
+      ).thenAnswer((_) async => right(_megaPokemon));
 
-        expect(
-          (bloc.state as PokemonDetailSuccess).selectedFormDetails,
-          PokemonFormDetails.fromPokemon(pokemon),
-        );
-        verify(() => repository.getFormDetails(any())).called(1);
-      },
-    );
+      bloc.add(SelectPokemonFormEvent(_megaForm));
+      await pumpEventQueue();
+      expect(
+        (bloc.state as PokemonDetailSuccess).selectedFormDetails,
+        _megaDetails,
+      );
+
+      bloc.add(
+        SelectPokemonFormEvent(PokemonForm(name: pokemon.name, url: 'ignored')),
+      );
+      await pumpEventQueue();
+
+      expect(
+        (bloc.state as PokemonDetailSuccess).selectedFormDetails,
+        PokemonFormDetails.fromPokemon(pokemon),
+      );
+      verify(
+        () => repository.getPokemon(
+          any(
+            that: predicate<PokemonName>(
+              (name) => name.rightOrCrash() == _megaForm.name,
+            ),
+          ),
+        ),
+      ).called(1);
+    });
   });
 
   group('retry and cached loading', () {

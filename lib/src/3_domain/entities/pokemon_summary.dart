@@ -24,7 +24,7 @@ class PokemonSummary extends Equatable {
 
   /// Deserializes a summary from a JSON map.
   ///
-  /// Throws a [FormatException] when the id or the name is missing. Form
+  /// Throws a [FormatException] for invalid identity or parent species name. Form
   /// lineage is optional: records written before it was stored load as
   /// canonical.
   factory PokemonSummary.fromJson(Map<String, dynamic> json) {
@@ -38,6 +38,10 @@ class PokemonSummary extends Equatable {
     final rawSpriteUrl = json['spriteUrl'];
     final rawTypes = json['types'];
     final rawParentId = json['parentSpeciesId'];
+    final rawParentName = json['parentSpeciesName'];
+    if (rawParentName != null && rawParentName is! String) {
+      throw const FormatException('Invalid parent species name.');
+    }
     return PokemonSummary(
       id: id,
       name: name,
@@ -47,7 +51,7 @@ class PokemonSummary extends Equatable {
           .whereType<PokemonType>()
           .toList(),
       parentSpeciesId: rawParentId is int ? rawParentId : null,
-      parentSpeciesName: json['parentSpeciesName'] as String?,
+      parentSpeciesName: rawParentName as String?,
       formCategory: _formCategoryFromName(json['formCategory']),
       regionalGroup: _regionalGroupFromName(json['regionalGroup']),
     );

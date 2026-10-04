@@ -58,6 +58,23 @@ void main() {
   group('JustAudioCryController', () {
     const testUrl = 'https://example.com/cry.ogg';
 
+    test('stop cancels a pending cry before playback starts', () async {
+      final pending = Completer<Duration?>();
+      when(
+        () => player.setAudioSource(any(), preload: any(named: 'preload')),
+      ).thenAnswer((_) => pending.future);
+      final playing = controller.play(testUrl);
+      await pumpEventQueue();
+      expect(controller.state.loading, isTrue);
+      await controller.stop();
+      pending.complete(const Duration(seconds: 1));
+      await playing;
+      expect(controller.state.currentUrl, isNull);
+      expect(controller.state.loading, isFalse);
+      verifyNever(() => player.play());
+      await controller.dispose();
+    });
+
     test('load failure emits unavailable state and does not play', () async {
       when(
         () => player.setAudioSource(any(), preload: any(named: 'preload')),

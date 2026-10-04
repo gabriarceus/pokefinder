@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
-import 'package:pokefinder/src/1_presentation/extensions/form_name_formatter.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/widgets/detail_tab_scroll_view.dart';
@@ -62,8 +61,6 @@ class _DetailInfoTabContent extends StatelessWidget {
       (cubit) => cubit.state.unitSystem,
     );
     final locale = Localizations.localeOf(context).languageCode;
-    final isAlternateForm =
-        selectedFormName != null && selectedFormName != pokemon.name;
 
     return DetailTabScrollView(
       storageKey: 'detail_info',
@@ -72,10 +69,6 @@ class _DetailInfoTabContent extends StatelessWidget {
           children: [
             DetailGameVersionSelector(typeColor: accent),
             const SizedBox(height: 16),
-            if (isAlternateForm) ...[
-              _FormNoticeBanner(formName: selectedFormName!),
-              const SizedBox(height: 16),
-            ],
             Row(
               children: [
                 Expanded(
@@ -163,43 +156,6 @@ class _DetailInfoTabContent extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-}
-
-/// States that stats, moves and abilities belong to the base species.
-class _FormNoticeBanner extends StatelessWidget {
-  const _FormNoticeBanner({required this.formName});
-
-  final String formName;
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = Theme.of(context).colorScheme.primary;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: accent.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.info_outline_rounded, size: 20, color: accent),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              context.t().baseSpeciesDataNotice(
-                formName: formatFormName(context, formName),
-              ),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: accent,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

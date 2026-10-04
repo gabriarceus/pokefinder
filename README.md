@@ -12,6 +12,7 @@ searching, browsing, and exploring Pokémon. Data comes from the public
 - Browsable Pokédex with pagination, pull-to-refresh, type (18) / generation (1-9) / sort filters, and Random Pokémon
 - Alternate forms: Mega, Primal, Regional (Alola, Galar, Hisui, Paldea), G-Max and battle modes, with badges, localized titles, and keyword search
 - Detail screen with tabs (info, stats, moves, items & games), species flavor text, branching evolution chain, ability sheets, unified game-version selector, and inline forms gallery
+- Selecting a form updates its complete detail and encounters. Form cards load their own types through the API cache; failed switches keep the last valid detail with retry.
 - Favorites and Recently Viewed / Recent Searches with reactive sync
 - Side-by-side comparison of up to 2 Pokémon (base/min/max stats, types, height/weight) from Pokédex cards or the detail screen
 - Offline type matchup calculator: 1–2 defending types, grouped weaknesses / resistances / immunities (4×, 2×, ½×, ¼×, 0×), via drawer or tappable detail type chips

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
+import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
 import 'package:pokefinder/src/1_presentation/pages/teams/add_to_team_sheet.dart';
 import 'package:pokefinder/src/1_presentation/theme/readable_color.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
@@ -49,12 +50,23 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> {
   }
 
   /// Runs once per loaded Pokémon, not on later emissions for the same one.
-  void _onPokemonLoaded(BuildContext context, PokemonDetailSuccess state) {
+  Future<void> _onPokemonLoaded(
+    BuildContext context,
+    PokemonDetailSuccess state,
+  ) async {
     context.read<RecentHistoryCubit>().addRecentPokemon(state.summary);
 
     final query = widget.searchQuery?.trim() ?? '';
     if (query.isNotEmpty) {
       context.read<RecentHistoryCubit>().addRecentSearch(query);
+    }
+
+    await _audioController.stop();
+    if (!context.mounted) return;
+    final current = context.read<PokemonDetailBloc>().state;
+    if (current is! PokemonDetailSuccess ||
+        current.pokemon.id != state.pokemon.id) {
+      return;
     }
 
     final preferences = context.read<PreferencesCubit>().state;
@@ -66,13 +78,42 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<PokemonDetailBloc, PokemonDetailState>(
-      listenWhen: (previous, current) =>
-          current is PokemonDetailSuccess &&
-          (previous is! PokemonDetailSuccess ||
-              previous.pokemon.id != current.pokemon.id),
-      listener: (context, state) =>
-          _onPokemonLoaded(context, state as PokemonDetailSuccess),
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<PokemonDetailBloc, PokemonDetailState>(
+          listenWhen: (previous, current) =>
+              current is PokemonDetailSuccess &&
+              (previous is! PokemonDetailSuccess ||
+                  previous.pokemon.id != current.pokemon.id),
+          listener: (context, state) =>
+              _onPokemonLoaded(context, state as PokemonDetailSuccess),
+        ),
+        BlocListener<PokemonDetailBloc, PokemonDetailState>(
+          listenWhen: (previous, current) =>
+              current is PokemonDetailSuccess &&
+              current.formFailure != null &&
+              (previous is! PokemonDetailSuccess ||
+                  previous.formFailure != current.formFailure),
+          listener: (context, state) {
+            final success = state as PokemonDetailSuccess;
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(
+                  content: Text(success.formFailure!.localizedMessage(context)),
+                  action: success.failedForm == null
+                      ? null
+                      : SnackBarAction(
+                          label: context.t().retryButton,
+                          onPressed: () => context
+                              .read<PokemonDetailBloc>()
+                              .add(SelectPokemonFormEvent(success.failedForm!)),
+                        ),
+                ),
+              );
+          },
+        ),
+      ],
       child: BlocBuilder<PokemonDetailBloc, PokemonDetailState>(
         builder: (context, state) => switch (state) {
           PokemonDetailInitial() ||
@@ -191,7 +232,8 @@ class _DetailSuccessView extends StatelessWidget {
         listenWhen: (prev, curr) =>
             prev is PokemonDetailSuccess &&
             curr is PokemonDetailSuccess &&
-            prev.encounters != curr.encounters,
+            (prev.pokemon.id != curr.pokemon.id ||
+                prev.encounters != curr.encounters),
         listener: (context, state) {
           final current = state as PokemonDetailSuccess;
           context.read<DetailGameVersionCubit>().initialize(
@@ -202,6 +244,9 @@ class _DetailSuccessView extends StatelessWidget {
         child: DefaultTabController(
           length: 4,
           child: Scaffold(
+            bottomNavigationBar: success.isLoadingForm
+                ? const SafeArea(child: LinearProgressIndicator())
+                : null,
             body: NestedScrollView(
               headerSliverBuilder: (context, _) => [
                 SliverOverlapAbsorber(

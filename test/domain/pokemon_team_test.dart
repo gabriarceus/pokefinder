@@ -104,6 +104,7 @@ void main() {
         'members': [
           {'id': 25, 'name': 'pikachu'},
           {'name': 'missing-id'},
+          {'id': 6, 'name': 'charizard', 'parentSpeciesName': 123},
           {'id': 1, 'name': ''},
           'not-a-map',
         ],

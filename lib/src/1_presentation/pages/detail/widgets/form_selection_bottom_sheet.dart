@@ -220,93 +220,91 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                         padding: EdgeInsets.all(24.0),
                         child: CircularProgressIndicator(),
                       ),
-                    )
-                  else
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxHeight: 200),
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: widget.pokemon.forms.length,
-                        itemBuilder: (context, index) {
-                          final form = widget.pokemon.forms[index];
-                          final isSelected = form.name == selectedFormName;
-                          final displayFormName = formatFormName(
-                            context,
-                            form.name,
-                          );
+                    ),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: widget.pokemon.forms.length,
+                      itemBuilder: (context, index) {
+                        final form = widget.pokemon.forms[index];
+                        final isSelected = form.name == selectedFormName;
+                        final displayFormName = formatFormName(
+                          context,
+                          form.name,
+                        );
 
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: Semantics(
-                              button: true,
-                              selected: isSelected,
-                              label: displayFormName,
-                              child: InkWell(
-                                onTap: () {
-                                  if (state is PokemonDetailSuccess &&
-                                      !state.isLoadingForm) {
-                                    context.read<PokemonDetailBloc>().add(
-                                      SelectPokemonFormEvent(form),
-                                    );
-                                  }
-                                },
-                                borderRadius: BorderRadius.circular(12),
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    minHeight: 48,
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Semantics(
+                            button: true,
+                            selected: isSelected,
+                            label: displayFormName,
+                            child: InkWell(
+                              onTap: () {
+                                if (state is PokemonDetailSuccess) {
+                                  context.read<PokemonDetailBloc>().add(
+                                    SelectPokemonFormEvent(form),
+                                  );
+                                }
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  minHeight: 48,
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
                                   ),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 12,
-                                    ),
-                                    decoration: BoxDecoration(
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? widget.typeColor.withValues(
+                                            alpha: 0.1,
+                                          )
+                                        : Colors.transparent,
+                                    border: Border.all(
                                       color: isSelected
-                                          ? widget.typeColor.withValues(
-                                              alpha: 0.1,
-                                            )
+                                          ? accentColor
                                           : Colors.transparent,
-                                      border: Border.all(
-                                        color: isSelected
-                                            ? accentColor
-                                            : Colors.transparent,
-                                        width: 1.5,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
+                                      width: 1.5,
                                     ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            displayFormName,
-                                            style: TextStyle(
-                                              fontWeight: isSelected
-                                                  ? FontWeight.bold
-                                                  : FontWeight.normal,
-                                              color: isSelected
-                                                  ? accentColor
-                                                  : null,
-                                            ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          displayFormName,
+                                          style: TextStyle(
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            color: isSelected
+                                                ? accentColor
+                                                : null,
                                           ),
                                         ),
-                                        if (isSelected)
-                                          Icon(
-                                            Icons.check_circle,
-                                            color: accentColor,
-                                            size: 20,
-                                          ),
-                                      ],
-                                    ),
+                                      ),
+                                      if (isSelected)
+                                        Icon(
+                                          Icons.check_circle,
+                                          color: accentColor,
+                                          size: 20,
+                                        ),
+                                    ],
                                   ),
                                 ),
                               ),
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      },
                     ),
+                  ),
                 ],
               ),
             ),

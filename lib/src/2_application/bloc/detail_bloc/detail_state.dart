@@ -51,14 +51,11 @@ final class PokemonDetailSuccess extends PokemonDetailState {
   final PokemonFailure? encountersFailure;
   final PokemonForm? failedForm;
 
-  /// Active form details, falling back to the base Pokémon when no alternate
-  /// form has been selected.
+  /// Active form details, falling back to the loaded Pokémon's attributes.
   PokemonFormDetails get formDetails =>
       selectedFormDetails ?? PokemonFormDetails.fromPokemon(pokemon);
 
-  /// Summary of the displayed form, keyed by the form's own identity so that
-  /// favouriting or viewing an alternate form never collides with its base
-  /// species. Types and the form lineage come from the base Pokémon.
+  /// Summary of the active Pokémon, including its exact identity and lineage.
   PokemonSummary get summary {
     final form = formDetails;
     final types = form.type1 != null

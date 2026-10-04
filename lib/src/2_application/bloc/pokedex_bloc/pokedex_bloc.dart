@@ -56,9 +56,18 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
         ),
       ),
     );
-    on<PokedexClearFiltersEvent>(
-      (event, emit) => _applyFilters(emit, const PokedexFilters()),
-    );
+    on<PokedexClearFiltersEvent>((event, emit) {
+      _typeRequests.clear();
+      const filters = PokedexFilters();
+      emit(
+        state.copyWith(
+          filters: filters,
+          loadingTypes: const {},
+          typeFilterFailure: null,
+          filteredEntries: _filter(state.allEntries, filters, state.typeIdMap),
+        ),
+      );
+    });
     on<PokedexSelectRandomPokemonEvent>(_onSelectRandomPokemon);
     on<PokedexRandomNavigationDoneEvent>(
       (event, emit) => emit(state.copyWith(randomPokemonToNavigate: null)),
@@ -69,6 +78,7 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
   final EnLogger _logger;
   final Duration _searchDebounce;
   final Random _random = Random();
+  final Map<PokemonType, Object> _typeRequests = {};
 
   /// Emits [filters] with the entries they select.
   void _applyFilters(Emitter<PokedexState> emit, PokedexFilters filters) {
@@ -174,6 +184,7 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
     // Concurrent on purpose: a second tap while the ids load must read the
     // emitted selection and cancel it, not wait and re-add the type.
     if (state.loadingTypes.contains(type)) {
+      _typeRequests.remove(type);
       _logger.info(
         'Type filter cancelled while loading: ${type.name}',
         prefix: _prefix,
@@ -216,8 +227,11 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
       ),
     );
 
+    final request = Object();
+    _typeRequests[type] = request;
     final result = await _pokemonRepository.getPokemonIdsForType(type);
-    final wasCancelled = !state.loadingTypes.contains(type);
+    if (emit.isDone || _typeRequests[type] != request) return;
+    _typeRequests.remove(type);
     final loadingTypes = {...state.loadingTypes}..remove(type);
 
     result.fold(
@@ -226,7 +240,6 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
           'Could not load IDs for type ${type.name}: $failure',
           prefix: _prefix,
         );
-        if (wasCancelled) return;
         final filters = state.filters.copyWith(
           selectedTypes: {...state.filters.selectedTypes}..remove(type),
         );

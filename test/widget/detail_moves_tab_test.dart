@@ -62,6 +62,36 @@ void main() {
   }
 
   group('DetailMovesTab Game Version Sync Tests', () {
+    testWidgets('updates moves when the Pokémon changes in the same tab', (
+      tester,
+    ) async {
+      final versions = DetailGameVersionCubit()..initialize(samplePokemon);
+      addTearDown(versions.close);
+      await pumpTestWidget(tester, gameVersionCubit: versions);
+      await tester.pumpAndSettle();
+      expect(find.text('Quick Attack'), findsOneWidget);
+      final alternate = buildPokemon(
+        id: 10034,
+        name: 'charizard-mega-x',
+        moves: [
+          PokemonMove(
+            name: 'flamethrower',
+            levelLearnedAt: 1,
+            learnMethod: 'level-up',
+            versionGroup: 'platinum',
+          ),
+        ],
+      );
+      versions.initialize(alternate);
+      await pumpTestWidget(
+        tester,
+        gameVersionCubit: versions,
+        pokemon: alternate,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Flamethrower'), findsOneWidget);
+      expect(find.text('Quick Attack'), findsNothing);
+    });
     testWidgets(
       'shows the shared game version selector when all versions is selected',
       (tester) async {

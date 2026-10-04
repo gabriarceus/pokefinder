@@ -254,6 +254,8 @@ void main() {
             'members': [
               {'id': 25, 'name': 'pikachu'},
               {'name': 'missing-id'},
+              {'id': 6, 'name': 'charizard', 'parentSpeciesName': 123},
+              {'id': 7, 'name': 'squirtle'},
             ],
           },
           {'name': 'missing-id'},
@@ -266,7 +268,7 @@ void main() {
       expect(state.teams.single.id, equals('good'));
       expect(
         state.teams.single.members.map((m) => m.pokemon.name).toList(),
-        equals(['pikachu']),
+        equals(['pikachu', 'squirtle']),
       );
     });
 

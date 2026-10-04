@@ -282,7 +282,6 @@
   "abilityShortEffect": "Riepilogo",
   "allGameVersions": "Tutte le versioni",
   "filterByVersion": "Versione gioco",
-  "baseSpeciesDataNotice": "Aspetto e tipi riflettono {formName}. Statistiche, mosse e abilità riflettono la specie base.",
   "encountersUnavailableForVersion": "Nessun incontro trovato per questa versione.",
   "heldItemsUnavailableForVersion": "Nessuno strumento trovato per questa versione.",
   "movesUnavailableForVersion": "Nessuna mossa trovata per questa versione.",
@@ -387,5 +386,4 @@
   "teamPickEmpty": "Nessuna squadra — creane prima una.",
   "teamView": "Visualizza"
 }
-
 

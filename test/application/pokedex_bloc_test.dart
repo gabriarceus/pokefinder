@@ -377,6 +377,47 @@ void main() {
       expect(bloc.state.filters.sortOrder, PokedexSortOrder.idAscending);
       expect(bloc.state.filteredEntries.length, 4);
     });
+
+    test('clear ignores late type failures', () async {
+      final pending = Completer<Either<PokemonFailure, Set<int>>>();
+      when(
+        () => repository.getPokemonIdsForType(PokemonType.fire),
+      ).thenAnswer((_) => pending.future);
+      bloc.add(const PokedexTypeFilterToggledEvent(PokemonType.fire));
+      await pumpEventQueue();
+      bloc.add(const PokedexClearFiltersEvent());
+      await pumpEventQueue();
+      expect(bloc.state.loadingTypes, isEmpty);
+      pending.complete(left(const NetworkUnavailableFailure()));
+      await pumpEventQueue();
+      expect(bloc.state.typeFilterFailure, isNull);
+      expect(bloc.state.filters.selectedTypes, isEmpty);
+    });
+
+    test('clear then reselect keeps the new type request active', () async {
+      final first = Completer<Either<PokemonFailure, Set<int>>>();
+      final second = Completer<Either<PokemonFailure, Set<int>>>();
+      var calls = 0;
+      when(
+        () => repository.getPokemonIdsForType(PokemonType.fire),
+      ).thenAnswer((_) => ++calls == 1 ? first.future : second.future);
+      bloc.add(const PokedexTypeFilterToggledEvent(PokemonType.fire));
+      await pumpEventQueue();
+      bloc.add(const PokedexClearFiltersEvent());
+      await pumpEventQueue();
+      bloc.add(const PokedexTypeFilterToggledEvent(PokemonType.fire));
+      await pumpEventQueue();
+      first.complete(left(const NetworkUnavailableFailure()));
+      await pumpEventQueue();
+      expect(bloc.state.loadingTypes, {PokemonType.fire});
+      expect(bloc.state.filters.selectedTypes, {PokemonType.fire});
+      expect(bloc.state.typeFilterFailure, isNull);
+      second.complete(right({4}));
+      await pumpEventQueue();
+      expect(bloc.state.loadingTypes, isEmpty);
+      expect(bloc.state.filters.selectedTypes, {PokemonType.fire});
+      expect(bloc.state.filteredEntries.map((entry) => entry.id), [4]);
+    });
   });
 
   group('Random Pokemon & Forms', () {
