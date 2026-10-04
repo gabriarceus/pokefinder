@@ -1,138 +1,89 @@
 # AI context
 
-PokeFinder: a personal Flutter app (Android + iOS) to search and browse Pokémon, backed by
-PokeAPI v2. English and Italian UI.
+PokeFinder is a personal Flutter app for Android and iOS, backed by PokeAPI v2.
+The UI supports English and Italian.
 
-This file covers repo structure, stack, commands and traps. Two project skills hold the details:
+## Task instructions
 
-| Task | Load |
+Paths below are relative to the repository root, including when reading a generated copy.
+Read the matching source file directly if the host does not list the skill.
+
+| Task | Read |
 |---|---|
-| Write, edit, refactor or review Dart in this repo | `flutter-project-conventions` — **always, before touching Dart** |
-| Run the app, take screenshots, check a UI change on the emulator | `verifying-ui-on-device` |
+| Write, edit, refactor or review Dart, translations or tests | `docs/ai/skills/flutter-project-conventions.md` — always before the task |
+| Run the app, take screenshots or verify a UI change | `docs/ai/skills/verifying-ui-on-device.md` |
+| Edit or synchronize AI documentation | `docs/ai/README.md` |
 
-If a generic Flutter conventions skill is also available (e.g. `flutter-conventions`), apply it too.
-The rules in this repo win on conflict.
+Apply any available personal Flutter conventions too. Project choices take precedence over
+personal defaults; neither overrides the user's explicit request or host permission rules.
 
-## Known issues — read before a refactor
+## Architecture
 
-`docs/code_review.md` lists the bugs, UI problems and simplifications found in the last review,
-each with file and line, and the outcome of each item. The patterns it flagged (empty
-`catch (_) {}` around `context.read`, hard-coded colors and font sizes, string routes) are gone
-from the code; do not bring them back. When a task changes a fact described here, also update
-this file and the skills.
+`lib/src/` has four layers. Dependencies point presentation → application → domain ← repository.
 
-## Architecture — layered, dependencies point inward
+- `1_presentation/`: pages, shared widgets, extensions, `theme/app_palette.dart`,
+  `router/app_router.dart`, `router/app_routes.dart` and `di/presentation_bloc_factory.dart`.
+- `2_application/`: blocs and cubits under `bloc/`, plus application helpers.
+- `3_domain/`: entities, value objects, pure helpers, `PokemonFailure` and
+  `IPokemonRepository`. No Flutter imports. Blocs and cubits call the repository directly;
+  there is no use case layer.
+- `4_repository/`: `ApiClient` and `LocalStorage` abstractions and implementations,
+  `PokeApiCache`, repositories, `Raw*` JSON models, services and interceptors.
+  There is no separate remote data source.
+- `lib/bootstrap.dart`: get_it/injectable setup. `lib/main.dart`: startup and app providers.
+  `lib/bootstrap/mobile_storage_initializer.dart`: Hive and hydrated storage.
 
-`lib/src/` has numbered layers. Imports go presentation → application → domain ← repository.
+## Runtime configuration
 
-- `1_presentation/` — UI only: `pages/<screen>/`, `widgets/<area>/`, `theme/app_palette.dart`,
-  `router/app_router.dart` + `router/app_routes.dart` (path builders), `extensions/`,
-  `di/presentation_bloc_factory.dart`. Shared building blocks live in `widgets/`:
-  `EmptyStateView`, `SectionTitle`, `LabelValueRow`, `SurfaceCard`.
-- `2_application/` — blocs and cubits in `bloc/<name>/`. `LanguageCubit` lives in
-  `bloc/language_cubit/language_cubit.dart`. `helpers/log_sanitizer.dart`,
-  `helpers/move_name_resolver.dart`.
-- `3_domain/` — entities, `failures/pokemon_failure.dart` (sealed), `repositories/i_pokemon_repository.dart`,
-  `helpers/` (pure Dart), `value_objects/`. **No Flutter imports.** There is **no use case
-  layer**: blocs and cubits depend on `IPokemonRepository` directly.
-- `4_repository/` — `datasources/` (abstract `ApiClient`/`LocalStorage` + implementations),
-  `repositories/` (`PokemonRepositoryImpl`, `MockPokemonRepository`), `models/raw_*`
-  (`@JsonSerializable` DTOs), `services/`, `interceptors/`. The cache client is
-  `datasources/implementations/poke_api_cache.dart`; there is no remote data source.
-- `lib/bootstrap.dart` (DI setup, `RegisterModule`), `lib/main.dart` (startup + app root),
-  `lib/bootstrap/mobile_storage_initializer.dart` (Hive + hydrated storage).
+- `--flavor dev` uses `MockPokemonRepository` with fixed data. Add
+  `--dart-define=USE_MOCK=false` to use live PokeAPI in a dev build.
+- `--flavor prod` uses `PokemonRepositoryImpl` with live PokeAPI.
+- `configureDependencies` takes injectable's `Environment.dev` or `Environment.prod` string.
+- Durable user state lives in the documents directory; the disposable API cache lives in
+  the temporary directory. Clearing the cache must preserve favorites, teams and history.
 
-## State and DI (get_it + injectable)
+## Commands and verification
 
-- **App-lifetime cubits** are `@lazySingleton` and provided once at the app root in `lib/main.dart`:
-  `PreferencesCubit`, `LanguageCubit`, `FavoritesCubit`, `RecentHistoryCubit`, `ComparisonCubit`,
-  `TeamsCubit`. All except `ComparisonCubit` are `HydratedCubit`s (persisted JSON). A
-  `HydratedCubit.fromJson` must drop a corrupt record and keep the rest, the way `TeamsCubit`
-  does — `PokemonSummary.fromJson` throws on a missing id or name.
-- `PokemonSummary.id` identifies the exact **form**, never the parent species, and it carries
-  `parentSpeciesId`/`formCategory`/`regionalGroup` so a round trip back to a
-  `PokemonIndexEntry` keeps the form lineage. Favourites, history, teams and comparison all key
-  on that id.
-- **Screen-scoped blocs** are `@injectable` and created only through
-  `presentation_bloc_factory.dart` (`createPokemonDetailBloc`, `createPokedexBloc`, …). No raw `getIt`
-  in `1_presentation/`. A screen that needs several Pokémon at once (team summary) uses one
-  `PokemonListCubit` (`getPokemon` only, one `PokemonLoad` per name), not one detail bloc per
-  Pokémon: the detail bloc also downloads encounters.
-- Cubits that need runtime data (`DetailMovesCubit`) or have no dependencies
-  (`DetailGameVersionCubit`) are not injectable and are created inline in a `BlocProvider`.
-- Environments: `--flavor prod` → `Environment.prod` → `PokemonRepositoryImpl` (live PokeAPI).
-  `--flavor dev` → `Environment.dev` → `MockPokemonRepository` (fixed offline data), unless
-  `--dart-define=USE_MOCK=false` is passed, which points a dev build at the live API (there is a
-  "Dev - Live API" launch config for it).
-  `Environment` is injectable's own class; `configureDependencies` takes its `String` value.
+Use FVM; the SDK is pinned in `.fvmrc`. There is no Melos setup.
 
-## Data, errors, logging
+| Action | Command |
+|---|---|
+| Resolve dependencies | `fvm flutter pub get` |
+| Generate DI and JSON code | `fvm dart run build_runner build` |
+| Generate translations | `fvm flutter gen-l10n` |
+| Format touched Dart files | `fvm dart format <file1.dart> <file2.dart>` |
+| Analyze | `fvm flutter analyze --fatal-infos` |
+| Test | `fvm flutter test` |
+| Local gates | `bash scripts/verify.sh` |
+| Coverage gate | `bash scripts/coverage.sh 70` |
+| Run (a flavor is always required) | `fvm flutter run --flavor dev` |
+| Synchronize AI docs | `bash scripts/sync-ai-docs.sh` |
 
-- Dio → `PokeApiCache` (Hive cache, cache-first, 24 h window, stale-if-error, per-URL-and-type
-  request sharing, and an epoch so a `clear()` discards writes already in flight) →
-  `PokemonRepositoryImpl` (maps `Raw*` → entities, and **all** errors in one `_toFailure`) → bloc.
-- `PokemonRepositoryImpl` memoizes a fresh enriched Pokédex index for the app lifetime (a stale
-  offline copy is served but not kept, so the next call retries the network). It is the
-  source of a Pokémon's `forms`: `/pokemon/{name}` only ever names the Pokémon itself, so the
-  catalog is grouped by `effectiveParentSpeciesId` instead. `PokemonFormClassifier.hasRealForm`
-  filters the vestigial `-mega` entries the index ships for species with no Mega Evolution
-  (`kMegaEvolutionSpecies`).
-- Fallible calls return `Either<PokemonFailure, T>` (dartz). HTTP status → failure mapping lives
-  in that single `_toFailure` in `PokemonRepositoryImpl`. The UI shows failures with
-  `failure.localizedMessage(context)`.
-- Cache clearing and size also live on the repository (`clearCache()`, `getCacheSize()`); there
-  is no `ClearCacheUseCase`/`GetCacheSizeUseCase`. `PreferencesCubit.clearCache()` returns whether
-  it succeeded, and the settings page reports the failure instead of always claiming success.
-- `CancellationToken` and every `cancelToken:` parameter are gone. A superseded request is
-  dropped by `restartable()` plus `emit.isDone`.
-- Durable user state (hydrated cubits) is in the documents directory. The disposable API cache is
-  in the temporary directory. "Clear cache" never touches favorites, teams or history.
-- Logging: `en_logger` with a `_prefix` per class. User input always goes through
-  `sanitizeQueryForLog`. Policy: `docs/logging_policy.md`.
+Use Bash for `.sh` scripts. VS Code tasks select Git Bash on Windows; see `README.md`
+for PowerShell invocation and custom Git paths. The Format task formats whole directories,
+so use explicit filenames for focused changes.
 
-## i18n
+- For code changes, format touched Dart files, run analysis and `fvm flutter test`.
+- After changing ARB files or annotated classes, run both generation commands, check
+  `untranslated_messages.txt` is `{}`, and inspect `git status` for generated changes.
+- For UI changes, follow the device skill. Report any verification you could not complete.
+- For documentation-only changes, check paths, references and generated copies;
+  Flutter analysis and tests are not needed.
+- CI also checks formatting across the repository, generated-file consistency, 70% coverage
+  and a release build. `verify.sh` only checks formatting, analysis and tests.
 
-- UI strings: `lib/l10n/app_en.arb` (template) + `app_it.arb` → `AppLocalizations`, read with
-  `context.t()` (`extensions/language_ext.dart`).
-- Bulk PokeAPI data (abilities, moves, items, locations) is translated through `lib/l10n/*_db.dart`
-  maps and the `context.translateX(...)` helpers in `lib/l10n/translation_helper.dart`.
-  Pokémon names stay canonical. Policy: `docs/localization_policy.md`.
+## Commands requiring an explicit request
 
-## Routes (go_router, `router/app_router.dart`)
+- `scripts/post_build.dart` and the VS Code task "Build Appbundle + Post build" create
+  and push a Git tag.
+- `scripts/generate_canonical_table.dart` calls PokeAPI and rewrites canonical species data.
+- Release builds: `flutter build … --release`.
 
-`/`, `/pokemon/:nameOrId` (`?search=` records a recent search), `/pokedex`, `/compare`,
-`/matchups` (`?types=fire,flying`), `/favorites`, `/teams`, `/teams/:teamId`, `/settings`,
-`/settings/about`. Deep link: `pokefinder:///pokemon/<nameOrId>`.
+## Generated files and documentation ownership
 
-## Commands — fvm only, no melos (Flutter pinned in `.fvmrc`)
+Never hand-edit `*.g.dart`, `lib/bootstrap.config.dart`, `lib/l10n/app_localizations*.dart`
+or `lib/src/3_domain/helpers/canonical_species_data.dart`. Update the source and regenerate.
 
-- Deps: `fvm flutter pub get`
-- Codegen (DI + JSON): `fvm dart run build_runner build`
-- Translations: `fvm flutter gen-l10n` (then `untranslated_messages.txt` must be `{}`)
-- Format: `fvm dart format lib test scripts`
-- Local gates: `./scripts/verify.sh` (format check + analyze + tests)
-- Coverage: `./scripts/coverage.sh [min-percentage]`
-- Run: `fvm flutter run --flavor dev` or `--flavor prod`. A flavor is **always** required.
-
-The same commands exist as VS Code tasks in `.vscode/tasks.json`.
-
-**CI is stricter than `verify.sh`.** `.github/workflows/ci.yml` also runs
-`flutter analyze --fatal-infos`, `gen-l10n` + `build_runner` followed by a "no uncommitted diff"
-check, and `coverage.sh 70`. Before you say a change is done, run
-`fvm flutter analyze --fatal-infos` and, if you touched ARB files or annotated classes, run both
-codegen commands and check `git status`.
-
-## Do not run without an explicit request
-
-- `scripts/post_build.dart` and the VS Code task "Build Appbundle + Post build": they **create and
-  push a git tag**.
-- `scripts/generate_canonical_table.dart`: it calls PokeAPI and rewrites
-  `lib/src/3_domain/helpers/canonical_species_data.dart`.
-- Release builds (`flutter build … --release`).
-
-## Generated — never hand-edit
-
-`*.g.dart`, `lib/bootstrap.config.dart`, `lib/l10n/app_localizations*.dart`,
-`lib/src/3_domain/helpers/canonical_species_data.dart`. Also the AI files generated from this
-folder: `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.claude/skills/`, `.opencode/skills/`
-(edit `docs/ai/`, then run `./scripts/sync-ai-docs.sh`). Fix the source, then re-run the generator.
+AI sources live in `docs/ai/`. `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.claude/skills/`
+and `.opencode/skills/` are generated copies. Follow `docs/ai/README.md` after editing sources.
+Update the relevant documentation when a change affects a documented contract or workflow.
