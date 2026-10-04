@@ -1,71 +1,79 @@
 ---
 name: verifying-ui-on-device
 description: >
-  How to run PokeFinder on the Android emulator, drive it with adb and check a UI change with
-  screenshots (layout, alignment, contrast, dark mode, Italian strings). Use after any change to
-  a widget, page or theme, for a visual review, or when asked to run, screenshot or try the app.
+  Run PokeFinder on an Android emulator and verify UI changes with adb and screenshots.
+  Use after widget, page or theme changes, for visual reviews, or when asked to run the app.
   Trigger on "run the app", "check it on the emulator", "take a screenshot", "does it look right",
   "lancia l'app", "provalo sull'emulatore", "fai uno screenshot", "controlla la grafica".
 ---
 
 # Verifying UI on the device
 
-## 1. Pick the flavor
+## Choose data and device
 
-| Flavor | Data | Use it for |
+| Run arguments | Data | Use |
 |---|---|---|
-| `--flavor dev` | `MockPokemonRepository`, offline, fixed data | layout checks, fast and deterministic |
-| `--flavor prod` | live PokeAPI | real sprites, real error and timeout states |
+| `--flavor dev` | Fixed mock data | Layout checks |
+| `--flavor dev --dart-define=USE_MOCK=false` | Live PokeAPI | Real data in a dev build |
+| `--flavor prod` | Live PokeAPI | Production flavor behavior in a debug build |
 
-Package ids: `com.gabriarceus.pokefinder` (prod), `com.gabriarceus.pokefinder.dev` (dev).
+Package ids are `com.gabriarceus.pokefinder.dev` (dev) and `com.gabriarceus.pokefinder` (prod).
+Follow the user's permission rules before using live APIs. Mock data does not guarantee that
+remote sprite images are available offline.
 
-## 2. Launch
+Run `fvm flutter devices` and `adb devices` to identify the target. The examples below use
+`emulator-5554`; replace it with the actual id. Use `adb` from PATH or the configured Android
+SDK's `platform-tools` directory. Match invocation syntax to the active shell.
 
-```bash
-fvm flutter devices                          # find the emulator id, e.g. emulator-5554
-fvm flutter run --flavor dev -d emulator-5554   # run it in the background, keep the log
+## Launch
+
+```text
+fvm flutter run --flavor dev -d emulator-5554
 ```
 
-- The first Gradle build takes 5-10 minutes (media_kit). Wait for `Using the Impeller rendering
-  backend` in the log before you take a screenshot.
-- The Dart MCP `launch_app` tool cannot pass `--flavor`. Use the shell command above.
-- Sandboxed shells: `adb` needs the local port 5037 and fvm writes to its SDK cache. Both fail
-  with "Operation not permitted" inside the sandbox; run them outside it.
+Keep the process available for hot reload and retain its log through the host's process tools.
+The first Gradle build can take several minutes. Wait until the app has launched and the
+screen has finished loading before inspecting it; report persistent loading or startup errors.
+Use a launch tool only if it supports the required flavor and Dart defines.
 
-## 3. Drive the app with adb
+FVM may write to the SDK cache, and adb uses its local server (normally port 5037). If host
+permissions block either operation, follow that host's approval flow for the specific command.
 
-`adb` is in `$ANDROID_HOME/platform-tools/` (on macOS usually `~/Library/Android/sdk/platform-tools/`).
+## Screenshots and interaction
 
-```bash
-adb exec-out screencap -p > shot.png && sips -Z 900 shot.png   # screenshot, scaled for reading
-adb shell wm size                          # physical size, e.g. 1440x3120
-adb shell input tap X Y                    # physical pixels
-adb shell input text "pika"                # type into the focused field
-adb shell input swipe 720 2800 720 1300 400   # scroll down
-adb shell input keyevent 4                 # system back
-adb shell am start -a android.intent.action.VIEW \
-  -d "pokefinder:///pokemon/gengar" com.gabriarceus.pokefinder   # deep link
+These commands work without binary output redirection or platform-specific image tools:
+
+```text
+adb -s emulator-5554 shell screencap -p /sdcard/pokefinder-ui-check.png
+adb -s emulator-5554 pull /sdcard/pokefinder-ui-check.png ./pokefinder-ui-check.png
+adb -s emulator-5554 shell wm size
+adb -s emulator-5554 shell input tap X Y
+adb -s emulator-5554 shell input text pika
+adb -s emulator-5554 shell input swipe X1 Y1 X2 Y2 400
+adb -s emulator-5554 shell input keyevent 4
+adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d "pokefinder:///pokemon/gengar" com.gabriarceus.pokefinder.dev
 ```
 
-After you scale a screenshot to 900 px height, multiply its coordinates by
-`physical height / 900` before `input tap` (3.4667 on a Pixel 7 Pro).
+Use the package matching the installed flavor for deep links. Inspect the screenshot with
+an available image viewer. Tap coordinates refer to the device image; if the viewer rescales
+it, convert each axis using the original image dimension divided by the displayed dimension.
+Choose coordinates from the current screenshot, not from a different device's layout.
 
-Theme and language: Settings (drawer → Impostazioni) → Theme "Scuro" / language switch. The app
-keeps them across restarts. Put them back when you finish.
+Record the initial theme, language and any device settings you change, then restore them when
+finished. App theme and language are in Settings and persist across restarts. Remove temporary
+screenshots you created after inspection unless they are part of the requested deliverable.
 
-## 4. What to check on each changed screen
+## Visual checks
 
-- Light **and** dark theme.
-- Alignment: elements in one column share left and right edges. Chips do not jump rows when
-  selected.
-- Contrast: icons and text on type-colored backgrounds (try Pikachu for light yellow, Gengar or
-  Umbreon for dark). Disabled buttons stay readable.
-- Loading, empty and error states. Use `prod` with a bad name, or wait for a timeout, to see the
-  error page.
-- Italian strings: no raw slugs, no English left-overs, no half-translated names.
-- Going back: after returning to Home, the keyboard and the suggestion list stay closed.
-- The content you changed is visible without scrolling a tiny area.
+- Check light and dark themes, English and Italian.
+- Check compact width, landscape and 200% text scaling when the changed layout is affected.
+- Check aligned edges, stable chip layout and readable text on type colors (Electric is a
+  useful light-color case). Disabled controls must remain readable.
+- Exercise relevant loading, empty and error states. A live request for an unknown name
+  checks not-found behavior; offline and timeout behavior need separate checks.
+- Check for raw slugs, clipped labels and untranslated strings, allowing canonical Pokémon names.
+- Check back navigation: the keyboard and suggestions should stay closed on return to Home.
+- Check that the changed content remains accessible without scrolling inside an unusably small area.
 
-## 5. Report
-
-List what you checked, with the flavor and theme used. Say clearly what you did not check.
+Report the device, data mode, themes, locales and states checked. State any skipped checks and
+blockers; a successful build alone does not verify the UI.

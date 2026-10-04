@@ -126,11 +126,28 @@ Generated files (`*.g.dart`, `bootstrap.config.dart`, `lib/l10n/app_localization
 
 ## Quality checks
 
+The `.sh` scripts require Bash and its standard tools. Use Bash on macOS/Linux and
+Git Bash from Git for Windows. Run the commands below from the repository root.
+The VS Code tasks select Git Bash on Windows at `%ProgramFiles%\Git\bin\bash.exe`;
+adjust their Windows command paths if Git is installed elsewhere.
+
+From PowerShell, invoke Git Bash explicitly (Windows `bash.exe` on PATH may refer to WSL):
+
+```powershell
+& "$env:ProgramFiles\Git\bin\bash.exe" --login scripts/verify.sh
+```
+
+Replace the script argument with `scripts/coverage.sh` or `scripts/sync-ai-docs.sh`
+for coverage or AI documentation. FVM must be available on PATH and dependencies must
+be resolved before running checks. The Dart scripts also run through FVM from the repository
+root on all three platforms. `post_build.dart` creates and pushes a tag, while
+`generate_canonical_table.dart` calls PokeAPI and rewrites generated data; neither is a check.
+
 `scripts/verify.sh` runs every gate — formatting, static analysis, tests — and is the
 single entry point to check the project is healthy:
 
 ```bash
-./scripts/verify.sh
+bash scripts/verify.sh
 ```
 
 The individual commands, and test coverage:
@@ -139,8 +156,8 @@ The individual commands, and test coverage:
 fvm dart format lib test scripts   # apply formatting
 fvm flutter analyze                # static analysis
 fvm flutter test                   # tests (unit, bloc, widget, integration journeys)
-./scripts/coverage.sh              # tests with total line coverage
-./scripts/coverage.sh 60           # ...and fail below the given percentage
+bash scripts/coverage.sh           # tests with total line coverage
+bash scripts/coverage.sh 70        # ...and fail below the given percentage
 ```
 
 Every PR to `main` runs the same gates in GitHub Actions (`.github/workflows/ci.yml`), plus codegen-consistency and release-build checks.
