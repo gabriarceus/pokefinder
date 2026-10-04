@@ -51,6 +51,7 @@ class JustAudioCryController implements CryAudioController {
   String? _currentUrl;
   bool _loading = false;
   bool _unavailable = false;
+  int _generation = 0;
   CryPlaybackState _last = const CryPlaybackState();
 
   @override
@@ -82,14 +83,16 @@ class JustAudioCryController implements CryAudioController {
 
   @override
   Future<void> play(String url) async {
+    final generation = ++_generation;
     final isCurrent = _currentUrl == url;
     if (isCurrent && !_unavailable) {
       await _player.seek(Duration.zero);
+      if (generation != _generation) return;
       await _player.play();
       return;
     }
-    final loaded = await _load(url);
-    if (loaded) {
+    final loaded = await _load(url, generation);
+    if (loaded && generation == _generation) {
       await _player.play();
     }
   }
@@ -101,6 +104,7 @@ class JustAudioCryController implements CryAudioController {
 
   @override
   Future<void> toggle(String url) async {
+    final generation = ++_generation;
     final playerState = _player.playerState;
     final isCurrent = _currentUrl == url;
 
@@ -116,17 +120,28 @@ class JustAudioCryController implements CryAudioController {
         !_unavailable &&
         playerState.processingState == ProcessingState.completed) {
       await _player.seek(Duration.zero);
+      if (generation != _generation) return;
       await _player.play();
       return;
     }
 
-    final loaded = await _load(url);
-    if (loaded) {
+    final loaded = await _load(url, generation);
+    if (loaded && generation == _generation) {
       await _player.play();
     }
   }
 
-  Future<bool> _load(String url) async {
+  @override
+  Future<void> stop() async {
+    _generation++;
+    _currentUrl = null;
+    _loading = false;
+    _unavailable = false;
+    await _player.stop();
+    _emit();
+  }
+
+  Future<bool> _load(String url, int generation) async {
     _currentUrl = url;
     _loading = true;
     _unavailable = false;
@@ -135,23 +150,28 @@ class JustAudioCryController implements CryAudioController {
       if (_player.processingState != ProcessingState.idle) {
         await _player.stop();
       }
+      if (generation != _generation) return false;
       await _player
           .setAudioSource(AudioSource.uri(Uri.parse(url)), preload: true)
           .timeout(const Duration(seconds: 10));
       _logger.info("Audio source loaded successfully", prefix: _prefix);
-      return true;
+      return generation == _generation;
     } catch (e) {
+      if (generation != _generation) return false;
       _logger.error("Error loading audio source: $e", prefix: _prefix);
       _unavailable = true;
       return false;
     } finally {
-      _loading = false;
-      _emit();
+      if (generation == _generation) {
+        _loading = false;
+        _emit();
+      }
     }
   }
 
   @override
   Future<void> dispose() async {
+    _generation++;
     await _playbackSubscription.cancel();
     await _playerStateSubscription.cancel();
     await _controller.close();

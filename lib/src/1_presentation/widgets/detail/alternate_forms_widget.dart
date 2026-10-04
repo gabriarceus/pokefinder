@@ -134,10 +134,10 @@ class _AlternateFormCard extends StatelessWidget {
           : displayName,
       child: InkWell(
         onTap: () {
-          if (!isSelected) {
-            final bloc = context.read<PokemonDetailBloc>();
-            final state = bloc.state;
-            if (state is PokemonDetailSuccess && !state.isLoadingForm) {
+          final bloc = context.read<PokemonDetailBloc>();
+          final state = bloc.state;
+          if (state is PokemonDetailSuccess) {
+            if (!isSelected || state.isLoadingForm) {
               bloc.add(SelectPokemonFormEvent(form));
             }
           }

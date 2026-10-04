@@ -1790,12 +1790,6 @@ abstract class AppLocalizations {
   /// **'Game Version'**
   String get filterByVersion;
 
-  /// No description provided for @baseSpeciesDataNotice.
-  ///
-  /// In en, this message translates to:
-  /// **'Appearance & types reflect {formName}. Stats, moves, and abilities reflect the base species.'**
-  String baseSpeciesDataNotice({required String formName});
-
   /// No description provided for @encountersUnavailableForVersion.
   ///
   /// In en, this message translates to:

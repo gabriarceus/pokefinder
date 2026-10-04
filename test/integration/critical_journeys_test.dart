@@ -16,6 +16,7 @@ import 'package:pokefinder/src/1_presentation/pages/home/home_page.dart';
 import 'package:pokefinder/src/1_presentation/pages/route_error/route_error_page.dart';
 import 'package:pokefinder/src/1_presentation/router/app_router.dart';
 import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
+import 'package:pokefinder/src/1_presentation/widgets/detail/alternate_forms_widget.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/move_detail_bottom_sheet.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/entities/damage_class.dart';
@@ -56,15 +57,15 @@ const _megaForm = PokemonForm(
   url: 'https://pokeapi.co/api/v2/pokemon-form/10033/',
 );
 
-const _megaDetails = PokemonFormDetails(
+final _megaPokemon = buildPokemon(
   id: 10033,
   name: 'venusaur-mega',
   type1: PokemonType.grass,
   type2: PokemonType.poison,
-  spriteDefault: 'mega.png',
-  spriteShiny: 'mega_shiny.png',
-  artworkDefault: 'mega_art.png',
-  artworkShiny: 'mega_art_shiny.png',
+  sprite: 'mega.png',
+  speciesName: 'venusaur',
+  weight: 1555,
+  height: 24,
 );
 
 const _tackleMoveDetail = MoveDetail(
@@ -375,6 +376,66 @@ void main() {
   });
 
   group('Journey 5: Alternate form selection and rollback on failure', () {
+    testWidgets('inline form failure keeps detail and offers a working retry', (
+      tester,
+    ) async {
+      final venusaur = buildPokemon(
+        id: 3,
+        name: 'venusaur',
+        forms: [
+          const PokemonForm(name: 'venusaur', url: 'form/3/'),
+          _megaForm,
+        ],
+      );
+      var attempts = 0;
+      when(() => repository.getPokemon(any())).thenAnswer((invocation) async {
+        final name = invocation.positionalArguments.first as PokemonName;
+        if (name.rightOrCrash() != _megaForm.name) return Right(venusaur);
+        attempts++;
+        return attempts == 1
+            ? const Left(NetworkUnavailableFailure())
+            : Right(_megaPokemon);
+      });
+      await pumpAppWithRouter(
+        tester,
+        initialLocation: AppRoutes.pokemon('venusaur'),
+      );
+      final megaCard = find.descendant(
+        of: find.byType(AlternateFormsWidget),
+        matching: find.text('Venusaur - Mega'),
+      );
+      await tester.scrollUntilVisible(
+        megaCard,
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(DetailTabScrollView),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.tap(megaCard);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byType(FormSelectionBottomSheet), findsNothing);
+      expect(find.text('Venusaur'), findsWidgets);
+      final retry = find.widgetWithText(SnackBarAction, 'Retry');
+      expect(retry, findsOneWidget);
+      await mockNetworkImagesFor(() async {
+        await tester.tap(retry);
+        await settle(tester);
+      });
+      expect(attempts, 2);
+      expect(
+        find.descendant(
+          of: find.byType(DetailHeader),
+          matching: find.text('Venusaur - Mega'),
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('selects alternate form successfully', (tester) async {
       final venusaur = buildPokemon(
         id: 3,
@@ -388,8 +449,14 @@ void main() {
         () => repository.getPokemon(any()),
       ).thenAnswer((_) async => Right(venusaur));
       when(
-        () => repository.getFormDetails(_megaForm.url),
-      ).thenAnswer((_) async => const Right(_megaDetails));
+        () => repository.getPokemon(
+          any(
+            that: predicate<PokemonName>(
+              (name) => name.rightOrCrash() == _megaForm.name,
+            ),
+          ),
+        ),
+      ).thenAnswer((_) async => Right(_megaPokemon));
 
       await pumpAppWithRouter(
         tester,
@@ -453,7 +520,13 @@ void main() {
         () => repository.getPokemon(any()),
       ).thenAnswer((_) async => Right(venusaur));
       when(
-        () => repository.getFormDetails(_megaForm.url),
+        () => repository.getPokemon(
+          any(
+            that: predicate<PokemonName>(
+              (name) => name.rightOrCrash() == _megaForm.name,
+            ),
+          ),
+        ),
       ).thenAnswer((_) async => const Left(UnexpectedFailure('Form failed')));
 
       await pumpAppWithRouter(

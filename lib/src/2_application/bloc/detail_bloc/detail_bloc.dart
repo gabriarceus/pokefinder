@@ -6,6 +6,7 @@ import 'package:en_logger/en_logger.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
 import 'package:meta/meta.dart';
+import 'package:pokefinder/src/2_application/helpers/log_sanitizer.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_summary.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
@@ -41,6 +42,8 @@ class PokemonDetailBloc extends Bloc<PokemonDetailEvent, PokemonDetailState> {
 
   final IPokemonRepository _repository;
   final EnLogger _logger;
+  int _detailGeneration = 0;
+  int _encountersGeneration = 0;
 
   FutureOr<void> onFetchPokemon(
     FetchPokemonEvent event,
@@ -51,26 +54,28 @@ class PokemonDetailBloc extends Bloc<PokemonDetailEvent, PokemonDetailState> {
       return;
     }
 
+    final generation = ++_detailGeneration;
+    _encountersGeneration++;
     emit(const PokemonDetailLoading());
     _logger.info(
-      'Fetching data for Pokemon: ${name.rightOrCrash()}',
+      'Fetching data for Pokemon: ${sanitizeQueryForLog(name.rightOrCrash())}',
       prefix: _prefix,
     );
     final Either<PokemonFailure, Pokemon> result = await _repository.getPokemon(
       name,
     );
 
-    if (emit.isDone) return;
+    if (emit.isDone || generation != _detailGeneration) return;
 
-    await result.fold(
-      (failure) async {
+    result.fold(
+      (failure) {
         _logger.error(
           'Failed to fetch Pokemon: ${failure.message}',
           prefix: _prefix,
         );
         emit(PokemonDetailFailure(failure));
       },
-      (pokemon) async {
+      (pokemon) {
         _logger.info(
           'Successfully fetched Pokemon: ${pokemon.name}',
           prefix: _prefix,
@@ -86,36 +91,7 @@ class PokemonDetailBloc extends Bloc<PokemonDetailEvent, PokemonDetailState> {
           ),
         );
 
-        // Fetch location area encounters in the background
-        final encountersResult = await _repository.getEncounters(
-          pokemon.locationAreaEncounters,
-        );
-
-        if (emit.isDone) return;
-
-        final currentState = state;
-        if (currentState is PokemonDetailSuccess &&
-            currentState.pokemon.id == pokemon.id) {
-          encountersResult.fold(
-            (failure) {
-              emit(
-                currentState.copyWith(
-                  isLoadingEncounters: false,
-                  encountersFailure: failure,
-                ),
-              );
-            },
-            (encounters) {
-              emit(
-                currentState.copyWith(
-                  isLoadingEncounters: false,
-                  encounters: encounters,
-                  encountersFailure: null,
-                ),
-              );
-            },
-          );
-        }
+        add(RetryPokemonEncountersEvent());
       },
     );
   }
@@ -126,6 +102,7 @@ class PokemonDetailBloc extends Bloc<PokemonDetailEvent, PokemonDetailState> {
   ) async {
     final currentState = state;
     if (currentState is! PokemonDetailSuccess) return;
+    final generation = ++_encountersGeneration;
 
     emit(
       currentState.copyWith(isLoadingEncounters: true, encountersFailure: null),
@@ -140,7 +117,7 @@ class PokemonDetailBloc extends Bloc<PokemonDetailEvent, PokemonDetailState> {
       currentState.pokemon.locationAreaEncounters,
     );
 
-    if (emit.isDone) return;
+    if (emit.isDone || generation != _encountersGeneration) return;
 
     final latestState = state;
     if (latestState is PokemonDetailSuccess &&
@@ -174,6 +151,8 @@ class PokemonDetailBloc extends Bloc<PokemonDetailEvent, PokemonDetailState> {
     final currentState = state;
     if (currentState is! PokemonDetailSuccess) return;
 
+    final generation = ++_detailGeneration;
+
     if (event.form.name == currentState.pokemon.name) {
       final defaultFormDetails = PokemonFormDetails.fromPokemon(
         currentState.pokemon,
@@ -197,9 +176,9 @@ class PokemonDetailBloc extends Bloc<PokemonDetailEvent, PokemonDetailState> {
       ),
     );
 
-    final result = await _repository.getFormDetails(event.form.url);
+    final result = await _repository.getPokemon(PokemonName(event.form.name));
 
-    if (emit.isDone) return;
+    if (emit.isDone || generation != _detailGeneration) return;
 
     final updatedState = state;
     if (updatedState is! PokemonDetailSuccess) return;
@@ -214,15 +193,21 @@ class PokemonDetailBloc extends Bloc<PokemonDetailEvent, PokemonDetailState> {
           ),
         );
       },
-      (details) {
+      (pokemon) {
+        _encountersGeneration++;
         emit(
           updatedState.copyWith(
-            selectedFormDetails: details,
+            pokemon: pokemon,
+            selectedFormDetails: PokemonFormDetails.fromPokemon(pokemon),
+            encounters: const [],
+            isLoadingEncounters: true,
+            encountersFailure: null,
             isLoadingForm: false,
             formFailure: null,
             failedForm: null,
           ),
         );
+        add(RetryPokemonEncountersEvent());
       },
     );
   }

@@ -140,6 +140,7 @@ void main() {
       ).thenAnswer((_) => const Stream<CryPlaybackState>.empty());
       when(() => audioController.setVolume(any())).thenAnswer((_) async {});
       when(() => audioController.play(any())).thenAnswer((_) async {});
+      when(() => audioController.stop()).thenAnswer((_) async {});
       when(() => audioController.toggle(any())).thenAnswer((_) async {});
       when(() => audioController.dispose()).thenAnswer((_) async {});
 

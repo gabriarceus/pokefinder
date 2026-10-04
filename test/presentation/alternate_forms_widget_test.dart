@@ -48,6 +48,31 @@ void main() {
   }
 
   group('AlternateFormsWidget', () {
+    testWidgets(
+      'a pending switch can be replaced or cancelled from the gallery',
+      (tester) async {
+        await mockNetworkImagesFor(() async {
+          const forms = [
+            PokemonForm(name: 'meowth', url: 'url/52/'),
+            PokemonForm(name: 'meowth-alola', url: 'url/10107/'),
+          ];
+          final pokemon = buildPokemon(name: 'meowth', forms: forms);
+          when(() => mockBloc.state).thenReturn(
+            PokemonDetailSuccess(pokemon: pokemon, isLoadingForm: true),
+          );
+          await pumpWidgetUnderTest(tester, pokemon: pokemon);
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Meowth - Alola'));
+          await tester.tap(find.text('Meowth'));
+          verify(
+            () => mockBloc.add(SelectPokemonFormEvent(forms[1])),
+          ).called(1);
+          verify(
+            () => mockBloc.add(SelectPokemonFormEvent(forms[0])),
+          ).called(1);
+        });
+      },
+    );
     testWidgets('renders nothing when pokemon has 1 or fewer forms', (
       tester,
     ) async {

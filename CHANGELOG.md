@@ -55,6 +55,7 @@ All notable changes to this project will be documented in this file, following t
 - Accessibility and UI: redundant / missing screen-reader announcements, 48dp touch targets, Italian badge localization, Hive LRU bloat and jank.
 - After a language change, the Moves tab kept sorting by the old language.
 - An offline (stale) copy of the Pokédex index was kept for the whole session, so alternate forms did not refresh when the network came back.
+- Clearing Pokédex filters cancels pending type selections and their errors, including when the same type is selected again before the old request finishes.
 - Comparing Pokémon and opening a team downloaded each member's encounters, which neither page shows.
 - Crashes and logic: version-selector assertion on Pokémon switch, evolution trigger shadowing (item / trade / gender lost with level), form type filtering, autocomplete false positives on `canonical`, pull-to-refresh unmount crash, cancelled-request surfacing as failure.
 - Detail app bar icons and title were always white because the background was passed as `Colors.transparent`: the real type color and its contrasting text color are used now.
@@ -62,7 +63,9 @@ All notable changes to this project will be documented in this file, following t
 - Detail page played the cry and re-recorded history on every state emission (data, encounters, form loading, form loaded). Side effects now run once per Pokémon.
 - Drawer reported "Cache size: 0 B" and raced its own clear-cache action. The cache and language blocks left the drawer (Settings owns both) and the drawer is navigation only.
 - Empty states, section titles and app bars differed per page. Shared `EmptyStateView` and `SectionTitle` widgets, one theme-driven color scheme and one app bar style replace the per-page copies.
+- Form cards load each entry's actual types through the API cache, including alternate-entry searches and Primal Groudon. Clearing the API cache also invalidates the repository catalog and rejects obsolete catalog loads.
 - Held items rendered as ALL-CAPS raw API slugs; they now show localized names with title-case fallback.
+- Invalid stored member lineage no longer removes healthy team members. Detail fetch logs apply the release query redaction policy.
 - Italian detail page showed "Generation I" and English habitat names; both are localized now.
 - Mega Venusaur, Blastoise, Garchomp, Abomasnow and Audino were hidden as vestigial index entries.
 - Mixed-language labels: `Gen N` and `XP` are localized ARB strings, the half-translated location names are fully translated or fall back to English, and the English-text PokeAPI type sprites (`TypeImage`) are gone in favour of the localized `TypeChip`.
@@ -72,6 +75,7 @@ All notable changes to this project will be documented in this file, following t
 - Pokédex type filter showed "No Pokémon found" on a slow or failing type request: the selection is now applied immediately with a loading marker on the chip, the type ids load in the background, a failure deselects the type again and is reported in a SnackBar instead of looking like zero results. A search or filter change made while the type loads is kept after a failure, and a second tap on a loading type cancels it instead of selecting it again with a second request.
 - Returning to Home from a detail page reopened the keyboard and the suggestion overlay over the buttons: the field is unfocused before navigating.
 - Searching by number (`25`) opened the Pokémon with only its default form; the forms list now matches a search by name.
+- Selecting a form now loads its full detail, including measurements, stats, moves, abilities, sprites, cries and encounters. Saved identities and shared game selection follow the active form. Rapid selections keep the latest choice, loading remains visible, failed switches offer retry, and superseded cries stop.
 - Selecting a matchup defending type grew the chip and pushed the others onto other rows; selection is shown with fill and border only, at a fixed size.
 - Sprite gallery duplicated official artwork under "Front (default)": the front pixel sprite is now retained as `spriteFrontDefault` and shown as its own variant; preview dialog scrolls on compact landscape and large text scaling; gallery tiles expose a single screen-reader announcement.
 - Store compliance: Android INTERNET-only, no cleartext traffic, flavor labels, adaptive icons; iOS plist stripped (mic, local network, arbitrary loads, background audio).

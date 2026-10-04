@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:dartz/dartz.dart';
 import 'package:en_logger/en_logger.dart';
@@ -908,6 +909,63 @@ void main() {
   });
 
   group('cache maintenance', () {
+    test('clearCache reloads the catalog without forced refresh', () async {
+      final url = PokeApiUrlHelper.pokemonIndexUrl();
+      stubJsonPayloadAt(
+        url,
+        indexJson([
+          {'name': 'bulbasaur', 'url': PokeApiUrlHelper.pokemonUrl('1')},
+        ]),
+      );
+      expect(
+        rightOf(await repository.getPokemonIndex()).single.name,
+        'bulbasaur',
+      );
+      when(() => cache.clear()).thenAnswer((_) async {});
+      await repository.clearCache();
+      stubJsonPayloadAt(
+        url,
+        indexJson([
+          {'name': 'pikachu', 'url': PokeApiUrlHelper.pokemonUrl('25')},
+        ]),
+      );
+      expect(
+        rightOf(await repository.getPokemonIndex()).single.name,
+        'pikachu',
+      );
+    });
+
+    test(
+      'a pending catalog load cannot restore the catalog after clear',
+      () async {
+        final url = PokeApiUrlHelper.pokemonIndexUrl();
+        final pending =
+            Completer<({Map<String, dynamic> data, bool isStale})>();
+        when(
+          () => cache.get<Map<String, dynamic>>(url, forceRefresh: false),
+        ).thenAnswer((_) => pending.future);
+        final oldRequest = repository.getPokemonIndex();
+        when(() => cache.clear()).thenAnswer((_) async {});
+        await repository.clearCache();
+        pending.complete((
+          data: indexJson([
+            {'name': 'bulbasaur', 'url': PokeApiUrlHelper.pokemonUrl('1')},
+          ]),
+          isStale: false,
+        ));
+        await oldRequest;
+        stubJsonPayloadAt(
+          url,
+          indexJson([
+            {'name': 'pikachu', 'url': PokeApiUrlHelper.pokemonUrl('25')},
+          ]),
+        );
+        expect(
+          rightOf(await repository.getPokemonIndex()).single.name,
+          'pikachu',
+        );
+      },
+    );
     test('clearCache delegates to the cache and reports success', () async {
       when(() => cache.clear()).thenAnswer((_) async {});
 
@@ -1150,6 +1208,77 @@ void main() {
   });
 
   group('getPokemon alternate forms', () {
+    test(
+      'each sibling uses its own resource types when opened on Mega X',
+      () async {
+        final mega =
+            rawPokemonJson(
+                name: 'charizard-mega-x',
+                types: [
+                  {
+                    'type': {'url': typeUrl(10)},
+                  },
+                  {
+                    'type': {'url': typeUrl(16)},
+                  },
+                ],
+              )
+              ..['id'] = 10034
+              ..['is_default'] = false
+              ..['species'] = {'name': 'charizard', 'url': 'species/6/'};
+        stubJsonPayloadAt(
+          PokeApiUrlHelper.pokemonUrl('charizard-mega-x'),
+          mega,
+        );
+        for (final name in ['charizard', 'charizard-mega-y']) {
+          stubJsonPayloadAt(
+            PokeApiUrlHelper.pokemonUrl(name),
+            rawPokemonJson(
+              name: name,
+              types: [
+                {
+                  'type': {'url': typeUrl(10)},
+                },
+                {
+                  'type': {'url': typeUrl(3)},
+                },
+              ],
+            ),
+          );
+        }
+        final pokemon = rightOf(
+          await repository.getPokemon(PokemonName('charizard-mega-x')),
+        );
+        expect(pokemon.type2, PokemonType.dragon);
+        for (final name in ['charizard', 'charizard-mega-y']) {
+          final form = pokemon.forms.firstWhere((form) => form.name == name);
+          expect(
+            (form.type1, form.type2),
+            (PokemonType.fire, PokemonType.flying),
+          );
+        }
+      },
+    );
+
+    test('unavailable canonical types remain unknown for siblings', () async {
+      final mega = rawPokemonJson(name: 'charizard-mega-x')
+        ..['is_default'] = false
+        ..['species'] = {'name': 'charizard', 'url': 'species/6/'};
+      stubJsonPayloadAt(PokeApiUrlHelper.pokemonUrl('charizard-mega-x'), mega);
+      when(
+        () => cache.get<Map<String, dynamic>>(
+          PokeApiUrlHelper.pokemonUrl('charizard'),
+          forceRefresh: false,
+        ),
+      ).thenThrow(const SocketException('offline'));
+      final pokemon = rightOf(
+        await repository.getPokemon(PokemonName('charizard-mega-x')),
+      );
+      final base = pokemon.forms.firstWhere((form) => form.name == 'charizard');
+      expect(base.type1, isNull);
+      expect(base.type2, isNull);
+    });
+
     /// Index entry for the `charizard` family, as the live catalog ships it.
     Map<String, dynamic> charizardIndex() => indexJson([
       {'name': 'charizard', 'url': 'https://pokeapi.co/api/v2/pokemon/6/'},
@@ -1175,6 +1304,57 @@ void main() {
     setUp(() {
       stubJsonPayloadAt(PokeApiUrlHelper.pokemonIndexUrl(), charizardIndex());
     });
+
+    test(
+      'Primal Groudon card types follow API data instead of suffix overrides',
+      () async {
+        stubJsonPayloadAt(
+          PokeApiUrlHelper.pokemonIndexUrl(),
+          indexJson([
+            {'name': 'groudon', 'url': PokeApiUrlHelper.pokemonUrl('383')},
+            {
+              'name': 'groudon-primal',
+              'url': PokeApiUrlHelper.pokemonUrl('10078'),
+            },
+          ]),
+        );
+        stubJsonPayloadAt(
+          PokeApiUrlHelper.pokemonUrl('groudon'),
+          rawPokemonJson(
+            name: 'groudon',
+            types: [
+              {
+                'type': {'url': typeUrl(5)},
+              },
+            ],
+          ),
+        );
+        stubJsonPayloadAt(
+          PokeApiUrlHelper.pokemonUrl('groudon-primal'),
+          rawPokemonJson(
+            name: 'groudon-primal',
+            types: [
+              {
+                'type': {'url': typeUrl(5)},
+              },
+              {
+                'type': {'url': typeUrl(10)},
+              },
+            ],
+          ),
+        );
+        final pokemon = rightOf(
+          await repository.getPokemon(PokemonName('groudon')),
+        );
+        final primal = pokemon.forms.firstWhere(
+          (form) => form.name == 'groudon-primal',
+        );
+        expect(
+          (primal.type1, primal.type2),
+          (PokemonType.ground, PokemonType.fire),
+        );
+      },
+    );
 
     test(
       'lists every catalog form of the species, not just the resource',
@@ -1221,6 +1401,20 @@ void main() {
     });
 
     test('resolves the types of a form whose species type changes', () async {
+      stubJsonPayloadAt(
+        PokeApiUrlHelper.pokemonUrl('charizard-mega-x'),
+        rawPokemonJson(
+          name: 'charizard-mega-x',
+          types: [
+            {
+              'type': {'url': typeUrl(10)},
+            },
+            {
+              'type': {'url': typeUrl(16)},
+            },
+          ],
+        ),
+      );
       stubJsonPayloadAt(
         PokeApiUrlHelper.pokemonUrl('charizard'),
         rawPokemonJson(

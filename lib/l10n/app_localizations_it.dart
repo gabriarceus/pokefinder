@@ -898,11 +898,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get filterByVersion => 'Versione gioco';
 
   @override
-  String baseSpeciesDataNotice({required String formName}) {
-    return 'Aspetto e tipi riflettono $formName. Statistiche, mosse e abilità riflettono la specie base.';
-  }
-
-  @override
   String get encountersUnavailableForVersion =>
       'Nessun incontro trovato per questa versione.';
 
