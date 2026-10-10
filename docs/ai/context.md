@@ -11,7 +11,8 @@ Read the matching source file directly if the host does not list the skill.
 | Task | Read |
 |---|---|
 | Write, edit, refactor or review Dart, translations or tests | `docs/ai/skills/flutter-project-conventions.md` — always before the task |
-| Run the app, take screenshots or verify a UI change | `docs/ai/skills/verifying-ui-on-device.md` |
+| Run the app, control the emulator with MCP, take screenshots or verify a UI change | `docs/ai/skills/verifying-ui-on-device.md` |
+| Configure or troubleshoot native Android emulator MCP on Windows, macOS or Linux | `docs/ai/skills/configuring-mobile-mcp.md` |
 | Edit or synchronize AI documentation | `docs/ai/README.md` |
 
 Apply any available personal Flutter conventions too. Project choices take precedence over

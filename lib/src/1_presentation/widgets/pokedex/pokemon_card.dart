@@ -49,6 +49,7 @@ class PokemonCard extends StatelessWidget {
       messenger.showSnackBar(
         SnackBar(
           content: Text(l10n.compareAdded),
+          persist: false,
           action: SnackBarAction(
             label: l10n.compareView,
             onPressed: () => context.push(AppRoutes.compare),

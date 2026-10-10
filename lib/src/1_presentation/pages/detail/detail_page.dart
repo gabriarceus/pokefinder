@@ -63,15 +63,16 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> {
 
     await _audioController.stop();
     if (!context.mounted) return;
+    final preferences = context.read<PreferencesCubit>().state;
+    await _audioController.setVolume(preferences.cryVolume);
+    if (!context.mounted) return;
     final current = context.read<PokemonDetailBloc>().state;
     if (current is! PokemonDetailSuccess ||
         current.pokemon.id != state.pokemon.id) {
       return;
     }
 
-    final preferences = context.read<PreferencesCubit>().state;
     if (preferences.autoPlayCry && state.pokemon.cry.isNotEmpty) {
-      _audioController.setVolume(preferences.cryVolume);
       _audioController.play(state.pokemon.cry);
     }
   }
@@ -195,6 +196,7 @@ class _DetailSuccessView extends StatelessWidget {
       messenger.showSnackBar(
         SnackBar(
           content: Text(context.t().compareAdded),
+          persist: false,
           action: SnackBarAction(
             label: context.t().compareView,
             onPressed: () => context.push(AppRoutes.compare),

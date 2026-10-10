@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:en_logger/en_logger.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -49,6 +51,76 @@ void main() {
   ComparisonCubit buildCubit() => ComparisonCubit(logger, repository);
 
   group('ComparisonCubit', () {
+    for (final clearSelection in [false, true]) {
+      test(
+        '${clearSelection ? 'clear' : 'remove'} and re-add discard the previous request',
+        () async {
+          final first = Completer<Either<PokemonFailure, Pokemon>>();
+          final second = Completer<Either<PokemonFailure, Pokemon>>();
+          var calls = 0;
+          when(
+            () => repository.getPokemon(any()),
+          ).thenAnswer((_) => ++calls == 1 ? first.future : second.future);
+          final cubit = buildCubit();
+          addTearDown(cubit.close);
+
+          cubit.addEntry(_bulbasaur.summary);
+          if (clearSelection) {
+            cubit.clear();
+          } else {
+            cubit.removeEntry(_bulbasaur.id);
+          }
+          cubit.addEntry(_bulbasaur.summary);
+
+          final pokemon = buildPokemon();
+          second.complete(right(pokemon));
+          await pumpEventQueue();
+          expect(
+            cubit.state.detailOf(_bulbasaur.summary),
+            PokemonLoaded(pokemon),
+          );
+
+          first.complete(left(const NetworkUnavailableFailure('obsolete')));
+          await pumpEventQueue();
+          expect(
+            cubit.state.detailOf(_bulbasaur.summary),
+            PokemonLoaded(pokemon),
+          );
+        },
+      );
+    }
+
+    test(
+      'a retry discards a previous request for the same selection',
+      () async {
+        final first = Completer<Either<PokemonFailure, Pokemon>>();
+        final second = Completer<Either<PokemonFailure, Pokemon>>();
+        var calls = 0;
+        when(
+          () => repository.getPokemon(any()),
+        ).thenAnswer((_) => ++calls == 1 ? first.future : second.future);
+        final cubit = buildCubit();
+        addTearDown(cubit.close);
+        cubit.addEntry(_bulbasaur.summary);
+        final retry = cubit.loadDetails(_bulbasaur.summary);
+
+        first.complete(left(const NetworkUnavailableFailure('obsolete')));
+        await pumpEventQueue();
+        expect(
+          cubit.state.detailOf(_bulbasaur.summary),
+          const PokemonLoading(),
+        );
+
+        final pokemon = buildPokemon();
+        second.complete(right(pokemon));
+        await retry;
+        expect(
+          cubit.state.detailOf(_bulbasaur.summary),
+          PokemonLoaded(pokemon),
+        );
+      },
+    );
+
     test('addEntry stores entries in insertion order', () {
       final cubit = buildCubit();
 

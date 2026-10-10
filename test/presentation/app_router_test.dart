@@ -1,3 +1,4 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:injectable/injectable.dart' hide test;
@@ -19,6 +20,23 @@ import 'package:pokefinder/src/3_domain/domain.dart';
 import 'package:pokefinder/src/4_repository/repositories/mock_pokemon_repository.dart';
 import '../helpers/in_memory_hydrated_storage.dart';
 import '../helpers/pump_app.dart';
+import '../fixtures/pokemon_fixture.dart';
+
+class _RequestedPokemonRepository extends MockPokemonRepository {
+  @override
+  Future<Either<PokemonFailure, Pokemon>> getPokemon(PokemonName name) async {
+    final value = name.rightOrCrash();
+    return right(
+      buildPokemon(
+        id: value == 'pikachu' ? 25 : 1,
+        name: value,
+        sprite: '',
+        cry: '',
+        type1: value == 'pikachu' ? PokemonType.electric : PokemonType.grass,
+      ),
+    );
+  }
+}
 
 void main() {
   setUpAll(() async {
@@ -70,6 +88,63 @@ void main() {
   }
 
   group('AppRouter canonical routes', () {
+    testWidgets(
+      'replacing detail resets its state and actions to the new Pokemon',
+      (tester) async {
+        final repository = getIt<IPokemonRepository>();
+        getIt.unregister<IPokemonRepository>();
+        getIt.registerSingleton<IPokemonRepository>(
+          _RequestedPokemonRepository(),
+        );
+        addTearDown(() {
+          getIt.unregister<IPokemonRepository>();
+          getIt.registerSingleton<IPokemonRepository>(repository);
+        });
+        final cubits = TestAppCubits();
+        addTearDown(cubits.close);
+        final router = createAppRouter(
+          initialLocation: AppRoutes.pokemon('bulbasaur'),
+        );
+        addTearDown(router.dispose);
+
+        await mockNetworkImagesFor(() async {
+          await tester.pumpApp(router: router, cubits: cubits);
+          await settle(tester);
+          final previousBloc = tester
+              .element(find.byType(PokemonDetailPage))
+              .read<PokemonDetailBloc>();
+          expect(
+            (previousBloc.state as PokemonDetailSuccess).pokemon.name,
+            'bulbasaur',
+          );
+          await tester.tap(find.byIcon(Icons.star_border_rounded));
+          await tester.pump();
+
+          router.go(AppRoutes.pokemon('pikachu'));
+          await settle(tester);
+
+          final currentBloc = tester
+              .element(find.byType(PokemonDetailPage))
+              .read<PokemonDetailBloc>();
+          expect(
+            (currentBloc.state as PokemonDetailSuccess).pokemon.name,
+            'pikachu',
+          );
+          expect(previousBloc.isClosed, isTrue);
+          expect(find.byIcon(Icons.star_border_rounded), findsOneWidget);
+          expect(cubits.recentHistory.state.recentPokemon.first.pokemon.id, 25);
+
+          await tester.tap(find.byIcon(Icons.favorite_border_rounded));
+          await tester.pump();
+          expect(cubits.favorites.isFavorite(25), isTrue);
+          expect(cubits.favorites.isFavorite(1), isFalse);
+          await tester.tap(find.byIcon(Icons.compare_arrows_rounded));
+          await tester.pump();
+          expect(cubits.comparison.state.entries.single.id, 25);
+        });
+      },
+    );
+
     testWidgets('navigating to / loads HomePage', (tester) async {
       await pumpRouterApp(tester, AppRoutes.home);
       await tester.pumpAndSettle();

@@ -378,6 +378,35 @@ void main() {
       expect(bloc.state.filteredEntries.length, 4);
     });
 
+    test('clear filters discards a pending debounced query', () async {
+      final debouncedBloc = PokedexBloc(
+        repository,
+        logger,
+        searchDebounceDuration: const Duration(milliseconds: 30),
+      );
+      addTearDown(debouncedBloc.close);
+      when(
+        () => repository.getPokemonIndex(
+          forceRefresh: any(named: 'forceRefresh'),
+        ),
+      ).thenAnswer((_) async => Right(sampleEntries));
+      debouncedBloc.add(const PokedexFetchIndexEvent());
+      await pumpEventQueue();
+
+      debouncedBloc.add(const PokedexSearchQueryChangedEvent('pikachu'));
+      await Future<void>.delayed(Duration.zero);
+      debouncedBloc.add(const PokedexClearFiltersEvent());
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+
+      expect(debouncedBloc.state.filters, const PokedexFilters());
+      expect(debouncedBloc.state.filteredEntries, sampleEntries);
+
+      debouncedBloc.add(const PokedexSearchQueryChangedEvent('squirtle'));
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      expect(debouncedBloc.state.filters.query, 'squirtle');
+      expect(debouncedBloc.state.filteredEntries.map((entry) => entry.id), [7]);
+    });
+
     test('clear ignores late type failures', () async {
       final pending = Completer<Either<PokemonFailure, Set<int>>>();
       when(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:injectable/injectable.dart' hide test;
@@ -6,7 +8,9 @@ import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/main.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/widgets/detail_header.dart';
+import 'package:pokefinder/src/1_presentation/pages/detail/tabs/detail_info_tab.dart';
 import 'package:pokefinder/src/1_presentation/router/app_router.dart';
+import 'package:pokefinder/src/1_presentation/widgets/detail/cry_play_button.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 import '../helpers/in_memory_hydrated_storage.dart';
@@ -64,6 +68,22 @@ void main() {
           ..setUnitSystem(UnitSystem.metric)
           ..setAutoPlayCry(false);
       }
+    });
+
+    testWidgets('comparison confirmation closes after its timeout', (
+      tester,
+    ) async {
+      getIt<ComparisonCubit>().clear();
+      await pumpDetailApp(tester);
+
+      await tester.tap(find.byTooltip('Add to comparison'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('Added to comparison'), findsOneWidget);
+
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('Added to comparison'), findsNothing);
     });
 
     testWidgets(
@@ -170,5 +190,72 @@ void main() {
         expect(recentPokemon.first.pokemon.id, 1);
       },
     );
+
+    testWidgets('applies saved mute with autoplay disabled', (tester) async {
+      getIt<PreferencesCubit>()
+        ..setAutoPlayCry(false)
+        ..setCryVolume(0);
+
+      await pumpDetailApp(tester);
+
+      verify(() => audioController.setVolume(0)).called(1);
+      verifyNever(() => audioController.play(any()));
+      final cryButton = find.byWidgetPredicate(
+        (widget) =>
+            widget is CryPlayButton && widget.cryUrl.contains('/latest/'),
+      );
+      await tester.scrollUntilVisible(
+        cryButton,
+        250,
+        scrollable: find
+            .descendant(
+              of: find.byType(DetailInfoTab),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.tap(cryButton);
+      await tester.pump();
+      verifyInOrder([
+        () => audioController.setVolume(0),
+        () => audioController.toggle(any()),
+      ]);
+    });
+
+    testWidgets('manual playback waits for the current saved volume', (
+      tester,
+    ) async {
+      getIt<PreferencesCubit>().setAutoPlayCry(false);
+      await pumpDetailApp(tester);
+      final cryButton = find.byWidgetPredicate(
+        (widget) =>
+            widget is CryPlayButton && widget.cryUrl.contains('/latest/'),
+      );
+      await tester.scrollUntilVisible(
+        cryButton,
+        250,
+        scrollable: find
+            .descendant(
+              of: find.byType(DetailInfoTab),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      getIt<PreferencesCubit>().setCryVolume(0.25);
+      await tester.pump();
+      final volumeApplied = Completer<void>();
+      when(
+        () => audioController.setVolume(0.25),
+      ).thenAnswer((_) => volumeApplied.future);
+
+      await tester.tap(cryButton);
+      await tester.pump();
+      verify(() => audioController.setVolume(0.25)).called(1);
+      verifyNever(() => audioController.toggle(any()));
+
+      volumeApplied.complete();
+      await tester.pump();
+      verify(() => audioController.toggle(any())).called(1);
+    });
   });
 }
