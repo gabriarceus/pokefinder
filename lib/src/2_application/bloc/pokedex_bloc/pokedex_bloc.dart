@@ -57,6 +57,7 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
       ),
     );
     on<PokedexClearFiltersEvent>((event, emit) {
+      _searchGeneration++;
       _typeRequests.clear();
       const filters = PokedexFilters();
       emit(
@@ -79,6 +80,7 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
   final Duration _searchDebounce;
   final Random _random = Random();
   final Map<PokemonType, Object> _typeRequests = {};
+  int _searchGeneration = 0;
 
   /// Emits [filters] with the entries they select.
   void _applyFilters(Emitter<PokedexState> emit, PokedexFilters filters) {
@@ -164,11 +166,12 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
     PokedexSearchQueryChangedEvent event,
     Emitter<PokedexState> emit,
   ) async {
+    final generation = _searchGeneration;
     if (event.query == state.filters.query) return;
     // Debounce: restartable() drops this handler when a newer query arrives.
     if (event.query.isNotEmpty && _searchDebounce > Duration.zero) {
       await Future<void>.delayed(_searchDebounce);
-      if (emit.isDone) return;
+      if (emit.isDone || generation != _searchGeneration) return;
     }
     final queryLog = sanitizeQueryForLog(event.query);
     _logger.info('Search query changed: $queryLog', prefix: _prefix);

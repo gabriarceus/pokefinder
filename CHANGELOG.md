@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file, following t
 
 ### Fixed
 
+- Detail-route replacement, saved cry volume, stale comparison and search results, and persistent comparison notices.
 - Layout and accessibility issues, audio playback, error recovery and cache handling; improved offline behavior and recovery from corrupt stored records.
 - Search and filter behavior, alternate-form loading, evolution details and localized names.
 

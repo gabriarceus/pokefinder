@@ -424,6 +424,9 @@ void main() {
 
         expect(cubit.isSelected(1), isTrue);
         expect(find.text('Added to comparison'), findsOneWidget);
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.text('Added to comparison'), findsNothing);
       });
     });
 

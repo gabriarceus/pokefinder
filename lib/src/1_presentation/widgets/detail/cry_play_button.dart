@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/surface_card.dart';
+import 'package:pokefinder/src/2_application/bloc/preferences_cubit/preferences_cubit.dart';
 import 'package:pokefinder/src/3_domain/services/cry_audio_controller.dart';
 
 /// Visual mode of the cry play button, derived from playback state.
@@ -81,7 +83,15 @@ class CryPlayButton extends StatelessWidget {
                 child: InkWell(
                   onTap: mode == CryButtonMode.loading
                       ? null
-                      : () => controller.toggle(cryUrl),
+                      : () async {
+                          final volume = context
+                              .read<PreferencesCubit>()
+                              .state
+                              .cryVolume;
+                          await controller.setVolume(volume);
+                          if (!context.mounted) return;
+                          await controller.toggle(cryUrl);
+                        },
                   borderRadius: BorderRadius.circular(24),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(

@@ -52,6 +52,7 @@ class ComparisonCubit extends Cubit<ComparisonState> {
   static const _prefix = 'ComparisonCubit';
   final EnLogger _logger;
   final IPokemonRepository _repository;
+  final Map<int, Object> _requests = {};
 
   /// Convenience check for whether [id] is selected.
   bool isSelected(int id) => state.isSelected(id);
@@ -80,9 +81,13 @@ class ComparisonCubit extends Cubit<ComparisonState> {
 
   /// Loads the details of [entry], replacing a previous failure.
   Future<void> loadDetails(PokemonSummary entry) async {
+    if (isClosed || !state.isSelected(entry.id)) return;
+    final request = Object();
+    _requests[entry.id] = request;
     _setDetail(entry.id, const PokemonLoading());
     final result = await _repository.getPokemon(PokemonName(entry.name));
-    if (isClosed || !state.isSelected(entry.id)) return;
+    if (isClosed || _requests[entry.id] != request) return;
+    _requests.remove(entry.id);
     result.fold((failure) {
       _logger.error(
         'Failed to load ${entry.name} for comparison: $failure',
@@ -95,6 +100,7 @@ class ComparisonCubit extends Cubit<ComparisonState> {
   /// Removes the entry with [id], if present.
   void removeEntry(int id) {
     if (!state.isSelected(id)) return;
+    _requests.remove(id);
     _logger.info('Removing comparison entry ID: $id', prefix: _prefix);
     emit(
       ComparisonState(
@@ -116,6 +122,7 @@ class ComparisonCubit extends Cubit<ComparisonState> {
   /// Removes all selected entries.
   void clear() {
     if (state.isEmpty) return;
+    _requests.clear();
     _logger.info('Clearing comparison entries', prefix: _prefix);
     emit(const ComparisonState());
   }
