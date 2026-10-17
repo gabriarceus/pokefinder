@@ -2,7 +2,7 @@
 
 > The best app to find information about Pokémon.
 
-PokeFinder is a mobile Flutter app (officially targeting **Android and iOS**) for
+PokeFinder is a mobile Flutter app (officially targeting **Android and iOS 15+**) for
 searching, browsing, and exploring Pokémon. Data comes from the public
 [PokeAPI](https://pokeapi.co/). It is built around a clean, layered architecture.
 

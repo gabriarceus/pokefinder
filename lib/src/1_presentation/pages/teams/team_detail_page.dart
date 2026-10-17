@@ -135,8 +135,7 @@ class TeamDetailPage extends StatelessWidget {
                       index: index,
                     );
                   },
-                  onReorder: (oldIndex, newIndex) {
-                    if (oldIndex < newIndex) newIndex -= 1;
+                  onReorderItem: (oldIndex, newIndex) {
                     context.read<TeamsCubit>().reorderMember(
                       team.id,
                       oldIndex,

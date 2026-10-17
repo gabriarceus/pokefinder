@@ -344,7 +344,9 @@ void main() {
         expect(find.text('Bulbasaur'), findsOneWidget);
         expect(find.text('Charmander'), findsOneWidget);
 
-        teamsCubit.reorderMember(teamId, 0, 1);
+        tester
+            .widget<ReorderableListView>(find.byType(ReorderableListView))
+            .onReorderItem!(0, 1);
         await tester.pumpAndSettle();
         await tester.drag(
           find.byType(ReorderableListView),

@@ -1,35 +1,22 @@
 PODS:
-  - audio_session (0.0.1):
-    - Flutter
   - Flutter (1.0.0)
-  - just_audio (0.0.1):
-    - Flutter
-    - FlutterMacOS
   - media_kit_libs_ios_audio (1.0.4):
     - Flutter
 
 DEPENDENCIES:
-  - audio_session (from `.symlinks/plugins/audio_session/ios`)
   - Flutter (from `Flutter`)
-  - just_audio (from `.symlinks/plugins/just_audio/darwin`)
   - media_kit_libs_ios_audio (from `.symlinks/plugins/media_kit_libs_ios_audio/ios`)
 
 EXTERNAL SOURCES:
-  audio_session:
-    :path: ".symlinks/plugins/audio_session/ios"
   Flutter:
     :path: Flutter
-  just_audio:
-    :path: ".symlinks/plugins/just_audio/darwin"
   media_kit_libs_ios_audio:
     :path: ".symlinks/plugins/media_kit_libs_ios_audio/ios"
 
 SPEC CHECKSUMS:
-  audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
-  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  just_audio: 4e391f57b79cad2b0674030a00453ca5ce817eed
+  Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
   media_kit_libs_ios_audio: 905e6323b72e65c63ab9262b2e473f52c024a3a8
 
-PODFILE CHECKSUM: 4dac7f51a9156dd3fa3eaa853e0d2311473d095b
+PODFILE CHECKSUM: f86f2f0515e78caf9771cae1b196864b6db7fbad
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.17.0
