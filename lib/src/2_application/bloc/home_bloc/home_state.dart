@@ -1,75 +1,77 @@
 part of 'home_bloc.dart';
 
+/// A request to open the detail of [nameOrId].
+///
+/// Compared by value: two searches for the same name are the same request.
+class SearchNavigation extends Equatable {
+  const SearchNavigation(this.nameOrId);
+
+  final String nameOrId;
+
+  @override
+  List<Object?> get props => [nameOrId];
+}
+
 @immutable
 final class HomeBlocState extends Equatable {
   const HomeBlocState({
     required this.userInput,
-    required this.navigateToDetail,
-    required this.cacheCleared,
-    required this.allPokemonNames,
     this.pokemonIndex = const [],
     this.isIndexLoading = false,
-    this.failure,
-    this.nameIndexFailure,
+    this.searchFailure,
+    this.indexFailure,
+    this.pendingNavigation,
   });
 
-  factory HomeBlocState.initial() {
-    return const HomeBlocState(
-      userInput: '',
-      navigateToDetail: false,
-      cacheCleared: false,
-      allPokemonNames: [],
-      pokemonIndex: [],
-      isIndexLoading: false,
-      failure: null,
-      nameIndexFailure: null,
-    );
-  }
+  factory HomeBlocState.initial() => const HomeBlocState(userInput: '');
 
+  /// Whether a nullable field should be cleared by [copyWith].
   static const _unset = Object();
 
   final String userInput;
-  final bool navigateToDetail;
-  final bool cacheCleared;
-  final List<String> allPokemonNames;
   final List<PokemonIndexEntry> pokemonIndex;
   final bool isIndexLoading;
-  final PokemonFailure? failure;
-  final PokemonFailure? nameIndexFailure;
+
+  /// Validation failure of the last submitted search.
+  final PokemonFailure? searchFailure;
+
+  /// Failure of the last index load.
+  final PokemonFailure? indexFailure;
+
+  /// Latest valid search, still to be opened by the UI.
+  final SearchNavigation? pendingNavigation;
 
   HomeBlocState copyWith({
     String? userInput,
-    bool? navigateToDetail,
-    bool? cacheCleared,
-    List<String>? allPokemonNames,
     List<PokemonIndexEntry>? pokemonIndex,
     bool? isIndexLoading,
-    PokemonFailure? failure,
-    Object? nameIndexFailure = _unset,
+    Object? searchFailure = _unset,
+    Object? indexFailure = _unset,
+    Object? pendingNavigation = _unset,
   }) {
     return HomeBlocState(
       userInput: userInput ?? this.userInput,
-      navigateToDetail: navigateToDetail ?? this.navigateToDetail,
-      cacheCleared: cacheCleared ?? this.cacheCleared,
-      allPokemonNames: allPokemonNames ?? this.allPokemonNames,
       pokemonIndex: pokemonIndex ?? this.pokemonIndex,
       isIndexLoading: isIndexLoading ?? this.isIndexLoading,
-      failure: failure, // Let it be null if passed as null
-      nameIndexFailure: identical(nameIndexFailure, _unset)
-          ? this.nameIndexFailure
-          : nameIndexFailure as PokemonFailure?,
+      searchFailure: identical(searchFailure, _unset)
+          ? this.searchFailure
+          : searchFailure as PokemonFailure?,
+      indexFailure: identical(indexFailure, _unset)
+          ? this.indexFailure
+          : indexFailure as PokemonFailure?,
+      pendingNavigation: identical(pendingNavigation, _unset)
+          ? this.pendingNavigation
+          : pendingNavigation as SearchNavigation?,
     );
   }
 
   @override
   List<Object?> get props => [
     userInput,
-    navigateToDetail,
-    cacheCleared,
-    allPokemonNames,
     pokemonIndex,
     isIndexLoading,
-    failure,
-    nameIndexFailure,
+    searchFailure,
+    indexFailure,
+    pendingNavigation,
   ];
 }

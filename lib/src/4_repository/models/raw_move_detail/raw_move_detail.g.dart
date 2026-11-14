@@ -26,20 +26,6 @@ RawMoveDetail _$RawMoveDetailFromJson(Map<String, dynamic> json) =>
           const [],
     );
 
-Map<String, dynamic> _$RawMoveDetailToJson(RawMoveDetail instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'accuracy': instance.accuracy,
-      'power': instance.power,
-      'pp': instance.pp,
-      'type': instance.type.toJson(),
-      'damage_class': instance.damageClass.toJson(),
-      'flavor_text_entries': instance.flavorTextEntries
-          .map((e) => e.toJson())
-          .toList(),
-    };
-
 RawFlavorTextEntry _$RawFlavorTextEntryFromJson(Map<String, dynamic> json) =>
     RawFlavorTextEntry(
       flavorText: json['flavor_text'] as String,
@@ -47,9 +33,3 @@ RawFlavorTextEntry _$RawFlavorTextEntryFromJson(Map<String, dynamic> json) =>
         json['language'] as Map<String, dynamic>,
       ),
     );
-
-Map<String, dynamic> _$RawFlavorTextEntryToJson(RawFlavorTextEntry instance) =>
-    <String, dynamic>{
-      'flavor_text': instance.flavorText,
-      'language': instance.language.toJson(),
-    };

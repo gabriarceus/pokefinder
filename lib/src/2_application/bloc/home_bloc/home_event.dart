@@ -3,16 +3,22 @@ part of 'home_bloc.dart';
 @immutable
 sealed class HomeBlocEvent {}
 
-class UserInputEvent extends HomeBlocEvent {
-  UserInputEvent(this.userInput);
+/// The search field text changed to [input].
+class SearchInputChanged extends HomeBlocEvent {
+  SearchInputChanged(this.input);
 
-  final String userInput;
+  final String input;
 }
 
-class IsButtonPressedEvent extends HomeBlocEvent {}
+/// The user asked to open the Pokémon named or numbered [input].
+class SearchSubmitted extends HomeBlocEvent {
+  SearchSubmitted(this.input);
 
-class ClearCacheEvent extends HomeBlocEvent {}
+  final String input;
+}
 
-class FetchAllPokemonNamesEvent extends HomeBlocEvent {}
+/// Loads the Pokémon index used for suggestions.
+class LoadIndex extends HomeBlocEvent {}
 
-class NavigationDoneEvent extends HomeBlocEvent {}
+/// The pending navigation request has been handled by the UI.
+class NavigationDone extends HomeBlocEvent {}

@@ -1,4 +1,4 @@
-{
+﻿{
   "@@locale": "en",
   "searchTextField": "Search Pokémon",
   "searchButton": "Search",
@@ -16,13 +16,11 @@
   "details": "Details",
   "backButton": "Back",
   "settings": "Settings",
-  "useDeviceLanguage": "Use device language",
-  "useDeviceLanguageInfo": "If enabled, the app will use your device's language.",
   "about": "About",
   "language": "Language",
+  "useDeviceLanguage": "Device",
   "weight": "Weight",
   "height": "Height",
-  "pokemonCry": "Pokemon Cry",
   "baseStats": "Base Stats",
   "statHp": "HP",
   "statAttack": "Attack",
@@ -36,9 +34,20 @@
   "tabInfo": "Info",
   "tabStats": "Stats",
   "tabMoves": "Moves",
-  "tabItemsGames": "Items & Games",
+  "tabItemsGames": "Locations",
   "baseExp": "Base Exp",
-  "order": "Order",
+  "baseExpValue": "{value} XP",
+  "@baseExpValue": {
+    "placeholders": {
+      "value": { "type": "int" }
+    }
+  },
+  "showResults": "{count, plural, =1{Show 1 result} other{Show {count} results}}",
+  "@showResults": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "defaultForm": "Default Form",
   "yes": "Yes",
   "no": "No",
@@ -75,7 +84,6 @@
   "heldItems": "Wild Held Items",
   "heldItemsEmpty": "No wild items held",
   "rarity": "Rarity",
-  "species": "Species",
   "locationAreaEncounters": "Location Encounters",
   "gameIndices": "Game Versions",
   "spriteToggleShiny": "Toggle Shiny View",
@@ -97,19 +105,29 @@
   "statsBase": "Base",
   "statsMin": "Min",
   "statsMax": "Max",
-  "gameSelectorLabel": "Game:",
+  "statRangeSemantics": "{stat}: {base}, min {min}, max {max}",
+  "@statRangeSemantics": {
+    "placeholders": {
+      "stat": { "type": "String" },
+      "base": { "type": "String" },
+      "min": { "type": "String" },
+      "max": { "type": "String" }
+    }
+  },
+  "teamStatSumAverageSemantics": "{stat}: sum {sum}, average {average}",
+  "@teamStatSumAverageSemantics": {
+    "placeholders": {
+      "stat": { "type": "String" },
+      "sum": { "type": "String" },
+      "average": { "type": "String" }
+    }
+  },
   "noData": "No data available",
   "encountersEmpty": "No encounters found",
   "formSelectorTitle": "Select Form & Appearance",
   "formSelectorShiny": "Shiny Version",
   "versionLabel": "Version",
   "formSelectorForms": "Available Forms",
-  "formTypeModifier": "{type}",
-  "@formTypeModifier": {
-    "placeholders": {
-      "type": { "type": "String" }
-    }
-  },
   "typeNormal": "Normal",
   "typeFire": "Fire",
   "typeWater": "Water",
@@ -172,6 +190,24 @@
   "gameTheIndigoDisk": "The Indigo Disk",
   "gameColosseum": "Colosseum",
   "gameXd": "XD",
+  "gameTheIsleOfArmorSword": "The Isle of Armor (Sword)",
+  "gameTheIsleOfArmorShield": "The Isle of Armor (Shield)",
+  "gameTheCrownTundraSword": "The Crown Tundra (Sword)",
+  "gameTheCrownTundraShield": "The Crown Tundra (Shield)",
+  "gameBrilliantDiamond": "Brilliant Diamond",
+  "gameShiningPearl": "Shining Pearl",
+  "gameTheTealMaskScarlet": "The Teal Mask (Scarlet)",
+  "gameTheTealMaskViolet": "The Teal Mask (Violet)",
+  "gameTheIndigoDiskScarlet": "The Indigo Disk (Scarlet)",
+  "gameTheIndigoDiskViolet": "The Indigo Disk (Violet)",
+  "gameLegendsZa": "Legends: Z-A",
+  "gameMegaDimension": "Mega Dimension",
+  "gameChampions": "Champions",
+  "gameRedJapan": "Red (Japan)",
+  "gameGreenJapan": "Green (Japan)",
+  "gameBlueJapan": "Blue (Japan)",
+  "gameGroupRedGreenJapan": "Red/Green (Japan)",
+  "gameGroupBrilliantDiamondShiningPearl": "Brilliant Diamond/Shining Pearl",
   "gameGroupRedBlue": "Red/Blue",
   "gameGroupGoldSilver": "Gold/Silver",
   "gameGroupRubySapphire": "Ruby/Sapphire",
@@ -194,9 +230,6 @@
   "routeNotFoundMessage": "The requested Pokémon or page could not be found.",
   "goHome": "Go to Home",
   "editSearchButton": "Edit Search",
-  "errorEncounters": "Failed to load encounters.",
-  "errorFormDetails": "Failed to load form details.",
-  "errorMoveDetails": "Failed to load move details.",
   "defaultFormRollback": "Reset to default form",
   "errorSuggestions": "Failed to load suggestions.",
   "cryPlayTooltip": "Play cry",
@@ -215,16 +248,7 @@
   "staleDataNotice": "Offline cached data",
   "browsePokedex": "Browse Pokédex",
   "pokedexTitle": "Pokédex",
-  "filter": "Filter",
   "filters": "Filters",
-  "filterCount": "{count} active",
-  "@filterCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "types": "Types",
   "generation": "Generation",
   "generationAll": "All Generations",
@@ -244,7 +268,6 @@
   "randomPokemon": "Random Pokémon",
   "noPokemonFound": "No Pokémon found matching your filters",
   "clearFilters": "Clear Filters",
-  "apply": "Apply",
   "reset": "Reset",
   "searchPokedexPlaceholder": "Search by name or number...",
   "offlineIndexNotice": "Browsing offline cached Pokédex",
@@ -264,6 +287,7 @@
   "favoritesEmptyTitle": "No Favorites Yet",
   "favoritesEmptyMessage": "Tap the heart icon on any Pokémon to add it to your favorites.",
   "addToFavorites": "Add to favorites",
+  "cardActionsHint": "Long press for more actions",
   "removeFromFavorites": "Remove from favorites",
   "removeFromHistory": "Remove from history",
   "sortRecentlyAdded": "Recently Added",
@@ -295,14 +319,20 @@
   },
   "clearCacheConfirmation": "Are you sure you want to clear the cache? Downloaded data and images will need to be reloaded.",
   "cancel": "Cancel",
-  "confirm": "Confirm",
   "clear": "Clear",
   "genus": "Category",
   "captureRate": "Capture Rate",
   "baseHappiness": "Base Friendship",
-  "growthRate": "Growth Rate",
   "habitat": "Habitat",
-  "eggGroups": "Egg Groups",
+  "habitatCave": "Cave",
+  "habitatForest": "Forest",
+  "habitatGrassland": "Grassland",
+  "habitatMountain": "Mountain",
+  "habitatRare": "Rare",
+  "habitatRoughTerrain": "Rough terrain",
+  "habitatSea": "Sea",
+  "habitatUrban": "Urban",
+  "habitatWatersEdge": "Water's edge",
   "flavorText": "Pokédex Description",
   "evolutionChain": "Evolution Chain",
   "noEvolutions": "This Pokémon does not evolve.",
@@ -346,18 +376,9 @@
   "abilityShortEffect": "Summary",
   "allGameVersions": "All Versions",
   "filterByVersion": "Game Version",
-  "baseSpeciesDataNotice": "Appearance & types reflect {formName}. Stats, moves, and abilities reflect the base species.",
-  "@baseSpeciesDataNotice": {
-    "placeholders": {
-      "formName": { "type": "String" }
-    }
-  },
   "encountersUnavailableForVersion": "No encounters found for this game version.",
   "heldItemsUnavailableForVersion": "No held items found for this game version.",
   "movesUnavailableForVersion": "No moves found for this game version.",
-  "errorSpecies": "Failed to load species information.",
-  "errorEvolutionChain": "Failed to load evolution chain.",
-  "errorAbilityDetail": "Failed to load ability details.",
   "evolutionTriggerLevelUpsideDown": "Lv. {level} (Upside down)",
   "@evolutionTriggerLevelUpsideDown": {
     "placeholders": {
@@ -512,7 +533,6 @@
   },
   "aboutDataSource": "Data Source",
   "aboutDataSourceDescription": "All Pokémon data, sprites, and assets are sourced from PokeAPI.",
-  "aboutPokeApiWebsite": "PokeAPI Website",
   "aboutDisclaimer": "Disclaimer",
   "aboutDisclaimerText": "PokéFinder is an unofficial, non-commercial fan-made app and is not affiliated with, endorsed, or supported by Nintendo, GAME FREAK, or The Pokémon Company.",
   "aboutOpenSourceLicenses": "Open Source Licenses",
@@ -579,7 +599,9 @@
     }
   },
   "teamTypeCoverage": "Type coverage",
+  "teamStatsSumColumn": "Sum",
   "teamStatsSum": "Total (sum)",
+  "teamStatsAverageColumn": "Avg",
   "teamStatsAverage": "Average",
   "teamSummary": "Team summary",
   "teamMembers": "Members",
@@ -590,5 +612,4 @@
   "teamPickEmpty": "No teams yet — create one first.",
   "teamView": "View"
 }
-
 

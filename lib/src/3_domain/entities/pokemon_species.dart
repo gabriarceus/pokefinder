@@ -27,13 +27,7 @@ class PokemonSpecies extends Equatable {
     this.habitat,
     this.captureRate,
     this.baseHappiness,
-    this.growthRate,
-    this.genderRate,
-    this.eggGroups = const [],
     this.evolutionChainUrl,
-    this.isBaby = false,
-    this.isLegendary = false,
-    this.isMythical = false,
   });
 
   final int id;
@@ -44,13 +38,7 @@ class PokemonSpecies extends Equatable {
   final String? habitat;
   final int? captureRate;
   final int? baseHappiness;
-  final String? growthRate;
-  final int? genderRate;
-  final List<String> eggGroups;
   final String? evolutionChainUrl;
-  final bool isBaby;
-  final bool isLegendary;
-  final bool isMythical;
 
   /// Resolves the most appropriate genus description for [languageCode],
   /// falling back to English when unavailable.
@@ -118,12 +106,6 @@ class PokemonSpecies extends Equatable {
     habitat,
     captureRate,
     baseHappiness,
-    growthRate,
-    genderRate,
-    eggGroups,
     evolutionChainUrl,
-    isBaby,
-    isLegendary,
-    isMythical,
   ];
 }

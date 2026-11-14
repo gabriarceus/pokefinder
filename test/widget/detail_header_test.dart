@@ -1,25 +1,25 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:network_image_mock/network_image_mock.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/widgets/detail_header.dart';
 import 'package:pokefinder/src/1_presentation/pages/matchups/matchup_page.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
+import '../helpers/pump_app.dart';
 
 Widget _header({
   PokemonType? type1,
   PokemonType? type2,
-  String typeImage1 = '',
-  String typeImage2 = '',
+  String spriteDefault = 'front.png',
+  String spriteShiny = 'front-shiny.png',
 }) {
   return DetailHeader(
     selectedFormName: 'bulbasaur',
     pokemonId: 1,
-    typeImage1: typeImage1,
-    typeImage2: typeImage2,
+    speciesName: 'bulbasaur',
     textColor: Colors.black,
-    spriteWidget: const SizedBox(width: 10, height: 10),
+    spriteDefault: spriteDefault,
+    spriteShiny: spriteShiny,
     type1: type1,
     type2: type2,
   );
@@ -48,15 +48,13 @@ GoRouter _routerWithHeader(Widget header) {
 
 Future<void> _pumpRouter(WidgetTester tester, GoRouter router) {
   return mockNetworkImagesFor(() async {
-    await tester.pumpWidget(
-      MaterialApp.router(
-        routerConfig: router,
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-      ),
-    );
-    await tester.pumpAndSettle();
+    await tester.pumpApp(router: router);
+    // The sprite images never finish loading under `mockNetworkImagesFor`, so
+    // their loading spinner animates forever: pump a bounded number of frames
+    // instead of settling.
+    for (var i = 0; i < 12; i++) {
+      await tester.pump(const Duration(milliseconds: 200));
+    }
   });
 }
 
@@ -90,7 +88,9 @@ void main() {
       );
 
       await tester.tap(find.byTooltip('View matchups'));
-      await tester.pumpAndSettle();
+      for (var i = 0; i < 12; i++) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
 
       expect(find.byType(MatchupPage), findsOneWidget);
       expect(
@@ -116,7 +116,9 @@ void main() {
       expect(find.byTooltip('View matchups'), findsNWidgets(2));
 
       await tester.tap(find.byTooltip('View matchups').first);
-      await tester.pumpAndSettle();
+      for (var i = 0; i < 12; i++) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
 
       expect(find.byType(MatchupPage), findsOneWidget);
       expect(

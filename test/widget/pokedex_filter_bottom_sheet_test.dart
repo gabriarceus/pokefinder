@@ -1,19 +1,31 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/widgets/pokedex/pokedex_filter_bottom_sheet.dart';
 import 'package:pokefinder/src/2_application/bloc/pokedex_bloc/pokedex_bloc.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
+
+import '../helpers/pump_app.dart';
 
 class _MockPokedexBloc extends Mock implements PokedexBloc {}
 
 void main() {
   late _MockPokedexBloc bloc;
   late StreamController<PokedexState> streamController;
+
+  const sampleEntries = [
+    PokemonIndexEntry(id: 1, name: 'bulbasaur', detailUrl: ''),
+    PokemonIndexEntry(id: 4, name: 'charmander', detailUrl: ''),
+    PokemonIndexEntry(id: 7, name: 'squirtle', detailUrl: ''),
+  ];
+
+  setUpAll(() {
+    // PokedexEvent is sealed, so a real event doubles as the mocktail fallback.
+    registerFallbackValue(const PokedexClearFiltersEvent());
+  });
 
   setUp(() {
     bloc = _MockPokedexBloc();
@@ -25,11 +37,18 @@ void main() {
     await streamController.close();
   });
 
-  Widget buildTestableWidget() {
-    return MaterialApp(
-      locale: const Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
+  /// Gives the sheet a tall viewport so every section is laid out at once.
+  void useTallScreen(WidgetTester tester) {
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+  }
+
+  Future<void> pumpSheet(WidgetTester tester) {
+    return tester.pumpApp(
       home: Scaffold(
         body: BlocProvider<PokedexBloc>.value(
           value: bloc,
@@ -39,20 +58,33 @@ void main() {
     );
   }
 
+  /// Hosts the sheet behind [PokedexFilterBottomSheet.show], so that its single
+  /// close action really dismisses a route.
+  Future<void> pumpModalHost(WidgetTester tester) {
+    return tester.pumpApp(
+      home: BlocProvider<PokedexBloc>.value(
+        value: bloc,
+        child: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => PokedexFilterBottomSheet.show(context),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   group('PokedexFilterBottomSheet', () {
     testWidgets('renders all sections: types, generation, and sort', (
       tester,
     ) async {
-      tester.view.physicalSize = const Size(800, 1400);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
+      useTallScreen(tester);
 
-      when(() => bloc.state).thenReturn(PokedexState.initial());
+      when(() => bloc.state).thenReturn(const PokedexState());
 
-      await tester.pumpWidget(buildTestableWidget());
+      await pumpSheet(tester);
       await tester.pump();
 
       expect(find.text('Filters'), findsOneWidget);
@@ -68,9 +100,9 @@ void main() {
     testWidgets(
       'toggling a type filter chip dispatches PokedexTypeFilterToggledEvent',
       (tester) async {
-        when(() => bloc.state).thenReturn(PokedexState.initial());
+        when(() => bloc.state).thenReturn(const PokedexState());
 
-        await tester.pumpWidget(buildTestableWidget());
+        await pumpSheet(tester);
         await tester.pump();
 
         await tester.tap(find.text('Fire'));
@@ -85,16 +117,11 @@ void main() {
     testWidgets(
       'selecting a generation chip dispatches PokedexGenerationFilterChangedEvent',
       (tester) async {
-        tester.view.physicalSize = const Size(800, 1400);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(() {
-          tester.view.resetPhysicalSize();
-          tester.view.resetDevicePixelRatio();
-        });
+        useTallScreen(tester);
 
-        when(() => bloc.state).thenReturn(PokedexState.initial());
+        when(() => bloc.state).thenReturn(const PokedexState());
 
-        await tester.pumpWidget(buildTestableWidget());
+        await pumpSheet(tester);
         await tester.pump();
 
         await tester.tap(find.text('Gen 1'));
@@ -109,16 +136,11 @@ void main() {
     testWidgets(
       'selecting sort order chip dispatches PokedexSortOrderChangedEvent',
       (tester) async {
-        tester.view.physicalSize = const Size(800, 1400);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(() {
-          tester.view.resetPhysicalSize();
-          tester.view.resetDevicePixelRatio();
-        });
+        useTallScreen(tester);
 
-        when(() => bloc.state).thenReturn(PokedexState.initial());
+        when(() => bloc.state).thenReturn(const PokedexState());
 
-        await tester.pumpWidget(buildTestableWidget());
+        await pumpSheet(tester);
         await tester.pump();
 
         await tester.tap(find.text('Name: A - Z'));
@@ -136,10 +158,12 @@ void main() {
       'reset button dispatches PokedexClearFiltersEvent when active filters exist',
       (tester) async {
         when(() => bloc.state).thenReturn(
-          PokedexState.initial().copyWith(selectedTypes: {PokemonType.fire}),
+          const PokedexState().copyWith(
+            filters: PokedexFilters(selectedTypes: {PokemonType.fire}),
+          ),
         );
 
-        await tester.pumpWidget(buildTestableWidget());
+        await pumpSheet(tester);
         await tester.pump();
 
         await tester.tap(find.text('Reset'));
@@ -152,16 +176,11 @@ void main() {
     testWidgets(
       'selecting form category chip dispatches PokedexFormFilterChangedEvent',
       (tester) async {
-        tester.view.physicalSize = const Size(800, 1400);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(() {
-          tester.view.resetPhysicalSize();
-          tester.view.resetDevicePixelRatio();
-        });
+        useTallScreen(tester);
 
-        when(() => bloc.state).thenReturn(PokedexState.initial());
+        when(() => bloc.state).thenReturn(const PokedexState());
 
-        await tester.pumpWidget(buildTestableWidget());
+        await pumpSheet(tester);
         await tester.pump();
 
         expect(find.text('Forms'), findsOneWidget);
@@ -181,16 +200,11 @@ void main() {
     testWidgets(
       'toggling cosmetic forms switch dispatches PokedexCosmeticToggleChangedEvent',
       (tester) async {
-        tester.view.physicalSize = const Size(800, 1400);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(() {
-          tester.view.resetPhysicalSize();
-          tester.view.resetDevicePixelRatio();
-        });
+        useTallScreen(tester);
 
-        when(() => bloc.state).thenReturn(PokedexState.initial());
+        when(() => bloc.state).thenReturn(const PokedexState());
 
-        await tester.pumpWidget(buildTestableWidget());
+        await pumpSheet(tester);
         await tester.pump();
 
         final switchFinder = find.byType(Switch);
@@ -202,6 +216,59 @@ void main() {
         verify(
           () => bloc.add(const PokedexCosmeticToggleChangedEvent(true)),
         ).called(1);
+      },
+    );
+
+    testWidgets(
+      'the active filters badge counts the selected types and generations',
+      (tester) async {
+        useTallScreen(tester);
+
+        when(() => bloc.state).thenReturn(
+          const PokedexState().copyWith(
+            filters: PokedexFilters(
+              query: 'pika',
+              selectedTypes: {PokemonType.fire, PokemonType.water},
+              generation: 1,
+            ),
+          ),
+        );
+
+        await pumpSheet(tester);
+        await tester.pump();
+
+        // The search text is not counted, the three filters are.
+        expect(find.text('3'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'the single close action reports the result count and dismisses the sheet '
+      'without applying anything',
+      (tester) async {
+        useTallScreen(tester);
+
+        when(() => bloc.state).thenReturn(
+          const PokedexState().copyWith(
+            status: PokedexStatus.success,
+            filteredEntries: sampleEntries,
+          ),
+        );
+
+        await pumpModalHost(tester);
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(PokedexFilterBottomSheet), findsOneWidget);
+        expect(find.text('Show 3 results'), findsOneWidget);
+
+        clearInteractions(bloc);
+        await tester.tap(find.text('Show 3 results'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(PokedexFilterBottomSheet), findsNothing);
+        // Filters already applied live: closing dispatches no event at all.
+        verifyNever(() => bloc.add(any()));
       },
     );
   });

@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'named_api_resource.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class NamedAPIResource {
   const NamedAPIResource({required this.name, required this.url});
 
@@ -11,6 +11,4 @@ class NamedAPIResource {
 
   factory NamedAPIResource.fromJson(Map<String, dynamic> json) =>
       _$NamedAPIResourceFromJson(json);
-
-  Map<String, dynamic> toJson() => _$NamedAPIResourceToJson(this);
 }

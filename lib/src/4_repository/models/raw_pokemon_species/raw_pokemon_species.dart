@@ -3,7 +3,7 @@ import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/attrib
 
 part 'raw_pokemon_species.g.dart';
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class RawPokemonSpecies {
   const RawPokemonSpecies({
     required this.id,
@@ -12,15 +12,9 @@ class RawPokemonSpecies {
     this.habitat,
     this.captureRate,
     this.baseHappiness,
-    this.growthRate,
-    this.genderRate,
-    this.eggGroups = const [],
     this.evolutionChain,
     this.flavorTextEntries = const [],
     this.genera = const [],
-    this.isBaby = false,
-    this.isLegendary = false,
-    this.isMythical = false,
   });
 
   final int id;
@@ -34,15 +28,6 @@ class RawPokemonSpecies {
   @JsonKey(name: 'base_happiness')
   final int? baseHappiness;
 
-  @JsonKey(name: 'growth_rate')
-  final NamedAPIResource? growthRate;
-
-  @JsonKey(name: 'gender_rate')
-  final int? genderRate;
-
-  @JsonKey(name: 'egg_groups')
-  final List<NamedAPIResource> eggGroups;
-
   @JsonKey(name: 'evolution_chain')
   final RawEvolutionChainResource? evolutionChain;
 
@@ -51,22 +36,11 @@ class RawPokemonSpecies {
 
   final List<RawSpeciesGenusEntry> genera;
 
-  @JsonKey(name: 'is_baby')
-  final bool isBaby;
-
-  @JsonKey(name: 'is_legendary')
-  final bool isLegendary;
-
-  @JsonKey(name: 'is_mythical')
-  final bool isMythical;
-
   factory RawPokemonSpecies.fromJson(Map<String, dynamic> json) =>
       _$RawPokemonSpeciesFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawPokemonSpeciesToJson(this);
 }
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class RawEvolutionChainResource {
   const RawEvolutionChainResource({required this.url});
 
@@ -74,11 +48,9 @@ class RawEvolutionChainResource {
 
   factory RawEvolutionChainResource.fromJson(Map<String, dynamic> json) =>
       _$RawEvolutionChainResourceFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawEvolutionChainResourceToJson(this);
 }
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class RawSpeciesFlavorTextEntry {
   const RawSpeciesFlavorTextEntry({
     required this.flavorText,
@@ -93,11 +65,9 @@ class RawSpeciesFlavorTextEntry {
 
   factory RawSpeciesFlavorTextEntry.fromJson(Map<String, dynamic> json) =>
       _$RawSpeciesFlavorTextEntryFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawSpeciesFlavorTextEntryToJson(this);
 }
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class RawSpeciesGenusEntry {
   const RawSpeciesGenusEntry({required this.genus, required this.language});
 
@@ -106,6 +76,4 @@ class RawSpeciesGenusEntry {
 
   factory RawSpeciesGenusEntry.fromJson(Map<String, dynamic> json) =>
       _$RawSpeciesGenusEntryFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawSpeciesGenusEntryToJson(this);
 }

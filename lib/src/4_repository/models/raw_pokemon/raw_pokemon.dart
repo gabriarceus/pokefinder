@@ -6,7 +6,7 @@ part 'raw_pokemon.g.dart';
 /// Pokémon repository (raw data)
 /// This class is used to parse the JSON data from the API
 /// into a [RawPokemon] object.
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class RawPokemon {
   const RawPokemon({
     required this.id,
@@ -20,14 +20,11 @@ class RawPokemon {
     required this.cries,
     required this.baseExperience,
     required this.isDefault,
-    required this.order,
     required this.locationAreaEncounters,
-    required this.forms,
     required this.gameIndices,
     required this.heldItems,
     required this.moves,
     required this.species,
-    this.isStale = false,
   });
 
   final int id;
@@ -50,12 +47,8 @@ class RawPokemon {
   @JsonKey(name: 'is_default')
   final bool isDefault;
 
-  final int order;
-
   @JsonKey(name: 'location_area_encounters')
   final String locationAreaEncounters;
-
-  final List<NamedAPIResource> forms;
 
   @JsonKey(name: 'game_indices')
   final List<RawGameIndex> gameIndices;
@@ -67,33 +60,6 @@ class RawPokemon {
 
   final NamedAPIResource species;
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final bool isStale;
-
-  RawPokemon copyWith({bool? isStale}) => RawPokemon(
-    id: id,
-    name: name,
-    types: types,
-    sprites: sprites,
-    abilities: abilities,
-    stats: stats,
-    weight: weight,
-    height: height,
-    cries: cries,
-    baseExperience: baseExperience,
-    isDefault: isDefault,
-    order: order,
-    locationAreaEncounters: locationAreaEncounters,
-    forms: forms,
-    gameIndices: gameIndices,
-    heldItems: heldItems,
-    moves: moves,
-    species: species,
-    isStale: isStale ?? this.isStale,
-  );
-
   factory RawPokemon.fromJson(Map<String, dynamic> json) =>
       _$RawPokemonFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawPokemonToJson(this);
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:pokefinder/src/3_domain/helpers/string_casing_extensions.dart';
 
 class BoldLabelValue extends StatelessWidget {

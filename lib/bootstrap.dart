@@ -23,8 +23,8 @@ Future<void> configureDependencies(String environment) async {
 abstract class RegisterModule {
   @lazySingleton
   EnLogger get logger {
-    final printer = PrinterHandler()
-      ..configure({Severity.notice: const PrinterColor.green()});
+    final printer = DevLogHandler()
+      ..configure({Severity.notice: const DevLogColor.green()});
 
     return EnLogger(
       defaultPrefixFormat: const PrefixFormat(startFormat: '[', endFormat: ']'),

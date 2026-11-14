@@ -15,19 +15,8 @@ RawEncounter _$RawEncounterFromJson(Map<String, dynamic> json) => RawEncounter(
       .toList(),
 );
 
-Map<String, dynamic> _$RawEncounterToJson(
-  RawEncounter instance,
-) => <String, dynamic>{
-  'location_area': instance.locationArea.toJson(),
-  'version_details': instance.versionDetails.map((e) => e.toJson()).toList(),
-};
-
 RawEncounterVersionDetail _$RawEncounterVersionDetailFromJson(
   Map<String, dynamic> json,
 ) => RawEncounterVersionDetail(
   version: NamedAPIResource.fromJson(json['version'] as Map<String, dynamic>),
 );
-
-Map<String, dynamic> _$RawEncounterVersionDetailToJson(
-  RawEncounterVersionDetail instance,
-) => <String, dynamic>{'version': instance.version.toJson()};

@@ -1,52 +1,43 @@
 import 'package:dartz/dartz.dart';
-import 'package:en_logger/en_logger.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:injectable/injectable.dart' hide test;
 import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/bootstrap.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/ability_detail_bottom_sheet.dart';
-import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
+import '../helpers/in_memory_hydrated_storage.dart';
+import '../helpers/pump_app.dart';
 
-class MockGetAbilityDetailUseCase extends Mock
-    implements GetAbilityDetailUseCase {}
+class _MockPokemonRepository extends Mock implements IPokemonRepository {}
 
 void main() {
-  late MockGetAbilityDetailUseCase mockGetAbilityDetailUseCase;
+  late _MockPokemonRepository mockPokemonRepository;
 
   setUpAll(() async {
-    await configureDependencies('mock');
-    registerFallbackValue(CancellationToken());
+    ensureHydratedStorage();
+    await configureDependencies(Environment.dev);
   });
 
+  late IPokemonRepository originalRepository;
+
   setUp(() {
-    mockGetAbilityDetailUseCase = MockGetAbilityDetailUseCase();
-    if (getIt.isRegistered<AbilityDetailCubit>()) {
-      getIt.unregister<AbilityDetailCubit>();
-    }
-    getIt.registerFactory<AbilityDetailCubit>(
-      () => AbilityDetailCubit(mockGetAbilityDetailUseCase, getIt<EnLogger>()),
-    );
+    mockPokemonRepository = _MockPokemonRepository();
+    originalRepository = getIt<IPokemonRepository>();
+    getIt.unregister<IPokemonRepository>();
+    getIt.registerSingleton<IPokemonRepository>(mockPokemonRepository);
   });
 
   tearDown(() {
-    if (getIt.isRegistered<AbilityDetailCubit>()) {
-      getIt.unregister<AbilityDetailCubit>();
-    }
-    getIt.registerFactory<AbilityDetailCubit>(
-      () => AbilityDetailCubit(
-        getIt<GetAbilityDetailUseCase>(),
-        getIt<EnLogger>(),
-      ),
-    );
+    getIt.unregister<IPokemonRepository>();
+    getIt.registerSingleton<IPokemonRepository>(originalRepository);
   });
 
-  Widget createTestWidget({required String abilityName}) {
-    return MaterialApp(
-      locale: const Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
+  Future<void> pumpTestWidget(
+    WidgetTester tester, {
+    required String abilityName,
+  }) {
+    return tester.pumpApp(
       home: Scaffold(
         body: Builder(
           builder: (context) => Center(
@@ -70,12 +61,7 @@ void main() {
     testWidgets('shows loading indicator and then displays ability info', (
       tester,
     ) async {
-      when(
-        () => mockGetAbilityDetailUseCase(
-          'overgrow',
-          cancelToken: any(named: 'cancelToken'),
-        ),
-      ).thenAnswer(
+      when(() => mockPokemonRepository.getAbilityDetail('overgrow')).thenAnswer(
         (_) async => const Right(
           AbilityDetail(
             id: 65,
@@ -93,7 +79,7 @@ void main() {
         ),
       );
 
-      await tester.pumpWidget(createTestWidget(abilityName: 'overgrow'));
+      await pumpTestWidget(tester, abilityName: 'overgrow');
       await tester.tap(find.text('Open Sheet'));
       await tester.pump(); // Start opening sheet
 
@@ -117,16 +103,13 @@ void main() {
 
     testWidgets('shows error state and retries on tap', (tester) async {
       when(
-        () => mockGetAbilityDetailUseCase(
-          'chlorophyll',
-          cancelToken: any(named: 'cancelToken'),
-        ),
+        () => mockPokemonRepository.getAbilityDetail('chlorophyll'),
       ).thenAnswer(
         (_) async =>
             const Left(ServerFailure(500, 'Failed to load ability details.')),
       );
 
-      await tester.pumpWidget(createTestWidget(abilityName: 'chlorophyll'));
+      await pumpTestWidget(tester, abilityName: 'chlorophyll');
       await tester.tap(find.text('Open Sheet'));
       await tester.pumpAndSettle();
 
@@ -135,10 +118,7 @@ void main() {
 
       // Reset mock for successful retry
       when(
-        () => mockGetAbilityDetailUseCase(
-          'chlorophyll',
-          cancelToken: any(named: 'cancelToken'),
-        ),
+        () => mockPokemonRepository.getAbilityDetail('chlorophyll'),
       ).thenAnswer(
         (_) async => const Right(
           AbilityDetail(

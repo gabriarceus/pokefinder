@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/stat_bar_color.dart';
 import 'package:pokefinder/src/3_domain/helpers/measurement_formatter.dart';
@@ -38,6 +38,7 @@ class CompactStatRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     final baseColor = textColor ?? Theme.of(context).colorScheme.onSurface;
     final minVal = StatCalculator.calculateMinStat(kind, value);
     final maxVal = StatCalculator.calculateMaxStat(kind, value);
@@ -56,15 +57,19 @@ class CompactStatRow extends StatelessWidget {
     final label = statKindLabel(context, kind);
 
     return Semantics(
-      label: '$label: $formattedValue, min $formattedMin, max $formattedMax',
+      label: context.t().statRangeSemantics(
+        stat: label,
+        base: formattedValue,
+        min: formattedMin,
+        max: formattedMax,
+      ),
       excludeSemantics: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             label,
-            style: TextStyle(
-              fontSize: 14,
+            style: textTheme.bodyMedium?.copyWith(
               color: baseColor.withValues(alpha: 0.8),
               fontWeight: FontWeight.w600,
             ),
@@ -72,8 +77,7 @@ class CompactStatRow extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             '${context.t().statsBase}: $formattedValue | ${context.t().statsMin}: $formattedMin | ${context.t().statsMax}: $formattedMax',
-            style: TextStyle(
-              fontSize: 12,
+            style: textTheme.bodySmall?.copyWith(
               color: baseColor.withValues(alpha: 0.8),
               fontWeight: FontWeight.w500,
             ),

@@ -9,10 +9,7 @@ TeamMember _member(
   List<PokemonType> types = const [PokemonType.electric],
 }) {
   return TeamMember(
-    id: id,
-    name: name,
-    spriteUrl: '',
-    types: types,
+    pokemon: PokemonSummary(id: id, name: name, spriteUrl: '', types: types),
     addedAt: DateTime.utc(2026, 1, 1),
   );
 }
@@ -42,7 +39,7 @@ void main() {
       );
     });
 
-    test('hasDuplicateMembers and duplicateMemberNames flag repeats', () {
+    test('hasDuplicateMembers flags repeats', () {
       final members = [
         _member('pikachu'),
         _member('bulbasaur', id: 1),
@@ -50,10 +47,6 @@ void main() {
       ];
 
       expect(TeamSummaryHelper.hasDuplicateMembers(members), isTrue);
-      expect(
-        TeamSummaryHelper.duplicateMemberNames(members),
-        equals(['pikachu']),
-      );
       expect(
         TeamSummaryHelper.hasDuplicateMembers([
           _member('pikachu'),
@@ -145,14 +138,6 @@ void main() {
       expect(summary.isEmpty, isTrue);
       expect(summary.totalSum, equals(0));
       expect(TeamSummaryHelper.buildStatSummary(const []).isEmpty, isTrue);
-    });
-  });
-
-  group('canAddTeamMember', () {
-    test('allows up to 6 members', () {
-      expect(canAddTeamMember(5), isTrue);
-      expect(canAddTeamMember(6), isFalse);
-      expect(canAddTeamMember(7), isFalse);
     });
   });
 }

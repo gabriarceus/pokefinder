@@ -1,17 +1,20 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/helpers/evolution_trigger_formatter.dart';
 import 'package:pokefinder/src/3_domain/entities/evolution_chain.dart';
+import '../../helpers/pump_app.dart';
 
 void main() {
   group('EvolutionTriggerFormatter', () {
+    final enL10n = lookupAppLocalizations(const Locale('en'));
+
     test('formats min level', () {
       const detail = EvolutionTriggerDetail(
         triggerType: EvolutionTriggerType.levelUp,
         minLevel: 16,
       );
-      expect(EvolutionTriggerFormatter.format(detail), 'Lv. 16');
+      expect(EvolutionTriggerFormatter.format(detail, l10n: enL10n), 'Lv. 16');
     });
 
     test('formats item usage without and with gender and time constraints', () {
@@ -19,7 +22,10 @@ void main() {
         triggerType: EvolutionTriggerType.useItem,
         item: 'water-stone',
       );
-      expect(EvolutionTriggerFormatter.format(waterStone), 'Use Water Stone');
+      expect(
+        EvolutionTriggerFormatter.format(waterStone, l10n: enL10n),
+        'Use Water Stone',
+      );
 
       const dawnStoneMale = EvolutionTriggerDetail(
         triggerType: EvolutionTriggerType.useItem,
@@ -27,7 +33,7 @@ void main() {
         gender: 2,
       );
       expect(
-        EvolutionTriggerFormatter.format(dawnStoneMale),
+        EvolutionTriggerFormatter.format(dawnStoneMale, l10n: enL10n),
         'Use Dawn Stone (Male)',
       );
 
@@ -37,7 +43,7 @@ void main() {
         gender: 1,
       );
       expect(
-        EvolutionTriggerFormatter.format(dawnStoneFemale),
+        EvolutionTriggerFormatter.format(dawnStoneFemale, l10n: enL10n),
         'Use Dawn Stone (Female)',
       );
 
@@ -47,7 +53,7 @@ void main() {
         timeOfDay: 'day',
       );
       expect(
-        EvolutionTriggerFormatter.format(sunStoneDay),
+        EvolutionTriggerFormatter.format(sunStoneDay, l10n: enL10n),
         'Use Sun Stone (Day)',
       );
 
@@ -57,7 +63,7 @@ void main() {
         timeOfDay: 'night',
       );
       expect(
-        EvolutionTriggerFormatter.format(moonStoneNight),
+        EvolutionTriggerFormatter.format(moonStoneNight, l10n: enL10n),
         'Use Moon Stone (Night)',
       );
     });
@@ -71,7 +77,7 @@ void main() {
           timeOfDay: 'night',
         );
         expect(
-          EvolutionTriggerFormatter.format(razorFangNight),
+          EvolutionTriggerFormatter.format(razorFangNight, l10n: enL10n),
           'Hold Razor Fang (Night)',
         );
 
@@ -81,7 +87,7 @@ void main() {
           timeOfDay: 'day',
         );
         expect(
-          EvolutionTriggerFormatter.format(ovalStoneDay),
+          EvolutionTriggerFormatter.format(ovalStoneDay, l10n: enL10n),
           'Hold Oval Stone (Day)',
         );
 
@@ -90,7 +96,7 @@ void main() {
           heldItem: 'deep-sea-scale',
         );
         expect(
-          EvolutionTriggerFormatter.format(heldItemOnly),
+          EvolutionTriggerFormatter.format(heldItemOnly, l10n: enL10n),
           'Hold Deep Sea Scale',
         );
       },
@@ -100,14 +106,17 @@ void main() {
       const tradeSimple = EvolutionTriggerDetail(
         triggerType: EvolutionTriggerType.trade,
       );
-      expect(EvolutionTriggerFormatter.format(tradeSimple), 'Trade');
+      expect(
+        EvolutionTriggerFormatter.format(tradeSimple, l10n: enL10n),
+        'Trade',
+      );
 
       const tradeItem = EvolutionTriggerDetail(
         triggerType: EvolutionTriggerType.trade,
         heldItem: 'metal-coat',
       );
       expect(
-        EvolutionTriggerFormatter.format(tradeItem),
+        EvolutionTriggerFormatter.format(tradeItem, l10n: enL10n),
         'Trade holding Metal Coat',
       );
 
@@ -115,7 +124,10 @@ void main() {
         triggerType: EvolutionTriggerType.trade,
         tradeSpecies: 'shelmet',
       );
-      expect(EvolutionTriggerFormatter.format(tradeFor), 'Trade for Shelmet');
+      expect(
+        EvolutionTriggerFormatter.format(tradeFor, l10n: enL10n),
+        'Trade for Shelmet',
+      );
     });
 
     test('formats happiness triggers with time of day', () {
@@ -125,7 +137,7 @@ void main() {
         timeOfDay: 'day',
       );
       expect(
-        EvolutionTriggerFormatter.format(dayHappiness),
+        EvolutionTriggerFormatter.format(dayHappiness, l10n: enL10n),
         'Friendship (Day)',
       );
 
@@ -135,7 +147,7 @@ void main() {
         timeOfDay: 'night',
       );
       expect(
-        EvolutionTriggerFormatter.format(nightHappiness),
+        EvolutionTriggerFormatter.format(nightHappiness, l10n: enL10n),
         'Friendship (Night)',
       );
 
@@ -144,7 +156,7 @@ void main() {
         minHappiness: 220,
       );
       expect(
-        EvolutionTriggerFormatter.format(simpleHappiness),
+        EvolutionTriggerFormatter.format(simpleHappiness, l10n: enL10n),
         'High Friendship',
       );
     });
@@ -154,13 +166,19 @@ void main() {
         triggerType: EvolutionTriggerType.levelUp,
         minAffection: 2,
       );
-      expect(EvolutionTriggerFormatter.format(affection), 'High Affection');
+      expect(
+        EvolutionTriggerFormatter.format(affection, l10n: enL10n),
+        'High Affection',
+      );
 
       const beauty = EvolutionTriggerDetail(
         triggerType: EvolutionTriggerType.levelUp,
         minBeauty: 170,
       );
-      expect(EvolutionTriggerFormatter.format(beauty), 'High Beauty');
+      expect(
+        EvolutionTriggerFormatter.format(beauty, l10n: enL10n),
+        'High Beauty',
+      );
     });
 
     test('formats location triggers', () {
@@ -169,7 +187,7 @@ void main() {
         location: 'eterna-forest',
       );
       expect(
-        EvolutionTriggerFormatter.format(location),
+        EvolutionTriggerFormatter.format(location, l10n: enL10n),
         'Level up at Eterna Forest',
       );
     });
@@ -181,7 +199,7 @@ void main() {
         turnUpsideDown: true,
       );
       expect(
-        EvolutionTriggerFormatter.format(withLevel),
+        EvolutionTriggerFormatter.format(withLevel, l10n: enL10n),
         'Lv. 30 (Upside down)',
       );
 
@@ -190,7 +208,7 @@ void main() {
         turnUpsideDown: true,
       );
       expect(
-        EvolutionTriggerFormatter.format(withoutLevel),
+        EvolutionTriggerFormatter.format(withoutLevel, l10n: enL10n),
         'Turn device upside down',
       );
     });
@@ -201,13 +219,19 @@ void main() {
         minLevel: 50,
         needsRain: true,
       );
-      expect(EvolutionTriggerFormatter.format(withLevel), 'Lv. 50 (Rain)');
+      expect(
+        EvolutionTriggerFormatter.format(withLevel, l10n: enL10n),
+        'Lv. 50 (Rain)',
+      );
 
       const withoutLevel = EvolutionTriggerDetail(
         triggerType: EvolutionTriggerType.other,
         needsRain: true,
       );
-      expect(EvolutionTriggerFormatter.format(withoutLevel), 'Rain');
+      expect(
+        EvolutionTriggerFormatter.format(withoutLevel, l10n: enL10n),
+        'Rain',
+      );
     });
 
     test('formats stat-dependent evolutions (e.g. Tyrogue)', () {
@@ -216,21 +240,30 @@ void main() {
         minLevel: 20,
         relativePhysicalStats: 1,
       );
-      expect(EvolutionTriggerFormatter.format(atkGtDef), 'Lv. 20 (Atk > Def)');
+      expect(
+        EvolutionTriggerFormatter.format(atkGtDef, l10n: enL10n),
+        'Lv. 20 (Atk > Def)',
+      );
 
       const defGtAtk = EvolutionTriggerDetail(
         triggerType: EvolutionTriggerType.levelUp,
         minLevel: 20,
         relativePhysicalStats: -1,
       );
-      expect(EvolutionTriggerFormatter.format(defGtAtk), 'Lv. 20 (Def > Atk)');
+      expect(
+        EvolutionTriggerFormatter.format(defGtAtk, l10n: enL10n),
+        'Lv. 20 (Def > Atk)',
+      );
 
       const atkEqDef = EvolutionTriggerDetail(
         triggerType: EvolutionTriggerType.levelUp,
         minLevel: 20,
         relativePhysicalStats: 0,
       );
-      expect(EvolutionTriggerFormatter.format(atkEqDef), 'Lv. 20 (Atk = Def)');
+      expect(
+        EvolutionTriggerFormatter.format(atkEqDef, l10n: enL10n),
+        'Lv. 20 (Atk = Def)',
+      );
     });
 
     test('formats party species and party type evolution', () {
@@ -240,7 +273,7 @@ void main() {
         partySpecies: 'remoraid',
       );
       expect(
-        EvolutionTriggerFormatter.format(withLevelSpecies),
+        EvolutionTriggerFormatter.format(withLevelSpecies, l10n: enL10n),
         'Lv. 30 (with Remoraid)',
       );
 
@@ -249,7 +282,7 @@ void main() {
         partySpecies: 'remoraid',
       );
       expect(
-        EvolutionTriggerFormatter.format(withoutLevelSpecies),
+        EvolutionTriggerFormatter.format(withoutLevelSpecies, l10n: enL10n),
         'With Remoraid',
       );
 
@@ -259,7 +292,7 @@ void main() {
         partyType: 'dark',
       );
       expect(
-        EvolutionTriggerFormatter.format(withLevelType),
+        EvolutionTriggerFormatter.format(withLevelType, l10n: enL10n),
         'Lv. 32 (Dark in party)',
       );
 
@@ -268,7 +301,7 @@ void main() {
         partyType: 'dark',
       );
       expect(
-        EvolutionTriggerFormatter.format(withoutLevelType),
+        EvolutionTriggerFormatter.format(withoutLevelType, l10n: enL10n),
         'Dark in party',
       );
     });
@@ -279,43 +312,51 @@ void main() {
         minLevel: 21,
         gender: 1,
       );
-      expect(EvolutionTriggerFormatter.format(female), 'Lv. 21 (Female)');
+      expect(
+        EvolutionTriggerFormatter.format(female, l10n: enL10n),
+        'Lv. 21 (Female)',
+      );
 
       const male = EvolutionTriggerDetail(
         triggerType: EvolutionTriggerType.levelUp,
         minLevel: 20,
         gender: 2,
       );
-      expect(EvolutionTriggerFormatter.format(male), 'Lv. 20 (Male)');
+      expect(
+        EvolutionTriggerFormatter.format(male, l10n: enL10n),
+        'Lv. 20 (Male)',
+      );
 
       const femaleAlone = EvolutionTriggerDetail(
         triggerType: EvolutionTriggerType.other,
         gender: 1,
       );
-      expect(EvolutionTriggerFormatter.format(femaleAlone), 'Female');
+      expect(
+        EvolutionTriggerFormatter.format(femaleAlone, l10n: enL10n),
+        'Female',
+      );
     });
 
     test('formats shed trigger (e.g. Shedinja)', () {
       const shed = EvolutionTriggerDetail(
         triggerType: EvolutionTriggerType.shed,
       );
-      expect(EvolutionTriggerFormatter.format(shed), 'Empty slot & Poké Ball');
+      expect(
+        EvolutionTriggerFormatter.format(shed, l10n: enL10n),
+        'Empty slot & Poké Ball',
+      );
     });
 
     testWidgets('formats with Italian localization', (tester) async {
       late AppLocalizations l10n;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('it'),
-          home: Builder(
-            builder: (context) {
-              l10n = AppLocalizations.of(context);
-              return const SizedBox.shrink();
-            },
-          ),
+      await tester.pumpApp(
+        locale: const Locale('it'),
+        home: Builder(
+          builder: (context) {
+            l10n = AppLocalizations.of(context);
+            return const SizedBox.shrink();
+          },
         ),
       );
 

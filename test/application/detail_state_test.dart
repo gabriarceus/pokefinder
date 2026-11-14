@@ -7,33 +7,9 @@ import '../fixtures/pokemon_fixture.dart';
 final _fakePokemon = buildPokemon();
 
 void main() {
-  group('PokemonBlocState equality', () {
-    test('initial states are equal', () {
-      expect(PokemonBlocInitial(), PokemonBlocInitial());
-    });
-
-    test('loading states are equal', () {
-      expect(PokemonBlocLoading(), PokemonBlocLoading());
-    });
-
-    test('failure states with equal failures are equal', () {
-      expect(
-        PokemonBlocFailure(BadRequestFailure()),
-        PokemonBlocFailure(BadRequestFailure()),
-      );
-    });
-
-    test('failure states with different failures are not equal', () {
-      expect(
-        PokemonBlocFailure(BadRequestFailure()),
-        isNot(PokemonBlocFailure(UnauthorizedFailure())),
-      );
-    });
-  });
-
-  group('PokemonBlocSuccess.copyWith sentinel', () {
+  group('PokemonDetailSuccess.copyWith sentinel', () {
     test('copyWith(formFailure: null) zeroes a non-null formFailure', () {
-      final state = PokemonBlocSuccess(
+      final state = PokemonDetailSuccess(
         pokemon: _fakePokemon,
         formFailure: BadRequestFailure(),
       );
@@ -43,7 +19,7 @@ void main() {
     test(
       'copyWith(encountersFailure: null) zeroes a non-null encountersFailure',
       () {
-        final state = PokemonBlocSuccess(
+        final state = PokemonDetailSuccess(
           pokemon: _fakePokemon,
           encountersFailure: UnexpectedFailure('oops'),
         );
@@ -56,7 +32,7 @@ void main() {
 
     test('copyWith() without failure args preserves existing failures', () {
       final failure = BadRequestFailure();
-      final state = PokemonBlocSuccess(
+      final state = PokemonDetailSuccess(
         pokemon: _fakePokemon,
         formFailure: failure,
       );

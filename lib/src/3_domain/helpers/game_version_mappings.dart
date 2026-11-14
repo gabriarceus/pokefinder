@@ -2,13 +2,18 @@
 class GameVersionMappings {
   const GameVersionMappings._();
 
+  /// PokeAPI version groups and their versions, in release order.
   static const Map<String, List<String>> _groupToVersions = {
+    'red-green-japan': ['red-japan', 'green-japan'],
+    'blue-japan': ['blue-japan'],
     'red-blue': ['red', 'blue'],
     'yellow': ['yellow'],
     'gold-silver': ['gold', 'silver'],
     'crystal': ['crystal'],
     'ruby-sapphire': ['ruby', 'sapphire'],
     'emerald': ['emerald'],
+    'colosseum': ['colosseum'],
+    'xd': ['xd'],
     'firered-leafgreen': ['firered', 'leafgreen'],
     'diamond-pearl': ['diamond', 'pearl'],
     'platinum': ['platinum'],
@@ -20,20 +25,20 @@ class GameVersionMappings {
     'sun-moon': ['sun', 'moon'],
     'ultra-sun-ultra-moon': ['ultra-sun', 'ultra-moon'],
     'lets-go-pikachu-lets-go-eevee': ['lets-go-pikachu', 'lets-go-eevee'],
-    'sword-shield': [
-      'sword',
-      'shield',
-      'the-isle-of-armor',
-      'the-crown-tundra',
+    'sword-shield': ['sword', 'shield'],
+    'the-isle-of-armor': [
+      'the-isle-of-armor-sword',
+      'the-isle-of-armor-shield',
     ],
-    'brilliant-diamond-and-shining-pearl': [
-      'brilliant-diamond',
-      'shining-pearl',
-    ],
+    'the-crown-tundra': ['the-crown-tundra-sword', 'the-crown-tundra-shield'],
+    'brilliant-diamond-shining-pearl': ['brilliant-diamond', 'shining-pearl'],
     'legends-arceus': ['legends-arceus'],
-    'scarlet-violet': ['scarlet', 'violet', 'the-teal-mask', 'the-indigo-disk'],
-    'colosseum': ['colosseum'],
-    'xd': ['xd'],
+    'scarlet-violet': ['scarlet', 'violet'],
+    'the-teal-mask': ['the-teal-mask-scarlet', 'the-teal-mask-violet'],
+    'the-indigo-disk': ['the-indigo-disk-scarlet', 'the-indigo-disk-violet'],
+    'legends-za': ['legends-za'],
+    'mega-dimension': ['mega-dimension'],
+    'champions': ['champions'],
   };
 
   static final Map<String, String> _versionToGroup = () {
@@ -66,6 +71,22 @@ class GameVersionMappings {
     });
   }
 
+  /// Returns the most recent group in [versionGroups] by release order, or
+  /// null when none is known.
+  static String? latestVersionGroup(Iterable<String> versionGroups) {
+    final ordered = _groupToVersions.keys.toList();
+    String? latest;
+    var latestIndex = -1;
+    for (final group in versionGroups) {
+      final index = ordered.indexOf(group.toLowerCase());
+      if (index > latestIndex) {
+        latest = group;
+        latestIndex = index;
+      }
+    }
+    return latest;
+  }
+
   /// Resolves the version group for a specific [version].
   /// Returns [version] itself if no explicit mapping is known.
   static String versionGroupFor(String version) =>
@@ -74,19 +95,4 @@ class GameVersionMappings {
   /// Returns the list of versions contained within [versionGroup].
   static List<String> versionsForGroup(String versionGroup) =>
       _groupToVersions[versionGroup.toLowerCase()] ?? [versionGroup];
-
-  /// Checks whether a move's [moveVersionGroup] matches the [selectedVersion].
-  /// When [selectedVersion] is 'all', always returns true.
-  static bool moveMatchesVersion({
-    required String moveVersionGroup,
-    required String selectedVersion,
-  }) {
-    if (selectedVersion.isEmpty || selectedVersion == 'all') return true;
-
-    final targetGroup = versionGroupFor(selectedVersion);
-    if (moveVersionGroup.toLowerCase() == targetGroup.toLowerCase()) {
-      return true;
-    }
-    return moveVersionGroup.toLowerCase() == selectedVersion.toLowerCase();
-  }
 }

@@ -1,16 +1,17 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:injectable/injectable.dart' hide test;
 import 'package:pokefinder/bootstrap.dart';
-import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/tabs/detail_moves_tab.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
 import '../fixtures/pokemon_fixture.dart';
+import '../helpers/pump_app.dart';
 
 void main() {
   setUpAll(() async {
-    await configureDependencies('mock');
+    await configureDependencies(Environment.dev);
   });
 
   const sampleMoves = [
@@ -30,23 +31,29 @@ void main() {
 
   final samplePokemon = buildPokemon(moves: sampleMoves);
 
-  Widget createTestWidget({
+  Future<void> pumpTestWidget(
+    WidgetTester tester, {
     required DetailGameVersionCubit gameVersionCubit,
     Pokemon? pokemon,
   }) {
-    return MaterialApp(
-      locale: const Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
+    return tester.pumpApp(
       home: Scaffold(
         body: SizedBox(
           width: 400,
           height: 800,
-          child: BlocProvider<DetailGameVersionCubit>.value(
-            value: gameVersionCubit,
-            child: DetailMovesTab(
-              pokemon: pokemon ?? samplePokemon,
-              textColor: Colors.black,
+          // The tab body lives inside the page's NestedScrollView.
+          child: NestedScrollView(
+            headerSliverBuilder: (context, _) => [
+              SliverOverlapAbsorber(
+                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                  context,
+                ),
+                sliver: const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              ),
+            ],
+            body: BlocProvider<DetailGameVersionCubit>.value(
+              value: gameVersionCubit,
+              child: DetailMovesTab(pokemon: pokemon ?? samplePokemon),
             ),
           ),
         ),
@@ -55,56 +62,83 @@ void main() {
   }
 
   group('DetailMovesTab Game Version Sync Tests', () {
+    testWidgets('updates moves when the Pokémon changes in the same tab', (
+      tester,
+    ) async {
+      final versions = DetailGameVersionCubit()..initialize(samplePokemon);
+      addTearDown(versions.close);
+      await pumpTestWidget(tester, gameVersionCubit: versions);
+      await tester.pumpAndSettle();
+      expect(find.text('Quick Attack'), findsOneWidget);
+      final alternate = buildPokemon(
+        id: 10034,
+        name: 'charizard-mega-x',
+        moves: [
+          PokemonMove(
+            name: 'flamethrower',
+            levelLearnedAt: 1,
+            learnMethod: 'level-up',
+            versionGroup: 'platinum',
+          ),
+        ],
+      );
+      versions.initialize(alternate);
+      await pumpTestWidget(
+        tester,
+        gameVersionCubit: versions,
+        pokemon: alternate,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Flamethrower'), findsOneWidget);
+      expect(find.text('Quick Attack'), findsNothing);
+    });
     testWidgets(
-      'renders internal game version selector dropdown when all versions is selected',
+      'shows the shared game version selector when all versions is selected',
       (tester) async {
-        final gameVersionCubit = DetailGameVersionCubit();
+        final gameVersionCubit = DetailGameVersionCubit()
+          ..initialize(samplePokemon);
 
-        await tester.pumpWidget(
-          createTestWidget(gameVersionCubit: gameVersionCubit),
-        );
+        await pumpTestWidget(tester, gameVersionCubit: gameVersionCubit);
         await tester.pumpAndSettle();
 
-        // Game selector label and dropdown should be visible
-        expect(find.text('Game:'), findsOneWidget);
-        expect(find.text('Diamond/Pearl'), findsOneWidget);
-        expect(find.text('Tackle'), findsOneWidget);
-      },
-    );
-
-    testWidgets(
-      'hides internal dropdown and shows specific version moves when filtered by specific version',
-      (tester) async {
-        final gameVersionCubit = DetailGameVersionCubit();
-        gameVersionCubit.initialize(samplePokemon);
-        gameVersionCubit.selectVersion('platinum');
-
-        await tester.pumpWidget(
-          createTestWidget(gameVersionCubit: gameVersionCubit),
-        );
-        await tester.pumpAndSettle();
-
-        // Internal "Game:" label and dropdown should be hidden
-        expect(find.text('Game:'), findsNothing);
-        // Moves for platinum should be displayed
+        // The single merged selector is shown next to the moves.
+        expect(find.text('Game Version'), findsOneWidget);
+        expect(find.text('All Versions'), findsOneWidget);
+        // "All versions" resolves to the most recent version group.
         expect(find.text('Quick Attack'), findsOneWidget);
         expect(find.text('Tackle'), findsNothing);
       },
     );
 
     testWidgets(
-      'displays movesUnavailableForVersion when pokemon has no moves in selected game version',
+      'keeps the selector visible and filters moves to the selected version',
       (tester) async {
-        final gameVersionCubit = DetailGameVersionCubit();
-        gameVersionCubit.selectVersion('red');
+        final gameVersionCubit = DetailGameVersionCubit()
+          ..initialize(samplePokemon);
+        // 'diamond' belongs to the 'diamond-pearl' version group.
+        gameVersionCubit.selectVersion('diamond');
 
-        await tester.pumpWidget(
-          createTestWidget(gameVersionCubit: gameVersionCubit),
-        );
+        await pumpTestWidget(tester, gameVersionCubit: gameVersionCubit);
         await tester.pumpAndSettle();
 
-        // Internal dropdown hidden
-        expect(find.text('Game:'), findsNothing);
+        // The selector is no longer duplicated per tab, so it stays visible.
+        expect(find.text('Game Version'), findsOneWidget);
+        // Moves for the selected version group should be displayed
+        expect(find.text('Tackle'), findsOneWidget);
+        expect(find.text('Quick Attack'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'displays movesUnavailableForVersion when pokemon has no moves in selected game version',
+      (tester) async {
+        final gameVersionCubit = DetailGameVersionCubit()
+          ..initialize(samplePokemon);
+        gameVersionCubit.selectVersion('red');
+
+        await pumpTestWidget(tester, gameVersionCubit: gameVersionCubit);
+        await tester.pumpAndSettle();
+
         // Unavailable notice displayed
         expect(
           find.text('No moves found for this game version.'),
@@ -116,32 +150,49 @@ void main() {
     testWidgets(
       'dynamically responds when gameVersionCubit changes from all to specific version and back',
       (tester) async {
-        final gameVersionCubit = DetailGameVersionCubit();
+        final gameVersionCubit = DetailGameVersionCubit()
+          ..initialize(samplePokemon);
 
-        await tester.pumpWidget(
-          createTestWidget(gameVersionCubit: gameVersionCubit),
-        );
+        await pumpTestWidget(tester, gameVersionCubit: gameVersionCubit);
         await tester.pumpAndSettle();
 
         // Initially on 'all'
-        expect(find.text('Game:'), findsOneWidget);
-        expect(find.text('Tackle'), findsOneWidget);
+        expect(find.text('All Versions'), findsOneWidget);
+        expect(find.text('Quick Attack'), findsOneWidget);
 
-        // Switch to platinum
-        gameVersionCubit.selectVersion('platinum');
+        // Switch to diamond/pearl
+        gameVersionCubit.selectVersion('diamond');
         await tester.pumpAndSettle();
 
-        expect(find.text('Game:'), findsNothing);
-        expect(find.text('Quick Attack'), findsOneWidget);
-        expect(find.text('Tackle'), findsNothing);
+        expect(find.text('Quick Attack'), findsNothing);
+        expect(find.text('Tackle'), findsOneWidget);
 
         // Switch back to all
         gameVersionCubit.selectVersion(DetailGameVersionState.allVersions);
         await tester.pumpAndSettle();
 
-        expect(find.text('Game:'), findsOneWidget);
-        expect(find.text('Tackle'), findsOneWidget);
+        expect(find.text('All Versions'), findsOneWidget);
+        expect(find.text('Quick Attack'), findsOneWidget);
       },
     );
+
+    testWidgets('the search field filters the moves of the version group', (
+      tester,
+    ) async {
+      final gameVersionCubit = DetailGameVersionCubit()
+        ..initialize(samplePokemon);
+      gameVersionCubit.selectVersion('diamond');
+
+      await pumpTestWidget(tester, gameVersionCubit: gameVersionCubit);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tackle'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), 'nomatch');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tackle'), findsNothing);
+      expect(find.text('No moves found for this game version.'), findsNothing);
+    });
   });
 }

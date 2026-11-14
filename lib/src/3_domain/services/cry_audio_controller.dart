@@ -18,6 +18,9 @@ abstract class CryAudioController {
   /// Plays [url] from the beginning, loading it first if necessary.
   Future<void> play(String url);
 
+  /// Stops playback and cancels pending playback requests.
+  Future<void> stop();
+
   /// Sets the audio playback volume from 0.0 to 1.0.
   Future<void> setVolume(double volume);
 
@@ -49,9 +52,6 @@ class CryPlaybackState extends Equatable {
 
   /// Whether loading or playback failed and is currently unavailable.
   final bool unavailable;
-
-  /// Alias for [unavailable] indicating error state.
-  bool get hasError => unavailable;
 
   @override
   List<Object?> get props => [

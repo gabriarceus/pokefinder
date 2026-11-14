@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
+import 'package:pokefinder/src/1_presentation/helpers/localization_delegates.dart';
 import 'package:pokefinder/src/1_presentation/pages/startup_error/startup_error_page.dart';
 
 void main() {
@@ -12,7 +13,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           locale: const Locale('en'),
           home: StartupErrorPage(
@@ -24,10 +25,10 @@ void main() {
 
       expect(find.text('Startup Failed'), findsOneWidget);
       expect(find.text('Storage path unavailable'), findsOneWidget);
-      expect(find.byType(ElevatedButton), findsOneWidget);
+      expect(find.byType(FilledButton), findsOneWidget);
       expect(find.text('Retry'), findsOneWidget);
 
-      await tester.tap(find.byType(ElevatedButton));
+      await tester.tap(find.byType(FilledButton));
       await tester.pump();
 
       expect(retryCalled, isTrue);
@@ -38,7 +39,7 @@ void main() {
       (tester) async {
         await tester.pumpWidget(
           MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: const Locale('en'),
             home: StartupErrorPage(onRetry: () {}),
@@ -58,7 +59,7 @@ void main() {
     testWidgets('renders Italian localization correctly', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           locale: const Locale('it'),
           home: StartupErrorPage(onRetry: () {}),

@@ -1,13 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 
-class PokemonBlocProvider extends StatelessWidget {
-  /// inject [PokemonBloc]
-  ///
-  /// on init add [FetchPokemonEvent]
-  const PokemonBlocProvider({
+/// Provides a [PokemonDetailBloc] scoped to [pokemonName] and loads its data.
+class PokemonDetailBlocProvider extends StatelessWidget {
+  const PokemonDetailBlocProvider({
     super.key,
     required this.child,
     required this.pokemonName,
@@ -19,41 +17,9 @@ class PokemonBlocProvider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => createPokemonBloc(pokemonName),
+      key: ValueKey(pokemonName),
+      create: (_) => createPokemonDetailBloc(pokemonName),
       child: child,
-    );
-  }
-}
-
-class PokemonBlocBuilder extends StatelessWidget {
-  const PokemonBlocBuilder({
-    super.key,
-    required this.onInitial,
-    required this.onLoading,
-    required this.onFailure,
-    required this.onSuccess,
-  });
-
-  final Widget Function(BuildContext context, PokemonBlocInitial state)
-  onInitial;
-  final Widget Function(BuildContext context, PokemonBlocLoading state)
-  onLoading;
-  final Widget Function(BuildContext context, PokemonBlocFailure state)
-  onFailure;
-  final Widget Function(BuildContext context, PokemonBlocSuccess state)
-  onSuccess;
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<PokemonBloc, PokemonBlocState>(
-      builder: (context, state) {
-        return state.map(
-          onInitial: (initial) => onInitial(context, initial),
-          onLoading: (loading) => onLoading(context, loading),
-          onFailure: (failure) => onFailure(context, failure),
-          onSuccess: (success) => onSuccess(context, success),
-        );
-      },
     );
   }
 }

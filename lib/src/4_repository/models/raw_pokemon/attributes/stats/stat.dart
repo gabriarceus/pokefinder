@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'stat.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class Stat {
   const Stat({required this.name, required this.url});
 
@@ -10,6 +10,4 @@ class Stat {
   final String url;
 
   factory Stat.fromJson(Map<String, dynamic> json) => _$StatFromJson(json);
-
-  Map<String, dynamic> toJson() => _$StatToJson(this);
 }

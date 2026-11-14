@@ -39,11 +39,7 @@ void main() {
     final entry = await storage.readEntry<Map<String, dynamic>>(key);
     expect(entry, isNotNull);
     expect(entry!.data, payload);
-    expect(entry.schemaVersion, 1);
     expect(entry.storedAt, simulatedTime);
-
-    final direct = await storage.read<Map<String, dynamic>>(key);
-    expect(direct, payload);
   });
 
   test('respects maxAge expiry', () async {
@@ -52,27 +48,21 @@ void main() {
 
     await storage.write(key, payload);
 
-    // Within maxAge: hit
+    // Within maxAge: fresh
     simulatedTime = simulatedTime.add(const Duration(hours: 1));
-    final hit = await storage.read<Map<String, dynamic>>(
-      key,
-      maxAge: const Duration(hours: 2),
+    final fresh = await storage.readEntry<Map<String, dynamic>>(key);
+    expect(
+      fresh!.isFresh(const Duration(hours: 2), now: simulatedTime),
+      isTrue,
     );
-    expect(hit, payload);
 
-    // Beyond maxAge: miss in read(), but readEntry() still returns expired entry for stale fallback
+    // Beyond maxAge: readEntry() still returns the entry for the stale fallback
     simulatedTime = simulatedTime.add(const Duration(hours: 3));
-    final miss = await storage.read<Map<String, dynamic>>(
-      key,
-      maxAge: const Duration(hours: 2),
-    );
-    expect(miss, isNull);
-
     final staleEntry = await storage.readEntry<Map<String, dynamic>>(key);
     expect(staleEntry, isNotNull);
     expect(
-      staleEntry!.isStale(const Duration(hours: 2), now: simulatedTime),
-      isTrue,
+      staleEntry!.isFresh(const Duration(hours: 2), now: simulatedTime),
+      isFalse,
     );
   });
 
@@ -127,7 +117,7 @@ void main() {
   });
 
   test(
-    'returns null without deleting entry when payload type does not match requested generic',
+    'evicts a payload whose type does not match the requested generic',
     () async {
       await storage.write('str_key', 'hello');
 
@@ -135,12 +125,10 @@ void main() {
       final entry = await storage.readEntry<Map<String, dynamic>>('str_key');
       expect(entry, isNull);
 
-      // Verify the key was not destructively evicted
+      // A schema-drifted entry is evicted, like every other malformed one, so
+      // it is not re-decoded on every read.
       final box = await Hive.openBox<String>('data_cache');
-      expect(box.containsKey('str_key'), isTrue);
-
-      final validEntry = await storage.readEntry<String>('str_key');
-      expect(validEntry?.data, 'hello');
+      expect(box.containsKey('str_key'), isFalse);
     },
   );
 
@@ -187,15 +175,36 @@ void main() {
     expect(box.containsKey('k4'), isTrue);
   });
 
+  test('never evicts a pinned entry, also after a restart', () async {
+    await storage.write('index', 'pinned', evictable: false);
+    for (final key in ['k1', 'k2', 'k3']) {
+      simulatedTime = simulatedTime.add(const Duration(seconds: 1));
+      await storage.write(key, key);
+    }
+
+    final box = await Hive.openBox<String>('data_cache');
+    expect(box.containsKey('index'), isTrue);
+    expect(box.containsKey('k1'), isFalse);
+
+    final restarted = HiveLocalStorage.withMaxEntries(
+      clock: Clock(() => simulatedTime),
+      maxEntries: 3,
+    );
+    await restarted.write('k4', 'k4');
+
+    expect(box.containsKey('index'), isTrue);
+    expect(box.containsKey('k4'), isTrue);
+  });
+
   test('clear and delete remove entries properly', () async {
     await storage.write('k1', 'val1');
     await storage.write('k2', 'val2');
 
     await storage.delete('k1');
-    expect(await storage.read('k1'), isNull);
-    expect(await storage.read('k2'), isNotNull);
+    expect(await storage.readEntry('k1'), isNull);
+    expect(await storage.readEntry('k2'), isNotNull);
 
     await storage.clear();
-    expect(await storage.read('k2'), isNull);
+    expect(await storage.readEntry('k2'), isNull);
   });
 }

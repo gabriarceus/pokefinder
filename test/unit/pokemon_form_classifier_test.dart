@@ -3,6 +3,48 @@ import 'package:pokefinder/src/3_domain/domain.dart';
 
 void main() {
   group('PokemonFormClassifier', () {
+    group('real Mega Evolutions', () {
+      test('accepts the species that have one', () {
+        for (final name in [
+          'charizard-mega',
+          'charizard-mega-x',
+          'charizard-mega-y',
+          'absol-mega-z',
+          'meowstic-male-mega',
+          'magearna-original-mega',
+          'raichu-mega-x',
+          'venusaur-mega',
+          'blastoise-mega',
+          'garchomp-mega',
+          'abomasnow-mega',
+          'audino-mega',
+        ]) {
+          expect(PokemonFormClassifier.hasRealForm(name), isTrue, reason: name);
+        }
+      });
+
+      test('rejects the vestigial index entries', () {
+        for (final name in ['staraptor-mega', 'pikachu-mega']) {
+          expect(
+            PokemonFormClassifier.hasRealForm(name),
+            isFalse,
+            reason: name,
+          );
+        }
+      });
+
+      test('leaves non-mega forms alone', () {
+        for (final name in [
+          'charizard-gmax',
+          'vulpix-alola',
+          'rotom-wash',
+          'zygarde-10',
+        ]) {
+          expect(PokemonFormClassifier.hasRealForm(name), isTrue, reason: name);
+        }
+      });
+    });
+
     test('classifies all major form categories correctly', () {
       expect(
         PokemonFormClassifier.classifyCategory('charizard-mega-x', id: 10034),
@@ -57,6 +99,14 @@ void main() {
           id: 10144,
         ),
         PokemonFormCategory.cosmetic,
+      );
+      expect(
+        PokemonFormClassifier.classifyCategory('pikachu-alola-cap', id: 10099),
+        PokemonFormCategory.cosmetic,
+      );
+      expect(
+        PokemonFormClassifier.resolveRegionalGroup('pikachu-alola-cap'),
+        isNull,
       );
       expect(
         PokemonFormClassifier.classifyCategory('bulbasaur', id: 1),
@@ -297,6 +347,15 @@ void main() {
         ),
         'Rotom (Lavaggio)',
       );
+      expect(
+        PokemonFormClassifier.formatDisplayName(
+          name: 'giratina-origin',
+          parentSpeciesName: 'giratina',
+          category: PokemonFormCategory.battleMode,
+          languageCode: 'it',
+        ),
+        'Giratina (Originale)',
+      );
 
       // Special species display name formatting
       expect(
@@ -308,6 +367,16 @@ void main() {
         ),
         'Mr. Mime',
       );
+    });
+
+    test('a species id above 1025 is canonical, not an alternate form', () {
+      final entry = PokemonFormClassifier.enrichEntries(const [
+        PokemonIndexEntry(id: 1026, name: 'newmon', detailUrl: ''),
+      ]).single;
+
+      expect(entry.formCategory, PokemonFormCategory.canonical);
+      expect(entry.isAlternateForm, isFalse);
+      expect(entry.effectiveParentSpeciesId, 1026);
     });
 
     test('verifies dual generation bounds mapping', () {

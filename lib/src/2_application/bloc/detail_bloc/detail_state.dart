@@ -1,47 +1,26 @@
 part of 'detail_bloc.dart';
 
 @immutable
-sealed class PokemonBlocState extends Equatable {
-  const PokemonBlocState();
-
-  T map<T>({
-    required T Function(PokemonBlocInitial state) onInitial,
-    required T Function(PokemonBlocLoading state) onLoading,
-    required T Function(PokemonBlocFailure state) onFailure,
-    required T Function(PokemonBlocSuccess state) onSuccess,
-  }) {
-    switch (this) {
-      case PokemonBlocInitial initial:
-        return onInitial(initial);
-
-      case PokemonBlocLoading loading:
-        return onLoading(loading);
-
-      case PokemonBlocFailure failure:
-        return onFailure(failure);
-
-      case PokemonBlocSuccess success:
-        return onSuccess(success);
-    }
-  }
+sealed class PokemonDetailState extends Equatable {
+  const PokemonDetailState();
 }
 
-final class PokemonBlocInitial extends PokemonBlocState {
-  const PokemonBlocInitial();
+final class PokemonDetailInitial extends PokemonDetailState {
+  const PokemonDetailInitial();
 
   @override
   List<Object?> get props => [];
 }
 
-final class PokemonBlocLoading extends PokemonBlocState {
-  const PokemonBlocLoading();
+final class PokemonDetailLoading extends PokemonDetailState {
+  const PokemonDetailLoading();
 
   @override
   List<Object?> get props => [];
 }
 
-final class PokemonBlocFailure extends PokemonBlocState {
-  const PokemonBlocFailure(this.failure);
+final class PokemonDetailFailure extends PokemonDetailState {
+  const PokemonDetailFailure(this.failure);
 
   final PokemonFailure failure;
 
@@ -49,10 +28,9 @@ final class PokemonBlocFailure extends PokemonBlocState {
   List<Object?> get props => [failure];
 }
 
-final class PokemonBlocSuccess extends PokemonBlocState {
-  const PokemonBlocSuccess({
+final class PokemonDetailSuccess extends PokemonDetailState {
+  const PokemonDetailSuccess({
     required this.pokemon,
-    this.selectedFormDetails,
     this.encounters,
     this.isLoadingForm = false,
     this.isLoadingEncounters = false,
@@ -64,7 +42,6 @@ final class PokemonBlocSuccess extends PokemonBlocState {
   static const _unset = Object();
 
   final Pokemon pokemon;
-  final PokemonFormDetails? selectedFormDetails;
   final List<PokemonEncounter>? encounters;
   final bool isLoadingForm;
   final bool isLoadingEncounters;
@@ -72,14 +49,37 @@ final class PokemonBlocSuccess extends PokemonBlocState {
   final PokemonFailure? encountersFailure;
   final PokemonForm? failedForm;
 
-  /// Active form details, falling back to the base Pokémon when no alternate
-  /// form has been selected.
-  PokemonFormDetails get formDetails =>
-      selectedFormDetails ?? PokemonFormDetails.fromPokemon(pokemon);
+  /// Details of the loaded Pokémon.
+  PokemonFormDetails get formDetails => PokemonFormDetails.fromPokemon(pokemon);
 
-  PokemonBlocSuccess copyWith({
+  /// Summary of the active Pokémon, including its exact identity and lineage.
+  PokemonSummary get summary {
+    final form = formDetails;
+    final types = form.type1 != null
+        ? [form.type1, form.type2]
+        : [pokemon.type1, pokemon.type2];
+    return PokemonSummary(
+      id: form.id,
+      name: form.name,
+      spriteUrl: form.artworkDefault.isNotEmpty
+          ? form.artworkDefault
+          : pokemon.sprite,
+      types: types.whereType<PokemonType>().toList(),
+      parentSpeciesId: PokemonFormClassifier.resolveParentSpeciesId(
+        pokemon.name,
+        id: pokemon.id,
+      ),
+      parentSpeciesName: pokemon.speciesName,
+      formCategory: PokemonFormClassifier.classifyCategory(
+        form.name,
+        id: form.id,
+      ),
+      regionalGroup: PokemonFormClassifier.resolveRegionalGroup(form.name),
+    );
+  }
+
+  PokemonDetailSuccess copyWith({
     Pokemon? pokemon,
-    PokemonFormDetails? selectedFormDetails,
     List<PokemonEncounter>? encounters,
     bool? isLoadingForm,
     bool? isLoadingEncounters,
@@ -87,9 +87,8 @@ final class PokemonBlocSuccess extends PokemonBlocState {
     Object? encountersFailure = _unset,
     Object? failedForm = _unset,
   }) {
-    return PokemonBlocSuccess(
+    return PokemonDetailSuccess(
       pokemon: pokemon ?? this.pokemon,
-      selectedFormDetails: selectedFormDetails ?? this.selectedFormDetails,
       encounters: encounters ?? this.encounters,
       isLoadingForm: isLoadingForm ?? this.isLoadingForm,
       isLoadingEncounters: isLoadingEncounters ?? this.isLoadingEncounters,
@@ -108,7 +107,6 @@ final class PokemonBlocSuccess extends PokemonBlocState {
   @override
   List<Object?> get props => [
     pokemon,
-    selectedFormDetails,
     encounters,
     isLoadingForm,
     isLoadingEncounters,

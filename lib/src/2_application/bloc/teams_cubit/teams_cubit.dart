@@ -118,33 +118,27 @@ class TeamsCubit extends HydratedCubit<TeamsState> {
     return true;
   }
 
-  /// Adds [entry] to the team [teamId].
+  /// Adds [pokemon] to the team [teamId].
   TeamAddMemberResult addMember({
     required String teamId,
-    required PokemonIndexEntry entry,
+    required PokemonSummary pokemon,
   }) {
     final team = state.teamById(teamId);
     if (team == null) return TeamAddMemberResult.teamNotFound;
     if (team.isFull) {
       _logger.info(
-        'Team $teamId full, rejecting ${entry.name}',
+        'Team $teamId full, rejecting ${pokemon.name}',
         prefix: _prefix,
       );
       return TeamAddMemberResult.teamFull;
     }
     final duplicate = TeamSummaryHelper.isDuplicateName(
       team.members,
-      entry.name,
+      pokemon.name,
     );
-    final member = TeamMember(
-      id: entry.id,
-      name: entry.name,
-      spriteUrl: entry.spriteUrl,
-      types: List<PokemonType>.from(entry.types),
-      addedAt: _clock.now(),
-    );
+    final member = TeamMember(pokemon: pokemon, addedAt: _clock.now());
     _logger.info(
-      'Adding ${entry.name} (#${entry.id}) to team $teamId',
+      'Adding ${pokemon.name} (#${pokemon.id}) to team $teamId',
       prefix: _prefix,
     );
     _replaceTeam(
@@ -164,20 +158,13 @@ class TeamsCubit extends HydratedCubit<TeamsState> {
     if (team == null) return false;
     if (index < 0 || index >= team.members.length) return false;
     final removed = team.members[index];
-    _logger.info('Removing ${removed.name} from team $teamId', prefix: _prefix);
+    _logger.info(
+      'Removing ${removed.pokemon.name} from team $teamId',
+      prefix: _prefix,
+    );
     final updated = List<TeamMember>.from(team.members)..removeAt(index);
     _replaceTeam(team.copyWith(members: updated, updatedAt: _clock.now()));
     return true;
-  }
-
-  /// Removes the first member matching [memberName] (normalized slug).
-  bool removeMember(String teamId, String memberName) {
-    final team = state.teamById(teamId);
-    if (team == null) return false;
-    final key = TeamSummaryHelper.normalizeMemberKey(memberName);
-    final index = team.members.indexWhere((member) => member.memberKey == key);
-    if (index == -1) return false;
-    return removeMemberAt(teamId, index);
   }
 
   /// Moves the member from [oldIndex] to [newIndex] within team [teamId].

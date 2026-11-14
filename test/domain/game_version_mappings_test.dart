@@ -19,39 +19,10 @@ void main() {
       expect(GameVersionMappings.versionsForGroup('sword-shield'), [
         'sword',
         'shield',
-        'the-isle-of-armor',
-        'the-crown-tundra',
       ]);
-    });
-
-    test('matches move version group to selected version', () {
       expect(
-        GameVersionMappings.moveMatchesVersion(
-          moveVersionGroup: 'red-blue',
-          selectedVersion: 'red',
-        ),
-        isTrue,
-      );
-      expect(
-        GameVersionMappings.moveMatchesVersion(
-          moveVersionGroup: 'red-blue',
-          selectedVersion: 'blue',
-        ),
-        isTrue,
-      );
-      expect(
-        GameVersionMappings.moveMatchesVersion(
-          moveVersionGroup: 'sword-shield',
-          selectedVersion: 'red',
-        ),
-        isFalse,
-      );
-      expect(
-        GameVersionMappings.moveMatchesVersion(
-          moveVersionGroup: 'sword-shield',
-          selectedVersion: 'all',
-        ),
-        isTrue,
+        GameVersionMappings.versionGroupFor('the-isle-of-armor-sword'),
+        'the-isle-of-armor',
       );
     });
   });

@@ -194,18 +194,6 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settings;
 
-  /// No description provided for @useDeviceLanguage.
-  ///
-  /// In en, this message translates to:
-  /// **'Use device language'**
-  String get useDeviceLanguage;
-
-  /// No description provided for @useDeviceLanguageInfo.
-  ///
-  /// In en, this message translates to:
-  /// **'If enabled, the app will use your device\'s language.'**
-  String get useDeviceLanguageInfo;
-
   /// No description provided for @about.
   ///
   /// In en, this message translates to:
@@ -218,6 +206,12 @@ abstract class AppLocalizations {
   /// **'Language'**
   String get language;
 
+  /// No description provided for @useDeviceLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Device'**
+  String get useDeviceLanguage;
+
   /// No description provided for @weight.
   ///
   /// In en, this message translates to:
@@ -229,12 +223,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Height'**
   String get height;
-
-  /// No description provided for @pokemonCry.
-  ///
-  /// In en, this message translates to:
-  /// **'Pokemon Cry'**
-  String get pokemonCry;
 
   /// No description provided for @baseStats.
   ///
@@ -317,7 +305,7 @@ abstract class AppLocalizations {
   /// No description provided for @tabItemsGames.
   ///
   /// In en, this message translates to:
-  /// **'Items & Games'**
+  /// **'Locations'**
   String get tabItemsGames;
 
   /// No description provided for @baseExp.
@@ -326,11 +314,17 @@ abstract class AppLocalizations {
   /// **'Base Exp'**
   String get baseExp;
 
-  /// No description provided for @order.
+  /// No description provided for @baseExpValue.
   ///
   /// In en, this message translates to:
-  /// **'Order'**
-  String get order;
+  /// **'{value} XP'**
+  String baseExpValue({required int value});
+
+  /// No description provided for @showResults.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Show 1 result} other{Show {count} results}}'**
+  String showResults({required int count});
 
   /// No description provided for @defaultForm.
   ///
@@ -506,12 +500,6 @@ abstract class AppLocalizations {
   /// **'Rarity'**
   String get rarity;
 
-  /// No description provided for @species.
-  ///
-  /// In en, this message translates to:
-  /// **'Species'**
-  String get species;
-
   /// No description provided for @locationAreaEncounters.
   ///
   /// In en, this message translates to:
@@ -638,11 +626,26 @@ abstract class AppLocalizations {
   /// **'Max'**
   String get statsMax;
 
-  /// No description provided for @gameSelectorLabel.
+  /// No description provided for @statRangeSemantics.
   ///
   /// In en, this message translates to:
-  /// **'Game:'**
-  String get gameSelectorLabel;
+  /// **'{stat}: {base}, min {min}, max {max}'**
+  String statRangeSemantics({
+    required String stat,
+    required String base,
+    required String min,
+    required String max,
+  });
+
+  /// No description provided for @teamStatSumAverageSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{stat}: sum {sum}, average {average}'**
+  String teamStatSumAverageSemantics({
+    required String stat,
+    required String sum,
+    required String average,
+  });
 
   /// No description provided for @noData.
   ///
@@ -679,12 +682,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Available Forms'**
   String get formSelectorForms;
-
-  /// No description provided for @formTypeModifier.
-  ///
-  /// In en, this message translates to:
-  /// **'{type}'**
-  String formTypeModifier({required String type});
 
   /// No description provided for @typeNormal.
   ///
@@ -1058,6 +1055,114 @@ abstract class AppLocalizations {
   /// **'XD'**
   String get gameXd;
 
+  /// No description provided for @gameTheIsleOfArmorSword.
+  ///
+  /// In en, this message translates to:
+  /// **'The Isle of Armor (Sword)'**
+  String get gameTheIsleOfArmorSword;
+
+  /// No description provided for @gameTheIsleOfArmorShield.
+  ///
+  /// In en, this message translates to:
+  /// **'The Isle of Armor (Shield)'**
+  String get gameTheIsleOfArmorShield;
+
+  /// No description provided for @gameTheCrownTundraSword.
+  ///
+  /// In en, this message translates to:
+  /// **'The Crown Tundra (Sword)'**
+  String get gameTheCrownTundraSword;
+
+  /// No description provided for @gameTheCrownTundraShield.
+  ///
+  /// In en, this message translates to:
+  /// **'The Crown Tundra (Shield)'**
+  String get gameTheCrownTundraShield;
+
+  /// No description provided for @gameBrilliantDiamond.
+  ///
+  /// In en, this message translates to:
+  /// **'Brilliant Diamond'**
+  String get gameBrilliantDiamond;
+
+  /// No description provided for @gameShiningPearl.
+  ///
+  /// In en, this message translates to:
+  /// **'Shining Pearl'**
+  String get gameShiningPearl;
+
+  /// No description provided for @gameTheTealMaskScarlet.
+  ///
+  /// In en, this message translates to:
+  /// **'The Teal Mask (Scarlet)'**
+  String get gameTheTealMaskScarlet;
+
+  /// No description provided for @gameTheTealMaskViolet.
+  ///
+  /// In en, this message translates to:
+  /// **'The Teal Mask (Violet)'**
+  String get gameTheTealMaskViolet;
+
+  /// No description provided for @gameTheIndigoDiskScarlet.
+  ///
+  /// In en, this message translates to:
+  /// **'The Indigo Disk (Scarlet)'**
+  String get gameTheIndigoDiskScarlet;
+
+  /// No description provided for @gameTheIndigoDiskViolet.
+  ///
+  /// In en, this message translates to:
+  /// **'The Indigo Disk (Violet)'**
+  String get gameTheIndigoDiskViolet;
+
+  /// No description provided for @gameLegendsZa.
+  ///
+  /// In en, this message translates to:
+  /// **'Legends: Z-A'**
+  String get gameLegendsZa;
+
+  /// No description provided for @gameMegaDimension.
+  ///
+  /// In en, this message translates to:
+  /// **'Mega Dimension'**
+  String get gameMegaDimension;
+
+  /// No description provided for @gameChampions.
+  ///
+  /// In en, this message translates to:
+  /// **'Champions'**
+  String get gameChampions;
+
+  /// No description provided for @gameRedJapan.
+  ///
+  /// In en, this message translates to:
+  /// **'Red (Japan)'**
+  String get gameRedJapan;
+
+  /// No description provided for @gameGreenJapan.
+  ///
+  /// In en, this message translates to:
+  /// **'Green (Japan)'**
+  String get gameGreenJapan;
+
+  /// No description provided for @gameBlueJapan.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue (Japan)'**
+  String get gameBlueJapan;
+
+  /// No description provided for @gameGroupRedGreenJapan.
+  ///
+  /// In en, this message translates to:
+  /// **'Red/Green (Japan)'**
+  String get gameGroupRedGreenJapan;
+
+  /// No description provided for @gameGroupBrilliantDiamondShiningPearl.
+  ///
+  /// In en, this message translates to:
+  /// **'Brilliant Diamond/Shining Pearl'**
+  String get gameGroupBrilliantDiamondShiningPearl;
+
   /// No description provided for @gameGroupRedBlue.
   ///
   /// In en, this message translates to:
@@ -1190,24 +1295,6 @@ abstract class AppLocalizations {
   /// **'Edit Search'**
   String get editSearchButton;
 
-  /// No description provided for @errorEncounters.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to load encounters.'**
-  String get errorEncounters;
-
-  /// No description provided for @errorFormDetails.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to load form details.'**
-  String get errorFormDetails;
-
-  /// No description provided for @errorMoveDetails.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to load move details.'**
-  String get errorMoveDetails;
-
   /// No description provided for @defaultFormRollback.
   ///
   /// In en, this message translates to:
@@ -1274,23 +1361,11 @@ abstract class AppLocalizations {
   /// **'Pokédex'**
   String get pokedexTitle;
 
-  /// No description provided for @filter.
-  ///
-  /// In en, this message translates to:
-  /// **'Filter'**
-  String get filter;
-
   /// No description provided for @filters.
   ///
   /// In en, this message translates to:
   /// **'Filters'**
   String get filters;
-
-  /// No description provided for @filterCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} active'**
-  String filterCount({required int count});
 
   /// No description provided for @types.
   ///
@@ -1363,12 +1438,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear Filters'**
   String get clearFilters;
-
-  /// No description provided for @apply.
-  ///
-  /// In en, this message translates to:
-  /// **'Apply'**
-  String get apply;
 
   /// No description provided for @reset.
   ///
@@ -1483,6 +1552,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add to favorites'**
   String get addToFavorites;
+
+  /// No description provided for @cardActionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Long press for more actions'**
+  String get cardActionsHint;
 
   /// No description provided for @removeFromFavorites.
   ///
@@ -1628,12 +1703,6 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get cancel;
 
-  /// No description provided for @confirm.
-  ///
-  /// In en, this message translates to:
-  /// **'Confirm'**
-  String get confirm;
-
   /// No description provided for @clear.
   ///
   /// In en, this message translates to:
@@ -1658,23 +1727,65 @@ abstract class AppLocalizations {
   /// **'Base Friendship'**
   String get baseHappiness;
 
-  /// No description provided for @growthRate.
-  ///
-  /// In en, this message translates to:
-  /// **'Growth Rate'**
-  String get growthRate;
-
   /// No description provided for @habitat.
   ///
   /// In en, this message translates to:
   /// **'Habitat'**
   String get habitat;
 
-  /// No description provided for @eggGroups.
+  /// No description provided for @habitatCave.
   ///
   /// In en, this message translates to:
-  /// **'Egg Groups'**
-  String get eggGroups;
+  /// **'Cave'**
+  String get habitatCave;
+
+  /// No description provided for @habitatForest.
+  ///
+  /// In en, this message translates to:
+  /// **'Forest'**
+  String get habitatForest;
+
+  /// No description provided for @habitatGrassland.
+  ///
+  /// In en, this message translates to:
+  /// **'Grassland'**
+  String get habitatGrassland;
+
+  /// No description provided for @habitatMountain.
+  ///
+  /// In en, this message translates to:
+  /// **'Mountain'**
+  String get habitatMountain;
+
+  /// No description provided for @habitatRare.
+  ///
+  /// In en, this message translates to:
+  /// **'Rare'**
+  String get habitatRare;
+
+  /// No description provided for @habitatRoughTerrain.
+  ///
+  /// In en, this message translates to:
+  /// **'Rough terrain'**
+  String get habitatRoughTerrain;
+
+  /// No description provided for @habitatSea.
+  ///
+  /// In en, this message translates to:
+  /// **'Sea'**
+  String get habitatSea;
+
+  /// No description provided for @habitatUrban.
+  ///
+  /// In en, this message translates to:
+  /// **'Urban'**
+  String get habitatUrban;
+
+  /// No description provided for @habitatWatersEdge.
+  ///
+  /// In en, this message translates to:
+  /// **'Water\'s edge'**
+  String get habitatWatersEdge;
 
   /// No description provided for @flavorText.
   ///
@@ -1784,12 +1895,6 @@ abstract class AppLocalizations {
   /// **'Game Version'**
   String get filterByVersion;
 
-  /// No description provided for @baseSpeciesDataNotice.
-  ///
-  /// In en, this message translates to:
-  /// **'Appearance & types reflect {formName}. Stats, moves, and abilities reflect the base species.'**
-  String baseSpeciesDataNotice({required String formName});
-
   /// No description provided for @encountersUnavailableForVersion.
   ///
   /// In en, this message translates to:
@@ -1807,24 +1912,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No moves found for this game version.'**
   String get movesUnavailableForVersion;
-
-  /// No description provided for @errorSpecies.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to load species information.'**
-  String get errorSpecies;
-
-  /// No description provided for @errorEvolutionChain.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to load evolution chain.'**
-  String get errorEvolutionChain;
-
-  /// No description provided for @errorAbilityDetail.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to load ability details.'**
-  String get errorAbilityDetail;
 
   /// No description provided for @evolutionTriggerLevelUpsideDown.
   ///
@@ -2053,12 +2140,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All Pokémon data, sprites, and assets are sourced from PokeAPI.'**
   String get aboutDataSourceDescription;
-
-  /// No description provided for @aboutPokeApiWebsite.
-  ///
-  /// In en, this message translates to:
-  /// **'PokeAPI Website'**
-  String get aboutPokeApiWebsite;
 
   /// No description provided for @aboutDisclaimer.
   ///
@@ -2366,11 +2447,23 @@ abstract class AppLocalizations {
   /// **'Type coverage'**
   String get teamTypeCoverage;
 
+  /// No description provided for @teamStatsSumColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sum'**
+  String get teamStatsSumColumn;
+
   /// No description provided for @teamStatsSum.
   ///
   /// In en, this message translates to:
   /// **'Total (sum)'**
   String get teamStatsSum;
+
+  /// No description provided for @teamStatsAverageColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg'**
+  String get teamStatsAverageColumn;
 
   /// No description provided for @teamStatsAverage.
   ///

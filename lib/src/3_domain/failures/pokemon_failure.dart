@@ -50,10 +50,6 @@ final class StorageFailure extends PokemonFailure {
   const StorageFailure([super.message = 'Storage failure']);
 }
 
-final class RequestCancelledFailure extends PokemonFailure {
-  const RequestCancelledFailure([super.message = 'Request was cancelled']);
-}
-
 final class UnexpectedFailure extends PokemonFailure {
   const UnexpectedFailure(super.message);
 }

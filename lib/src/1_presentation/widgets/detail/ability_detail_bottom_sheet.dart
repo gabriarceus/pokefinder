@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
-import 'package:pokefinder/src/2_application/bloc/ability_detail_cubit/ability_detail_cubit.dart';
-import 'package:pokefinder/src/2_application/bloc/ability_detail_cubit/ability_detail_state.dart';
+import 'package:pokefinder/src/1_presentation/widgets/failure_retry_card.dart';
+import 'package:pokefinder/src/2_application/bloc/load_cubit/load_cubit.dart';
+import 'package:pokefinder/src/2_application/bloc/load_cubit/load_state.dart';
 import 'package:pokefinder/src/3_domain/entities/ability_detail.dart';
 
 /// Modal bottom sheet displaying detailed behavior and in-battle effects for a Pokémon ability.
@@ -73,8 +74,7 @@ class AbilityDetailBottomSheet extends StatelessWidget {
                   children: [
                     Text(
                       displayName,
-                      style: const TextStyle(
-                        fontSize: 22,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                       textAlign: TextAlign.center,
@@ -87,79 +87,42 @@ class AbilityDetailBottomSheet extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.amber.withValues(alpha: 0.15),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.tertiaryContainer,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Colors.amber.withValues(alpha: 0.5),
-                          ),
                         ),
                         child: Text(
                           context.t().abilityHidden.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.amber.shade900,
-                          ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onTertiaryContainer,
+                              ),
                         ),
                       ),
                     ],
                   ],
                 ),
                 const SizedBox(height: 20),
-                BlocBuilder<AbilityDetailCubit, AbilityDetailState>(
-                  builder: (context, state) {
-                    if (state is AbilityDetailLoading ||
-                        state is AbilityDetailInitial) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(32.0),
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    } else if (state is AbilityDetailError) {
-                      final errorMessage = state.failure != null
-                          ? state.failure!.localizedMessage(context)
-                          : state.message;
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.error_outline_rounded,
-                                color: Theme.of(context).colorScheme.error,
-                                size: 40,
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                errorMessage,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.error,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              OutlinedButton.icon(
-                                onPressed: () {
-                                  context
-                                      .read<AbilityDetailCubit>()
-                                      .fetchAbilityDetail(abilityName);
-                                },
-                                icon: const Icon(Icons.refresh_rounded),
-                                label: Text(context.t().retryButton),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    } else if (state is AbilityDetailLoaded) {
-                      return _AbilityDetailContent(
-                        abilityDetail: state.abilityDetail,
-                      );
-                    }
-                    return const SizedBox.shrink();
+                BlocBuilder<LoadCubit<AbilityDetail>, LoadState<AbilityDetail>>(
+                  builder: (context, state) => switch (state) {
+                    LoadInProgress() => const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                    LoadFailure(:final failure) => FailureRetryCard(
+                      message: failure.localizedMessage(context),
+                      onRetry: () =>
+                          context.read<LoadCubit<AbilityDetail>>().load(),
+                    ),
+                    LoadSuccess(:final value) => _AbilityDetailContent(
+                      abilityDetail: value,
+                    ),
                   },
                 ),
               ],
@@ -190,7 +153,9 @@ class _AbilityDetailContent extends StatelessWidget {
         if (summary.isNotEmpty) ...[
           Text(
             t.abilityShortEffect,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
           Container(
@@ -203,14 +168,18 @@ class _AbilityDetailContent extends StatelessWidget {
             ),
             child: Text(
               summary,
-              style: const TextStyle(fontSize: 14, height: 1.4),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(height: 1.4),
             ),
           ),
           const SizedBox(height: 20),
         ],
         Text(
           t.abilityEffect,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 6),
         Container(
@@ -223,7 +192,9 @@ class _AbilityDetailContent extends StatelessWidget {
           ),
           child: Text(
             battleEffect.isNotEmpty ? battleEffect : '-',
-            style: const TextStyle(fontSize: 14, height: 1.4),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(height: 1.4),
           ),
         ),
       ],

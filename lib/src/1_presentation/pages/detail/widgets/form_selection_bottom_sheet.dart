@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
+import 'package:pokefinder/src/3_domain/helpers/pokeapi_url_helper.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
-import 'package:pokefinder/src/1_presentation/extensions/form_name_formatter.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
+import 'package:pokefinder/src/1_presentation/theme/readable_color.dart';
 
 /// Bottom sheet that lets the user toggle shiny sprites and pick an
 /// alternate Pokémon form.
@@ -48,24 +50,28 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PokemonBloc, PokemonBlocState>(
+    return BlocBuilder<PokemonDetailBloc, PokemonDetailState>(
       builder: (context, state) {
-        final String? selectedFormName;
-        final bool isLoadingForm;
-        final formFailure = state is PokemonBlocSuccess
-            ? state.formFailure
-            : null;
-        final failedForm = state is PokemonBlocSuccess
-            ? state.failedForm
-            : null;
+        final (
+          selectedFormName,
+          isLoadingForm,
+          formFailure,
+          failedForm,
+        ) = switch (state) {
+          PokemonDetailSuccess() => (
+            state.formDetails.name,
+            state.isLoadingForm,
+            state.formFailure,
+            state.failedForm,
+          ),
+          PokemonDetailInitial() ||
+          PokemonDetailLoading() ||
+          PokemonDetailFailure() => (widget.pokemon.name, false, null, null),
+        };
 
-        if (state is PokemonBlocSuccess) {
-          selectedFormName = state.selectedFormDetails?.name;
-          isLoadingForm = state.isLoadingForm;
-        } else {
-          selectedFormName = widget.pokemon.name;
-          isLoadingForm = false;
-        }
+        final accentColor = widget.typeColor.readableOn(
+          Theme.of(context).brightness,
+        );
 
         return SafeArea(
           child: SingleChildScrollView(
@@ -90,8 +96,7 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                   const SizedBox(height: 20),
                   Text(
                     context.t().formSelectorTitle,
-                    style: TextStyle(
-                      fontSize: 20,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).textTheme.titleLarge?.color,
                     ),
@@ -105,7 +110,7 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                         _localShowShiny
                             ? Icons.star_rounded
                             : Icons.star_border_rounded,
-                        color: Colors.amber,
+                        color: Theme.of(context).colorScheme.primary,
                         size: 28,
                       ),
                       title: Text(
@@ -113,7 +118,6 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                       value: _localShowShiny,
-                      activeThumbColor: widget.typeColor,
                       onChanged: _onShinyToggled,
                     ),
                   ),
@@ -121,8 +125,7 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                   const SizedBox(height: 8),
                   Text(
                     context.t().formSelectorForms,
-                    style: TextStyle(
-                      fontSize: 16,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).textTheme.titleMedium?.color,
                     ),
@@ -158,13 +161,15 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                                 Expanded(
                                   child: Text(
                                     formFailure.localizedMessage(context),
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.error,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.error,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                   ),
                                 ),
                               ],
@@ -176,7 +181,7 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                                 if (failedForm != null)
                                   TextButton.icon(
                                     onPressed: () {
-                                      context.read<PokemonBloc>().add(
+                                      context.read<PokemonDetailBloc>().add(
                                         SelectPokemonFormEvent(failedForm),
                                       );
                                     },
@@ -189,7 +194,7 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                                 const SizedBox(width: 8),
                                 TextButton.icon(
                                   onPressed: () {
-                                    context.read<PokemonBloc>().add(
+                                    context.read<PokemonDetailBloc>().add(
                                       SelectPokemonFormEvent(
                                         PokemonForm(
                                           name: widget.pokemon.name,
@@ -216,93 +221,92 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                         padding: EdgeInsets.all(24.0),
                         child: CircularProgressIndicator(),
                       ),
-                    )
-                  else
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxHeight: 200),
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: widget.pokemon.forms.length,
-                        itemBuilder: (context, index) {
-                          final form = widget.pokemon.forms[index];
-                          final isSelected = form.name == selectedFormName;
-                          final displayFormName = formatFormName(
-                            context,
-                            form.name,
-                          );
+                    ),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: widget.pokemon.forms.length,
+                      itemBuilder: (context, index) {
+                        final form = widget.pokemon.forms[index];
+                        final isSelected = form.name == selectedFormName;
+                        final displayFormName = context.translatePokemonName(
+                          name: form.name,
+                          id: PokeApiUrlHelper.extractId(form.url),
+                          speciesName: widget.pokemon.speciesName,
+                        );
 
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: Semantics(
-                              button: true,
-                              selected: isSelected,
-                              label: displayFormName,
-                              child: InkWell(
-                                onTap: () {
-                                  if (state is PokemonBlocSuccess &&
-                                      !state.isLoadingForm) {
-                                    context.read<PokemonBloc>().add(
-                                      SelectPokemonFormEvent(form),
-                                    );
-                                  }
-                                },
-                                borderRadius: BorderRadius.circular(12),
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    minHeight: 48,
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Semantics(
+                            button: true,
+                            selected: isSelected,
+                            label: displayFormName,
+                            child: InkWell(
+                              onTap: () {
+                                if (state case PokemonDetailSuccess()) {
+                                  context.read<PokemonDetailBloc>().add(
+                                    SelectPokemonFormEvent(form),
+                                  );
+                                }
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  minHeight: 48,
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
                                   ),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 12,
-                                    ),
-                                    decoration: BoxDecoration(
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? widget.typeColor.withValues(
+                                            alpha: 0.1,
+                                          )
+                                        : Colors.transparent,
+                                    border: Border.all(
                                       color: isSelected
-                                          ? widget.typeColor.withValues(
-                                              alpha: 0.1,
-                                            )
+                                          ? accentColor
                                           : Colors.transparent,
-                                      border: Border.all(
-                                        color: isSelected
-                                            ? widget.typeColor
-                                            : Colors.transparent,
-                                        width: 1.5,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
+                                      width: 1.5,
                                     ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            displayFormName,
-                                            style: TextStyle(
-                                              fontWeight: isSelected
-                                                  ? FontWeight.bold
-                                                  : FontWeight.normal,
-                                              color: isSelected
-                                                  ? widget.typeColor
-                                                  : null,
-                                            ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          displayFormName,
+                                          style: TextStyle(
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                            color: isSelected
+                                                ? accentColor
+                                                : null,
                                           ),
                                         ),
-                                        if (isSelected)
-                                          Icon(
-                                            Icons.check_circle,
-                                            color: widget.typeColor,
-                                            size: 20,
-                                          ),
-                                      ],
-                                    ),
+                                      ),
+                                      if (isSelected)
+                                        Icon(
+                                          Icons.check_circle,
+                                          color: accentColor,
+                                          size: 20,
+                                        ),
+                                    ],
                                   ),
                                 ),
                               ),
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      },
                     ),
+                  ),
                 ],
               ),
             ),

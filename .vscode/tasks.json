@@ -1,5 +1,8 @@
 {
   "version": "2.0.0",
+  "options": {
+    "cwd": "${workspaceFolder}"
+  },
   "tasks": [
     {
       "label": "Tests",
@@ -10,8 +13,13 @@
     },
     {
       "label": "Verify",
-      "type": "shell",
-      "command": "./scripts/verify.sh",
+      "type": "process",
+      "command": "bash",
+      "args": ["scripts/verify.sh"],
+      "windows": {
+        "command": "${env:ProgramFiles}\\Git\\bin\\bash.exe",
+        "args": ["--login", "scripts/verify.sh"]
+      },
       "detail": "Run every quality gate: format, analyze, tests",
       "problemMatcher": []
     },
@@ -24,8 +32,13 @@
     },
     {
       "label": "Coverage",
-      "type": "shell",
-      "command": "./scripts/coverage.sh",
+      "type": "process",
+      "command": "bash",
+      "args": ["scripts/coverage.sh"],
+      "windows": {
+        "command": "${env:ProgramFiles}\\Git\\bin\\bash.exe",
+        "args": ["--login", "scripts/coverage.sh"]
+      },
       "detail": "Run tests with coverage and report total line coverage",
       "problemMatcher": []
     },
@@ -52,8 +65,13 @@
     },
     {
       "label": "Sync AI docs",
-      "type": "shell",
-      "command": "./scripts/sync-ai-docs.sh",
+      "type": "process",
+      "command": "bash",
+      "args": ["scripts/sync-ai-docs.sh"],
+      "windows": {
+        "command": "${env:ProgramFiles}\\Git\\bin\\bash.exe",
+        "args": ["--login", "scripts/sync-ai-docs.sh"]
+      },
       "detail": "Build provider files and project skills from docs/ai/",
       "problemMatcher": []
     },
@@ -74,7 +92,8 @@
     {
       "label": "Post build",
       "type": "shell",
-      "command": "fvm dart run ${workspaceFolder}/scripts/post_build.dart",
+      "command": "fvm",
+      "args": ["dart", "run", "scripts/post_build.dart"],
       "detail": "Run post build script",
       "problemMatcher": [],
       "hide": true

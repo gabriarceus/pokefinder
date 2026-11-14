@@ -26,27 +26,3 @@ Uri? buildPokemonShareUri(String? nameOrId) {
   if (path == null) return null;
   return Uri(scheme: pokemonShareScheme, host: '', path: path);
 }
-
-/// Extracts the canonical Pokémon identifier from a shared link.
-///
-/// Accepts canonical paths (`/pokemon/pikachu`), deep-link URIs
-/// (`pokefinder:///pokemon/25`), http(s) URLs containing a `/pokemon/`
-/// segment (query strings and fragments are ignored), and bare identifiers
-/// (`pikachu`, `25`). Returns the normalized identifier, or `null` for
-/// invalid input.
-String? parsePokemonShareLink(String? input) {
-  if (input == null) return null;
-  final text = input.trim();
-  if (text.isEmpty) return null;
-
-  const marker = '/pokemon/';
-  final markerIndex = text.lastIndexOf(marker);
-  if (markerIndex < 0) {
-    return parsePokemonRouteParam(text);
-  }
-
-  final remainder = text.substring(markerIndex + marker.length);
-  final end = remainder.indexOf(RegExp(r'[?#\s/]'));
-  final candidate = end >= 0 ? remainder.substring(0, end) : remainder;
-  return parsePokemonRouteParam(candidate);
-}

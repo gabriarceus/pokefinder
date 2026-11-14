@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart' show appFlavor;
 import 'package:injectable/injectable.dart';
 import 'package:pokefinder/bootstrap.dart';
@@ -11,10 +11,10 @@ void main() {
   bootstrap(then: () => const MyApp());
 }
 
-/// Optional compile-time override for mock repository usage passed via `--dart-define=USE_MOCK=true|false`.
-const bool? _kUseMock = bool.hasEnvironment('USE_MOCK')
-    ? bool.fromEnvironment('USE_MOCK')
-    : null;
+/// Whether the `dev` flavor runs on the mock repository instead of PokeAPI.
+///
+/// Set `--dart-define=USE_MOCK=false` to point a dev build at the live API.
+const _kUseMockData = bool.fromEnvironment('USE_MOCK', defaultValue: true);
 
 /// Executes mobile application startup with isolated storage initialization.
 ///
@@ -24,7 +24,6 @@ Future<void> bootstrap({
   required Widget Function() then,
   Future<void> Function()? initializeStorage,
   void Function(Widget)? appRunner,
-  String? environment,
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
   final run = appRunner ?? runApp;
@@ -36,12 +35,9 @@ Future<void> bootstrap({
       await initializeMobileStorage();
     }
 
-    final resolvedEnv =
-        environment ??
-        (_kUseMock != null
-            ? (_kUseMock! ? Environment.dev : Environment.prod)
-            : (appFlavor == 'dev' ? Environment.dev : Environment.prod));
-    await configureDependencies(resolvedEnv);
+    await configureDependencies(
+      appFlavor == 'dev' && _kUseMockData ? Environment.dev : Environment.prod,
+    );
     run(then());
   } catch (error) {
     run(
@@ -50,7 +46,6 @@ Future<void> bootstrap({
           then: then,
           initializeStorage: initializeStorage,
           appRunner: appRunner,
-          environment: environment,
         ),
         errorMessage: kDebugMode ? error.toString() : null,
       ),
@@ -69,18 +64,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        if (getIt.isRegistered<PreferencesCubit>())
-          BlocProvider.value(value: getIt<PreferencesCubit>()),
-        if (getIt.isRegistered<LanguageCubit>())
-          BlocProvider.value(value: getIt<LanguageCubit>()),
-        if (getIt.isRegistered<FavoritesCubit>())
-          BlocProvider.value(value: getIt<FavoritesCubit>()),
-        if (getIt.isRegistered<RecentHistoryCubit>())
-          BlocProvider.value(value: getIt<RecentHistoryCubit>()),
-        if (getIt.isRegistered<ComparisonCubit>())
-          BlocProvider.value(value: getIt<ComparisonCubit>()),
-        if (getIt.isRegistered<TeamsCubit>())
-          BlocProvider.value(value: getIt<TeamsCubit>()),
+        BlocProvider.value(value: getIt<PreferencesCubit>()),
+        BlocProvider.value(value: getIt<LanguageCubit>()),
+        BlocProvider.value(value: getIt<FavoritesCubit>()),
+        BlocProvider.value(value: getIt<RecentHistoryCubit>()),
+        BlocProvider.value(value: getIt<ComparisonCubit>()),
+        BlocProvider.value(value: getIt<TeamsCubit>()),
       ],
       child: BlocBuilder<PreferencesCubit, PreferencesState>(
         builder: (context, prefState) {
@@ -91,7 +80,7 @@ class MyApp extends StatelessWidget {
                 themeMode: prefState.themeMode,
                 theme: AppPalette.lightTheme,
                 darkTheme: AppPalette.darkTheme,
-                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                localizationsDelegates: appLocalizationsDelegates,
                 supportedLocales: AppLocalizations.supportedLocales,
                 locale: langState.locale,
                 debugShowCheckedModeBanner: false,

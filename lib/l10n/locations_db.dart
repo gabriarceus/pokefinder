@@ -1,4 +1,4 @@
-// Generated localization database
+﻿// Generated localization database
 const locationsDb = <String, String>{
   'abandoned-ship': 'Vecchia Nave',
   'abundant-shrine': 'Tempio Abbondanza',
@@ -208,6 +208,7 @@ const locationsDb = <String, String>{
   'hia-valley': 'Valle di Crio',
   'hinder-cape': 'Capo Tam Tam',
   'hippowdon-temple': 'Tempio di Hippowdon',
+  'hisui': 'Hisui',
   'hoenn': 'Hoenn',
   'hokulani-observatory': 'Osservatorio Hokulani',
   'hotel-grand-lake': 'Hotel Grande Lago',

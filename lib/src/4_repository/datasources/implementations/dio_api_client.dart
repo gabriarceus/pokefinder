@@ -9,41 +9,18 @@ class DioApiClient implements ApiClient {
   final Dio _dio;
 
   @override
-  Future<T> get<T>(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-    Duration? timeout,
-    CancelToken? cancelToken,
-  }) async {
+  Future<T> get<T>(String path) async {
     try {
-      final options = timeout != null
-          ? Options(sendTimeout: timeout, receiveTimeout: timeout)
-          : null;
-
-      final response = await _dio.get<dynamic>(
-        path,
-        queryParameters: queryParameters,
-        options: options,
-        cancelToken: cancelToken,
-      );
+      final response = await _dio.get<dynamic>(path);
       if (response.data == null) {
         throw EmptyResponseException(path);
       }
       return response.data as T;
     } on DioException catch (e) {
-      String? safeResponseBody;
-      if (e.response?.data != null) {
-        final bodyStr = e.response!.data.toString();
-        safeResponseBody = bodyStr.length > 256
-            ? '${bodyStr.substring(0, 253)}...'
-            : bodyStr;
-      }
-
       final isConnTimeout = e.type == DioExceptionType.connectionTimeout;
       final isRecvTimeout = e.type == DioExceptionType.receiveTimeout;
       final isSndTimeout = e.type == DioExceptionType.sendTimeout;
       final isConnError = e.type == DioExceptionType.connectionError;
-      final isCancel = e.type == DioExceptionType.cancel;
 
       final message = _sanitizeErrorMessage(e);
 
@@ -54,8 +31,6 @@ class DioApiClient implements ApiClient {
         isReceiveTimeout: isRecvTimeout,
         isSendTimeout: isSndTimeout,
         isConnectionError: isConnError,
-        isCancelled: isCancel,
-        responseBody: safeResponseBody,
       );
     } catch (e) {
       if (e is ApiException ||
@@ -76,9 +51,6 @@ class DioApiClient implements ApiClient {
     }
     if (e.type == DioExceptionType.connectionError) {
       return 'Network connection unavailable';
-    }
-    if (e.type == DioExceptionType.cancel) {
-      return 'Request was cancelled';
     }
     if (e.response?.statusCode != null) {
       return 'HTTP ${e.response!.statusCode}';

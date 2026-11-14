@@ -60,26 +60,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings => 'Settings';
 
   @override
-  String get useDeviceLanguage => 'Use device language';
-
-  @override
-  String get useDeviceLanguageInfo =>
-      'If enabled, the app will use your device\'s language.';
-
-  @override
   String get about => 'About';
 
   @override
   String get language => 'Language';
 
   @override
+  String get useDeviceLanguage => 'Device';
+
+  @override
   String get weight => 'Weight';
 
   @override
   String get height => 'Height';
-
-  @override
-  String get pokemonCry => 'Pokemon Cry';
 
   @override
   String get baseStats => 'Base Stats';
@@ -121,13 +114,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabMoves => 'Moves';
 
   @override
-  String get tabItemsGames => 'Items & Games';
+  String get tabItemsGames => 'Locations';
 
   @override
   String get baseExp => 'Base Exp';
 
   @override
-  String get order => 'Order';
+  String baseExpValue({required int value}) {
+    return '$value XP';
+  }
+
+  @override
+  String showResults({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show $count results',
+      one: 'Show 1 result',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get defaultForm => 'Default Form';
@@ -219,9 +225,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rarity => 'Rarity';
 
   @override
-  String get species => 'Species';
-
-  @override
   String get locationAreaEncounters => 'Location Encounters';
 
   @override
@@ -285,7 +288,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsMax => 'Max';
 
   @override
-  String get gameSelectorLabel => 'Game:';
+  String statRangeSemantics({
+    required String stat,
+    required String base,
+    required String min,
+    required String max,
+  }) {
+    return '$stat: $base, min $min, max $max';
+  }
+
+  @override
+  String teamStatSumAverageSemantics({
+    required String stat,
+    required String sum,
+    required String average,
+  }) {
+    return '$stat: sum $sum, average $average';
+  }
 
   @override
   String get noData => 'No data available';
@@ -304,11 +323,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get formSelectorForms => 'Available Forms';
-
-  @override
-  String formTypeModifier({required String type}) {
-    return '$type';
-  }
 
   @override
   String get typeNormal => 'Normal';
@@ -497,6 +511,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gameXd => 'XD';
 
   @override
+  String get gameTheIsleOfArmorSword => 'The Isle of Armor (Sword)';
+
+  @override
+  String get gameTheIsleOfArmorShield => 'The Isle of Armor (Shield)';
+
+  @override
+  String get gameTheCrownTundraSword => 'The Crown Tundra (Sword)';
+
+  @override
+  String get gameTheCrownTundraShield => 'The Crown Tundra (Shield)';
+
+  @override
+  String get gameBrilliantDiamond => 'Brilliant Diamond';
+
+  @override
+  String get gameShiningPearl => 'Shining Pearl';
+
+  @override
+  String get gameTheTealMaskScarlet => 'The Teal Mask (Scarlet)';
+
+  @override
+  String get gameTheTealMaskViolet => 'The Teal Mask (Violet)';
+
+  @override
+  String get gameTheIndigoDiskScarlet => 'The Indigo Disk (Scarlet)';
+
+  @override
+  String get gameTheIndigoDiskViolet => 'The Indigo Disk (Violet)';
+
+  @override
+  String get gameLegendsZa => 'Legends: Z-A';
+
+  @override
+  String get gameMegaDimension => 'Mega Dimension';
+
+  @override
+  String get gameChampions => 'Champions';
+
+  @override
+  String get gameRedJapan => 'Red (Japan)';
+
+  @override
+  String get gameGreenJapan => 'Green (Japan)';
+
+  @override
+  String get gameBlueJapan => 'Blue (Japan)';
+
+  @override
+  String get gameGroupRedGreenJapan => 'Red/Green (Japan)';
+
+  @override
+  String get gameGroupBrilliantDiamondShiningPearl =>
+      'Brilliant Diamond/Shining Pearl';
+
+  @override
   String get gameGroupRedBlue => 'Red/Blue';
 
   @override
@@ -565,15 +634,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editSearchButton => 'Edit Search';
 
   @override
-  String get errorEncounters => 'Failed to load encounters.';
-
-  @override
-  String get errorFormDetails => 'Failed to load form details.';
-
-  @override
-  String get errorMoveDetails => 'Failed to load move details.';
-
-  @override
   String get defaultFormRollback => 'Reset to default form';
 
   @override
@@ -609,15 +669,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pokedexTitle => 'Pokédex';
 
   @override
-  String get filter => 'Filter';
-
-  @override
   String get filters => 'Filters';
-
-  @override
-  String filterCount({required int count}) {
-    return '$count active';
-  }
 
   @override
   String get types => 'Types';
@@ -656,9 +708,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearFilters => 'Clear Filters';
-
-  @override
-  String get apply => 'Apply';
 
   @override
   String get reset => 'Reset';
@@ -717,6 +766,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addToFavorites => 'Add to favorites';
+
+  @override
+  String get cardActionsHint => 'Long press for more actions';
 
   @override
   String get removeFromFavorites => 'Remove from favorites';
@@ -797,9 +849,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancel => 'Cancel';
 
   @override
-  String get confirm => 'Confirm';
-
-  @override
   String get clear => 'Clear';
 
   @override
@@ -812,13 +861,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get baseHappiness => 'Base Friendship';
 
   @override
-  String get growthRate => 'Growth Rate';
-
-  @override
   String get habitat => 'Habitat';
 
   @override
-  String get eggGroups => 'Egg Groups';
+  String get habitatCave => 'Cave';
+
+  @override
+  String get habitatForest => 'Forest';
+
+  @override
+  String get habitatGrassland => 'Grassland';
+
+  @override
+  String get habitatMountain => 'Mountain';
+
+  @override
+  String get habitatRare => 'Rare';
+
+  @override
+  String get habitatRoughTerrain => 'Rough terrain';
+
+  @override
+  String get habitatSea => 'Sea';
+
+  @override
+  String get habitatUrban => 'Urban';
+
+  @override
+  String get habitatWatersEdge => 'Water\'s edge';
 
   @override
   String get flavorText => 'Pokédex Description';
@@ -885,11 +955,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filterByVersion => 'Game Version';
 
   @override
-  String baseSpeciesDataNotice({required String formName}) {
-    return 'Appearance & types reflect $formName. Stats, moves, and abilities reflect the base species.';
-  }
-
-  @override
   String get encountersUnavailableForVersion =>
       'No encounters found for this game version.';
 
@@ -900,15 +965,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get movesUnavailableForVersion =>
       'No moves found for this game version.';
-
-  @override
-  String get errorSpecies => 'Failed to load species information.';
-
-  @override
-  String get errorEvolutionChain => 'Failed to load evolution chain.';
-
-  @override
-  String get errorAbilityDetail => 'Failed to load ability details.';
 
   @override
   String evolutionTriggerLevelUpsideDown({required int level}) {
@@ -1076,9 +1132,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'All Pokémon data, sprites, and assets are sourced from PokeAPI.';
 
   @override
-  String get aboutPokeApiWebsite => 'PokeAPI Website';
-
-  @override
   String get aboutDisclaimer => 'Disclaimer';
 
   @override
@@ -1243,7 +1296,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamTypeCoverage => 'Type coverage';
 
   @override
+  String get teamStatsSumColumn => 'Sum';
+
+  @override
   String get teamStatsSum => 'Total (sum)';
+
+  @override
+  String get teamStatsAverageColumn => 'Avg';
 
   @override
   String get teamStatsAverage => 'Average';

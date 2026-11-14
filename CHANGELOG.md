@@ -2,102 +2,34 @@
 
 All notable changes to this project will be documented in this file, following the “Keep a Changelog” standard.
 
-## [Unreleased]
+## [1.0.0-rc2] - 2026-11-14
 
 ### Added
 
-- Local team builder `/teams` (offline, no cloud): teams of up to 6 stored
-  durably as lightweight index refs (id, name, timestamp) via a hydrated
-  `TeamsCubit`, surviving restart. Team list with create/rename/delete
-  (delete confirmed), team detail with add/remove from Pokédex cards and the
-  detail screen, drag-reorder plus move-to-top, and per-member deep links to
-  the canonical `/pokemon/:nameOrId` route. Team summary shows type coverage
-  plus summed and average base stats, reusing the comparison stat components;
-  each member fetches through its own detail bloc (offline cache) so one
-  failure shows inline retry without destroying the summary. Duplicate slugs
-  warn inline but stay allowed, so forms (distinct slugs, classifier display
-  names) remain distinct members; the 7th member is rejected with guidance;
-  corrupt records are evicted with a log and never crash the list. Entry via
-  drawer, EN + IT strings, empty states included.
-- Offline type matchup calculator `/matchups` (Gen VI onward 18-type chart):
-  pure-domain `TypeMatchupChart` with all 324 attack/defense multipliers,
-  dual-type multiplication (4×, ¼×, immunity override), and grouped results
-  (4×, 2×, ½×, ¼×, 0×) with localized type names. Select 1–2 defending types
-  with 48dp targets and screen-reader announcements; empty state included.
-  Entry via drawer tool and tappable detail type chips (preset with the
-  Pokémon's 1–2 types, `?types=` query), EN + IT strings, no network.
-- Side-by-side Pokémon comparison `/compare` (max 2, in-memory): pick entries
-  from Pokédex card compare action / long-press or the detail compare action;
-  dual entries render in one shared card with side-by-side headers, sprites,
-  type chips, and localized metric/imperial height/weight that stay side by
-  side on phone portrait, plus an aligned `[first] <stat> [second]` stat table
-  driven by `buildComparisonStatRows` with leader highlighting and a shared
-  total row. Single entries reuse the shared `CompactStatRow` with the detail
-  screen. Each side fetches through its own detail bloc, so a failure shows
-  inline retry without destroying the valid side; per-entry canonical share
-  links, guarded sprite placeholders, compare-button tooltips, remove-one,
-  clear-all, empty state, EN + IT strings, and Pokédex badge navigation
-  included.
-- Detail artwork & sprite-variant gallery (Info tab): grid of available
-  variants (official artwork, front/back, shiny, female, Home) with localized
-  labels (EN + IT), tap-to-preview dialog, placeholder icons on missing or
-  failed images, and screen-reader variant names. Records URLs + fallback
-  order only (official artwork → front default → others); image bytes stay in
-  the platform cache. Raw sprite DTOs now model female variants and
-  `other/home` as nullable.
-- Detail share action: copies the canonical `/pokemon/:nameOrId` link for the
-  displayed Pokémon/form to the clipboard (clipboard only, no new permissions);
-  `pokefinder:///pokemon/:nameOrId` deep links on Android and iOS resolve to the
-  canonical route with the router error fallback for invalid values.
-- Italian item-name database (`lib/l10n/items_db.dart`, generated from PokeAPI)
-  with `translateItem` title-case fallback, plus `translation_coverage_test`
-  failing CI on raw-slug or ALL-CAPS rendering.
-- `GetMoveDetailUseCase` with cancellation support, mirroring the
-  species/evolution/ability flows.
-- `docs/logging_policy.md` (redaction, truncation, debug vs release) and
-  `docs/localization_policy.md` (canonical vs localized names, fallback rule).
-- MIT license (`LICENSE.md`) covering the project source.
-- AI contributor docs consolidated under `docs/ai/` (`context.md`
-  superseding `CLAUDE.md`, plus skills guide).
-
-- Browsable Pokédex `/pokedex`: paginated grid, pull-to-refresh, skeleton loaders, scroll/filter restore, multi-type (18) / generation (1-9) / sort (ID, Name) filters, contains + numeric-ID search, Random Pokémon.
-- Detail depth: species flavor text (IT with EN fallback), genus, generation, habitat; branching evolution chain with full trigger badges and tap-to-navigate; on-demand ability sheet; unified game-version selector syncing moves, encounters, items; inline forms gallery with tap-to-switch.
-- First-class alternate forms: Mega / Primal / Regional (Alola, Galar, Hisui, Paldea) / G-Max / battle-mode classification with O(1) parent mapping, interleaved ordering under parent species, form badges, localized titles (`Mega Charizard X`, `Alolan Vulpix` / `Vulpix di Alola`), keyword search (`mega`, `alola`, …), dual generation context.
-- Foundation: canonical `/pokemon/:nameOrId` deep-link route with error page; durable prefs vs. disposable cache storage split; startup retry screen.
-- Mobile UX: safe layouts from 320px phones to tablets, landscape and 200% text scaling; 48×48 dp targets; screen-reader semantics; keyboard Search action with inline validation.
-- Personalization: Favorites `/favorites` with reactive sync and ID / Name / Date sorting; Recently Viewed (20) + Recent Searches (10) with shelf, dedup and pause/clear; System / Light / Dark theme; Metric / Imperial units; cry autoplay + volume; Settings `/settings` and About `/settings/about` (version, PokeAPI credit, trademark disclaimer, licenses).
-- Quality gates: GitHub Actions CI (pinned FVM, format, `analyze --fatal-infos`, codegen check, coverage, release APK), 8 critical-journey integration tests, `verify.sh` / `coverage.sh`, release-hardening tests.
-- Resilience: full `PokemonFailure` taxonomy (not found, offline, timeout, rate-limited, server, invalid response, storage, cancelled); Retry + Edit Search recovery; inline retry for encounters / forms / move sheet; cry `unavailable` state and sprite / type-chip fallbacks; request cancellation + deduplication; stale-cache indicator; stat-by-name mapping and sprite fallback chain.
+- Browsable Pokédex with search and filters; richer Pokémon details with alternate forms, evolution chains, sprite galleries and shareable deep links.
+- Favorites, recent history, local teams, side-by-side comparison, an offline type matchup calculator and personalization settings.
+- MIT license, contributor documentation and CI quality checks.
 
 ### Changed
 
-- Presentation blocs/cubits resolve exclusively through
-  `lib/src/1_presentation/di/presentation_bloc_factory.dart` (single documented
-  construction point); no raw `getIt` calls remain in `1_presentation/`.
-- `MoveDetailCubit` goes through `GetMoveDetailUseCase` like the
-  species/evolution/ability flows; the move-detail repository path accepts
-  cancellation tokens end to end.
-- Evolution trigger badges localize embedded item/move/type names in Italian;
-  unknown learn methods and generation codes fall back to title case.
-- Applied tall-style formatter; moved `path`, `yaml` to `dev_dependencies`; upgraded dependencies; replaced `com.example` IDs with production IDs; `post_build.dart` aborts on dirty worktree / failure.
-- Decoupled `HomeBloc` via `ClearCacheUseCase`; consolidated URL / asset helpers into `PokeApiUrlHelper`; flavor-to-DI mapping (`dev` → mock, `prod` → live).
-- Production logging redacted (queries) and truncated (payloads); measurements and stats use locale-aware `intl` formatting; Italian copy polish.
+- Replaced four duplicate load cubits with one generic load cubit and one shared inline error card; shared headings, empty states and link and comparison actions.
+- Simplified application and repository architecture, shared data models and UI components; improved caching, localization, theming and navigation.
+- Upgraded the Flutter SDK to 3.50.0 (migrating Material imports and localization delegates to `material_ui`), Gradle to 9.9.1, Android Gradle Plugin to 9.5.1, and Kotlin to 2.4.21.
+- Enabled Android Built-in Kotlin and upgraded project dependencies (`package_info_plus`, `url_launcher`, `go_router`, `equatable`, `injectable`, `en_logger`, and codegen tooling).
 
 ### Fixed
 
-- Sprite gallery duplicated official artwork under "Front (default)": the
-  front pixel sprite is now retained as `spriteFrontDefault` and shown as its
-  own variant; preview dialog scrolls on compact landscape and large text
-  scaling; gallery tiles expose a single screen-reader announcement.
-- Held items rendered as ALL-CAPS raw API slugs; they now show localized names
-  with title-case fallback.
-- Accessibility and UI: redundant / missing screen-reader announcements, 48dp touch targets, Italian badge localization, Hive LRU bloat and jank.
-- Crashes and logic: version-selector assertion on Pokémon switch, evolution trigger shadowing (item / trade / gender lost with level), form type filtering, autocomplete false positives on `canonical`, pull-to-refresh unmount crash, cancelled-request surfacing as failure.
-- Store compliance: Android INTERNET-only, no cleartext traffic, flavor labels, adaptive icons; iOS plist stripped (mic, local network, arbitrary loads, background audio).
+- Detail screen: Pokémon names match the Pokédex cards, the evolution chain marks forms, "Copy link" copies the `pokefinder://` deep link, and stat screen reader labels are localized.
+- Detail tabs keep their loaded data and the moves search when the user changes tab.
+- Detail-route replacement, saved cry volume, stale comparison and search results, and persistent comparison notices.
+- Game version names for the current PokeAPI version groups (DLCs, Brilliant Diamond/Shining Pearl, Japanese releases, Legends: Z-A), and the Italian name of Giratina's Origin Forme.
+- Layout and accessibility issues, audio playback, error recovery and cache handling; improved offline behavior and recovery from corrupt stored records.
+- Offline Pokédex: the cached index is never evicted, and an offline copy shows the offline banner.
+- Search and filter behavior, alternate-form loading, evolution details and localized names.
 
 ### Removed
 
-- Unused runtime deps (`flutter_animate`, `gap`, `pokeball_widget`, `flutter_gen`); redundant `WAKE_LOCK` permission; dead test-only constructors and hydration calls.
+- Redundant architecture layers, unused dependencies and unnecessary permissions.
 
 ## [1.0.0-rc1] - 2026-09-02
 

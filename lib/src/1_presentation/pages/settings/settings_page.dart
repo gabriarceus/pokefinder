@@ -1,12 +1,13 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
-import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 import 'package:pokefinder/src/1_presentation/widgets/dialogs/confirmation_dialog.dart';
+import 'package:pokefinder/src/1_presentation/widgets/section_title.dart';
 import 'package:pokefinder/src/2_application/bloc/preferences_cubit/preferences_cubit.dart';
 import 'package:pokefinder/src/2_application/bloc/recent_history_cubit/recent_history_cubit.dart';
-import 'package:pokefinder/src/2_application/hydrated_bloc/language_storage.dart';
+import 'package:pokefinder/src/2_application/bloc/language_cubit/language_cubit.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
 /// Screen displaying user preferences for theme, language, units, audio, and cache.
@@ -35,15 +36,16 @@ class _SettingsPageState extends State<SettingsPage> {
     final confirmed = await showClearCacheConfirmationDialog(context);
 
     if (confirmed == true && context.mounted) {
-      await context.read<PreferencesCubit>().clearCache();
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(t.cacheClearedSuccessfully),
-            behavior: SnackBarBehavior.floating,
+      final cleared = await context.read<PreferencesCubit>().clearCache();
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            cleared ? t.cacheClearedSuccessfully : t.errorUnexpected,
           ),
-        );
-      }
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -57,8 +59,6 @@ class _SettingsPageState extends State<SettingsPage> {
       content: t.clearHistoryConfirmation,
       confirmLabel: t.clear,
       cancelLabel: t.cancel,
-      confirmBackgroundColor: AppPalette.brandRed,
-      confirmForegroundColor: AppPalette.onBrandRed,
     );
 
     if (confirmed == true && context.mounted) {
@@ -74,7 +74,6 @@ class _SettingsPageState extends State<SettingsPage> {
     final prefState = context.watch<PreferencesCubit>().state;
     final historyState = context.watch<RecentHistoryCubit>().state;
     final languageState = context.watch<LanguageCubit>().state;
-    final isSystemLanguage = languageState.languageId == Language.system.id;
 
     final formattedCacheSize = MeasurementFormatter.formatByteSize(
       prefState.cacheSizeBytes,
@@ -82,27 +81,14 @@ class _SettingsPageState extends State<SettingsPage> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          t.settings,
-          style: const TextStyle(color: AppPalette.onBrandRed),
-        ),
-        backgroundColor: AppPalette.brandRed,
-        iconTheme: const IconThemeData(color: AppPalette.onBrandRed),
-      ),
+      appBar: AppBar(title: Text(t.settings)),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 16),
         children: [
           // Section: Theme
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              t.theme,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SectionTitle(t.theme),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -135,14 +121,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
           // Section: Measurement Units
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              t.unitSystem,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SectionTitle(t.unitSystem),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -170,67 +150,42 @@ class _SettingsPageState extends State<SettingsPage> {
 
           // Section: Language
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              t.language,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SectionTitle(t.language),
           ),
-          SwitchListTile(
-            title: Text(t.useDeviceLanguage),
-            subtitle: Text(
-              t.useDeviceLanguageInfo,
-              style: theme.textTheme.bodySmall,
-            ),
-            value: isSystemLanguage,
-            activeTrackColor: AppPalette.brandRed,
-            onChanged: (bool value) {
-              if (value) {
-                context.read<LanguageCubit>().enableSystemLanguage();
-              } else {
-                context.read<LanguageCubit>().disableSystemLanguage();
-              }
-            },
-          ),
-          if (!isSystemLanguage)
-            RadioGroup<int>(
-              groupValue: languageState.languageId,
-              onChanged: (int? value) {
-                if (value != null) {
-                  context.read<LanguageCubit>().setLanguage(value);
-                }
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: Language.selectable.map((language) {
-                  return RadioListTile<int>(
-                    title: Text(language.nativeName),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SegmentedButton<int>(
+              segments: [
+                ButtonSegment(
+                  value: Language.system.id,
+                  label: Text(t.useDeviceLanguage),
+                  icon: const Icon(Icons.phone_android_rounded),
+                ),
+                for (final language in Language.selectable)
+                  ButtonSegment(
                     value: language.id,
-                  );
-                }).toList(),
-              ),
+                    label: Text(language.nativeName),
+                  ),
+              ],
+              selected: {languageState.languageId},
+              onSelectionChanged: (selected) {
+                context.read<LanguageCubit>().setLanguage(selected.first);
+              },
             ),
+          ),
+          const SizedBox(height: 16),
           const Divider(height: 1),
 
           // Section: Audio
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              t.audioSettings,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SectionTitle(t.audioSettings),
           ),
           SwitchListTile(
             title: Text(t.autoPlayCry),
             subtitle: Text(t.autoPlayCryInfo, style: theme.textTheme.bodySmall),
             value: prefState.autoPlayCry,
-            activeTrackColor: AppPalette.brandRed,
             onChanged: (val) {
               context.read<PreferencesCubit>().setAutoPlayCry(val);
             },
@@ -243,7 +198,6 @@ class _SettingsPageState extends State<SettingsPage> {
               max: 1.0,
               divisions: 10,
               label: '${(prefState.cryVolume * 100).round()}%',
-              activeColor: AppPalette.brandRed,
               onChanged: (val) {
                 context.read<PreferencesCubit>().setCryVolume(val);
               },
@@ -253,14 +207,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
           // Section: History
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              t.recentlyViewed,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SectionTitle(t.recentlyViewed),
           ),
           SwitchListTile(
             title: Text(t.historyEnabled),
@@ -269,7 +217,6 @@ class _SettingsPageState extends State<SettingsPage> {
               style: theme.textTheme.bodySmall,
             ),
             value: historyState.isHistoryEnabled,
-            activeTrackColor: AppPalette.brandRed,
             onChanged: (val) {
               context.read<RecentHistoryCubit>().setHistoryEnabled(val);
             },
@@ -283,25 +230,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
           // Section: Storage & Cache
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              t.storageAndCache,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SectionTitle(t.storageAndCache),
           ),
           ListTile(
             leading: const Icon(Icons.storage_rounded),
             title: Text(t.cacheSize(size: formattedCacheSize)),
             subtitle: Text(t.clearCache),
-            trailing: ElevatedButton(
+            trailing: FilledButton(
               onPressed: () => _showClearCacheDialog(context, t),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppPalette.brandRed,
-                foregroundColor: AppPalette.onBrandRed,
-              ),
               child: Text(t.clear),
             ),
           ),
@@ -309,21 +246,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
           // Section: About & Attribution
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              t.aboutPokeFinder,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SectionTitle(t.aboutPokeFinder),
           ),
           ListTile(
             leading: const Icon(Icons.info_outline_rounded),
             title: Text(t.aboutPokeFinder),
             subtitle: Text(t.aboutAppDescription),
             trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () => context.go('/settings/about'),
+            onTap: () => context.push(AppRoutes.about),
           ),
         ],
       ),

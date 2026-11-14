@@ -3,7 +3,7 @@ import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/attrib
 
 part 'raw_move_detail.g.dart';
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class RawMoveDetail {
   const RawMoveDetail({
     required this.id,
@@ -29,11 +29,9 @@ class RawMoveDetail {
 
   factory RawMoveDetail.fromJson(Map<String, dynamic> json) =>
       _$RawMoveDetailFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawMoveDetailToJson(this);
 }
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class RawFlavorTextEntry {
   const RawFlavorTextEntry({required this.flavorText, required this.language});
 
@@ -43,6 +41,4 @@ class RawFlavorTextEntry {
 
   factory RawFlavorTextEntry.fromJson(Map<String, dynamic> json) =>
       _$RawFlavorTextEntryFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawFlavorTextEntryToJson(this);
 }

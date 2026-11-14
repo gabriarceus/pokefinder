@@ -9,9 +9,10 @@ searching, browsing, and exploring Pokémon. Data comes from the public
 ## Features
 
 - Search a Pokémon by name or Pokédex ID, with prefix, contains, and numeric-ID autocomplete
-- Browsable Pokédex with pagination, pull-to-refresh, type (18) / generation (1-9) / sort filters, and Random Pokémon
+- Browsable Pokédex with pull-to-refresh, type (18) / generation (1-9) / sort filters, and Random Pokémon
 - Alternate forms: Mega, Primal, Regional (Alola, Galar, Hisui, Paldea), G-Max and battle modes, with badges, localized titles, and keyword search
 - Detail screen with tabs (info, stats, moves, items & games), species flavor text, branching evolution chain, ability sheets, unified game-version selector, and inline forms gallery
+- Selecting a form updates its complete detail and encounters. Form cards load their own types through the API cache; failed switches keep the last valid detail with retry.
 - Favorites and Recently Viewed / Recent Searches with reactive sync
 - Side-by-side comparison of up to 2 Pokémon (base/min/max stats, types, height/weight) from Pokédex cards or the detail screen
 - Offline type matchup calculator: 1–2 defending types, grouped weaknesses / resistances / immunities (4×, 2×, ½×, ¼×, 0×), via drawer or tappable detail type chips
@@ -38,11 +39,7 @@ searching, browsing, and exploring Pokémon. Data comes from the public
 
 Invalid parameters fall back to a route error page.
 
-The detail screen offers a copy-link action that copies the canonical path
-(`/pokemon/:nameOrId`) to the clipboard; the same path is reachable as a
-cold-start deep link (`pokefinder:///pokemon/:nameOrId`, declared via an
-Android intent filter and an iOS URL type). Copy uses the platform clipboard
-only — no share-sheet plugin, no new permissions on either OS.
+The detail and comparison screens offer a copy-link action that copies the deep link (`pokefinder:///pokemon/:nameOrId`, declared via an Android intent filter and an iOS URL type) to the clipboard, resolving to the canonical `/pokemon/:nameOrId` route. Copy uses the platform clipboard only — no share-sheet plugin, no new permissions on either OS.
 
 ## Tools used
 
@@ -56,7 +53,7 @@ only — no share-sheet plugin, no new permissions on either OS.
 - **[just_audio](https://pub.dev/packages/just_audio) + [just_audio_media_kit](https://pub.dev/packages/just_audio_media_kit)** — plays the Pokémon cry (`.ogg` on iOS)
 - **[intl](https://pub.dev/packages/intl) + flutter_localizations** — locale-aware formatting and translations (ARB files)
 - **[en_logger](https://pub.dev/packages/en_logger)** — prefixed logging with release-mode redaction
-- **[bloc_concurrency](https://pub.dev/packages/bloc_concurrency) + [clock](https://pub.dev/packages/clock)** — request transformers, cancellation/dedup, deterministic cache expiry
+- **[bloc_concurrency](https://pub.dev/packages/bloc_concurrency) + [clock](https://pub.dev/packages/clock)** — request transformers, deterministic cache expiry
 - **[package_info_plus](https://pub.dev/packages/package_info_plus) + [url_launcher](https://pub.dev/packages/url_launcher)** — About screen version info and external links
 - **gen_l10n** — translations from `lib/l10n/app_en.arb` (template) + `app_it.arb`
 
@@ -69,11 +66,11 @@ inward (UI → application → domain ← repository):
 lib/src/
 ├── 1_presentation/   UI: pages, widgets, theme (reacts to state, no logic)
 ├── 2_application/    blocs & cubits (events, states, logic)
-├── 3_domain/         entities, failures, repository interfaces, use cases
-└── 4_repository/     data sources, repository implementations, API models
+├── 3_domain/         entities, failures, repository interface
+└── 4_repository/     API client, cache, repository implementations, API models
 ```
 
-### Bloc construction and use cases
+### Bloc construction and repository access
 
 Presentation widgets never call `getIt` directly. Blocs and cubits with
 static dependencies are `@injectable` and are obtained exclusively through
@@ -81,10 +78,11 @@ static dependencies are `@injectable` and are obtained exclusively through
 documented construction point (it also builds the non-injectable,
 runtime-data `DetailMovesCubit`). The only other sanctioned `getIt` call
 sites are the app-lifetime singletons provided at the app root
-(`lib/main.dart`). Every repository flow is fronted by a use case
-(`GetPokemonSpeciesUseCase`, `GetEvolutionChainUseCase`,
-`GetAbilityDetailUseCase`, `GetMoveDetailUseCase`, …) — cubits depend on
-the use case, never on `IPokemonRepository` directly.
+(`lib/main.dart`).
+
+There is no use case layer. Cubits and blocs depend on `IPokemonRepository`
+directly, and the presentation layer reaches it only through the factory —
+`IPokemonRepository` is not imported by widgets.
 
 ### Flavors and DI environments
 
@@ -95,10 +93,11 @@ matching Xcode schemes), differing in application id suffix and display name. Ev
 Dependency injection environments are mapped to the build flavor: `--flavor dev`
 binds `Environment.dev` with `MockPokemonRepository` for deterministic offline development,
 while `--flavor prod` binds `Environment.prod` with `PokemonRepositoryImpl` for live PokeAPI data.
+Pass `--dart-define=USE_MOCK=false` to run a `dev` build against the live API.
 
 ## Data, caching, and i18n
 
-- PokeAPI v2 over Dio; responses cached in Hive via a feature-agnostic `DataRepository` with `cacheFirst`, `networkFirst`, and `networkOnly` fetch strategies.
+- PokeAPI v2 over Dio; responses cached in Hive by `PokeApiCache`, a feature-agnostic cache-first client with a 24 h window, stale-if-error fallback, per-URL-and-type request sharing, and an epoch guard so a "Clear cache" discards writes already in flight. `PokemonRepositoryImpl` parses the JSON, maps it to entities and maps every error to a `PokemonFailure` in one place. It memoizes the enriched Pokédex index, which is also the only source of a Pokémon's alternate forms: `/pokemon/{name}` names just the Pokémon itself.
 - Durable user state (language, theme, favorites, teams, history) lives in documents storage; disposable API cache lives in temporary storage.
 - UI strings: `lib/l10n/app_en.arb` + `app_it.arb` → `AppLocalizations`. Bulk data translations (abilities, moves, items, locations) live in `lib/l10n/*_db.dart`, keyed by API value — see `docs/localization_policy.md`.
 - Logging redacts user queries at release level and truncates payloads — see `docs/logging_policy.md`.
@@ -124,11 +123,28 @@ Generated files (`*.g.dart`, `bootstrap.config.dart`, `lib/l10n/app_localization
 
 ## Quality checks
 
+The `.sh` scripts require Bash and its standard tools. Use Bash on macOS/Linux and
+Git Bash from Git for Windows. Run the commands below from the repository root.
+The VS Code tasks select Git Bash on Windows at `%ProgramFiles%\Git\bin\bash.exe`;
+adjust their Windows command paths if Git is installed elsewhere.
+
+From PowerShell, invoke Git Bash explicitly (Windows `bash.exe` on PATH may refer to WSL):
+
+```powershell
+& "$env:ProgramFiles\Git\bin\bash.exe" --login scripts/verify.sh
+```
+
+Replace the script argument with `scripts/coverage.sh` or `scripts/sync-ai-docs.sh`
+for coverage or AI documentation. FVM must be available on PATH and dependencies must
+be resolved before running checks. The Dart scripts also run through FVM from the repository
+root on all three platforms. `post_build.dart` creates and pushes a tag, while
+`generate_canonical_table.dart` calls PokeAPI and rewrites generated data; neither is a check.
+
 `scripts/verify.sh` runs every gate — formatting, static analysis, tests — and is the
 single entry point to check the project is healthy:
 
 ```bash
-./scripts/verify.sh
+bash scripts/verify.sh
 ```
 
 The individual commands, and test coverage:
@@ -137,8 +153,8 @@ The individual commands, and test coverage:
 fvm dart format lib test scripts   # apply formatting
 fvm flutter analyze                # static analysis
 fvm flutter test                   # tests (unit, bloc, widget, integration journeys)
-./scripts/coverage.sh              # tests with total line coverage
-./scripts/coverage.sh 60           # ...and fail below the given percentage
+bash scripts/coverage.sh           # tests with total line coverage
+bash scripts/coverage.sh 70        # ...and fail below the given percentage
 ```
 
 Every PR to `main` runs the same gates in GitHub Actions (`.github/workflows/ci.yml`), plus codegen-consistency and release-build checks.

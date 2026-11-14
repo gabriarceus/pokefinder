@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:pokefinder/src/1_presentation/widgets/section_title.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
-import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Screen presenting app version, PokeAPI attribution, legal disclaimers, and open source licenses.
@@ -89,14 +89,7 @@ class _AboutPageState extends State<AboutPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          t.aboutPokeFinder,
-          style: const TextStyle(color: AppPalette.onBrandRed),
-        ),
-        backgroundColor: AppPalette.brandRed,
-        iconTheme: const IconThemeData(color: AppPalette.onBrandRed),
-      ),
+      appBar: AppBar(title: Text(t.aboutPokeFinder)),
       body: FutureBuilder<PackageInfo>(
         future: _packageInfoFuture,
         builder: (context, snapshot) {
@@ -115,13 +108,15 @@ class _AboutPageState extends State<AboutPage> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: AppPalette.brandRed.withValues(alpha: 0.1),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.catching_pokemon,
                         size: 48,
-                        color: AppPalette.brandRed,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -158,16 +153,7 @@ class _AboutPageState extends State<AboutPage> {
               const Divider(),
 
               // Section: Data & Attribution
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  t.aboutDataSource,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              SectionTitle(t.aboutDataSource),
               Card(
                 elevation: 0,
                 color: theme.colorScheme.surfaceContainerLow,
@@ -189,16 +175,7 @@ class _AboutPageState extends State<AboutPage> {
               const Divider(),
 
               // Section: Disclaimer
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  t.aboutDisclaimer,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              SectionTitle(t.aboutDisclaimer),
               Card(
                 elevation: 0,
                 color: theme.colorScheme.surfaceContainerLow,
@@ -217,16 +194,7 @@ class _AboutPageState extends State<AboutPage> {
               const Divider(),
 
               // Section: Legal & Licenses
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  t.aboutOpenSourceLicenses,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              SectionTitle(t.aboutOpenSourceLicenses),
               ListTile(
                 leading: const Icon(Icons.policy_outlined),
                 title: Text(t.aboutOpenSourceLicenses),
@@ -238,9 +206,9 @@ class _AboutPageState extends State<AboutPage> {
                     applicationVersion: version != null && buildNumber != null
                         ? '$version+$buildNumber'
                         : null,
-                    applicationIcon: const Icon(
+                    applicationIcon: Icon(
                       Icons.catching_pokemon,
-                      color: AppPalette.brandRed,
+                      color: Theme.of(context).colorScheme.primary,
                       size: 40,
                     ),
                   );
@@ -249,16 +217,7 @@ class _AboutPageState extends State<AboutPage> {
               const Divider(),
 
               // Section: Source Code & Community
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  t.aboutSourceCode,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              SectionTitle(t.aboutSourceCode),
               ListTile(
                 leading: const Icon(Icons.code_rounded),
                 title: Text(t.aboutGitHubRepository),

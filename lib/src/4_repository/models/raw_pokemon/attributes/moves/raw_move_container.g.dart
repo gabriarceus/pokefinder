@@ -17,12 +17,6 @@ RawMoveContainer _$RawMoveContainerFromJson(Map<String, dynamic> json) =>
           .toList(),
     );
 
-Map<String, dynamic> _$RawMoveContainerToJson(RawMoveContainer instance) =>
-    <String, dynamic>{
-      'move': instance.move,
-      'version_group_details': instance.versionGroupDetails,
-    };
-
 RawMoveVersionGroupDetail _$RawMoveVersionGroupDetailFromJson(
   Map<String, dynamic> json,
 ) => RawMoveVersionGroupDetail(
@@ -34,11 +28,3 @@ RawMoveVersionGroupDetail _$RawMoveVersionGroupDetailFromJson(
     json['version_group'] as Map<String, dynamic>,
   ),
 );
-
-Map<String, dynamic> _$RawMoveVersionGroupDetailToJson(
-  RawMoveVersionGroupDetail instance,
-) => <String, dynamic>{
-  'level_learned_at': instance.levelLearnedAt,
-  'move_learn_method': instance.moveLearnMethod,
-  'version_group': instance.versionGroup,
-};

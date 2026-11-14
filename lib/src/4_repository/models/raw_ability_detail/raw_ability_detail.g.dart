@@ -29,16 +29,6 @@ RawAbilityDetail _$RawAbilityDetailFromJson(Map<String, dynamic> json) =>
           const [],
     );
 
-Map<String, dynamic> _$RawAbilityDetailToJson(RawAbilityDetail instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'effect_entries': instance.effectEntries.map((e) => e.toJson()).toList(),
-      'flavor_text_entries': instance.flavorTextEntries
-          .map((e) => e.toJson())
-          .toList(),
-    };
-
 RawAbilityEffectEntry _$RawAbilityEffectEntryFromJson(
   Map<String, dynamic> json,
 ) => RawAbilityEffectEntry(
@@ -47,24 +37,9 @@ RawAbilityEffectEntry _$RawAbilityEffectEntryFromJson(
   language: NamedAPIResource.fromJson(json['language'] as Map<String, dynamic>),
 );
 
-Map<String, dynamic> _$RawAbilityEffectEntryToJson(
-  RawAbilityEffectEntry instance,
-) => <String, dynamic>{
-  'effect': instance.effect,
-  'short_effect': instance.shortEffect,
-  'language': instance.language.toJson(),
-};
-
 RawAbilityFlavorTextEntry _$RawAbilityFlavorTextEntryFromJson(
   Map<String, dynamic> json,
 ) => RawAbilityFlavorTextEntry(
   flavorText: json['flavor_text'] as String,
   language: NamedAPIResource.fromJson(json['language'] as Map<String, dynamic>),
 );
-
-Map<String, dynamic> _$RawAbilityFlavorTextEntryToJson(
-  RawAbilityFlavorTextEntry instance,
-) => <String, dynamic>{
-  'flavor_text': instance.flavorText,
-  'language': instance.language.toJson(),
-};

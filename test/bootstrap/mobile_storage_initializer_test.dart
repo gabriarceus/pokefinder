@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
@@ -8,16 +7,7 @@ import 'package:pokefinder/bootstrap/mobile_storage_initializer.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('MobileStorageInitializer and Platform Support', () {
-    test(
-      'declares Android and iOS as officially supported mobile platforms',
-      () {
-        expect(kSupportedPlatforms, contains(TargetPlatform.android));
-        expect(kSupportedPlatforms, contains(TargetPlatform.iOS));
-        expect(kSupportedPlatforms, hasLength(2));
-      },
-    );
-
+  group('MobileStorageInitializer', () {
     test('separates durable and disposable directories cleanly', () async {
       final tempRoot = Directory.systemTemp.createTempSync('poke_test_');
       final docsDir = Directory('${tempRoot.path}/documents');

@@ -17,13 +17,10 @@ void main() {
       expect(entry.types, [PokemonType.electric]);
       expect(entry.formattedId, '#025');
       expect(
-        entry.spriteUrl,
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png',
-      );
-      expect(
         entry.officialArtworkUrl,
         'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png',
       );
+      expect(entry.displaySpriteUrl, entry.officialArtworkUrl);
     });
 
     test('respects customSpriteUrl when provided', () {
@@ -34,7 +31,7 @@ void main() {
         customSpriteUrl: 'https://custom.sprite/1.png',
       );
 
-      expect(entry.spriteUrl, 'https://custom.sprite/1.png');
+      expect(entry.displaySpriteUrl, 'https://custom.sprite/1.png');
     });
 
     test('correctly maps generation from Pokédex numeric ID ranges', () {
@@ -186,39 +183,6 @@ void main() {
         ).generation,
         0,
       );
-    });
-
-    test('copyWith updates properties and preserves unchanged fields', () {
-      const entry = PokemonIndexEntry(
-        id: 4,
-        name: 'charmander',
-        detailUrl: 'https://pokeapi.co/api/v2/pokemon/4/',
-      );
-
-      final updated = entry.copyWith(
-        types: [PokemonType.fire],
-        customSpriteUrl: 'https://test/4.png',
-      );
-
-      expect(updated.id, 4);
-      expect(updated.name, 'charmander');
-      expect(updated.types, [PokemonType.fire]);
-      expect(updated.spriteUrl, 'https://test/4.png');
-    });
-
-    test('value equality and props', () {
-      const entry1 = PokemonIndexEntry(
-        id: 7,
-        name: 'squirtle',
-        detailUrl: 'https://pokeapi.co/api/v2/pokemon/7/',
-      );
-      const entry2 = PokemonIndexEntry(
-        id: 7,
-        name: 'squirtle',
-        detailUrl: 'https://pokeapi.co/api/v2/pokemon/7/',
-      );
-
-      expect(entry1, equals(entry2));
     });
 
     test('alternate form properties and formatted dex numbers', () {

@@ -3,7 +3,7 @@ import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/stats/
 
 part 'stat_container.g.dart';
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class StatContainer {
   const StatContainer({
     required this.baseStat,
@@ -18,6 +18,4 @@ class StatContainer {
 
   factory StatContainer.fromJson(Map<String, dynamic> json) =>
       _$StatContainerFromJson(json);
-
-  Map<String, dynamic> toJson() => _$StatContainerToJson(this);
 }

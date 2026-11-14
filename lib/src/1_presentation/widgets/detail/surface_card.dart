@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A flat [Card] with a translucent surface-container color and rounded corners.
 ///

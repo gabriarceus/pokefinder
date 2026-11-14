@@ -5,12 +5,6 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:path_provider/path_provider.dart';
 
-/// Officially supported mobile target platforms for PokéFinder.
-const Set<TargetPlatform> kSupportedPlatforms = {
-  TargetPlatform.android,
-  TargetPlatform.iOS,
-};
-
 /// Initializes application storage according to mobile data lifecycle requirements.
 ///
 /// - Durable user state (such as language preferences via [HydratedBloc]) is placed

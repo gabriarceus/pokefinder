@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'sprites.g.dart';
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class Sprites {
   const Sprites({
     this.frontDefault,
@@ -44,11 +44,9 @@ class Sprites {
 
   factory Sprites.fromJson(Map<String, dynamic> json) =>
       _$SpritesFromJson(json);
-
-  Map<String, dynamic> toJson() => _$SpritesToJson(this);
 }
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class SpritesOther {
   const SpritesOther({this.officialArtwork, this.home});
 
@@ -59,11 +57,9 @@ class SpritesOther {
 
   factory SpritesOther.fromJson(Map<String, dynamic> json) =>
       _$SpritesOtherFromJson(json);
-
-  Map<String, dynamic> toJson() => _$SpritesOtherToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class SpritesHome {
   const SpritesHome({
     this.frontDefault,
@@ -86,11 +82,9 @@ class SpritesHome {
 
   factory SpritesHome.fromJson(Map<String, dynamic> json) =>
       _$SpritesHomeFromJson(json);
-
-  Map<String, dynamic> toJson() => _$SpritesHomeToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class OfficialArtwork {
   const OfficialArtwork({this.frontDefault, this.frontShiny});
 
@@ -102,6 +96,4 @@ class OfficialArtwork {
 
   factory OfficialArtwork.fromJson(Map<String, dynamic> json) =>
       _$OfficialArtworkFromJson(json);
-
-  Map<String, dynamic> toJson() => _$OfficialArtworkToJson(this);
 }

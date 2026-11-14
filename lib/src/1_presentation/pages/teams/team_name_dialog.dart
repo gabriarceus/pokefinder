@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_team.dart';
 
@@ -81,7 +81,7 @@ class _TeamNameDialogState extends State<_TeamNameDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(t.cancel),
         ),
-        ElevatedButton(onPressed: _submit, child: Text(widget.confirmLabel)),
+        FilledButton(onPressed: _submit, child: Text(widget.confirmLabel)),
       ],
     );
   }

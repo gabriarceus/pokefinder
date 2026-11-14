@@ -70,32 +70,11 @@ class PokemonIndexFilterHelper {
 
       // 3. Text Search: natural searches ("mega", "alola", species name, ID)
       if (normalizedQuery.isNotEmpty) {
-        final matchesName =
-            entry.name.toLowerCase().contains(normalizedQuery) ||
-            entry.displayName.toLowerCase().contains(normalizedQuery) ||
-            entry.effectiveParentSpeciesName.toLowerCase().contains(
-              normalizedQuery,
-            );
-        final matchesId =
-            entry.id.toString().startsWith(normalizedQuery) ||
-            entry.formattedId.toLowerCase().contains(normalizedQuery) ||
-            entry.dexNumberDisplay.toLowerCase().contains(normalizedQuery) ||
-            entry.effectiveParentSpeciesId.toString().startsWith(
-              normalizedQuery,
-            );
-        final matchesCategory = switch (normalizedQuery) {
-          'mega' => entry.formCategory == PokemonFormCategory.mega,
-          'primal' => entry.formCategory == PokemonFormCategory.primal,
-          'gmax' => entry.formCategory == PokemonFormCategory.gmax,
-          'regional' => entry.formCategory == PokemonFormCategory.regional,
-          'alola' => entry.regionalGroup == PokemonRegionalGroup.alola,
-          'galar' => entry.regionalGroup == PokemonRegionalGroup.galar,
-          'hisui' => entry.regionalGroup == PokemonRegionalGroup.hisui,
-          'paldea' => entry.regionalGroup == PokemonRegionalGroup.paldea,
-          _ => false,
-        };
-
-        if (!matchesName && !matchesId && !matchesCategory) {
+        final matchesQuery = PokemonIndexFilterHelper.matchesQuery(
+          entry,
+          normalizedQuery,
+        );
+        if (!matchesQuery) {
           return false;
         }
       }
@@ -133,25 +112,9 @@ class PokemonIndexFilterHelper {
     // 6. Interleaved sorting: alternate forms sorted directly beneath parent species
     switch (sortOrder) {
       case PokedexSortOrder.idAscending:
-        filtered.sort((a, b) {
-          final parentComp = a.effectiveParentSpeciesId.compareTo(
-            b.effectiveParentSpeciesId,
-          );
-          if (parentComp != 0) return parentComp;
-          if (!a.isAlternateForm && b.isAlternateForm) return -1;
-          if (a.isAlternateForm && !b.isAlternateForm) return 1;
-          return a.id.compareTo(b.id);
-        });
+        filtered.sort(compareBySpecies);
       case PokedexSortOrder.idDescending:
-        filtered.sort((a, b) {
-          final parentComp = b.effectiveParentSpeciesId.compareTo(
-            a.effectiveParentSpeciesId,
-          );
-          if (parentComp != 0) return parentComp;
-          if (!a.isAlternateForm && b.isAlternateForm) return -1;
-          if (a.isAlternateForm && !b.isAlternateForm) return 1;
-          return b.id.compareTo(a.id);
-        });
+        filtered.sort((a, b) => compareBySpecies(a, b, descending: true));
       case PokedexSortOrder.nameAscending:
         filtered.sort((a, b) => a.name.compareTo(b.name));
       case PokedexSortOrder.nameDescending:
@@ -159,5 +122,52 @@ class PokemonIndexFilterHelper {
     }
 
     return filtered;
+  }
+
+  /// Whether [entry] matches [normalizedQuery] (trimmed, lowercase) by name,
+  /// display name, species, id, or a form keyword (`mega`, `alola`, …).
+  static bool matchesQuery(PokemonIndexEntry entry, String normalizedQuery) {
+    final matchesName =
+        entry.name.toLowerCase().contains(normalizedQuery) ||
+        entry.displayName.toLowerCase().contains(normalizedQuery) ||
+        entry.effectiveParentSpeciesName.toLowerCase().contains(
+          normalizedQuery,
+        );
+    final matchesId =
+        entry.id.toString().startsWith(normalizedQuery) ||
+        entry.formattedId.toLowerCase().contains(normalizedQuery) ||
+        entry.dexNumberDisplay.toLowerCase().contains(normalizedQuery) ||
+        entry.effectiveParentSpeciesId.toString().startsWith(normalizedQuery);
+    // Only entries without a name or id match pay for the keyword switch.
+    return matchesName ||
+        matchesId ||
+        switch (normalizedQuery) {
+          'mega' => entry.formCategory == PokemonFormCategory.mega,
+          'primal' => entry.formCategory == PokemonFormCategory.primal,
+          'gmax' => entry.formCategory == PokemonFormCategory.gmax,
+          'regional' => entry.formCategory == PokemonFormCategory.regional,
+          'alola' => entry.regionalGroup == PokemonRegionalGroup.alola,
+          'galar' => entry.regionalGroup == PokemonRegionalGroup.galar,
+          'hisui' => entry.regionalGroup == PokemonRegionalGroup.hisui,
+          'paldea' => entry.regionalGroup == PokemonRegionalGroup.paldea,
+          _ => false,
+        };
+  }
+
+  /// Orders entries by parent species id, each species before its forms,
+  /// then by id. [descending] reverses the species and id order only.
+  static int compareBySpecies(
+    PokemonIndexEntry a,
+    PokemonIndexEntry b, {
+    bool descending = false,
+  }) {
+    final sign = descending ? -1 : 1;
+    final parentComp = a.effectiveParentSpeciesId.compareTo(
+      b.effectiveParentSpeciesId,
+    );
+    if (parentComp != 0) return sign * parentComp;
+    if (!a.isAlternateForm && b.isAlternateForm) return -1;
+    if (a.isAlternateForm && !b.isAlternateForm) return 1;
+    return sign * a.id.compareTo(b.id);
   }
 }

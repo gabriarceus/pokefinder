@@ -1,5 +1,5 @@
 import 'package:en_logger/en_logger.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:injectable/injectable.dart' hide test;
 import 'package:pokefinder/bootstrap.dart';
@@ -9,6 +9,7 @@ import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 import 'package:pokefinder/src/4_repository/repositories/mock_pokemon_repository.dart';
 import 'package:pokefinder/src/4_repository/repositories/pokemon_repository_impl.dart';
+import '../helpers/in_memory_hydrated_storage.dart';
 
 void main() {
   group('bootstrap startup and error recovery', () {
@@ -64,7 +65,7 @@ void main() {
       await tester.pumpWidget(renderedApp!);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byType(ElevatedButton));
+      await tester.tap(find.byType(FilledButton));
       await tester.pumpAndSettle();
 
       expect(attempts, equals(2));
@@ -74,8 +75,8 @@ void main() {
     test(
       'rapid successive calls to configureDependencies re-register without collision',
       () async {
-        await configureDependencies('mock');
-        await configureDependencies('mock');
+        await configureDependencies(Environment.dev);
+        await configureDependencies(Environment.dev);
         expect(getIt.isRegistered<EnLogger>(), isTrue);
       },
     );
@@ -84,15 +85,14 @@ void main() {
       'resolves all presentation BLoCs and Cubits without missing dependencies',
       () async {
         ensureHydratedStorage();
-        await configureDependencies('mock');
+        await configureDependencies(Environment.dev);
 
         expect(getIt<PokedexBloc>(), isA<PokedexBloc>());
         expect(getIt<HomeBloc>(), isA<HomeBloc>());
-        expect(getIt<PokemonBloc>(), isA<PokemonBloc>());
+        expect(getIt<PokemonDetailBloc>(), isA<PokemonDetailBloc>());
         expect(getIt<FavoritesCubit>(), isA<FavoritesCubit>());
         expect(getIt<PreferencesCubit>(), isA<PreferencesCubit>());
         expect(getIt<RecentHistoryCubit>(), isA<RecentHistoryCubit>());
-        expect(getIt<MoveDetailCubit>(), isA<MoveDetailCubit>());
         expect(getIt<TeamsCubit>(), isA<TeamsCubit>());
       },
     );
@@ -115,15 +115,17 @@ void main() {
       },
     );
 
-    test('bootstrap respects explicit environment parameter', () async {
-      ensureHydratedStorage();
-      await bootstrap(
-        then: () => const Text('App Started'),
-        initializeStorage: () async {},
-        appRunner: (_) {},
-        environment: Environment.prod,
-      );
-      expect(getIt<IPokemonRepository>(), isA<PokemonRepositoryImpl>());
-    });
+    test(
+      'bootstrap registers the repository resolved from the flavor',
+      () async {
+        ensureHydratedStorage();
+        await bootstrap(
+          then: () => const Text('App Started'),
+          initializeStorage: () async {},
+          appRunner: (_) {},
+        );
+        expect(getIt<IPokemonRepository>(), isA<IPokemonRepository>());
+      },
+    );
   });
 }

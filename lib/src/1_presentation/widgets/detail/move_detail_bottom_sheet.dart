@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
-import 'package:pokefinder/src/2_application/bloc/move_detail_cubit/move_detail_cubit.dart';
-import 'package:pokefinder/src/2_application/bloc/move_detail_cubit/move_detail_state.dart';
+import 'package:pokefinder/src/1_presentation/widgets/failure_retry_card.dart';
+import 'package:pokefinder/src/2_application/bloc/load_cubit/load_cubit.dart';
+import 'package:pokefinder/src/2_application/bloc/load_cubit/load_state.dart';
 import 'package:pokefinder/src/3_domain/entities/move_detail.dart';
 
 class MoveDetailBottomSheet extends StatelessWidget {
@@ -50,65 +51,28 @@ class MoveDetailBottomSheet extends StatelessWidget {
               children: [
                 Text(
                   capitalizedName,
-                  style: const TextStyle(
-                    fontSize: 24,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
-                BlocBuilder<MoveDetailCubit, MoveDetailState>(
-                  builder: (context, state) {
-                    if (state is MoveDetailLoading ||
-                        state is MoveDetailInitial) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(32.0),
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    } else if (state is MoveDetailError) {
-                      final errorMessage = state.failure != null
-                          ? state.failure!.localizedMessage(context)
-                          : state.message;
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.error_outline_rounded,
-                                color: Theme.of(context).colorScheme.error,
-                                size: 40,
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                errorMessage,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.error,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              OutlinedButton.icon(
-                                onPressed: () {
-                                  context
-                                      .read<MoveDetailCubit>()
-                                      .fetchMoveDetail(moveName);
-                                },
-                                icon: const Icon(Icons.refresh_rounded),
-                                label: Text(context.t().retryButton),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    } else if (state is MoveDetailLoaded) {
-                      return _MoveDetailContent(moveDetail: state.moveDetail);
-                    }
-                    return const SizedBox.shrink();
+                BlocBuilder<LoadCubit<MoveDetail>, LoadState<MoveDetail>>(
+                  builder: (context, state) => switch (state) {
+                    LoadInProgress() => const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                    LoadFailure(:final failure) => FailureRetryCard(
+                      message: failure.localizedMessage(context),
+                      onRetry: () =>
+                          context.read<LoadCubit<MoveDetail>>().load(),
+                    ),
+                    LoadSuccess(:final value) => _MoveDetailContent(
+                      moveDetail: value,
+                    ),
                   },
                 ),
               ],
@@ -173,12 +137,14 @@ class _MoveDetailContent extends StatelessWidget {
         const SizedBox(height: 24),
         Text(
           t.moveDetailEffect,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         Text(
           effectText.replaceAll('\n', ' '),
-          style: const TextStyle(fontSize: 14),
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
       ],
     );
@@ -198,10 +164,9 @@ class _StatBadge extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 12,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
             fontWeight: FontWeight.w600,
-            color: Colors.grey,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 4),

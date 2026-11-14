@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
-import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
+import 'package:pokefinder/src/1_presentation/widgets/empty_state_view.dart';
 
 const _kSadAzurillAsset = 'assets/images/sad_azurill.png';
 
@@ -17,56 +18,23 @@ class RouteErrorPage extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.routeNotFoundTitle),
-        backgroundColor: AppPalette.brandRed,
-        foregroundColor: AppPalette.onBrandRed,
-      ),
+      appBar: AppBar(title: Text(l10n.routeNotFoundTitle)),
       body: Stack(
         children: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.search_off_rounded,
-                    size: 64,
-                    color: AppPalette.brandRed,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    l10n.routeNotFoundTitle,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    errorMessage ?? l10n.routeNotFoundMessage,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      if (context.canPop()) {
-                        context.pop();
-                      } else {
-                        context.go('/');
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppPalette.brandRed,
-                      foregroundColor: AppPalette.onBrandRed,
-                    ),
-                    icon: const Icon(Icons.home_outlined),
-                    label: Text(l10n.goHome),
-                  ),
-                ],
-              ),
+          EmptyStateView(
+            icon: Icons.search_off_rounded,
+            title: l10n.routeNotFoundTitle,
+            message: errorMessage ?? l10n.routeNotFoundMessage,
+            action: FilledButton.icon(
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go(AppRoutes.home);
+                }
+              },
+              icon: const Icon(Icons.home_outlined),
+              label: Text(l10n.goHome),
             ),
           ),
           Positioned(

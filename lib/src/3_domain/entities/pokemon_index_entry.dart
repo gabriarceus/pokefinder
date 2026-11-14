@@ -1,7 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_form_category.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_regional_group.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_summary.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
+import 'package:pokefinder/src/3_domain/helpers/pokeapi_url_helper.dart';
 import 'package:pokefinder/src/3_domain/helpers/pokemon_form_classifier.dart';
 
 /// Represents a lightweight entry in the Pokémon index catalog.
@@ -73,20 +75,31 @@ class PokemonIndexEntry extends Equatable {
 
   /// Whether this entry represents an alternate battle form or variant.
   bool get isAlternateForm =>
-      id > 1025 || formCategory != PokemonFormCategory.canonical;
+      id >= kFirstFormId || formCategory != PokemonFormCategory.canonical;
 
   /// Formatted Pokédex number of the canonical parent species (e.g. "#0006").
   String get dexNumberDisplay =>
       '#${effectiveParentSpeciesId.toString().padLeft(4, '0')}';
 
-  /// Standard pixel front-default sprite URL derived from [id].
-  String get spriteUrl =>
-      customSpriteUrl ??
-      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$id.png';
-
   /// High-resolution official artwork URL derived from [id].
-  String get officialArtworkUrl =>
-      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$id.png';
+  String get officialArtworkUrl => PokeApiUrlHelper.officialArtworkUrl(id);
+
+  /// Image this entry is rendered with, and the one every derived surface
+  /// inherits: the custom override when set, the official artwork otherwise.
+  String get displaySpriteUrl => customSpriteUrl ?? officialArtworkUrl;
+
+  /// Summary of this entry, carrying the artwork and the form lineage so a
+  /// round trip through a [PokemonSummary] keeps both.
+  PokemonSummary get summary => PokemonSummary(
+    id: id,
+    name: name,
+    spriteUrl: displaySpriteUrl,
+    types: types,
+    parentSpeciesId: parentSpeciesId,
+    parentSpeciesName: parentSpeciesName,
+    formCategory: formCategory,
+    regionalGroup: regionalGroup,
+  );
 
   /// Formats the [id] with a leading '#' and minimum 3 digits (e.g. "#025").
   String get formattedId => '#${id.toString().padLeft(3, '0')}';
@@ -113,15 +126,7 @@ class PokemonIndexEntry extends Equatable {
           : effectiveSpeciesGeneration);
 
   /// Formatted English display name.
-  String get displayName =>
-      customDisplayName ??
-      PokemonFormClassifier.formatDisplayName(
-        name: name,
-        parentSpeciesName: effectiveParentSpeciesName,
-        category: formCategory,
-        regionalGroup: regionalGroup,
-        languageCode: 'en',
-      );
+  String get displayName => getDisplayName();
 
   /// Returns localized display name for [languageCode].
   String getDisplayName({String languageCode = 'en'}) =>

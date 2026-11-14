@@ -94,19 +94,6 @@ void main() {
     });
   });
 
-  group('canAddToComparison', () {
-    test('allows entries below the cap and rejects at the cap', () {
-      expect(canAddToComparison(0), isTrue);
-      expect(canAddToComparison(1), isTrue);
-      expect(canAddToComparison(kComparisonMaxEntries), isFalse);
-      expect(canAddToComparison(kComparisonMaxEntries + 1), isFalse);
-    });
-
-    test('caps the comparison at two entries', () {
-      expect(kComparisonMaxEntries, equals(2));
-    });
-  });
-
   group('unit conversion reuse', () {
     test('formats comparison weight in both unit systems', () {
       expect(

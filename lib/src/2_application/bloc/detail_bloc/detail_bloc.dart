@@ -2,16 +2,17 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:dartz/dartz.dart';
-import 'package:pokefinder/src/3_domain/cancellation_token.dart';
 import 'package:en_logger/en_logger.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
 import 'package:meta/meta.dart';
+import 'package:pokefinder/src/2_application/helpers/log_sanitizer.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_summary.dart';
+import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
-import 'package:pokefinder/src/3_domain/usecases/get_pokemon_usecase.dart';
-import 'package:pokefinder/src/3_domain/usecases/get_pokemon_encounters_usecase.dart';
-import 'package:pokefinder/src/3_domain/usecases/get_pokemon_form_details_usecase.dart';
+import 'package:pokefinder/src/3_domain/helpers/pokemon_form_classifier.dart';
+import 'package:pokefinder/src/3_domain/repositories/i_pokemon_repository.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
 
 export 'detail_moves_cubit.dart';
@@ -23,13 +24,9 @@ const _prefix = 'DetailBloc';
 
 /// Manages the state for fetching, displaying, and switching Pokémon forms.
 @injectable
-class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
-  PokemonBloc(
-    this._getPokemonUseCase,
-    this._getPokemonEncountersUseCase,
-    this._getPokemonFormDetailsUseCase,
-    this._logger,
-  ) : super(const PokemonBlocInitial()) {
+class PokemonDetailBloc extends Bloc<PokemonDetailEvent, PokemonDetailState> {
+  PokemonDetailBloc(this._repository, this._logger)
+    : super(const PokemonDetailInitial()) {
     _registerEventHandlers();
   }
 
@@ -43,125 +40,61 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
     on<ClearPokemonFormFailureEvent>(onClearFormFailure);
   }
 
-  final GetPokemonUseCase _getPokemonUseCase;
-  final GetPokemonEncountersUseCase _getPokemonEncountersUseCase;
-  final GetPokemonFormDetailsUseCase _getPokemonFormDetailsUseCase;
+  final IPokemonRepository _repository;
   final EnLogger _logger;
-  CancellationToken? _pokemonCancelToken;
-  CancellationToken? _encountersCancelToken;
-  CancellationToken? _formCancelToken;
-
-  @override
-  Future<void> close() {
-    _pokemonCancelToken?.cancel('PokemonBloc closed');
-    _encountersCancelToken?.cancel('PokemonBloc closed');
-    _formCancelToken?.cancel('PokemonBloc closed');
-    return super.close();
-  }
+  int _detailGeneration = 0;
+  int _encountersGeneration = 0;
 
   FutureOr<void> onFetchPokemon(
     FetchPokemonEvent event,
-    Emitter<PokemonBlocState> emit,
+    Emitter<PokemonDetailState> emit,
   ) async {
     final name = PokemonName(event.pokemonName);
     if (!name.isValid()) {
       return;
     }
 
-    _pokemonCancelToken?.cancel('Superseded by new FetchPokemonEvent');
-    _encountersCancelToken?.cancel('Superseded by new FetchPokemonEvent');
-    final pokemonToken = CancellationToken();
-    _pokemonCancelToken = pokemonToken;
-
-    emit(const PokemonBlocLoading());
+    final generation = ++_detailGeneration;
+    _encountersGeneration++;
+    emit(const PokemonDetailLoading());
     _logger.info(
-      'Fetching data for Pokemon: ${name.rightOrCrash()}',
+      'Fetching data for Pokemon: ${sanitizeQueryForLog(name.rightOrCrash())}',
       prefix: _prefix,
     );
-    final Either<PokemonFailure, Pokemon> result = await _getPokemonUseCase(
+    final Either<PokemonFailure, Pokemon> result = await _repository.getPokemon(
       name,
-      cancelToken: pokemonToken,
     );
 
-    if (pokemonToken.isCancelled || emit.isDone) return;
+    if (emit.isDone || generation != _detailGeneration) return;
 
-    await result.fold(
-      (failure) async {
-        if (failure is RequestCancelledFailure) return;
+    result.fold(
+      (failure) {
         _logger.error(
           'Failed to fetch Pokemon: ${failure.message}',
           prefix: _prefix,
         );
-        emit(PokemonBlocFailure(failure));
+        emit(PokemonDetailFailure(failure));
       },
-      (pokemon) async {
-        if (pokemonToken.isCancelled || emit.isDone) return;
+      (pokemon) {
         _logger.info(
           'Successfully fetched Pokemon: ${pokemon.name}',
           prefix: _prefix,
         );
 
-        final defaultFormDetails = PokemonFormDetails.fromPokemon(pokemon);
+        emit(PokemonDetailSuccess(pokemon: pokemon, isLoadingEncounters: true));
 
-        emit(
-          PokemonBlocSuccess(
-            pokemon: pokemon,
-            selectedFormDetails: defaultFormDetails,
-            isLoadingEncounters: true,
-          ),
-        );
-
-        final encountersToken = CancellationToken();
-        _encountersCancelToken = encountersToken;
-
-        // Fetch location area encounters in the background
-        final encountersResult = await _getPokemonEncountersUseCase(
-          pokemon.locationAreaEncounters,
-          cancelToken: encountersToken,
-        );
-
-        if (encountersToken.isCancelled || emit.isDone) return;
-
-        final currentState = state;
-        if (currentState is PokemonBlocSuccess &&
-            currentState.pokemon.id == pokemon.id) {
-          encountersResult.fold(
-            (failure) {
-              if (failure is RequestCancelledFailure) return;
-              emit(
-                currentState.copyWith(
-                  isLoadingEncounters: false,
-                  encountersFailure: failure,
-                ),
-              );
-            },
-            (encounters) {
-              emit(
-                currentState.copyWith(
-                  isLoadingEncounters: false,
-                  encounters: encounters,
-                  encountersFailure: null,
-                ),
-              );
-            },
-          );
-        }
+        add(RetryPokemonEncountersEvent());
       },
     );
   }
 
   FutureOr<void> onRetryEncounters(
     RetryPokemonEncountersEvent event,
-    Emitter<PokemonBlocState> emit,
+    Emitter<PokemonDetailState> emit,
   ) async {
     final currentState = state;
-    if (currentState is! PokemonBlocSuccess) return;
-
-    _encountersCancelToken?.cancel(
-      'Superseded by new RetryPokemonEncountersEvent',
-    );
-    final encountersToken = CancellationToken();
-    _encountersCancelToken = encountersToken;
+    if (currentState is! PokemonDetailSuccess) return;
+    final generation = ++_encountersGeneration;
 
     emit(
       currentState.copyWith(isLoadingEncounters: true, encountersFailure: null),
@@ -172,19 +105,17 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
       prefix: _prefix,
     );
 
-    final encountersResult = await _getPokemonEncountersUseCase(
+    final encountersResult = await _repository.getEncounters(
       currentState.pokemon.locationAreaEncounters,
-      cancelToken: encountersToken,
     );
 
-    if (encountersToken.isCancelled || emit.isDone) return;
+    if (emit.isDone || generation != _encountersGeneration) return;
 
     final latestState = state;
-    if (latestState is PokemonBlocSuccess &&
+    if (latestState is PokemonDetailSuccess &&
         latestState.pokemon.id == currentState.pokemon.id) {
       encountersResult.fold(
         (failure) {
-          if (failure is RequestCancelledFailure) return;
           emit(
             latestState.copyWith(
               isLoadingEncounters: false,
@@ -207,20 +138,16 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
 
   FutureOr<void> onSelectPokemonForm(
     SelectPokemonFormEvent event,
-    Emitter<PokemonBlocState> emit,
+    Emitter<PokemonDetailState> emit,
   ) async {
     final currentState = state;
-    if (currentState is! PokemonBlocSuccess) return;
+    if (currentState is! PokemonDetailSuccess) return;
 
-    _formCancelToken?.cancel('Superseded by new SelectPokemonFormEvent');
+    final generation = ++_detailGeneration;
 
     if (event.form.name == currentState.pokemon.name) {
-      final defaultFormDetails = PokemonFormDetails.fromPokemon(
-        currentState.pokemon,
-      );
       emit(
         currentState.copyWith(
-          selectedFormDetails: defaultFormDetails,
           isLoadingForm: false,
           formFailure: null,
           failedForm: null,
@@ -228,9 +155,6 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
       );
       return;
     }
-
-    final formToken = CancellationToken();
-    _formCancelToken = formToken;
 
     emit(
       currentState.copyWith(
@@ -240,19 +164,15 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
       ),
     );
 
-    final result = await _getPokemonFormDetailsUseCase(
-      event.form.url,
-      cancelToken: formToken,
-    );
+    final result = await _repository.getPokemon(PokemonName(event.form.name));
 
-    if (formToken.isCancelled || emit.isDone) return;
+    if (emit.isDone || generation != _detailGeneration) return;
 
     final updatedState = state;
-    if (updatedState is! PokemonBlocSuccess) return;
+    if (updatedState is! PokemonDetailSuccess) return;
 
     result.fold(
       (failure) {
-        if (failure is RequestCancelledFailure) return;
         emit(
           updatedState.copyWith(
             isLoadingForm: false,
@@ -261,25 +181,30 @@ class PokemonBloc extends Bloc<PokemonBlocEvent, PokemonBlocState> {
           ),
         );
       },
-      (details) {
+      (pokemon) {
+        _encountersGeneration++;
         emit(
           updatedState.copyWith(
-            selectedFormDetails: details,
+            pokemon: pokemon,
+            encounters: const [],
+            isLoadingEncounters: true,
+            encountersFailure: null,
             isLoadingForm: false,
             formFailure: null,
             failedForm: null,
           ),
         );
+        add(RetryPokemonEncountersEvent());
       },
     );
   }
 
   FutureOr<void> onClearFormFailure(
     ClearPokemonFormFailureEvent event,
-    Emitter<PokemonBlocState> emit,
+    Emitter<PokemonDetailState> emit,
   ) {
     final currentState = state;
-    if (currentState is PokemonBlocSuccess) {
+    if (currentState is PokemonDetailSuccess) {
       emit(currentState.copyWith(formFailure: null, failedForm: null));
     }
   }

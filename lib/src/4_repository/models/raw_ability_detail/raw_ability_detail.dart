@@ -3,7 +3,7 @@ import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/attrib
 
 part 'raw_ability_detail.g.dart';
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class RawAbilityDetail {
   const RawAbilityDetail({
     required this.id,
@@ -23,11 +23,9 @@ class RawAbilityDetail {
 
   factory RawAbilityDetail.fromJson(Map<String, dynamic> json) =>
       _$RawAbilityDetailFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawAbilityDetailToJson(this);
 }
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class RawAbilityEffectEntry {
   const RawAbilityEffectEntry({
     required this.effect,
@@ -44,11 +42,9 @@ class RawAbilityEffectEntry {
 
   factory RawAbilityEffectEntry.fromJson(Map<String, dynamic> json) =>
       _$RawAbilityEffectEntryFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawAbilityEffectEntryToJson(this);
 }
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class RawAbilityFlavorTextEntry {
   const RawAbilityFlavorTextEntry({
     required this.flavorText,
@@ -62,6 +58,4 @@ class RawAbilityFlavorTextEntry {
 
   factory RawAbilityFlavorTextEntry.fromJson(Map<String, dynamic> json) =>
       _$RawAbilityFlavorTextEntryFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawAbilityFlavorTextEntryToJson(this);
 }

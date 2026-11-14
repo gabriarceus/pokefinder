@@ -8,7 +8,3 @@ part of 'ability.dart';
 
 Ability _$AbilityFromJson(Map<String, dynamic> json) =>
     Ability(name: json['name'] as String);
-
-Map<String, dynamic> _$AbilityToJson(Ability instance) => <String, dynamic>{
-  'name': instance.name,
-};
