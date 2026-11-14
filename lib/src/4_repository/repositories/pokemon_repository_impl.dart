@@ -7,16 +7,7 @@ import 'package:injectable/injectable.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 import 'package:pokefinder/src/4_repository/repository.dart';
 
-/// Form-name suffix marking the vestigial "???". Such forms have
-/// no type sprite and are excluded from the exposed form list.
-const _kUnknownFormSuffix = '-unknown';
-
 typedef _Json = Map<String, dynamic>;
-
-/// Builds the official-artwork URL for the Pokémon with the given [id],
-/// returning the shiny variant when [shiny] is true.
-String _officialArtworkUrl(int id, {bool shiny = false}) =>
-    PokeApiUrlHelper.officialArtworkUrl(id, shiny: shiny);
 
 @LazySingleton(as: IPokemonRepository, env: [Environment.prod])
 class PokemonRepositoryImpl implements IPokemonRepository {
@@ -55,112 +46,57 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       // so a catalog miss must not fail the request.
       final catalog = await _loadCatalog();
       final raw = RawPokemon.fromJson(response.data);
-      final forms = await _formsFor(raw, catalog);
-      return right(_toPokemon(raw, response.isStale, forms: forms));
+      return right(_toPokemon(raw, response.isStale, catalog: catalog));
     } catch (error) {
       return left(_toFailure(error));
     }
   }
 
-  /// Builds the form list of [raw] from [catalog], falling back to the
-  /// resource's own `forms` array when the catalog is unavailable.
-  Future<List<PokemonForm>> _formsFor(
+  /// The forms of [raw]'s species from [catalog], or only [raw] itself when
+  /// the catalog is unavailable or does not list it. Only the entry of [raw]
+  /// carries types ([type1], [type2]).
+  List<PokemonForm> _formsFor(
     RawPokemon raw,
     List<PokemonIndexEntry>? catalog,
-  ) async {
-    final type1 = raw.types.isEmpty
-        ? null
-        : _typeFromUrl(raw.types.first.type.url);
-    final type2 = raw.types.length > 1
-        ? _typeFromUrl(raw.types[1].type.url)
-        : null;
-
-    if (catalog != null) {
-      final forms = await _catalogFormsFor(raw, catalog);
-      if (forms.isNotEmpty) return forms;
-    }
-    return _resourceFormsFor(raw, type1, type2);
-  }
-
-  /// Every catalog entry sharing the resource's species, canonical entry first.
-  Future<List<PokemonForm>> _catalogFormsFor(
-    RawPokemon raw,
-    List<PokemonIndexEntry> catalog,
-  ) async {
-    var parentId = 0;
-    for (final entry in catalog) {
-      if (entry.name == raw.name) {
-        parentId = entry.effectiveParentSpeciesId;
-        break;
-      }
-    }
-    if (parentId <= 0) return const [];
-
-    final siblings = catalog.where(
-      (entry) =>
-          entry.effectiveParentSpeciesId == parentId &&
-          !entry.name.endsWith(_kUnknownFormSuffix) &&
-          PokemonFormClassifier.hasRealForm(entry.name) &&
-          entry.formCategory != PokemonFormCategory.cosmetic,
-    );
-    return Future.wait(
-      siblings.map((entry) async {
-        if (entry.name == raw.name) {
-          return PokemonForm(
-            name: entry.name,
-            url: entry.detailUrl,
-            type1: raw.types.isEmpty
-                ? null
-                : _typeFromUrl(raw.types.first.type.url),
-            type2: raw.types.length > 1
-                ? _typeFromUrl(raw.types[1].type.url)
-                : null,
-          );
-        }
-        final result = await getFormDetails(
-          PokeApiUrlHelper.pokemonUrl(entry.name),
-        );
-        return result.fold(
-          (_) => PokemonForm(name: entry.name, url: entry.detailUrl),
-          (details) => PokemonForm(
-            name: entry.name,
-            url: entry.detailUrl,
-            type1: details.type1,
-            type2: details.type2,
-          ),
-        );
-      }),
-    );
-  }
-
-  /// The `forms` array of `/pokemon/{name}`, which only ever names the
-  /// Pokémon itself.
-  List<PokemonForm> _resourceFormsFor(
-    RawPokemon raw,
-    PokemonType? baseType1,
-    PokemonType? baseType2,
+    PokemonType? type1,
+    PokemonType? type2,
   ) {
-    return raw.forms.where((f) => !f.name.endsWith(_kUnknownFormSuffix)).map((
-      f,
-    ) {
-      final (formType1, formType2) = PokemonFormClassifier.resolveFormTypes(
-        formName: f.name,
-        baseType1: baseType1,
-        baseType2: baseType2,
-      );
-      return PokemonForm(
-        name: f.name,
-        url: f.url,
-        type1: formType1,
-        type2: formType2,
-      );
-    }).toList();
+    final parentId =
+        catalog
+            ?.where((entry) => entry.name == raw.name)
+            .firstOrNull
+            ?.effectiveParentSpeciesId ??
+        0;
+    final forms = [
+      if (catalog != null && parentId > 0)
+        for (final entry in catalog)
+          if (entry.effectiveParentSpeciesId == parentId &&
+              PokemonFormClassifier.hasRealForm(entry.name) &&
+              entry.formCategory != PokemonFormCategory.cosmetic)
+            entry.name == raw.name
+                ? PokemonForm(
+                    name: entry.name,
+                    url: entry.detailUrl,
+                    type1: type1,
+                    type2: type2,
+                  )
+                : PokemonForm(name: entry.name, url: entry.detailUrl),
+    ];
+    if (forms.isNotEmpty) return forms;
+    return [
+      PokemonForm(
+        name: raw.name,
+        url: PokeApiUrlHelper.pokemonUrl('${raw.id}'),
+        type1: type1,
+        type2: type2,
+      ),
+    ];
   }
 
   Pokemon _toPokemon(
     RawPokemon rawPokemon,
     bool isStale, {
-    required List<PokemonForm> forms,
+    required List<PokemonIndexEntry>? catalog,
   }) {
     if (rawPokemon.types.isEmpty) {
       throw FormatException(
@@ -260,7 +196,7 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       abilities: abilities,
       heldItems: heldItems,
       moves: moves,
-      forms: forms,
+      forms: _formsFor(rawPokemon, catalog, type1, type2),
       isStale: isStale,
     );
   }
@@ -279,8 +215,11 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       final type2 = raw.types.length > 1
           ? _typeFromUrl(raw.types[1].type.url)
           : null;
-      final artworkDefault = _officialArtworkUrl(raw.id);
-      final artworkShiny = _officialArtworkUrl(raw.id, shiny: true);
+      final artworkDefault = PokeApiUrlHelper.officialArtworkUrl(raw.id);
+      final artworkShiny = PokeApiUrlHelper.officialArtworkUrl(
+        raw.id,
+        shiny: true,
+      );
       return PokemonFormDetails(
         id: raw.id,
         name: raw.name,
@@ -312,27 +251,26 @@ class PokemonRepositoryImpl implements IPokemonRepository {
   }
 
   @override
-  Future<Either<PokemonFailure, List<PokemonIndexEntry>>> getPokemonIndex({
+  Future<Either<PokemonFailure, PokemonIndex>> getPokemonIndex({
     bool forceRefresh = false,
   }) async {
     final memoized = _catalog;
-    if (!forceRefresh && memoized != null) return right(memoized);
+    if (!forceRefresh && memoized != null) {
+      return right((entries: memoized, isStale: false));
+    }
 
-    var isStale = false;
     final epoch = _catalogEpoch;
-    final result = await _fetch<_Json, List<PokemonIndexEntry>>(
+    final result = await _fetch<_Json, PokemonIndex>(
       PokeApiUrlHelper.pokemonIndexUrl(),
-      (json, stale) {
-        isStale = stale;
-        return _toIndexEntries(json);
-      },
+      (json, isStale) => (entries: _toIndexEntries(json), isStale: isStale),
       forceRefresh: forceRefresh,
+      evictable: false,
     );
-    return result.fold((failure) => left(failure), (entries) {
+    return result.map((index) {
       // A stale offline copy is served but not kept, so the next call
       // tries the network again.
-      if (!isStale && epoch == _catalogEpoch) _catalog = entries;
-      return right(entries);
+      if (!index.isStale && epoch == _catalogEpoch) _catalog = index.entries;
+      return index;
     });
   }
 
@@ -347,7 +285,7 @@ class PokemonRepositoryImpl implements IPokemonRepository {
         prefix: _prefix,
       );
       return null;
-    }, (entries) => entries);
+    }, (index) => index.entries);
   }
 
   List<PokemonIndexEntry> _toIndexEntries(_Json json) {
@@ -472,7 +410,7 @@ class PokemonRepositoryImpl implements IPokemonRepository {
       speciesId: id,
       speciesName: link.species.name,
       speciesUrl: link.species.url,
-      spriteUrl: _officialArtworkUrl(id),
+      spriteUrl: PokeApiUrlHelper.officialArtworkUrl(id),
       triggers: triggers,
       evolvesTo: link.evolvesTo.map(_toEvolutionNode).toList(),
     );
@@ -543,9 +481,14 @@ class PokemonRepositoryImpl implements IPokemonRepository {
     String url,
     T Function(J json, bool isStale) toEntity, {
     bool forceRefresh = false,
+    bool evictable = true,
   }) async {
     try {
-      final response = await _cache.get<J>(url, forceRefresh: forceRefresh);
+      final response = await _cache.get<J>(
+        url,
+        forceRefresh: forceRefresh,
+        evictable: evictable,
+      );
       return right(toEntity(response.data, response.isStale));
     } catch (error) {
       return left(_toFailure(error));

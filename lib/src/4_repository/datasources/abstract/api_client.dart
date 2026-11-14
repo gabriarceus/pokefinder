@@ -9,11 +9,7 @@ abstract class ApiClient {
   ///
   /// Throws an [ApiException] if the request fails, carrying the HTTP status
   /// code when one is available.
-  Future<T> get<T>(
-    String endpoint, {
-    Map<String, dynamic>? queryParameters,
-    Duration? timeout,
-  });
+  Future<T> get<T>(String endpoint);
 }
 
 /// Raised when an API client returns an empty or null body.
@@ -27,8 +23,8 @@ class EmptyResponseException implements Exception {
 
 /// A transport-agnostic error raised when an [ApiClient] request fails.
 ///
-/// Preserves transport diagnostics including [statusCode], timeout flags,
-/// connection errors, and safe truncated [responseBody].
+/// Preserves transport diagnostics including [statusCode], timeout flags and
+/// connection errors.
 class ApiException implements Exception {
   ApiException({
     this.statusCode,
@@ -37,7 +33,6 @@ class ApiException implements Exception {
     this.isReceiveTimeout = false,
     this.isSendTimeout = false,
     this.isConnectionError = false,
-    this.responseBody,
   });
 
   /// HTTP status code returned by the server, or null for transport errors.
@@ -57,9 +52,6 @@ class ApiException implements Exception {
 
   /// True if there was a low-level network/socket connectivity failure.
   final bool isConnectionError;
-
-  /// Safely truncated response body received from the remote server, if any.
-  final String? responseBody;
 
   /// True if any timeout occurred during the request.
   bool get isTimeout =>

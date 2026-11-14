@@ -9,13 +9,17 @@ import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 import 'package:pokefinder/src/3_domain/failures/pokemon_failure.dart';
 import 'package:pokefinder/src/3_domain/value_objects/pokemon_name.dart';
 
+/// The Pokédex index, and whether it is an offline copy served after a
+/// failed request.
+typedef PokemonIndex = ({List<PokemonIndexEntry> entries, bool isStale});
+
 abstract class IPokemonRepository {
   Future<Either<PokemonFailure, Pokemon>> getPokemon(PokemonName name);
   Future<Either<PokemonFailure, PokemonFormDetails>> getFormDetails(String url);
   Future<Either<PokemonFailure, List<PokemonEncounter>>> getEncounters(
     String url,
   );
-  Future<Either<PokemonFailure, List<PokemonIndexEntry>>> getPokemonIndex({
+  Future<Either<PokemonFailure, PokemonIndex>> getPokemonIndex({
     bool forceRefresh = false,
   });
   Future<Either<PokemonFailure, Set<int>>> getPokemonIdsForType(

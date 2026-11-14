@@ -3,7 +3,7 @@ import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/types/
 
 part 'type_container.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class TypeContainer {
   const TypeContainer({required this.type});
 
@@ -11,6 +11,4 @@ class TypeContainer {
 
   factory TypeContainer.fromJson(Map<String, dynamic> json) =>
       _$TypeContainerFromJson(json);
-
-  Map<String, dynamic> toJson() => _$TypeContainerToJson(this);
 }

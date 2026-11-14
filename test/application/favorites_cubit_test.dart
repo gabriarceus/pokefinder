@@ -106,16 +106,6 @@ void main() {
       expect(cubit.isFavorite(4), isTrue);
     });
 
-    test('clearFavorites removes all entries', () {
-      final cubit = buildCubit();
-      cubit.addFavorite(_summary(1, 'bulbasaur'));
-      cubit.addFavorite(_summary(4, 'charmander'));
-
-      cubit.clearFavorites();
-
-      expect(cubit.state.favorites, isEmpty);
-    });
-
     group('sorting strategies in sortedFavorites', () {
       late FavoritesCubit cubit;
       late _MutableClock clock;

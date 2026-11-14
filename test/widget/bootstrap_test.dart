@@ -93,7 +93,6 @@ void main() {
         expect(getIt<FavoritesCubit>(), isA<FavoritesCubit>());
         expect(getIt<PreferencesCubit>(), isA<PreferencesCubit>());
         expect(getIt<RecentHistoryCubit>(), isA<RecentHistoryCubit>());
-        expect(getIt<MoveDetailCubit>(), isA<MoveDetailCubit>());
         expect(getIt<TeamsCubit>(), isA<TeamsCubit>());
       },
     );

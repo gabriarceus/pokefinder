@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
+import 'package:pokefinder/src/3_domain/domain.dart';
 import '../helpers/pump_app.dart';
 
 void main() {
@@ -175,6 +176,36 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Omega Ruby/Alpha Sapphire'), findsOneWidget);
+    });
+
+    testWidgets('every known game version and group has a name', (
+      tester,
+    ) async {
+      // Slugs whose Italian name is the title-cased slug itself.
+      const sameAsSlug = {'x', 'y', 'colosseum', 'champions'};
+      final slugs = {
+        for (final version in GameVersionMappings.canonicalVersions) ...[
+          version,
+          GameVersionMappings.versionGroupFor(version),
+        ],
+      }.difference(sameAsSlug);
+      late BuildContext context;
+      await pumpTestWidget(
+        tester,
+        locale: const Locale('it'),
+        builder: (c) {
+          context = c;
+          return const SizedBox();
+        },
+      );
+
+      for (final slug in slugs) {
+        expect(
+          context.translateGameVersion(slug),
+          isNot(slug.toDisplayCase()),
+          reason: '"$slug" has no name',
+        );
+      }
     });
 
     testWidgets('Translates species generation and habitat slugs', (

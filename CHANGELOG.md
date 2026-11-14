@@ -12,12 +12,17 @@ All notable changes to this project will be documented in this file, following t
 
 ### Changed
 
+- Replaced four duplicate load cubits with one generic load cubit and one shared inline error card; shared headings, empty states and link and comparison actions.
 - Simplified application and repository architecture, shared data models and UI components; improved caching, localization, theming and navigation.
 
 ### Fixed
 
+- Detail screen: Pokémon names match the Pokédex cards, the evolution chain marks forms, "Copy link" copies the `pokefinder://` deep link, and stat screen reader labels are localized.
+- Detail tabs keep their loaded data and the moves search when the user changes tab.
 - Detail-route replacement, saved cry volume, stale comparison and search results, and persistent comparison notices.
+- Game version names for the current PokeAPI version groups (DLCs, Brilliant Diamond/Shining Pearl, Japanese releases, Legends: Z-A), and the Italian name of Giratina's Origin Forme.
 - Layout and accessibility issues, audio playback, error recovery and cache handling; improved offline behavior and recovery from corrupt stored records.
+- Offline Pokédex: the cached index is never evicted, and an offline copy shows the offline banner.
 - Search and filter behavior, alternate-form loading, evolution details and localized names.
 
 ### Removed

@@ -136,6 +136,7 @@ class _PokedexBrowsePageState extends State<PokedexBrowsePage> {
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: query.isNotEmpty
                           ? IconButton(
+                              tooltip: t.clear,
                               icon: const Icon(Icons.clear),
                               onPressed: () {
                                 _searchController.clear();
@@ -258,7 +259,7 @@ class _CatalogView extends StatelessWidget {
           return CustomScrollView(
             key: const PageStorageKey('pokedex_browse_scroll_key'),
             slivers: [
-              if (state.failure != null)
+              if (state.isStale)
                 SliverToBoxAdapter(
                   child: Container(
                     color: colorScheme.tertiaryContainer,

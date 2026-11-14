@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
+import 'package:pokefinder/src/1_presentation/helpers/comparison_toggle.dart';
 import 'package:pokefinder/src/1_presentation/pages/teams/add_to_team_sheet.dart';
 import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/type_chip.dart';
@@ -39,28 +40,6 @@ class PokemonCard extends StatelessWidget {
     return l10n.formBadgeFormsIndicator;
   }
 
-  void _toggleComparison(BuildContext context) {
-    final cubit = context.read<ComparisonCubit>();
-    final wasSelected = cubit.isSelected(entry.id);
-    final nowSelected = cubit.toggleEntry(entry.summary);
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
-    if (nowSelected) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(l10n.compareAdded),
-          persist: false,
-          action: SnackBarAction(
-            label: l10n.compareView,
-            onPressed: () => context.push(AppRoutes.compare),
-          ),
-        ),
-      );
-    } else if (!wasSelected) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.compareFull)));
-    }
-  }
-
   void _showActions(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final isComparing = context.read<ComparisonCubit>().isSelected(entry.id);
@@ -76,7 +55,7 @@ class PokemonCard extends StatelessWidget {
               title: Text(isComparing ? l10n.compareRemove : l10n.compareAdd),
               onTap: () {
                 Navigator.of(sheetContext).pop();
-                _toggleComparison(context);
+                toggleComparison(context, entry.summary);
               },
             ),
             ListTile(

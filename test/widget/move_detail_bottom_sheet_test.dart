@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/move_detail_bottom_sheet.dart';
-import 'package:pokefinder/src/2_application/bloc/move_detail_cubit/move_detail_cubit.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 import '../helpers/pump_app.dart';
 
@@ -25,19 +24,17 @@ void main() {
     if (getIt.isRegistered<EnLogger>()) {
       getIt.unregister<EnLogger>();
     }
-    if (getIt.isRegistered<MoveDetailCubit>()) {
-      getIt.unregister<MoveDetailCubit>();
+    if (getIt.isRegistered<IPokemonRepository>()) {
+      getIt.unregister<IPokemonRepository>();
     }
+    getIt.registerSingleton<IPokemonRepository>(repository);
     getIt.registerSingleton<EnLogger>(logger);
-    getIt.registerFactory<MoveDetailCubit>(
-      () => MoveDetailCubit(repository, logger),
-    );
   });
 
   tearDown(() {
     final getIt = GetIt.instance;
-    if (getIt.isRegistered<MoveDetailCubit>()) {
-      getIt.unregister<MoveDetailCubit>();
+    if (getIt.isRegistered<IPokemonRepository>()) {
+      getIt.unregister<IPokemonRepository>();
     }
     if (getIt.isRegistered<EnLogger>()) {
       getIt.unregister<EnLogger>();
@@ -69,7 +66,7 @@ void main() {
       );
 
       // Verify Retry button is rendered and tapping it calls the use case again
-      final retryFinder = find.widgetWithText(OutlinedButton, 'Retry');
+      final retryFinder = find.widgetWithText(TextButton, 'Retry');
       expect(retryFinder, findsOneWidget);
       await tester.tap(retryFinder);
       await tester.pumpAndSettle();

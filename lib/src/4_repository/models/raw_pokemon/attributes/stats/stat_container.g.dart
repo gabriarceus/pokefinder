@@ -12,10 +12,3 @@ StatContainer _$StatContainerFromJson(Map<String, dynamic> json) =>
       effort: (json['effort'] as num).toInt(),
       stat: Stat.fromJson(json['stat'] as Map<String, dynamic>),
     );
-
-Map<String, dynamic> _$StatContainerToJson(StatContainer instance) =>
-    <String, dynamic>{
-      'base_stat': instance.baseStat,
-      'effort': instance.effort,
-      'stat': instance.stat.toJson(),
-    };

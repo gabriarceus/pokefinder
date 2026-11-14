@@ -8,6 +8,7 @@ final class PokedexState extends Equatable {
   const PokedexState({
     this.status = PokedexStatus.initial,
     this.isRefreshing = false,
+    this.isStale = false,
     this.allEntries = const [],
     this.filteredEntries = const [],
     this.filters = const PokedexFilters(),
@@ -20,6 +21,9 @@ final class PokedexState extends Equatable {
 
   final PokedexStatus status;
   final bool isRefreshing;
+
+  /// Whether [allEntries] is an offline copy served after a failed request.
+  final bool isStale;
   final List<PokemonIndexEntry> allEntries;
 
   /// [allEntries] after [filters] are applied.
@@ -44,6 +48,7 @@ final class PokedexState extends Equatable {
   PokedexState copyWith({
     PokedexStatus? status,
     bool? isRefreshing,
+    bool? isStale,
     List<PokemonIndexEntry>? allEntries,
     List<PokemonIndexEntry>? filteredEntries,
     PokedexFilters? filters,
@@ -56,6 +61,7 @@ final class PokedexState extends Equatable {
     return PokedexState(
       status: status ?? this.status,
       isRefreshing: isRefreshing ?? this.isRefreshing,
+      isStale: isStale ?? this.isStale,
       allEntries: allEntries ?? this.allEntries,
       filteredEntries: filteredEntries ?? this.filteredEntries,
       filters: filters ?? this.filters,
@@ -77,6 +83,7 @@ final class PokedexState extends Equatable {
   List<Object?> get props => [
     status,
     isRefreshing,
+    isStale,
     allEntries,
     filteredEntries,
     filters,

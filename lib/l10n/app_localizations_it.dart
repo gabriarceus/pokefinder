@@ -137,9 +137,6 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get order => 'Ordine';
-
-  @override
   String get defaultForm => 'Forma Default';
 
   @override
@@ -292,6 +289,25 @@ class AppLocalizationsIt extends AppLocalizations {
   String get statsMax => 'Max';
 
   @override
+  String statRangeSemantics({
+    required String stat,
+    required String base,
+    required String min,
+    required String max,
+  }) {
+    return '$stat: $base, minimo $min, massimo $max';
+  }
+
+  @override
+  String teamStatSumAverageSemantics({
+    required String stat,
+    required String sum,
+    required String average,
+  }) {
+    return '$stat: somma $sum, media $average';
+  }
+
+  @override
   String get noData => 'Nessun dato disponibile';
 
   @override
@@ -308,11 +324,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get formSelectorForms => 'Forme Disponibili';
-
-  @override
-  String formTypeModifier({required String type}) {
-    return 'Tipo $type';
-  }
 
   @override
   String get typeNormal => 'Normale';
@@ -501,6 +512,65 @@ class AppLocalizationsIt extends AppLocalizations {
   String get gameXd => 'XD';
 
   @override
+  String get gameTheIsleOfArmorSword =>
+      'L\'isola solitaria dell\'armatura (Spada)';
+
+  @override
+  String get gameTheIsleOfArmorShield =>
+      'L\'isola solitaria dell\'armatura (Scudo)';
+
+  @override
+  String get gameTheCrownTundraSword =>
+      'Le terre innevate della corona (Spada)';
+
+  @override
+  String get gameTheCrownTundraShield =>
+      'Le terre innevate della corona (Scudo)';
+
+  @override
+  String get gameBrilliantDiamond => 'Diamante Lucente';
+
+  @override
+  String get gameShiningPearl => 'Perla Splendente';
+
+  @override
+  String get gameTheTealMaskScarlet => 'La maschera turchese (Scarlatto)';
+
+  @override
+  String get gameTheTealMaskViolet => 'La maschera turchese (Violetto)';
+
+  @override
+  String get gameTheIndigoDiskScarlet => 'Il disco indaco (Scarlatto)';
+
+  @override
+  String get gameTheIndigoDiskViolet => 'Il disco indaco (Violetto)';
+
+  @override
+  String get gameLegendsZa => 'Leggende Pokémon: Z-A';
+
+  @override
+  String get gameMegaDimension => 'Megadimensione';
+
+  @override
+  String get gameChampions => 'Champions';
+
+  @override
+  String get gameRedJapan => 'Rosso (Giappone)';
+
+  @override
+  String get gameGreenJapan => 'Verde (Giappone)';
+
+  @override
+  String get gameBlueJapan => 'Blu (Giappone)';
+
+  @override
+  String get gameGroupRedGreenJapan => 'Rosso/Verde (Giappone)';
+
+  @override
+  String get gameGroupBrilliantDiamondShiningPearl =>
+      'Diamante Lucente/Perla Splendente';
+
+  @override
   String get gameGroupRedBlue => 'Rosso/Blu';
 
   @override
@@ -605,9 +675,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get pokedexTitle => 'Pokédex';
 
   @override
-  String get filter => 'Filtra';
-
-  @override
   String get filters => 'Filtri';
 
   @override
@@ -648,9 +715,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get clearFilters => 'Reimposta filtri';
-
-  @override
-  String get apply => 'Applica';
 
   @override
   String get reset => 'Reimposta';

@@ -104,15 +104,21 @@ void main() {
 
     // Default stubs
     when(() => repository.getPokemonIndex()).thenAnswer(
-      (_) async => const Right([
-        PokemonIndexEntry(id: 25, name: 'pikachu', detailUrl: ''),
-        PokemonIndexEntry(id: 1, name: 'bulbasaur', detailUrl: ''),
-        PokemonIndexEntry(id: 3, name: 'venusaur', detailUrl: ''),
-      ]),
+      (_) async => const Right((
+        entries: [
+          PokemonIndexEntry(id: 25, name: 'pikachu', detailUrl: ''),
+          PokemonIndexEntry(id: 1, name: 'bulbasaur', detailUrl: ''),
+          PokemonIndexEntry(id: 3, name: 'venusaur', detailUrl: ''),
+        ],
+        isStale: false,
+      )),
     );
     when(
       () => repository.getEncounters(any()),
     ).thenAnswer((_) async => const Right([]));
+    when(
+      () => repository.getFormDetails(any()),
+    ).thenAnswer((_) async => left(const NetworkUnavailableFailure()));
     when(
       () => repository.getPokemonSpecies(any()),
     ).thenAnswer((_) async => left(const NetworkUnavailableFailure()));
@@ -402,7 +408,7 @@ void main() {
       );
       final megaCard = find.descendant(
         of: find.byType(AlternateFormsWidget),
-        matching: find.text('Venusaur - Mega'),
+        matching: find.text('Mega Venusaur'),
       );
       await tester.scrollUntilVisible(
         megaCard,
@@ -430,7 +436,7 @@ void main() {
       expect(
         find.descendant(
           of: find.byType(DetailHeader),
-          matching: find.text('Venusaur - Mega'),
+          matching: find.text('Mega Venusaur'),
         ),
         findsOneWidget,
       );
@@ -487,7 +493,7 @@ void main() {
       // Select mega form
       final megaTile = find.descendant(
         of: find.byType(FormSelectionBottomSheet),
-        matching: find.widgetWithText(InkWell, 'Venusaur - Mega'),
+        matching: find.widgetWithText(InkWell, 'Mega Venusaur'),
       );
       expect(megaTile, findsOneWidget);
       await mockNetworkImagesFor(() async {
@@ -499,7 +505,7 @@ void main() {
       expect(
         find.descendant(
           of: find.byType(DetailHeader),
-          matching: find.text('Venusaur - Mega'),
+          matching: find.text('Mega Venusaur'),
         ),
         findsOneWidget,
       );
@@ -554,7 +560,7 @@ void main() {
 
       final megaTile = find.descendant(
         of: find.byType(FormSelectionBottomSheet),
-        matching: find.widgetWithText(InkWell, 'Venusaur - Mega'),
+        matching: find.widgetWithText(InkWell, 'Mega Venusaur'),
       );
       await tester.tap(megaTile);
       await settle(tester);
@@ -663,7 +669,7 @@ void main() {
         );
 
         // Tap Retry
-        final retryBtn = find.widgetWithText(OutlinedButton, 'Retry');
+        final retryBtn = find.widgetWithText(TextButton, 'Retry');
         expect(retryBtn, findsOneWidget);
         await tester.tap(retryBtn);
         await settle(tester);

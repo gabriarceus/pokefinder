@@ -12,11 +12,7 @@ RawEvolutionChain _$RawEvolutionChainFromJson(Map<String, dynamic> json) =>
       chain: RawChainLink.fromJson(json['chain'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$RawEvolutionChainToJson(RawEvolutionChain instance) =>
-    <String, dynamic>{'id': instance.id, 'chain': instance.chain.toJson()};
-
 RawChainLink _$RawChainLinkFromJson(Map<String, dynamic> json) => RawChainLink(
-  isBaby: json['is_baby'] as bool? ?? false,
   species: NamedAPIResource.fromJson(json['species'] as Map<String, dynamic>),
   evolutionDetails:
       (json['evolution_details'] as List<dynamic>?)
@@ -29,16 +25,6 @@ RawChainLink _$RawChainLinkFromJson(Map<String, dynamic> json) => RawChainLink(
           .toList() ??
       const [],
 );
-
-Map<String, dynamic> _$RawChainLinkToJson(RawChainLink instance) =>
-    <String, dynamic>{
-      'is_baby': instance.isBaby,
-      'species': instance.species.toJson(),
-      'evolution_details': instance.evolutionDetails
-          .map((e) => e.toJson())
-          .toList(),
-      'evolves_to': instance.evolvesTo.map((e) => e.toJson()).toList(),
-    };
 
 RawEvolutionDetail _$RawEvolutionDetailFromJson(
   Map<String, dynamic> json,
@@ -86,25 +72,3 @@ RawEvolutionDetail _$RawEvolutionDetailFromJson(
   minBeauty: (json['min_beauty'] as num?)?.toInt(),
   minAffection: (json['min_affection'] as num?)?.toInt(),
 );
-
-Map<String, dynamic> _$RawEvolutionDetailToJson(RawEvolutionDetail instance) =>
-    <String, dynamic>{
-      'trigger': instance.trigger?.toJson(),
-      'min_level': instance.minLevel,
-      'item': instance.item?.toJson(),
-      'held_item': instance.heldItem?.toJson(),
-      'min_happiness': instance.minHappiness,
-      'time_of_day': instance.timeOfDay,
-      'location': instance.location?.toJson(),
-      'known_move': instance.knownMove?.toJson(),
-      'known_move_type': instance.knownMoveType?.toJson(),
-      'turn_upside_down': instance.turnUpsideDown,
-      'trade_species': instance.tradeSpecies?.toJson(),
-      'relative_physical_stats': instance.relativePhysicalStats,
-      'needs_overworld_rain': instance.needsOverworldRain,
-      'gender': instance.gender,
-      'party_species': instance.partySpecies?.toJson(),
-      'party_type': instance.partyType?.toJson(),
-      'min_beauty': instance.minBeauty,
-      'min_affection': instance.minAffection,
-    };

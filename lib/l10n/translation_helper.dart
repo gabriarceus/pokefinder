@@ -7,6 +7,7 @@ import 'package:pokefinder/l10n/moves_db.dart';
 import 'package:pokefinder/l10n/translation_fallback.dart';
 import 'package:pokefinder/src/3_domain/entities/damage_class.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_index_entry.dart';
+import 'package:pokefinder/src/3_domain/helpers/pokemon_form_classifier.dart';
 import 'package:pokefinder/src/3_domain/helpers/string_casing_extensions.dart';
 
 /// Bundled translations per language code, for each kind of PokeAPI slug.
@@ -116,15 +117,28 @@ final Map<String, String Function(AppLocalizations)> _gameNames = {
   'lets-go-eevee': (t) => t.gameLetsGoEevee,
   'sword': (t) => t.gameSword,
   'shield': (t) => t.gameShield,
-  'the-isle-of-armor': (t) => t.gameTheIsleOfArmor,
-  'the-crown-tundra': (t) => t.gameTheCrownTundra,
+  'the-isle-of-armor-sword': (t) => t.gameTheIsleOfArmorSword,
+  'the-isle-of-armor-shield': (t) => t.gameTheIsleOfArmorShield,
+  'the-crown-tundra-sword': (t) => t.gameTheCrownTundraSword,
+  'the-crown-tundra-shield': (t) => t.gameTheCrownTundraShield,
+  'brilliant-diamond': (t) => t.gameBrilliantDiamond,
+  'shining-pearl': (t) => t.gameShiningPearl,
   'legends-arceus': (t) => t.gameLegendsArceus,
   'scarlet': (t) => t.gameScarlet,
   'violet': (t) => t.gameViolet,
-  'the-teal-mask': (t) => t.gameTheTealMask,
-  'the-indigo-disk': (t) => t.gameTheIndigoDisk,
+  'the-teal-mask-scarlet': (t) => t.gameTheTealMaskScarlet,
+  'the-teal-mask-violet': (t) => t.gameTheTealMaskViolet,
+  'the-indigo-disk-scarlet': (t) => t.gameTheIndigoDiskScarlet,
+  'the-indigo-disk-violet': (t) => t.gameTheIndigoDiskViolet,
+  'legends-za': (t) => t.gameLegendsZa,
+  'mega-dimension': (t) => t.gameMegaDimension,
+  'champions': (t) => t.gameChampions,
   'colosseum': (t) => t.gameColosseum,
   'xd': (t) => t.gameXd,
+  'red-japan': (t) => t.gameRedJapan,
+  'green-japan': (t) => t.gameGreenJapan,
+  'blue-japan': (t) => t.gameBlueJapan,
+  'red-green-japan': (t) => t.gameGroupRedGreenJapan,
   'red-blue': (t) => t.gameGroupRedBlue,
   'gold-silver': (t) => t.gameGroupGoldSilver,
   'ruby-sapphire': (t) => t.gameGroupRubySapphire,
@@ -139,7 +153,13 @@ final Map<String, String Function(AppLocalizations)> _gameNames = {
   'ultra-sun-ultra-moon': (t) => t.gameGroupUltraSunUltraMoon,
   'lets-go-pikachu-lets-go-eevee': (t) => t.gameGroupLetsGoPikachuLetsGoEevee,
   'sword-shield': (t) => t.gameGroupSwordShield,
+  'the-isle-of-armor': (t) => t.gameTheIsleOfArmor,
+  'the-crown-tundra': (t) => t.gameTheCrownTundra,
+  'brilliant-diamond-shining-pearl': (t) =>
+      t.gameGroupBrilliantDiamondShiningPearl,
   'scarlet-violet': (t) => t.gameGroupScarletViolet,
+  'the-teal-mask': (t) => t.gameTheTealMask,
+  'the-indigo-disk': (t) => t.gameTheIndigoDisk,
 };
 
 /// Localized names of species habitats, keyed by slug.
@@ -174,6 +194,21 @@ extension TranslationExtension on BuildContext {
   /// Returns the localized display name for [entry].
   String translatePokemonIndexEntry(PokemonIndexEntry entry) {
     return entry.getDisplayName(languageCode: _languageCode);
+  }
+
+  /// Returns the display name of the Pokémon [name] with [id] of [speciesName].
+  String translatePokemonName({
+    required String name,
+    required int id,
+    required String speciesName,
+  }) {
+    return PokemonFormClassifier.formatDisplayName(
+      name: name,
+      parentSpeciesName: speciesName,
+      category: PokemonFormClassifier.classifyCategory(name, id: id),
+      regionalGroup: PokemonFormClassifier.resolveRegionalGroup(name),
+      languageCode: _languageCode,
+    );
   }
 
   String translateAbility(String name) =>

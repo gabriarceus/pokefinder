@@ -39,28 +39,9 @@ RawPokemonSpecies _$RawPokemonSpeciesFromJson(
       const [],
 );
 
-Map<String, dynamic> _$RawPokemonSpeciesToJson(RawPokemonSpecies instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'generation': instance.generation?.toJson(),
-      'habitat': instance.habitat?.toJson(),
-      'capture_rate': instance.captureRate,
-      'base_happiness': instance.baseHappiness,
-      'evolution_chain': instance.evolutionChain?.toJson(),
-      'flavor_text_entries': instance.flavorTextEntries
-          .map((e) => e.toJson())
-          .toList(),
-      'genera': instance.genera.map((e) => e.toJson()).toList(),
-    };
-
 RawEvolutionChainResource _$RawEvolutionChainResourceFromJson(
   Map<String, dynamic> json,
 ) => RawEvolutionChainResource(url: json['url'] as String);
-
-Map<String, dynamic> _$RawEvolutionChainResourceToJson(
-  RawEvolutionChainResource instance,
-) => <String, dynamic>{'url': instance.url};
 
 RawSpeciesFlavorTextEntry _$RawSpeciesFlavorTextEntryFromJson(
   Map<String, dynamic> json,
@@ -72,24 +53,9 @@ RawSpeciesFlavorTextEntry _$RawSpeciesFlavorTextEntryFromJson(
       : NamedAPIResource.fromJson(json['version'] as Map<String, dynamic>),
 );
 
-Map<String, dynamic> _$RawSpeciesFlavorTextEntryToJson(
-  RawSpeciesFlavorTextEntry instance,
-) => <String, dynamic>{
-  'flavor_text': instance.flavorText,
-  'language': instance.language.toJson(),
-  'version': instance.version?.toJson(),
-};
-
 RawSpeciesGenusEntry _$RawSpeciesGenusEntryFromJson(
   Map<String, dynamic> json,
 ) => RawSpeciesGenusEntry(
   genus: json['genus'] as String,
   language: NamedAPIResource.fromJson(json['language'] as Map<String, dynamic>),
 );
-
-Map<String, dynamic> _$RawSpeciesGenusEntryToJson(
-  RawSpeciesGenusEntry instance,
-) => <String, dynamic>{
-  'genus': instance.genus,
-  'language': instance.language.toJson(),
-};

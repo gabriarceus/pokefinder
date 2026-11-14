@@ -6,7 +6,7 @@ part 'raw_pokemon.g.dart';
 /// Pokémon repository (raw data)
 /// This class is used to parse the JSON data from the API
 /// into a [RawPokemon] object.
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class RawPokemon {
   const RawPokemon({
     required this.id,
@@ -21,7 +21,6 @@ class RawPokemon {
     required this.baseExperience,
     required this.isDefault,
     required this.locationAreaEncounters,
-    required this.forms,
     required this.gameIndices,
     required this.heldItems,
     required this.moves,
@@ -51,8 +50,6 @@ class RawPokemon {
   @JsonKey(name: 'location_area_encounters')
   final String locationAreaEncounters;
 
-  final List<NamedAPIResource> forms;
-
   @JsonKey(name: 'game_indices')
   final List<RawGameIndex> gameIndices;
 
@@ -65,6 +62,4 @@ class RawPokemon {
 
   factory RawPokemon.fromJson(Map<String, dynamic> json) =>
       _$RawPokemonFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawPokemonToJson(this);
 }

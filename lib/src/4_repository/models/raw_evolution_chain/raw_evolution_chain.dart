@@ -3,7 +3,7 @@ import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/attrib
 
 part 'raw_evolution_chain.g.dart';
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class RawEvolutionChain {
   const RawEvolutionChain({required this.id, required this.chain});
 
@@ -12,21 +12,16 @@ class RawEvolutionChain {
 
   factory RawEvolutionChain.fromJson(Map<String, dynamic> json) =>
       _$RawEvolutionChainFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawEvolutionChainToJson(this);
 }
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class RawChainLink {
   const RawChainLink({
-    this.isBaby = false,
     required this.species,
     this.evolutionDetails = const [],
     this.evolvesTo = const [],
   });
 
-  @JsonKey(name: 'is_baby')
-  final bool isBaby;
   final NamedAPIResource species;
 
   @JsonKey(name: 'evolution_details')
@@ -37,11 +32,9 @@ class RawChainLink {
 
   factory RawChainLink.fromJson(Map<String, dynamic> json) =>
       _$RawChainLinkFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawChainLinkToJson(this);
 }
 
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class RawEvolutionDetail {
   const RawEvolutionDetail({
     this.trigger,
@@ -116,6 +109,4 @@ class RawEvolutionDetail {
 
   factory RawEvolutionDetail.fromJson(Map<String, dynamic> json) =>
       _$RawEvolutionDetailFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawEvolutionDetailToJson(this);
 }

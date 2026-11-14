@@ -19,7 +19,7 @@ const kDefaultMaxCacheEntries = 100;
 const _kVersionKey = 'version';
 const _kDataKey = 'data';
 const _kStoredAtKey = 'storedAt';
-const _kLastAccessedAtKey = 'lastAccessedAt';
+const _kPinnedKey = 'pinned';
 
 /// A [LocalStorage] implementation backed by [Hive] with envelope versioning
 /// and LRU eviction.
@@ -40,6 +40,9 @@ class HiveLocalStorage implements LocalStorage {
 
   /// In-memory LRU tracker maintaining access order (least-recently used first).
   final Map<String, int> _accessOrder = <String, int>{};
+
+  /// Keys known to be pinned, so eviction skips them without reading them.
+  final Set<String> _pinnedKeys = <String>{};
 
   /// Lazily opened Hive box, shared across all read/write calls.
   Box<String>? _box;
@@ -71,52 +74,22 @@ class HiveLocalStorage implements LocalStorage {
     try {
       decoded = jsonDecode(raw);
     } catch (_) {
-      // Corrupt JSON string: evict immediately
-      _accessOrder.remove(key);
-      await box.delete(key);
-      return null;
+      return _discard(box, key);
     }
+    if (decoded is! Map<String, dynamic>) return _discard(box, key);
 
-    if (decoded is! Map<String, dynamic>) {
-      // Non-map JSON envelope: evict immediately
-      _accessOrder.remove(key);
-      await box.delete(key);
-      return null;
+    final version = decoded[_kVersionKey];
+    final storedAtMs = decoded[_kStoredAtKey];
+    final data = decoded[_kDataKey];
+    if (version != kCurrentCacheSchemaVersion ||
+        storedAtMs is! int ||
+        data == null ||
+        // Schema drift: the payload cannot be decoded as T, so evict it
+        // instead of re-decoding it on every read.
+        (T != dynamic && data is! T)) {
+      return _discard(box, key);
     }
-
-    final envelope = decoded;
-
-    // Schema version validation
-    final version = envelope[_kVersionKey];
-    if (version is! int || version != kCurrentCacheSchemaVersion) {
-      _accessOrder.remove(key);
-      await box.delete(key);
-      return null;
-    }
-
-    // Timestamp validation
-    final storedAtMs = envelope[_kStoredAtKey];
-    if (storedAtMs is! int) {
-      _accessOrder.remove(key);
-      await box.delete(key);
-      return null;
-    }
-
-    // Payload validation
-    final data = envelope[_kDataKey];
-    if (data == null) {
-      _accessOrder.remove(key);
-      await box.delete(key);
-      return null;
-    }
-
-    if (T != dynamic && data is! T) {
-      // Schema drift: the payload cannot be decoded as T, so evict it instead
-      // of re-decoding it on every read.
-      _accessOrder.remove(key);
-      await box.delete(key);
-      return null;
-    }
+    if (decoded[_kPinnedKey] == true) _pinnedKeys.add(key);
 
     final nowMs = _clock.now().millisecondsSinceEpoch;
 
@@ -126,12 +99,19 @@ class HiveLocalStorage implements LocalStorage {
     return CacheEntry<T>(
       data: data as T,
       storedAt: DateTime.fromMillisecondsSinceEpoch(storedAtMs),
-      schemaVersion: version,
     );
   }
 
+  /// Deletes the malformed or obsolete entry at [key] and returns null.
+  Future<CacheEntry<T>?> _discard<T>(Box<String> box, String key) async {
+    _accessOrder.remove(key);
+    _pinnedKeys.remove(key);
+    await box.delete(key);
+    return null;
+  }
+
   @override
-  Future<void> write<T>(String key, T data) async {
+  Future<void> write<T>(String key, T data, {bool evictable = true}) async {
     final box = await _getBox();
     final nowMs = _clock.now().millisecondsSinceEpoch;
 
@@ -144,17 +124,34 @@ class HiveLocalStorage implements LocalStorage {
       _kVersionKey: kCurrentCacheSchemaVersion,
       _kDataKey: data,
       _kStoredAtKey: nowMs,
-      _kLastAccessedAtKey: nowMs,
+      _kPinnedKey: !evictable,
     };
 
     await box.put(key, jsonEncode(envelope));
     _recordAccess(key, nowMs);
+    if (evictable) {
+      _pinnedKeys.remove(key);
+    } else {
+      _pinnedKeys.add(key);
+    }
   }
 
-  /// Finds and removes the least-recently used entry from [box] in O(1).
+  /// Removes the least-recently used entry that is not pinned from [box].
   Future<void> _evictLru(Box<String> box) async {
+    bool evictable(String key) {
+      if (_pinnedKeys.contains(key)) return false;
+      // After a restart the set is empty: the stored envelope is the source.
+      // The pinned flag is the last field written by [write].
+      if (box.get(key)?.endsWith('"$_kPinnedKey":true}') ?? false) {
+        _pinnedKeys.add(key);
+        return false;
+      }
+      return true;
+    }
+
     final candidateKey =
-        _accessOrder.keys.firstOrNull ?? box.keys.firstOrNull?.toString();
+        _accessOrder.keys.where(evictable).firstOrNull ??
+        box.keys.map((key) => key.toString()).where(evictable).firstOrNull;
     if (candidateKey != null) {
       _accessOrder.remove(candidateKey);
       await box.delete(candidateKey);
@@ -164,6 +161,7 @@ class HiveLocalStorage implements LocalStorage {
   @override
   Future<void> delete(String key) async {
     _accessOrder.remove(key);
+    _pinnedKeys.remove(key);
     final box = await _getBox();
     await box.delete(key);
   }
@@ -171,6 +169,7 @@ class HiveLocalStorage implements LocalStorage {
   @override
   Future<void> clear() async {
     _accessOrder.clear();
+    _pinnedKeys.clear();
     final box = await _getBox();
     await box.clear();
   }

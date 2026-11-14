@@ -16,6 +16,7 @@ Widget _header({
   return DetailHeader(
     selectedFormName: 'bulbasaur',
     pokemonId: 1,
+    speciesName: 'bulbasaur',
     textColor: Colors.black,
     spriteDefault: spriteDefault,
     spriteShiny: spriteShiny,

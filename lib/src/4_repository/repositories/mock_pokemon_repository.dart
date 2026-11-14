@@ -99,41 +99,44 @@ class MockPokemonRepository implements IPokemonRepository {
   }
 
   @override
-  Future<Either<PokemonFailure, List<PokemonIndexEntry>>> getPokemonIndex({
+  Future<Either<PokemonFailure, PokemonIndex>> getPokemonIndex({
     bool forceRefresh = false,
   }) async {
-    return const Right([
-      PokemonIndexEntry(
-        id: 1,
-        name: 'bulbasaur',
-        detailUrl: 'https://pokeapi.co/api/v2/pokemon/1/',
-        types: [PokemonType.grass, PokemonType.poison],
-      ),
-      PokemonIndexEntry(
-        id: 2,
-        name: 'ivysaur',
-        detailUrl: 'https://pokeapi.co/api/v2/pokemon/2/',
-        types: [PokemonType.grass, PokemonType.poison],
-      ),
-      PokemonIndexEntry(
-        id: 3,
-        name: 'venusaur',
-        detailUrl: 'https://pokeapi.co/api/v2/pokemon/3/',
-        types: [PokemonType.grass, PokemonType.poison],
-      ),
-      PokemonIndexEntry(
-        id: 4,
-        name: 'charmander',
-        detailUrl: 'https://pokeapi.co/api/v2/pokemon/4/',
-        types: [PokemonType.fire],
-      ),
-      PokemonIndexEntry(
-        id: 25,
-        name: 'pikachu',
-        detailUrl: 'https://pokeapi.co/api/v2/pokemon/25/',
-        types: [PokemonType.electric],
-      ),
-    ]);
+    return const Right((
+      isStale: false,
+      entries: [
+        PokemonIndexEntry(
+          id: 1,
+          name: 'bulbasaur',
+          detailUrl: 'https://pokeapi.co/api/v2/pokemon/1/',
+          types: [PokemonType.grass, PokemonType.poison],
+        ),
+        PokemonIndexEntry(
+          id: 2,
+          name: 'ivysaur',
+          detailUrl: 'https://pokeapi.co/api/v2/pokemon/2/',
+          types: [PokemonType.grass, PokemonType.poison],
+        ),
+        PokemonIndexEntry(
+          id: 3,
+          name: 'venusaur',
+          detailUrl: 'https://pokeapi.co/api/v2/pokemon/3/',
+          types: [PokemonType.grass, PokemonType.poison],
+        ),
+        PokemonIndexEntry(
+          id: 4,
+          name: 'charmander',
+          detailUrl: 'https://pokeapi.co/api/v2/pokemon/4/',
+          types: [PokemonType.fire],
+        ),
+        PokemonIndexEntry(
+          id: 25,
+          name: 'pikachu',
+          detailUrl: 'https://pokeapi.co/api/v2/pokemon/25/',
+          types: [PokemonType.electric],
+        ),
+      ],
+    ));
   }
 
   @override

@@ -38,10 +38,12 @@ class PokeApiCache {
   /// Serves a cached entry younger than 24 hours, unless [forceRefresh] is
   /// true. Otherwise fetches the payload and stores it. When the request fails
   /// and a cached entry exists, returns that entry with `isStale: true`;
-  /// without a cached entry, rethrows the request error.
+  /// without a cached entry, rethrows the request error. A payload stored with
+  /// [evictable] false is never evicted to make room for others.
   Future<({T data, bool isStale})> get<T>(
     String url, {
     bool forceRefresh = false,
+    bool evictable = true,
   }) async {
     // Captured before the first await, so a clear() racing with the cache
     // lookup still invalidates this request's write.
@@ -59,7 +61,7 @@ class PokeApiCache {
 
     try {
       final data = await _fetchShared<T>(url);
-      await _persist(url, data, epoch);
+      await _persist(url, data, epoch, evictable: evictable);
       return (data: data, isStale: false);
     } catch (error) {
       final fallback = entry ?? await _localStorage.readEntry<T>(url);
@@ -99,7 +101,12 @@ class PokeApiCache {
   }
 
   /// Stores [data] under [url] unless a [clear] started after [epoch].
-  Future<void> _persist<T>(String url, T data, int epoch) async {
+  Future<void> _persist<T>(
+    String url,
+    T data,
+    int epoch, {
+    required bool evictable,
+  }) async {
     if (epoch != _epoch) {
       _logger.info(
         'Not caching $url: the cache was cleared while the request ran',
@@ -108,7 +115,7 @@ class PokeApiCache {
       return;
     }
     try {
-      await _localStorage.write<T>(url, data);
+      await _localStorage.write<T>(url, data, evictable: evictable);
     } catch (error) {
       // A failed write only costs a later refetch; the caller still gets data.
       _logger.error('Failed to cache $url: $error', prefix: _prefix);

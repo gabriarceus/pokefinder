@@ -30,29 +30,48 @@ PokemonListCubit createPokemonListCubit(List<String> pokemonNames) {
   return getIt<PokemonListCubit>()..load(pokemonNames);
 }
 
+/// Creates a [PokemonFormDetailsCubit] and starts loading the forms of
+/// [forms] that have no types.
+PokemonFormDetailsCubit createPokemonFormDetailsCubit(List<PokemonForm> forms) {
+  return getIt<PokemonFormDetailsCubit>()..load(forms);
+}
+
 /// Creates the browsable Pokédex bloc and starts its index fetch.
 PokedexBloc createPokedexBloc() {
   return getIt<PokedexBloc>()..add(const PokedexFetchIndexEvent());
 }
 
-/// Creates a [SpeciesCubit] and starts fetching [speciesUrl].
-SpeciesCubit createSpeciesCubit(String speciesUrl) {
-  return getIt<SpeciesCubit>()..fetchSpecies(speciesUrl);
+/// Creates a [LoadCubit] for the species at [speciesUrl] and starts loading.
+LoadCubit<PokemonSpecies> createSpeciesCubit(String speciesUrl) {
+  return LoadCubit(
+    () => getIt<IPokemonRepository>().getPokemonSpecies(speciesUrl),
+    getIt<EnLogger>(),
+  )..load();
 }
 
-/// Creates an [EvolutionCubit] and starts fetching [evolutionChainUrl].
-EvolutionCubit createEvolutionCubit(String evolutionChainUrl) {
-  return getIt<EvolutionCubit>()..fetchEvolutionChain(evolutionChainUrl);
+/// Creates a [LoadCubit] for the evolution chain at [evolutionChainUrl] and
+/// starts loading.
+LoadCubit<EvolutionChain> createEvolutionCubit(String evolutionChainUrl) {
+  return LoadCubit(
+    () => getIt<IPokemonRepository>().getEvolutionChain(evolutionChainUrl),
+    getIt<EnLogger>(),
+  )..load();
 }
 
-/// Creates an [AbilityDetailCubit] and starts fetching [abilityName].
-AbilityDetailCubit createAbilityDetailCubit(String abilityName) {
-  return getIt<AbilityDetailCubit>()..fetchAbilityDetail(abilityName);
+/// Creates a [LoadCubit] for the ability [abilityName] and starts loading.
+LoadCubit<AbilityDetail> createAbilityDetailCubit(String abilityName) {
+  return LoadCubit(
+    () => getIt<IPokemonRepository>().getAbilityDetail(abilityName),
+    getIt<EnLogger>(),
+  )..load();
 }
 
-/// Creates a [MoveDetailCubit] and starts fetching [moveName].
-MoveDetailCubit createMoveDetailCubit(String moveName) {
-  return getIt<MoveDetailCubit>()..fetchMoveDetail(moveName);
+/// Creates a [LoadCubit] for the move [moveName] and starts loading.
+LoadCubit<MoveDetail> createMoveDetailCubit(String moveName) {
+  return LoadCubit(
+    () => getIt<IPokemonRepository>().getMoveDetail(moveName),
+    getIt<EnLogger>(),
+  )..load();
 }
 
 /// Creates the runtime-data [DetailMovesCubit] for the given [moves],
@@ -70,7 +89,7 @@ DetailMovesCubit createDetailMovesCubit({
   );
 }
 
-/// Resolves the shared cry-audio controller.
+/// Creates a new cry-audio controller.
 CryAudioController resolveCryAudioController() {
   return getIt<CryAudioController>();
 }

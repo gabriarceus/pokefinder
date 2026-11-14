@@ -44,25 +44,23 @@ class MatchupPage extends StatefulWidget {
 class _MatchupPageState extends State<MatchupPage> {
   late List<PokemonType> _selected;
 
+  List<PokemonType> _initialSelection() => widget.initialDefending
+      .where(TypeMatchupChart.battleTypes.contains)
+      .toSet()
+      .take(2)
+      .toList();
+
   @override
   void initState() {
     super.initState();
-    _selected = widget.initialDefending
-        .where(TypeMatchupChart.battleTypes.contains)
-        .toSet()
-        .take(2)
-        .toList();
+    _selected = _initialSelection();
   }
 
   @override
   void didUpdateWidget(covariant MatchupPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!listEquals(oldWidget.initialDefending, widget.initialDefending)) {
-      _selected = widget.initialDefending
-          .where(TypeMatchupChart.battleTypes.contains)
-          .toSet()
-          .take(2)
-          .toList();
+      _selected = _initialSelection();
     }
   }
 

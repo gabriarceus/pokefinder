@@ -3,7 +3,6 @@ import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
-import 'package:pokefinder/src/1_presentation/extensions/form_name_formatter.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
 
@@ -18,6 +17,7 @@ class DetailHeader extends StatelessWidget {
     super.key,
     required this.selectedFormName,
     required this.pokemonId,
+    required this.speciesName,
     required this.textColor,
     required this.spriteDefault,
     required this.spriteShiny,
@@ -28,6 +28,7 @@ class DetailHeader extends StatelessWidget {
 
   final String selectedFormName;
   final int pokemonId;
+  final String speciesName;
   final Color textColor;
   final String spriteDefault;
   final String spriteShiny;
@@ -38,7 +39,11 @@ class DetailHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    final displayFormName = formatFormName(context, selectedFormName);
+    final displayFormName = context.translatePokemonName(
+      name: selectedFormName,
+      id: pokemonId,
+      speciesName: speciesName,
+    );
     final shinyLabel = showShiny ? t.formSelectorShiny : t.defaultForm;
     final number = '#${pokemonId.toString().padLeft(3, '0')}';
     final types = [type1, type2].whereType<PokemonType>().toList();

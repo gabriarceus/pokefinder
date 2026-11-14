@@ -25,9 +25,8 @@ slug without a translation (or an accepted fallback) breaks the build.
 
 ## Canonical vs localized names
 
-- **Stay canonical** (proper names, never translated): Pokémon species and
-  form names (e.g. `pikachu`, `ho-oh`), trade/party species in evolution
-  triggers. Uppercase styling of these in Dart (badges, headers) is allowed.
+- **Stay canonical** (proper names, never translated): Pokémon species names (e.g. `pikachu`, `ho-oh`), trade/party species in evolution triggers. Uppercase styling of these in Dart (badges, headers) is allowed.
+- **Form display names** are built by `PokemonFormClassifier.formatDisplayName` with the official English and Italian wording: regional forms ("Alolan Vulpix" / "Vulpix di Alola"), "Primal" / "Archeo", "Gigantamax" / "Gigamax", and named forms such as "Rotom (Wash)" / "Rotom (Lavaggio)". These strings live in Dart, not in ARB. Uppercase category badges (`MEGA`, `PRIMAL`, `G-MAX`, …) are also allowed in Dart.
 - **Must be localized**: types, game versions and version groups, abilities,
   moves, held/evolution items, locations and encounter areas, learn methods,
   damage classes, and evolution-trigger sentence templates (ARB). Embedded

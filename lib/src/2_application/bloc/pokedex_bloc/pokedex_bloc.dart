@@ -150,12 +150,17 @@ class PokedexBloc extends Bloc<PokedexEvent, PokedexState> {
           emit(state.copyWith(isRefreshing: false));
         }
       },
-      (entries) => emit(
+      (index) => emit(
         state.copyWith(
           status: PokedexStatus.success,
           isRefreshing: false,
-          allEntries: entries,
-          filteredEntries: _filter(entries, state.filters, state.typeIdMap),
+          isStale: index.isStale,
+          allEntries: index.entries,
+          filteredEntries: _filter(
+            index.entries,
+            state.filters,
+            state.typeIdMap,
+          ),
           failure: null,
         ),
       ),

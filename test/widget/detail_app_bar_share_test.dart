@@ -149,11 +149,7 @@ void main() {
       tester,
     ) async {
       await mockNetworkImagesFor(() async {
-        final uri = buildPokemonShareUri('25');
-        final identifier = parsePokemonShareLink(uri.toString());
-        expect(identifier, '25');
-
-        await pumpRouterApp(tester, buildPokemonCanonicalPath(identifier)!);
+        await pumpRouterApp(tester, buildPokemonShareUri('25')!.path);
         await pumpUntilFound(tester, find.byType(DetailHeader));
 
         expect(find.byType(PokemonDetailPage), findsOneWidget);
@@ -183,42 +179,38 @@ void main() {
       await configureDependencies(Environment.dev);
     });
 
-    testWidgets(
-      'tapping share copies the canonical link and shows confirmation',
-      (tester) async {
-        String? copiedText;
-        final messenger =
-            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-        messenger.setMockMethodCallHandler(SystemChannels.platform, (
-          call,
-        ) async {
-          if (call.method == 'Clipboard.setData') {
-            copiedText =
-                (call.arguments as Map<Object?, Object?>)['text'] as String?;
-          }
-          return null;
-        });
-        addTearDown(
-          () =>
-              messenger.setMockMethodCallHandler(SystemChannels.platform, null),
-        );
+    testWidgets('tapping share copies the deep link and shows confirmation', (
+      tester,
+    ) async {
+      String? copiedText;
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'Clipboard.setData') {
+          copiedText =
+              (call.arguments as Map<Object?, Object?>)['text'] as String?;
+        }
+        return null;
+      });
+      addTearDown(
+        () => messenger.setMockMethodCallHandler(SystemChannels.platform, null),
+      );
 
-        await mockNetworkImagesFor(() async {
-          final router = createAppRouter(initialLocation: '/pokemon/bulbasaur');
-          await tester.pumpWidget(MyApp(router: router));
-          await pumpUntilFound(tester, find.byType(DetailHeader));
-        });
+      await mockNetworkImagesFor(() async {
+        final router = createAppRouter(initialLocation: '/pokemon/bulbasaur');
+        await tester.pumpWidget(MyApp(router: router));
+        await pumpUntilFound(tester, find.byType(DetailHeader));
+      });
 
-        expect(find.byType(PokemonDetailPage), findsOneWidget);
-        final shareButton = find.byTooltip('Copy link');
-        expect(shareButton, findsOneWidget);
+      expect(find.byType(PokemonDetailPage), findsOneWidget);
+      final shareButton = find.byTooltip('Copy link');
+      expect(shareButton, findsOneWidget);
 
-        await tester.tap(shareButton);
-        await pumpFrames(tester);
+      await tester.tap(shareButton);
+      await pumpFrames(tester);
 
-        expect(copiedText, '/pokemon/bulbasaur');
-        expect(find.text('Link copied to clipboard'), findsOneWidget);
-      },
-    );
+      expect(copiedText, 'pokefinder:///pokemon/bulbasaur');
+      expect(find.text('Link copied to clipboard'), findsOneWidget);
+    });
   });
 }

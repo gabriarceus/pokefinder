@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/src/1_presentation/widgets/section_title.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -152,16 +153,7 @@ class _AboutPageState extends State<AboutPage> {
               const Divider(),
 
               // Section: Data & Attribution
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  t.aboutDataSource,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              SectionTitle(t.aboutDataSource),
               Card(
                 elevation: 0,
                 color: theme.colorScheme.surfaceContainerLow,
@@ -183,16 +175,7 @@ class _AboutPageState extends State<AboutPage> {
               const Divider(),
 
               // Section: Disclaimer
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  t.aboutDisclaimer,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              SectionTitle(t.aboutDisclaimer),
               Card(
                 elevation: 0,
                 color: theme.colorScheme.surfaceContainerLow,
@@ -211,16 +194,7 @@ class _AboutPageState extends State<AboutPage> {
               const Divider(),
 
               // Section: Legal & Licenses
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  t.aboutOpenSourceLicenses,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              SectionTitle(t.aboutOpenSourceLicenses),
               ListTile(
                 leading: const Icon(Icons.policy_outlined),
                 title: Text(t.aboutOpenSourceLicenses),
@@ -243,16 +217,7 @@ class _AboutPageState extends State<AboutPage> {
               const Divider(),
 
               // Section: Source Code & Community
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  t.aboutSourceCode,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              SectionTitle(t.aboutSourceCode),
               ListTile(
                 leading: const Icon(Icons.code_rounded),
                 title: Text(t.aboutGitHubRepository),

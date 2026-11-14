@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:en_logger/en_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -8,7 +7,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:network_image_mock/network_image_mock.dart';
 import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/evolution_chain_widget.dart';
-import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 import '../helpers/in_memory_hydrated_storage.dart';
 import '../helpers/pump_app.dart';
@@ -23,23 +21,18 @@ void main() {
     await configureDependencies(Environment.dev);
   });
 
+  late IPokemonRepository originalRepository;
+
   setUp(() {
     mockPokemonRepository = _MockPokemonRepository();
-    if (getIt.isRegistered<EvolutionCubit>()) {
-      getIt.unregister<EvolutionCubit>();
-    }
-    getIt.registerFactory<EvolutionCubit>(
-      () => EvolutionCubit(mockPokemonRepository, getIt<EnLogger>()),
-    );
+    originalRepository = getIt<IPokemonRepository>();
+    getIt.unregister<IPokemonRepository>();
+    getIt.registerSingleton<IPokemonRepository>(mockPokemonRepository);
   });
 
   tearDown(() {
-    if (getIt.isRegistered<EvolutionCubit>()) {
-      getIt.unregister<EvolutionCubit>();
-    }
-    getIt.registerFactory<EvolutionCubit>(
-      () => EvolutionCubit(getIt<IPokemonRepository>(), getIt<EnLogger>()),
-    );
+    getIt.unregister<IPokemonRepository>();
+    getIt.registerSingleton<IPokemonRepository>(originalRepository);
   });
 
   const sampleLinearChain = EvolutionChain(
@@ -130,7 +123,7 @@ void main() {
             body: SingleChildScrollView(
               child: EvolutionChainWidget(
                 evolutionChainUrl: chainUrl,
-                currentPokemonName: currentPokemon,
+                currentSpeciesName: currentPokemon,
                 typeColor: Colors.green,
                 textColor: Colors.black,
               ),

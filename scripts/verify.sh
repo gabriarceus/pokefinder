@@ -9,7 +9,7 @@ echo '==> Formatting'
 fvm dart format --output=none --set-exit-if-changed lib test scripts
 
 echo '==> Static analysis'
-fvm flutter analyze
+fvm flutter analyze --fatal-infos
 
 echo '==> Tests'
 fvm flutter test

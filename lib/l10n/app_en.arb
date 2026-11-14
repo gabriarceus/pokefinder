@@ -48,7 +48,6 @@
       "count": { "type": "int" }
     }
   },
-  "order": "Order",
   "defaultForm": "Default Form",
   "yes": "Yes",
   "no": "No",
@@ -106,18 +105,29 @@
   "statsBase": "Base",
   "statsMin": "Min",
   "statsMax": "Max",
+  "statRangeSemantics": "{stat}: {base}, min {min}, max {max}",
+  "@statRangeSemantics": {
+    "placeholders": {
+      "stat": { "type": "String" },
+      "base": { "type": "String" },
+      "min": { "type": "String" },
+      "max": { "type": "String" }
+    }
+  },
+  "teamStatSumAverageSemantics": "{stat}: sum {sum}, average {average}",
+  "@teamStatSumAverageSemantics": {
+    "placeholders": {
+      "stat": { "type": "String" },
+      "sum": { "type": "String" },
+      "average": { "type": "String" }
+    }
+  },
   "noData": "No data available",
   "encountersEmpty": "No encounters found",
   "formSelectorTitle": "Select Form & Appearance",
   "formSelectorShiny": "Shiny Version",
   "versionLabel": "Version",
   "formSelectorForms": "Available Forms",
-  "formTypeModifier": "{type}",
-  "@formTypeModifier": {
-    "placeholders": {
-      "type": { "type": "String" }
-    }
-  },
   "typeNormal": "Normal",
   "typeFire": "Fire",
   "typeWater": "Water",
@@ -180,6 +190,24 @@
   "gameTheIndigoDisk": "The Indigo Disk",
   "gameColosseum": "Colosseum",
   "gameXd": "XD",
+  "gameTheIsleOfArmorSword": "The Isle of Armor (Sword)",
+  "gameTheIsleOfArmorShield": "The Isle of Armor (Shield)",
+  "gameTheCrownTundraSword": "The Crown Tundra (Sword)",
+  "gameTheCrownTundraShield": "The Crown Tundra (Shield)",
+  "gameBrilliantDiamond": "Brilliant Diamond",
+  "gameShiningPearl": "Shining Pearl",
+  "gameTheTealMaskScarlet": "The Teal Mask (Scarlet)",
+  "gameTheTealMaskViolet": "The Teal Mask (Violet)",
+  "gameTheIndigoDiskScarlet": "The Indigo Disk (Scarlet)",
+  "gameTheIndigoDiskViolet": "The Indigo Disk (Violet)",
+  "gameLegendsZa": "Legends: Z-A",
+  "gameMegaDimension": "Mega Dimension",
+  "gameChampions": "Champions",
+  "gameRedJapan": "Red (Japan)",
+  "gameGreenJapan": "Green (Japan)",
+  "gameBlueJapan": "Blue (Japan)",
+  "gameGroupRedGreenJapan": "Red/Green (Japan)",
+  "gameGroupBrilliantDiamondShiningPearl": "Brilliant Diamond/Shining Pearl",
   "gameGroupRedBlue": "Red/Blue",
   "gameGroupGoldSilver": "Gold/Silver",
   "gameGroupRubySapphire": "Ruby/Sapphire",
@@ -220,7 +248,6 @@
   "staleDataNotice": "Offline cached data",
   "browsePokedex": "Browse Pokédex",
   "pokedexTitle": "Pokédex",
-  "filter": "Filter",
   "filters": "Filters",
   "types": "Types",
   "generation": "Generation",
@@ -241,7 +268,6 @@
   "randomPokemon": "Random Pokémon",
   "noPokemonFound": "No Pokémon found matching your filters",
   "clearFilters": "Clear Filters",
-  "apply": "Apply",
   "reset": "Reset",
   "searchPokedexPlaceholder": "Search by name or number...",
   "offlineIndexNotice": "Browsing offline cached Pokédex",

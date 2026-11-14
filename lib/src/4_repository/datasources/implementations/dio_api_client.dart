@@ -9,34 +9,14 @@ class DioApiClient implements ApiClient {
   final Dio _dio;
 
   @override
-  Future<T> get<T>(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-    Duration? timeout,
-  }) async {
+  Future<T> get<T>(String path) async {
     try {
-      final options = timeout != null
-          ? Options(sendTimeout: timeout, receiveTimeout: timeout)
-          : null;
-
-      final response = await _dio.get<dynamic>(
-        path,
-        queryParameters: queryParameters,
-        options: options,
-      );
+      final response = await _dio.get<dynamic>(path);
       if (response.data == null) {
         throw EmptyResponseException(path);
       }
       return response.data as T;
     } on DioException catch (e) {
-      String? safeResponseBody;
-      if (e.response?.data != null) {
-        final bodyStr = e.response!.data.toString();
-        safeResponseBody = bodyStr.length > 256
-            ? '${bodyStr.substring(0, 253)}...'
-            : bodyStr;
-      }
-
       final isConnTimeout = e.type == DioExceptionType.connectionTimeout;
       final isRecvTimeout = e.type == DioExceptionType.receiveTimeout;
       final isSndTimeout = e.type == DioExceptionType.sendTimeout;
@@ -51,7 +31,6 @@ class DioApiClient implements ApiClient {
         isReceiveTimeout: isRecvTimeout,
         isSendTimeout: isSndTimeout,
         isConnectionError: isConnError,
-        responseBody: safeResponseBody,
       );
     } catch (e) {
       if (e is ApiException ||

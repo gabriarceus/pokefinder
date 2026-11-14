@@ -30,7 +30,7 @@ class TeamMember extends Equatable {
     );
   }
 
-  /// The member; forms use IDs above 1025.
+  /// The member; a form keeps its own id, not the id of its species.
   final PokemonSummary pokemon;
 
   /// Timestamp when the member joined the team.

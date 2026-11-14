@@ -53,9 +53,6 @@ class CryPlaybackState extends Equatable {
   /// Whether loading or playback failed and is currently unavailable.
   final bool unavailable;
 
-  /// Alias for [unavailable] indicating error state.
-  bool get hasError => unavailable;
-
   @override
   List<Object?> get props => [
     currentUrl,

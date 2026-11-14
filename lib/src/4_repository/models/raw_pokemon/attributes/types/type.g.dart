@@ -8,7 +8,3 @@ part of 'type.dart';
 
 Type _$TypeFromJson(Map<String, dynamic> json) =>
     Type(url: json['url'] as String);
-
-Map<String, dynamic> _$TypeToJson(Type instance) => <String, dynamic>{
-  'url': instance.url,
-};

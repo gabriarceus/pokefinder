@@ -167,7 +167,7 @@ void main() {
 
       expect(find.text('Create team'), findsOneWidget);
       await tester.enterText(find.byType(TextField), 'Starters');
-      await tester.tap(find.widgetWithText(ElevatedButton, 'New team').last);
+      await tester.tap(find.widgetWithText(FilledButton, 'New team').last);
       await tester.pumpAndSettle();
 
       expect(teamsCubit.state.teams.length, equals(1));
@@ -181,7 +181,7 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'New team'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(ElevatedButton, 'New team').last);
+      await tester.tap(find.widgetWithText(FilledButton, 'New team').last);
       await tester.pump();
 
       expect(find.text('Enter a team name'), findsOneWidget);
@@ -199,7 +199,7 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextField), 'New');
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Rename team'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Rename team'));
       await tester.pumpAndSettle();
 
       expect(teamsCubit.state.teams.single.name, equals('New'));

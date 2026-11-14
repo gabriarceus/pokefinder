@@ -71,7 +71,8 @@ so use explicit filenames for focused changes.
 - For documentation-only changes, check paths, references and generated copies;
   Flutter analysis and tests are not needed.
 - CI also checks formatting across the repository, generated-file consistency, 70% coverage
-  and a release build. `verify.sh` only checks formatting, analysis and tests.
+  and a release build. `verify.sh` only checks formatting, analysis (with `--fatal-infos`,
+  like CI) and tests.
 
 ## Commands requiring an explicit request
 

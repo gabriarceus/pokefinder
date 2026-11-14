@@ -7,8 +7,10 @@ import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
 import 'package:pokefinder/src/1_presentation/helpers/evolution_trigger_formatter.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
-import 'package:pokefinder/src/2_application/bloc/evolution_cubit/evolution_cubit.dart';
-import 'package:pokefinder/src/2_application/bloc/evolution_cubit/evolution_state.dart';
+import 'package:pokefinder/src/1_presentation/widgets/failure_retry_card.dart';
+import 'package:pokefinder/src/1_presentation/widgets/section_title.dart';
+import 'package:pokefinder/src/2_application/bloc/load_cubit/load_cubit.dart';
+import 'package:pokefinder/src/2_application/bloc/load_cubit/load_state.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
 /// Widget rendering an interactive, branching evolution tree for the current Pokémon.
@@ -16,13 +18,13 @@ class EvolutionChainWidget extends StatelessWidget {
   const EvolutionChainWidget({
     super.key,
     required this.evolutionChainUrl,
-    required this.currentPokemonName,
+    required this.currentSpeciesName,
     required this.typeColor,
     required this.textColor,
   });
 
   final String? evolutionChainUrl;
-  final String currentPokemonName;
+  final String currentSpeciesName;
   final Color typeColor;
   final Color textColor;
 
@@ -37,88 +39,35 @@ class EvolutionChainWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            context.t().evolutionChain,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-          ),
-          const SizedBox(height: 12),
-          BlocBuilder<EvolutionCubit, EvolutionState>(
-            builder: (context, state) {
-              if (state is EvolutionLoading || state is EvolutionInitial) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24.0),
-                    child: CircularProgressIndicator(),
+          SectionTitle(context.t().evolutionChain),
+          BlocBuilder<LoadCubit<EvolutionChain>, LoadState<EvolutionChain>>(
+            builder: (context, state) => switch (state) {
+              LoadInProgress() => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+              LoadFailure(:final failure) => FailureRetryCard(
+                message: failure.localizedMessage(context),
+                onRetry: () => context.read<LoadCubit<EvolutionChain>>().load(),
+              ),
+              LoadSuccess(:final value) when value.root.isFinalStage => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  context.t().noEvolutions,
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: textColor.withValues(alpha: 0.6),
                   ),
-                );
-              }
-
-              if (state is EvolutionError) {
-                final errorMessage = state.failure != null
-                    ? state.failure!.localizedMessage(context)
-                    : state.message;
-                return SurfaceCard(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.error_outline_rounded,
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          errorMessage,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.error,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextButton.icon(
-                          onPressed: () {
-                            context.read<EvolutionCubit>().fetchEvolutionChain(
-                              evolutionChainUrl!,
-                            );
-                          },
-                          icon: const Icon(Icons.refresh_rounded, size: 16),
-                          label: Text(context.t().retryButton),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }
-
-              if (state is EvolutionLoaded) {
-                final chain = state.chain;
-                if (chain.root.isFinalStage) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text(
-                      context.t().noEvolutions,
-                      style: TextStyle(
-                        fontStyle: FontStyle.italic,
-                        color: textColor.withValues(alpha: 0.6),
-                      ),
-                    ),
-                  );
-                }
-
-                return _EvolutionTreeView(
-                  rootNode: chain.root,
-                  currentPokemonName: currentPokemonName,
-                  typeColor: typeColor,
-                  textColor: textColor,
-                );
-              }
-
-              return const SizedBox.shrink();
+                ),
+              ),
+              LoadSuccess(:final value) => _EvolutionTreeView(
+                rootNode: value.root,
+                currentSpeciesName: currentSpeciesName,
+                typeColor: typeColor,
+                textColor: textColor,
+              ),
             },
           ),
         ],
@@ -130,13 +79,13 @@ class EvolutionChainWidget extends StatelessWidget {
 class _EvolutionTreeView extends StatelessWidget {
   const _EvolutionTreeView({
     required this.rootNode,
-    required this.currentPokemonName,
+    required this.currentSpeciesName,
     required this.typeColor,
     required this.textColor,
   });
 
   final EvolutionNode rootNode;
-  final String currentPokemonName;
+  final String currentSpeciesName;
   final Color typeColor;
   final Color textColor;
 
@@ -150,7 +99,7 @@ class _EvolutionTreeView extends StatelessWidget {
             node: rootNode,
             isCurrent:
                 rootNode.speciesName.toLowerCase() ==
-                currentPokemonName.toLowerCase(),
+                currentSpeciesName.toLowerCase(),
             typeColor: typeColor,
             textColor: textColor,
           ),
@@ -165,7 +114,7 @@ class _EvolutionTreeView extends StatelessWidget {
               return _EvolutionStepRow(
                 fromNode: rootNode,
                 toNode: branch,
-                currentPokemonName: currentPokemonName,
+                currentSpeciesName: currentSpeciesName,
                 typeColor: typeColor,
                 textColor: textColor,
               );
@@ -190,7 +139,7 @@ class _EvolutionTreeView extends StatelessWidget {
       return _PokemonNodeCard(
         node: node,
         isCurrent:
-            node.speciesName.toLowerCase() == currentPokemonName.toLowerCase(),
+            node.speciesName.toLowerCase() == currentSpeciesName.toLowerCase(),
         typeColor: typeColor,
         textColor: textColor,
       );
@@ -206,7 +155,7 @@ class _EvolutionTreeView extends StatelessWidget {
             node: node,
             isCurrent:
                 node.speciesName.toLowerCase() ==
-                currentPokemonName.toLowerCase(),
+                currentSpeciesName.toLowerCase(),
             typeColor: typeColor,
             textColor: textColor,
           ),
@@ -228,7 +177,7 @@ class _EvolutionTreeView extends StatelessWidget {
           node: node,
           isCurrent:
               node.speciesName.toLowerCase() ==
-              currentPokemonName.toLowerCase(),
+              currentSpeciesName.toLowerCase(),
           typeColor: typeColor,
           textColor: textColor,
         ),
@@ -260,14 +209,14 @@ class _EvolutionStepRow extends StatelessWidget {
   const _EvolutionStepRow({
     required this.fromNode,
     required this.toNode,
-    required this.currentPokemonName,
+    required this.currentSpeciesName,
     required this.typeColor,
     required this.textColor,
   });
 
   final EvolutionNode fromNode;
   final EvolutionNode toNode;
-  final String currentPokemonName;
+  final String currentSpeciesName;
   final Color typeColor;
   final Color textColor;
 
@@ -290,7 +239,7 @@ class _EvolutionStepRow extends StatelessWidget {
               node: toNode,
               isCurrent:
                   toNode.speciesName.toLowerCase() ==
-                  currentPokemonName.toLowerCase(),
+                  currentSpeciesName.toLowerCase(),
               typeColor: typeColor,
               textColor: textColor,
               compact: true,

@@ -57,7 +57,12 @@ class CompactStatRow extends StatelessWidget {
     final label = statKindLabel(context, kind);
 
     return Semantics(
-      label: '$label: $formattedValue, min $formattedMin, max $formattedMax',
+      label: context.t().statRangeSemantics(
+        stat: label,
+        base: formattedValue,
+        min: formattedMin,
+        max: formattedMax,
+      ),
       excludeSemantics: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

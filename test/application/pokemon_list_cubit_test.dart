@@ -86,4 +86,24 @@ void main() {
 
     expect(cubit.state, [PokemonLoaded(mew)]);
   });
+
+  test(
+    'reordering or removing names keeps their results without reloading',
+    () async {
+      final bulbasaur = buildPokemon();
+      final mew = buildPokemon(id: 151, name: 'mew');
+      stubPokemon({'bulbasaur': right(bulbasaur), 'mew': right(mew)});
+      cubit.load(['bulbasaur', 'mew']);
+      await pumpEventQueue();
+      clearInteractions(repository);
+
+      cubit.load(['mew', 'bulbasaur']);
+      expect(cubit.state, [PokemonLoaded(mew), PokemonLoaded(bulbasaur)]);
+      cubit.load(['mew']);
+      await pumpEventQueue();
+
+      expect(cubit.state, [PokemonLoaded(mew)]);
+      verifyNever(() => repository.getPokemon(any()));
+    },
+  );
 }

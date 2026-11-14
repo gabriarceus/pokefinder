@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/widgets/section_title.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pokefinder/src/1_presentation/extensions/form_name_formatter.dart';
+import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/type_chip.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
+import 'package:pokefinder/src/2_application/bloc/pokemon_form_details_cubit/pokemon_form_details_cubit.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 
 /// Height of a form card that does not depend on the text scale: the 56 dp
@@ -47,46 +49,55 @@ class AlternateFormsWidget extends StatelessWidget {
 
     final activeFormName = selectedFormName ?? pokemon.name;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SectionTitle(context.t().alternateForms),
-        SizedBox(
-          // The card holds a sprite plus three pieces of text, so a fixed
-          // height overflows at large text scales. Grow it with the scale
-          // instead of clipping the name or the badges.
-          height:
-              _kCardFixedHeight +
-              _kCardScaledHeight *
-                  MediaQuery.textScalerOf(
-                    context,
-                  ).scale(1).clamp(1.0, _kMaxCardTextScale),
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            itemCount: pokemon.forms.length,
-            separatorBuilder: (context, index) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final form = pokemon.forms[index];
-              final isSelected =
-                  form.name.toLowerCase() == activeFormName.toLowerCase();
-              final displayFormName = formatFormName(context, form.name);
+    return BlocProvider(
+      // After a form switch another form is the one that carries its types.
+      key: ValueKey(pokemon.name),
+      create: (_) => createPokemonFormDetailsCubit(pokemon.forms),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SectionTitle(context.t().alternateForms),
+          SizedBox(
+            // The card holds a sprite plus three pieces of text, so a fixed
+            // height overflows at large text scales. Grow it with the scale
+            // instead of clipping the name or the badges.
+            height:
+                _kCardFixedHeight +
+                _kCardScaledHeight *
+                    MediaQuery.textScalerOf(
+                      context,
+                    ).scale(1).clamp(1.0, _kMaxCardTextScale),
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: pokemon.forms.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final form = pokemon.forms[index];
+                final isSelected =
+                    form.name.toLowerCase() == activeFormName.toLowerCase();
+                final displayFormName = context.translatePokemonName(
+                  name: form.name,
+                  id: PokeApiUrlHelper.extractId(form.url),
+                  speciesName: pokemon.speciesName,
+                );
 
-              return _AlternateFormCard(
-                form: form,
-                displayName: displayFormName,
-                isSelected: isSelected,
-                isBasePokemon:
-                    form.name.toLowerCase() == pokemon.name.toLowerCase(),
-                baseArtworkUrl:
-                    pokemon.sprites.artworkDefault ?? pokemon.sprite,
-                typeColor: typeColor,
-                textColor: textColor,
-              );
-            },
+                return _AlternateFormCard(
+                  form: form,
+                  displayName: displayFormName,
+                  isSelected: isSelected,
+                  isBasePokemon:
+                      form.name.toLowerCase() == pokemon.name.toLowerCase(),
+                  baseArtworkUrl:
+                      pokemon.sprites.artworkDefault ?? pokemon.sprite,
+                  typeColor: typeColor,
+                  textColor: textColor,
+                );
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -125,6 +136,11 @@ class _AlternateFormCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final spriteUrl = _resolveSpriteUrl();
     final formId = PokeApiUrlHelper.extractId(form.url);
+    final details = context.select(
+      (PokemonFormDetailsCubit cubit) => cubit.state[form.name],
+    );
+    final type1 = form.type1 ?? details?.type1;
+    final type2 = form.type1 != null ? form.type2 : details?.type2;
 
     return Semantics(
       button: true,
@@ -135,11 +151,10 @@ class _AlternateFormCard extends StatelessWidget {
       child: InkWell(
         onTap: () {
           final bloc = context.read<PokemonDetailBloc>();
-          final state = bloc.state;
-          if (state is PokemonDetailSuccess) {
-            if (!isSelected || state.isLoadingForm) {
-              bloc.add(SelectPokemonFormEvent(form));
-            }
+          if (bloc.state case PokemonDetailSuccess(
+            :final isLoadingForm,
+          ) when !isSelected || isLoadingForm) {
+            bloc.add(SelectPokemonFormEvent(form));
           }
         },
         borderRadius: BorderRadius.circular(16),
@@ -206,16 +221,15 @@ class _AlternateFormCard extends StatelessWidget {
                   height: 1.2,
                 ),
               ),
-              if (form.type1 != null) ...[
+              if (type1 != null) ...[
                 const SizedBox(height: 4),
                 Wrap(
                   alignment: WrapAlignment.center,
                   spacing: 4,
                   runSpacing: 2,
                   children: [
-                    TypeChip(type: form.type1!, compact: true),
-                    if (form.type2 != null)
-                      TypeChip(type: form.type2!, compact: true),
+                    TypeChip(type: type1, compact: true),
+                    if (type2 != null) TypeChip(type: type2, compact: true),
                   ],
                 ),
               ],

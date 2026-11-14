@@ -4,7 +4,7 @@ import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/types/
 part 'raw_form_details.g.dart';
 
 /// Raw data for a single Pokémon form, parsed from the form endpoint.
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class RawFormDetails {
   const RawFormDetails({
     required this.id,
@@ -20,12 +20,10 @@ class RawFormDetails {
 
   factory RawFormDetails.fromJson(Map<String, dynamic> json) =>
       _$RawFormDetailsFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawFormDetailsToJson(this);
 }
 
 /// Sprite URLs for a Pokémon form.
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class RawFormSprites {
   const RawFormSprites({this.frontDefault, this.frontShiny});
 
@@ -37,6 +35,4 @@ class RawFormSprites {
 
   factory RawFormSprites.fromJson(Map<String, dynamic> json) =>
       _$RawFormSpritesFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawFormSpritesToJson(this);
 }

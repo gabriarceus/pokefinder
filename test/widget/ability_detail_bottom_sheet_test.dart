@@ -1,12 +1,10 @@
 import 'package:dartz/dartz.dart';
-import 'package:en_logger/en_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:injectable/injectable.dart' hide test;
 import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/bootstrap.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/ability_detail_bottom_sheet.dart';
-import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
 import '../helpers/in_memory_hydrated_storage.dart';
 import '../helpers/pump_app.dart';
@@ -21,23 +19,18 @@ void main() {
     await configureDependencies(Environment.dev);
   });
 
+  late IPokemonRepository originalRepository;
+
   setUp(() {
     mockPokemonRepository = _MockPokemonRepository();
-    if (getIt.isRegistered<AbilityDetailCubit>()) {
-      getIt.unregister<AbilityDetailCubit>();
-    }
-    getIt.registerFactory<AbilityDetailCubit>(
-      () => AbilityDetailCubit(mockPokemonRepository, getIt<EnLogger>()),
-    );
+    originalRepository = getIt<IPokemonRepository>();
+    getIt.unregister<IPokemonRepository>();
+    getIt.registerSingleton<IPokemonRepository>(mockPokemonRepository);
   });
 
   tearDown(() {
-    if (getIt.isRegistered<AbilityDetailCubit>()) {
-      getIt.unregister<AbilityDetailCubit>();
-    }
-    getIt.registerFactory<AbilityDetailCubit>(
-      () => AbilityDetailCubit(getIt<IPokemonRepository>(), getIt<EnLogger>()),
-    );
+    getIt.unregister<IPokemonRepository>();
+    getIt.registerSingleton<IPokemonRepository>(originalRepository);
   });
 
   Future<void> pumpTestWidget(

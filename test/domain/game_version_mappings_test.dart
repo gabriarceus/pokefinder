@@ -19,9 +19,11 @@ void main() {
       expect(GameVersionMappings.versionsForGroup('sword-shield'), [
         'sword',
         'shield',
-        'the-isle-of-armor',
-        'the-crown-tundra',
       ]);
+      expect(
+        GameVersionMappings.versionGroupFor('the-isle-of-armor-sword'),
+        'the-isle-of-armor',
+      );
     });
   });
 }

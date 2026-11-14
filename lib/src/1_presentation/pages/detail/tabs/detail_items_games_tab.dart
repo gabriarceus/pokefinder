@@ -6,6 +6,7 @@ import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dar
 import 'package:pokefinder/src/1_presentation/pages/detail/widgets/detail_tab_scroll_view.dart';
 import 'package:pokefinder/src/1_presentation/theme/readable_color.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
+import 'package:pokefinder/src/1_presentation/widgets/failure_retry_card.dart';
 import 'package:pokefinder/src/1_presentation/widgets/section_title.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_game_version_cubit/detail_game_version_cubit.dart';
@@ -122,33 +123,10 @@ class _EncountersSection extends StatelessWidget {
 
     final failure = encountersFailure;
     if (failure != null) {
-      return SurfaceCard(
-        borderRadius: 12,
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              Icon(Icons.error_outline_rounded, color: theme.colorScheme.error),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  failure.localizedMessage(context),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.error,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              TextButton.icon(
-                onPressed: () => context.read<PokemonDetailBloc>().add(
-                  RetryPokemonEncountersEvent(),
-                ),
-                icon: const Icon(Icons.refresh_rounded, size: 18),
-                label: Text(t.retryButton),
-              ),
-            ],
-          ),
+      return FailureRetryCard(
+        message: failure.localizedMessage(context),
+        onRetry: () => context.read<PokemonDetailBloc>().add(
+          RetryPokemonEncountersEvent(),
         ),
       );
     }

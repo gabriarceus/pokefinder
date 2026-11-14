@@ -353,9 +353,10 @@ void main() {
           getIt.registerSingleton<IPokemonRepository>(originalRepo);
         });
 
-        when(
-          () => mockRepo.getPokemonIndex(),
-        ).thenAnswer((_) async => const Right(<PokemonIndexEntry>[]));
+        when(() => mockRepo.getPokemonIndex()).thenAnswer(
+          (_) async =>
+              const Right((entries: <PokemonIndexEntry>[], isStale: false)),
+        );
         when(
           () => mockRepo.getEncounters(any()),
         ).thenAnswer((_) async => const Right(<PokemonEncounter>[]));

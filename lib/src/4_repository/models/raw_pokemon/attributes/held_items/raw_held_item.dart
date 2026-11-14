@@ -3,7 +3,7 @@ import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/named_
 
 part 'raw_held_item.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class RawHeldItem {
   const RawHeldItem({required this.item, required this.versionDetails});
 
@@ -14,11 +14,9 @@ class RawHeldItem {
 
   factory RawHeldItem.fromJson(Map<String, dynamic> json) =>
       _$RawHeldItemFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawHeldItemToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class RawHeldItemVersionDetail {
   const RawHeldItemVersionDetail({required this.rarity, required this.version});
 
@@ -27,6 +25,4 @@ class RawHeldItemVersionDetail {
 
   factory RawHeldItemVersionDetail.fromJson(Map<String, dynamic> json) =>
       _$RawHeldItemVersionDetailFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawHeldItemVersionDetailToJson(this);
 }

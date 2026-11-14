@@ -2,7 +2,10 @@
 class GameVersionMappings {
   const GameVersionMappings._();
 
+  /// PokeAPI version groups and their versions, in release order.
   static const Map<String, List<String>> _groupToVersions = {
+    'red-green-japan': ['red-japan', 'green-japan'],
+    'blue-japan': ['blue-japan'],
     'red-blue': ['red', 'blue'],
     'yellow': ['yellow'],
     'gold-silver': ['gold', 'silver'],
@@ -22,18 +25,20 @@ class GameVersionMappings {
     'sun-moon': ['sun', 'moon'],
     'ultra-sun-ultra-moon': ['ultra-sun', 'ultra-moon'],
     'lets-go-pikachu-lets-go-eevee': ['lets-go-pikachu', 'lets-go-eevee'],
-    'sword-shield': [
-      'sword',
-      'shield',
-      'the-isle-of-armor',
-      'the-crown-tundra',
+    'sword-shield': ['sword', 'shield'],
+    'the-isle-of-armor': [
+      'the-isle-of-armor-sword',
+      'the-isle-of-armor-shield',
     ],
-    'brilliant-diamond-and-shining-pearl': [
-      'brilliant-diamond',
-      'shining-pearl',
-    ],
+    'the-crown-tundra': ['the-crown-tundra-sword', 'the-crown-tundra-shield'],
+    'brilliant-diamond-shining-pearl': ['brilliant-diamond', 'shining-pearl'],
     'legends-arceus': ['legends-arceus'],
-    'scarlet-violet': ['scarlet', 'violet', 'the-teal-mask', 'the-indigo-disk'],
+    'scarlet-violet': ['scarlet', 'violet'],
+    'the-teal-mask': ['the-teal-mask-scarlet', 'the-teal-mask-violet'],
+    'the-indigo-disk': ['the-indigo-disk-scarlet', 'the-indigo-disk-violet'],
+    'legends-za': ['legends-za'],
+    'mega-dimension': ['mega-dimension'],
+    'champions': ['champions'],
   };
 
   static final Map<String, String> _versionToGroup = () {

@@ -4,7 +4,7 @@ import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/named_
 part 'raw_encounter.g.dart';
 
 /// Raw data for a single location-area encounter entry.
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class RawEncounter {
   const RawEncounter({
     required this.locationArea,
@@ -19,12 +19,10 @@ class RawEncounter {
 
   factory RawEncounter.fromJson(Map<String, dynamic> json) =>
       _$RawEncounterFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawEncounterToJson(this);
 }
 
 /// Version-specific detail for an encounter entry.
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(createToJson: false)
 class RawEncounterVersionDetail {
   const RawEncounterVersionDetail({required this.version});
 
@@ -32,6 +30,4 @@ class RawEncounterVersionDetail {
 
   factory RawEncounterVersionDetail.fromJson(Map<String, dynamic> json) =>
       _$RawEncounterVersionDetailFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawEncounterVersionDetailToJson(this);
 }

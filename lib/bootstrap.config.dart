@@ -17,24 +17,20 @@ import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 
 import 'bootstrap.dart' as _i261;
-import 'src/2_application/bloc/ability_detail_cubit/ability_detail_cubit.dart'
-    as _i473;
 import 'src/2_application/bloc/comparison_cubit/comparison_cubit.dart' as _i199;
 import 'src/2_application/bloc/detail_bloc/detail_bloc.dart' as _i1067;
-import 'src/2_application/bloc/evolution_cubit/evolution_cubit.dart' as _i338;
 import 'src/2_application/bloc/favorites_cubit/favorites_cubit.dart' as _i716;
 import 'src/2_application/bloc/home_bloc/home_bloc.dart' as _i56;
 import 'src/2_application/bloc/language_cubit/language_cubit.dart' as _i336;
-import 'src/2_application/bloc/move_detail_cubit/move_detail_cubit.dart'
-    as _i539;
 import 'src/2_application/bloc/pokedex_bloc/pokedex_bloc.dart' as _i820;
+import 'src/2_application/bloc/pokemon_form_details_cubit/pokemon_form_details_cubit.dart'
+    as _i1069;
 import 'src/2_application/bloc/pokemon_list_cubit/pokemon_list_cubit.dart'
     as _i824;
 import 'src/2_application/bloc/preferences_cubit/preferences_cubit.dart'
     as _i361;
 import 'src/2_application/bloc/recent_history_cubit/recent_history_cubit.dart'
     as _i991;
-import 'src/2_application/bloc/species_cubit/species_cubit.dart' as _i18;
 import 'src/2_application/bloc/teams_cubit/teams_cubit.dart' as _i238;
 import 'src/3_domain/domain.dart' as _i341;
 import 'src/3_domain/repositories/i_pokemon_repository.dart' as _i768;
@@ -110,32 +106,8 @@ extension GetItInjectableX on _i174.GetIt {
       ),
       registerFor: {_prod},
     );
-    gh.factory<_i473.AbilityDetailCubit>(
-      () => _i473.AbilityDetailCubit(
-        gh<_i768.IPokemonRepository>(),
-        gh<_i463.EnLogger>(),
-      ),
-    );
     gh.factory<_i1067.PokemonDetailBloc>(
       () => _i1067.PokemonDetailBloc(
-        gh<_i768.IPokemonRepository>(),
-        gh<_i463.EnLogger>(),
-      ),
-    );
-    gh.factory<_i338.EvolutionCubit>(
-      () => _i338.EvolutionCubit(
-        gh<_i768.IPokemonRepository>(),
-        gh<_i463.EnLogger>(),
-      ),
-    );
-    gh.factory<_i539.MoveDetailCubit>(
-      () => _i539.MoveDetailCubit(
-        gh<_i768.IPokemonRepository>(),
-        gh<_i463.EnLogger>(),
-      ),
-    );
-    gh.factory<_i18.SpeciesCubit>(
-      () => _i18.SpeciesCubit(
         gh<_i768.IPokemonRepository>(),
         gh<_i463.EnLogger>(),
       ),
@@ -151,6 +123,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i361.PreferencesCubit>(
       () => _i361.PreferencesCubit(
+        gh<_i463.EnLogger>(),
+        gh<_i341.IPokemonRepository>(),
+      ),
+    );
+    gh.factory<_i1069.PokemonFormDetailsCubit>(
+      () => _i1069.PokemonFormDetailsCubit(
         gh<_i463.EnLogger>(),
         gh<_i341.IPokemonRepository>(),
       ),

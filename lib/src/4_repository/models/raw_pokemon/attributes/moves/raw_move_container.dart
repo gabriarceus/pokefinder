@@ -3,7 +3,7 @@ import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/named_
 
 part 'raw_move_container.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class RawMoveContainer {
   const RawMoveContainer({
     required this.move,
@@ -17,11 +17,9 @@ class RawMoveContainer {
 
   factory RawMoveContainer.fromJson(Map<String, dynamic> json) =>
       _$RawMoveContainerFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawMoveContainerToJson(this);
 }
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class RawMoveVersionGroupDetail {
   const RawMoveVersionGroupDetail({
     required this.levelLearnedAt,
@@ -40,6 +38,4 @@ class RawMoveVersionGroupDetail {
 
   factory RawMoveVersionGroupDetail.fromJson(Map<String, dynamic> json) =>
       _$RawMoveVersionGroupDetailFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawMoveVersionGroupDetailToJson(this);
 }

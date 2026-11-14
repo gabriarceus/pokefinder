@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
+import 'package:pokefinder/src/1_presentation/helpers/pokemon_link_copy.dart';
 import 'package:pokefinder/src/1_presentation/pages/comparison/widgets/comparison_stats.dart';
 import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
@@ -129,16 +129,6 @@ class _SlotHeader extends StatelessWidget {
 
   final PokemonSummary entry;
 
-  Future<void> _share(BuildContext context) async {
-    final link = buildPokemonCanonicalPath(entry.name);
-    if (link == null) return;
-    await Clipboard.setData(ClipboardData(text: link));
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(context.t().shareLinkCopied)));
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = context.t();
@@ -165,7 +155,7 @@ class _SlotHeader extends StatelessWidget {
         IconButton(
           tooltip: t.shareLink,
           icon: const Icon(Icons.link_rounded),
-          onPressed: () => _share(context),
+          onPressed: () => copyPokemonLink(context, entry.name),
         ),
         IconButton(
           tooltip: t.compareRemove,

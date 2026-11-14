@@ -11,9 +11,3 @@ AbilityContainer _$AbilityContainerFromJson(Map<String, dynamic> json) =>
       ability: Ability.fromJson(json['ability'] as Map<String, dynamic>),
       isHidden: json['is_hidden'] as bool,
     );
-
-Map<String, dynamic> _$AbilityContainerToJson(AbilityContainer instance) =>
-    <String, dynamic>{
-      'ability': instance.ability,
-      'is_hidden': instance.isHidden,
-    };

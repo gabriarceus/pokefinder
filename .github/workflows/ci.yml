@@ -51,6 +51,13 @@ jobs:
       - name: Validate localization generation
         run: flutter gen-l10n
 
+      - name: Verify every message is translated
+        run: |
+          if [ "$(tr -d '[:space:]' < untranslated_messages.txt)" != "{}" ]; then
+            cat untranslated_messages.txt
+            exit 1
+          fi
+
       - name: Run code generation
         run: dart run build_runner build
 

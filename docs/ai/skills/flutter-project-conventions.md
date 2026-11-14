@@ -35,6 +35,7 @@ that pass about 400 lines by responsibility.
   inside the presentation layer.
 - `DetailMovesCubit` takes runtime data through `createDetailMovesCubit` and is not injectable.
   `DetailGameVersionCubit` has no dependencies and is created inline in a `BlocProvider`.
+- One-shot loads of a single value (species, evolution chain, move, ability) use the generic `LoadCubit<T>` with a sealed `LoadState<T>`, created by the factory and read with an exhaustive `switch`.
 - App-lifetime cubits are `@lazySingleton` and provided with `BlocProvider.value` in `MyApp`:
   `PreferencesCubit`, `LanguageCubit`, `FavoritesCubit`, `RecentHistoryCubit`, `ComparisonCubit`,
   `TeamsCubit`. All except `ComparisonCubit` use `HydratedCubit`.
@@ -57,8 +58,9 @@ that pass about 400 lines by responsibility.
   have run. A second tap on a loading type cancels the selection; see `_onTypeFilterToggled`.
 - Superseded bloc requests use `restartable()` and `emit.isDone` to drop obsolete results.
 - For several Pokémon without encounters, use `PokemonListCubit` and `PokemonLoad`; creating
-  one `PokemonDetailBloc` per entry also downloads encounters. `ComparisonCubit` loads its
-  own details with `getPokemon` only.
+  one `PokemonDetailBloc` per entry also downloads encounters. `PokemonListCubit.load` keeps
+  the result of every name already listed, so a reorder makes no request. `ComparisonCubit`
+  loads its own details with `getPokemon` only.
 
 ## Repository and cache
 
@@ -68,11 +70,15 @@ Dio → `PokeApiCache` → `PokemonRepositoryImpl` → bloc. Fallible calls retu
 - `PokeApiCache` uses a 24-hour cache window, stale-if-error fallback and request sharing by
   URL and type. Its epoch prevents an in-flight request from writing after `clear()`.
   `forceRefresh` tries the network first and reads cached data only on failure.
-- The repository memoizes a fresh enriched index. A stale offline index is served without
-  memoizing it, so the next call retries the network.
+- `getPokemonIndex` returns a `PokemonIndex` record (`entries`, `isStale`). The repository
+  memoizes a fresh enriched index. A stale offline index is served without memoizing it, so
+  the next call retries the network, and `PokedexState.isStale` shows the offline banner.
+- The index is cached with `evictable: false`: `HiveLocalStorage` never evicts it.
 - Forms come from the index grouped by `effectiveParentSpeciesId`; the Pokémon resource's
   `forms` array is not the full species catalogue. `PokemonFormClassifier.hasRealForm` uses
-  `kMegaEvolutionSpecies` to filter vestigial Mega entries.
+  `kMegaEvolutionSpecies` to filter vestigial Mega entries. `getPokemon` gives types only to
+  its own form; `PokemonFormDetailsCubit` (`createPokemonFormDetailsCubit`) loads the others.
+- Ids below `kFirstFormId` (10001) are species; alternate forms use 10001 and up.
 - Cache size and clearing are repository methods. `PreferencesCubit.clearCache()` returns
   whether it succeeded; callers must report failure.
 
@@ -105,7 +111,7 @@ To add an endpoint:
   PokeAPI type sprites contain English text and must not appear in the Italian UI.
 - Use `contrastingTextColor(background)` for black/white text and `color.readableOn(brightness)`
   for readable accents. Pass the real background, not `Colors.transparent`.
-- Use `SectionTitle`, `SurfaceCard`, `LabelValueRow` and `EmptyStateView` for shared layouts.
+- Use `SectionTitle`, `SurfaceCard`, `LabelValueRow`, `EmptyStateView` and `FailureRetryCard` (inline error with retry) for shared layouts.
   Text must be at least `labelSmall`. Use spacing in multiples of 4 and page padding of 16 dp.
   Align the left and right edges of elements stacked in a column.
 - Material 3 controls provide 48 dp targets by default; avoid redundant minimum-size overrides.

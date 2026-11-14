@@ -3,6 +3,7 @@ import 'package:pokefinder/src/3_domain/entities/pokemon_form_category.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_regional_group.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_summary.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon_type.dart';
+import 'package:pokefinder/src/3_domain/helpers/pokeapi_url_helper.dart';
 import 'package:pokefinder/src/3_domain/helpers/pokemon_form_classifier.dart';
 
 /// Represents a lightweight entry in the Pokémon index catalog.
@@ -74,15 +75,14 @@ class PokemonIndexEntry extends Equatable {
 
   /// Whether this entry represents an alternate battle form or variant.
   bool get isAlternateForm =>
-      id > 1025 || formCategory != PokemonFormCategory.canonical;
+      id >= kFirstFormId || formCategory != PokemonFormCategory.canonical;
 
   /// Formatted Pokédex number of the canonical parent species (e.g. "#0006").
   String get dexNumberDisplay =>
       '#${effectiveParentSpeciesId.toString().padLeft(4, '0')}';
 
   /// High-resolution official artwork URL derived from [id].
-  String get officialArtworkUrl =>
-      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$id.png';
+  String get officialArtworkUrl => PokeApiUrlHelper.officialArtworkUrl(id);
 
   /// Image this entry is rendered with, and the one every derived surface
   /// inherits: the custom override when set, the official artwork otherwise.
@@ -126,15 +126,7 @@ class PokemonIndexEntry extends Equatable {
           : effectiveSpeciesGeneration);
 
   /// Formatted English display name.
-  String get displayName =>
-      customDisplayName ??
-      PokemonFormClassifier.formatDisplayName(
-        name: name,
-        parentSpeciesName: effectiveParentSpeciesName,
-        category: formCategory,
-        regionalGroup: regionalGroup,
-        languageCode: 'en',
-      );
+  String get displayName => getDisplayName();
 
   /// Returns localized display name for [languageCode].
   String getDisplayName({String languageCode = 'en'}) =>

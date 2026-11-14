@@ -39,7 +39,6 @@ void main() {
     final entry = await storage.readEntry<Map<String, dynamic>>(key);
     expect(entry, isNotNull);
     expect(entry!.data, payload);
-    expect(entry.schemaVersion, 1);
     expect(entry.storedAt, simulatedTime);
   });
 
@@ -62,8 +61,8 @@ void main() {
     final staleEntry = await storage.readEntry<Map<String, dynamic>>(key);
     expect(staleEntry, isNotNull);
     expect(
-      staleEntry!.isStale(const Duration(hours: 2), now: simulatedTime),
-      isTrue,
+      staleEntry!.isFresh(const Duration(hours: 2), now: simulatedTime),
+      isFalse,
     );
   });
 
@@ -173,6 +172,27 @@ void main() {
     expect(box.containsKey('k1'), isTrue);
     expect(box.containsKey('k2'), isFalse); // Evicted!
     expect(box.containsKey('k3'), isTrue);
+    expect(box.containsKey('k4'), isTrue);
+  });
+
+  test('never evicts a pinned entry, also after a restart', () async {
+    await storage.write('index', 'pinned', evictable: false);
+    for (final key in ['k1', 'k2', 'k3']) {
+      simulatedTime = simulatedTime.add(const Duration(seconds: 1));
+      await storage.write(key, key);
+    }
+
+    final box = await Hive.openBox<String>('data_cache');
+    expect(box.containsKey('index'), isTrue);
+    expect(box.containsKey('k1'), isFalse);
+
+    final restarted = HiveLocalStorage.withMaxEntries(
+      clock: Clock(() => simulatedTime),
+      maxEntries: 3,
+    );
+    await restarted.write('k4', 'k4');
+
+    expect(box.containsKey('index'), isTrue);
     expect(box.containsKey('k4'), isTrue);
   });
 

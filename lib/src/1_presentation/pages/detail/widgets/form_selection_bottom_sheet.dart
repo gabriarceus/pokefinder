@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pokefinder/src/3_domain/entities/pokemon.dart';
+import 'package:pokefinder/src/3_domain/helpers/pokeapi_url_helper.dart';
 import 'package:pokefinder/src/2_application/bloc/detail_bloc/detail_bloc.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
-import 'package:pokefinder/src/1_presentation/extensions/form_name_formatter.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
 import 'package:pokefinder/src/1_presentation/theme/readable_color.dart';
 
@@ -51,22 +52,22 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
   Widget build(BuildContext context) {
     return BlocBuilder<PokemonDetailBloc, PokemonDetailState>(
       builder: (context, state) {
-        final String? selectedFormName;
-        final bool isLoadingForm;
-        final formFailure = state is PokemonDetailSuccess
-            ? state.formFailure
-            : null;
-        final failedForm = state is PokemonDetailSuccess
-            ? state.failedForm
-            : null;
-
-        if (state is PokemonDetailSuccess) {
-          selectedFormName = state.selectedFormDetails?.name;
-          isLoadingForm = state.isLoadingForm;
-        } else {
-          selectedFormName = widget.pokemon.name;
-          isLoadingForm = false;
-        }
+        final (
+          selectedFormName,
+          isLoadingForm,
+          formFailure,
+          failedForm,
+        ) = switch (state) {
+          PokemonDetailSuccess() => (
+            state.formDetails.name,
+            state.isLoadingForm,
+            state.formFailure,
+            state.failedForm,
+          ),
+          PokemonDetailInitial() ||
+          PokemonDetailLoading() ||
+          PokemonDetailFailure() => (widget.pokemon.name, false, null, null),
+        };
 
         final accentColor = widget.typeColor.readableOn(
           Theme.of(context).brightness,
@@ -229,9 +230,10 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                       itemBuilder: (context, index) {
                         final form = widget.pokemon.forms[index];
                         final isSelected = form.name == selectedFormName;
-                        final displayFormName = formatFormName(
-                          context,
-                          form.name,
+                        final displayFormName = context.translatePokemonName(
+                          name: form.name,
+                          id: PokeApiUrlHelper.extractId(form.url),
+                          speciesName: widget.pokemon.speciesName,
                         );
 
                         return Padding(
@@ -242,7 +244,7 @@ class _FormSelectionBottomSheetState extends State<FormSelectionBottomSheet> {
                             label: displayFormName,
                             child: InkWell(
                               onTap: () {
-                                if (state is PokemonDetailSuccess) {
+                                if (state case PokemonDetailSuccess()) {
                                   context.read<PokemonDetailBloc>().add(
                                     SelectPokemonFormEvent(form),
                                   );

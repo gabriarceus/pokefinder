@@ -67,9 +67,9 @@ class HomeBloc extends Bloc<HomeBlocEvent, HomeBlocState> {
         );
         emit(state.copyWith(indexFailure: failure, isIndexLoading: false));
       },
-      (entries) => emit(
+      (index) => emit(
         state.copyWith(
-          pokemonIndex: entries,
+          pokemonIndex: index.entries,
           indexFailure: null,
           isIndexLoading: false,
         ),

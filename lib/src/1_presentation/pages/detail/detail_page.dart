@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:pokefinder/src/1_presentation/router/app_routes.dart';
-import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import 'package:pokefinder/src/1_presentation/di/presentation_bloc_factory.dart';
 import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
+import 'package:pokefinder/src/1_presentation/helpers/comparison_toggle.dart';
+import 'package:pokefinder/src/1_presentation/helpers/pokemon_link_copy.dart';
 import 'package:pokefinder/src/1_presentation/pages/teams/add_to_team_sheet.dart';
 import 'package:pokefinder/src/1_presentation/theme/readable_color.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
@@ -175,39 +174,6 @@ class _DetailSuccessView extends StatelessWidget {
     );
   }
 
-  /// Copies the canonical link for the displayed Pokémon/form to the clipboard.
-  Future<void> _sharePokemonLink(BuildContext context) async {
-    final link = buildPokemonCanonicalPath(success.summary.name);
-    if (link == null) return;
-    await Clipboard.setData(ClipboardData(text: link));
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(context.t().shareLinkCopied)));
-  }
-
-  /// Toggles the displayed Pokémon in the side-by-side comparison selection.
-  void _toggleComparison(BuildContext context) {
-    final cubit = context.read<ComparisonCubit>();
-    final wasSelected = cubit.isSelected(success.summary.id);
-    final nowSelected = cubit.toggleEntry(success.summary);
-    final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
-    if (nowSelected) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(context.t().compareAdded),
-          persist: false,
-          action: SnackBarAction(
-            label: context.t().compareView,
-            onPressed: () => context.push(AppRoutes.compare),
-          ),
-        ),
-      );
-    } else if (!wasSelected) {
-      messenger.showSnackBar(SnackBar(content: Text(context.t().compareFull)));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final pokemon = success.pokemon;
@@ -277,6 +243,7 @@ class _DetailSuccessView extends StatelessWidget {
                         child: DetailHeader(
                           selectedFormName: formDetails.name,
                           pokemonId: pokemon.id,
+                          speciesName: pokemon.speciesName,
                           type1: formDetails.type1,
                           type2: formDetails.type2,
                           textColor: textColor,
@@ -294,9 +261,9 @@ class _DetailSuccessView extends StatelessWidget {
                         .read<FavoritesCubit>()
                         .toggleFavorite(success.summary),
                     onToggleShiny: () => onShinyChanged(!showShiny),
-                    onShare: () => _sharePokemonLink(context),
+                    onShare: () => copyPokemonLink(context, summary.name),
                     isInComparison: isInComparison,
-                    onCompare: () => _toggleComparison(context),
+                    onCompare: () => toggleComparison(context, summary),
                     onTeam: () => showAddToTeamSheet(context, success.summary),
                   ),
                 ),
@@ -319,23 +286,27 @@ class _DetailSuccessView extends StatelessWidget {
                 ),
                 child: TabBarView(
                   children: [
-                    DetailInfoTab(
-                      pokemon: pokemon,
-                      audioController: audioController,
-                      onFormTap: () => _showFormSelectionBottomSheet(
-                        context,
-                        typeColor,
-                        textColor,
+                    _KeepAlive(
+                      child: DetailInfoTab(
+                        pokemon: pokemon,
+                        audioController: audioController,
+                        onFormTap: () => _showFormSelectionBottomSheet(
+                          context,
+                          typeColor,
+                          textColor,
+                        ),
+                        selectedFormName: formDetails.name,
                       ),
-                      selectedFormName: formDetails.name,
                     ),
-                    DetailStatsTab(pokemon: pokemon),
-                    DetailMovesTab(pokemon: pokemon),
-                    DetailItemsGamesTab(
-                      pokemon: pokemon,
-                      encounters: success.encounters,
-                      isLoadingEncounters: success.isLoadingEncounters,
-                      encountersFailure: success.encountersFailure,
+                    _KeepAlive(child: DetailStatsTab(pokemon: pokemon)),
+                    _KeepAlive(child: DetailMovesTab(pokemon: pokemon)),
+                    _KeepAlive(
+                      child: DetailItemsGamesTab(
+                        pokemon: pokemon,
+                        encounters: success.encounters,
+                        isLoadingEncounters: success.isLoadingEncounters,
+                        encountersFailure: success.encountersFailure,
+                      ),
                     ),
                   ],
                 ),
@@ -383,5 +354,27 @@ class _DetailTabBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
     );
+  }
+}
+
+/// Keeps [child] alive inside a [TabBarView] while its tab is off screen.
+class _KeepAlive extends StatefulWidget {
+  const _KeepAlive({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_KeepAlive> createState() => _KeepAliveState();
+}
+
+class _KeepAliveState extends State<_KeepAlive>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }

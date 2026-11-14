@@ -326,12 +326,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Show 1 result} other{Show {count} results}}'**
   String showResults({required int count});
 
-  /// No description provided for @order.
-  ///
-  /// In en, this message translates to:
-  /// **'Order'**
-  String get order;
-
   /// No description provided for @defaultForm.
   ///
   /// In en, this message translates to:
@@ -632,6 +626,27 @@ abstract class AppLocalizations {
   /// **'Max'**
   String get statsMax;
 
+  /// No description provided for @statRangeSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{stat}: {base}, min {min}, max {max}'**
+  String statRangeSemantics({
+    required String stat,
+    required String base,
+    required String min,
+    required String max,
+  });
+
+  /// No description provided for @teamStatSumAverageSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{stat}: sum {sum}, average {average}'**
+  String teamStatSumAverageSemantics({
+    required String stat,
+    required String sum,
+    required String average,
+  });
+
   /// No description provided for @noData.
   ///
   /// In en, this message translates to:
@@ -667,12 +682,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Available Forms'**
   String get formSelectorForms;
-
-  /// No description provided for @formTypeModifier.
-  ///
-  /// In en, this message translates to:
-  /// **'{type}'**
-  String formTypeModifier({required String type});
 
   /// No description provided for @typeNormal.
   ///
@@ -1046,6 +1055,114 @@ abstract class AppLocalizations {
   /// **'XD'**
   String get gameXd;
 
+  /// No description provided for @gameTheIsleOfArmorSword.
+  ///
+  /// In en, this message translates to:
+  /// **'The Isle of Armor (Sword)'**
+  String get gameTheIsleOfArmorSword;
+
+  /// No description provided for @gameTheIsleOfArmorShield.
+  ///
+  /// In en, this message translates to:
+  /// **'The Isle of Armor (Shield)'**
+  String get gameTheIsleOfArmorShield;
+
+  /// No description provided for @gameTheCrownTundraSword.
+  ///
+  /// In en, this message translates to:
+  /// **'The Crown Tundra (Sword)'**
+  String get gameTheCrownTundraSword;
+
+  /// No description provided for @gameTheCrownTundraShield.
+  ///
+  /// In en, this message translates to:
+  /// **'The Crown Tundra (Shield)'**
+  String get gameTheCrownTundraShield;
+
+  /// No description provided for @gameBrilliantDiamond.
+  ///
+  /// In en, this message translates to:
+  /// **'Brilliant Diamond'**
+  String get gameBrilliantDiamond;
+
+  /// No description provided for @gameShiningPearl.
+  ///
+  /// In en, this message translates to:
+  /// **'Shining Pearl'**
+  String get gameShiningPearl;
+
+  /// No description provided for @gameTheTealMaskScarlet.
+  ///
+  /// In en, this message translates to:
+  /// **'The Teal Mask (Scarlet)'**
+  String get gameTheTealMaskScarlet;
+
+  /// No description provided for @gameTheTealMaskViolet.
+  ///
+  /// In en, this message translates to:
+  /// **'The Teal Mask (Violet)'**
+  String get gameTheTealMaskViolet;
+
+  /// No description provided for @gameTheIndigoDiskScarlet.
+  ///
+  /// In en, this message translates to:
+  /// **'The Indigo Disk (Scarlet)'**
+  String get gameTheIndigoDiskScarlet;
+
+  /// No description provided for @gameTheIndigoDiskViolet.
+  ///
+  /// In en, this message translates to:
+  /// **'The Indigo Disk (Violet)'**
+  String get gameTheIndigoDiskViolet;
+
+  /// No description provided for @gameLegendsZa.
+  ///
+  /// In en, this message translates to:
+  /// **'Legends: Z-A'**
+  String get gameLegendsZa;
+
+  /// No description provided for @gameMegaDimension.
+  ///
+  /// In en, this message translates to:
+  /// **'Mega Dimension'**
+  String get gameMegaDimension;
+
+  /// No description provided for @gameChampions.
+  ///
+  /// In en, this message translates to:
+  /// **'Champions'**
+  String get gameChampions;
+
+  /// No description provided for @gameRedJapan.
+  ///
+  /// In en, this message translates to:
+  /// **'Red (Japan)'**
+  String get gameRedJapan;
+
+  /// No description provided for @gameGreenJapan.
+  ///
+  /// In en, this message translates to:
+  /// **'Green (Japan)'**
+  String get gameGreenJapan;
+
+  /// No description provided for @gameBlueJapan.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue (Japan)'**
+  String get gameBlueJapan;
+
+  /// No description provided for @gameGroupRedGreenJapan.
+  ///
+  /// In en, this message translates to:
+  /// **'Red/Green (Japan)'**
+  String get gameGroupRedGreenJapan;
+
+  /// No description provided for @gameGroupBrilliantDiamondShiningPearl.
+  ///
+  /// In en, this message translates to:
+  /// **'Brilliant Diamond/Shining Pearl'**
+  String get gameGroupBrilliantDiamondShiningPearl;
+
   /// No description provided for @gameGroupRedBlue.
   ///
   /// In en, this message translates to:
@@ -1244,12 +1361,6 @@ abstract class AppLocalizations {
   /// **'Pokédex'**
   String get pokedexTitle;
 
-  /// No description provided for @filter.
-  ///
-  /// In en, this message translates to:
-  /// **'Filter'**
-  String get filter;
-
   /// No description provided for @filters.
   ///
   /// In en, this message translates to:
@@ -1327,12 +1438,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear Filters'**
   String get clearFilters;
-
-  /// No description provided for @apply.
-  ///
-  /// In en, this message translates to:
-  /// **'Apply'**
-  String get apply;
 
   /// No description provided for @reset.
   ///

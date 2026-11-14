@@ -117,7 +117,12 @@ class _StatRow extends StatelessWidget {
     final max = format(StatCalculator.calculateMaxStat(kind, value));
 
     return Semantics(
-      label: '$label: $base, min $min, max $max',
+      label: context.t().statRangeSemantics(
+        stat: label,
+        base: base,
+        min: min,
+        max: max,
+      ),
       excludeSemantics: true,
       child: _StatValuesRow(
         label: label,

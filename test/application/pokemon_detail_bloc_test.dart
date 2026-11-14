@@ -157,10 +157,6 @@ void main() {
         final firstSuccess = emitted[1] as PokemonDetailSuccess;
         expect(firstSuccess.pokemon, pokemon);
         expect(firstSuccess.isLoadingEncounters, isTrue);
-        expect(
-          firstSuccess.selectedFormDetails,
-          PokemonFormDetails.fromPokemon(pokemon),
-        );
         // B2: the form getters expose the active form without the caller
         // having to know whether a form has been selected yet.
         expect(
@@ -456,7 +452,6 @@ void main() {
 
       expect(emitted.first.isLoadingForm, isTrue);
       expect(emitted.last.isLoadingForm, isFalse);
-      expect(emitted.last.selectedFormDetails, _megaDetails);
       expect(emitted.last.formFailure, isNull);
       // B2: formDetails/summary follow the selected form.
       expect(emitted.last.formDetails, _megaDetails);
@@ -496,10 +491,7 @@ void main() {
         expect(state.isLoadingForm, isFalse);
         expect(state.formFailure, const UnexpectedFailure('nope'));
         expect(state.failedForm, _megaForm);
-        expect(
-          state.selectedFormDetails,
-          PokemonFormDetails.fromPokemon(pokemon),
-        );
+        expect(state.formDetails, PokemonFormDetails.fromPokemon(pokemon));
       },
     );
 
@@ -546,10 +538,7 @@ void main() {
 
       bloc.add(SelectPokemonFormEvent(_megaForm));
       await pumpEventQueue();
-      expect(
-        (bloc.state as PokemonDetailSuccess).selectedFormDetails,
-        _megaDetails,
-      );
+      expect((bloc.state as PokemonDetailSuccess).formDetails, _megaDetails);
 
       bloc.add(
         SelectPokemonFormEvent(PokemonForm(name: pokemon.name, url: 'ignored')),
@@ -557,7 +546,7 @@ void main() {
       await pumpEventQueue();
 
       expect(
-        (bloc.state as PokemonDetailSuccess).selectedFormDetails,
+        (bloc.state as PokemonDetailSuccess).formDetails,
         PokemonFormDetails.fromPokemon(pokemon),
       );
       verify(

@@ -31,7 +31,6 @@ final class PokemonDetailFailure extends PokemonDetailState {
 final class PokemonDetailSuccess extends PokemonDetailState {
   const PokemonDetailSuccess({
     required this.pokemon,
-    this.selectedFormDetails,
     this.encounters,
     this.isLoadingForm = false,
     this.isLoadingEncounters = false,
@@ -43,7 +42,6 @@ final class PokemonDetailSuccess extends PokemonDetailState {
   static const _unset = Object();
 
   final Pokemon pokemon;
-  final PokemonFormDetails? selectedFormDetails;
   final List<PokemonEncounter>? encounters;
   final bool isLoadingForm;
   final bool isLoadingEncounters;
@@ -51,9 +49,8 @@ final class PokemonDetailSuccess extends PokemonDetailState {
   final PokemonFailure? encountersFailure;
   final PokemonForm? failedForm;
 
-  /// Active form details, falling back to the loaded Pokémon's attributes.
-  PokemonFormDetails get formDetails =>
-      selectedFormDetails ?? PokemonFormDetails.fromPokemon(pokemon);
+  /// Details of the loaded Pokémon.
+  PokemonFormDetails get formDetails => PokemonFormDetails.fromPokemon(pokemon);
 
   /// Summary of the active Pokémon, including its exact identity and lineage.
   PokemonSummary get summary {
@@ -83,7 +80,6 @@ final class PokemonDetailSuccess extends PokemonDetailState {
 
   PokemonDetailSuccess copyWith({
     Pokemon? pokemon,
-    PokemonFormDetails? selectedFormDetails,
     List<PokemonEncounter>? encounters,
     bool? isLoadingForm,
     bool? isLoadingEncounters,
@@ -93,7 +89,6 @@ final class PokemonDetailSuccess extends PokemonDetailState {
   }) {
     return PokemonDetailSuccess(
       pokemon: pokemon ?? this.pokemon,
-      selectedFormDetails: selectedFormDetails ?? this.selectedFormDetails,
       encounters: encounters ?? this.encounters,
       isLoadingForm: isLoadingForm ?? this.isLoadingForm,
       isLoadingEncounters: isLoadingEncounters ?? this.isLoadingEncounters,
@@ -112,7 +107,6 @@ final class PokemonDetailSuccess extends PokemonDetailState {
   @override
   List<Object?> get props => [
     pokemon,
-    selectedFormDetails,
     encounters,
     isLoadingForm,
     isLoadingEncounters,

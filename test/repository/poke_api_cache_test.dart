@@ -44,7 +44,11 @@ void main() {
     );
 
     when(
-      () => localStorage.write<Map<String, dynamic>>(any(), any()),
+      () => localStorage.write<Map<String, dynamic>>(
+        any(),
+        any(),
+        evictable: any(named: 'evictable'),
+      ),
     ).thenAnswer((_) async {});
     when(() => localStorage.clear()).thenAnswer((_) async {});
   });
@@ -217,6 +221,21 @@ void main() {
         );
       },
     );
+  });
+
+  test('stores a payload requested as not evictable as pinned', () async {
+    stubCacheEntry(null);
+    stubNetworkPayload(_networkPayload);
+
+    await cache.get<Map<String, dynamic>>(_endpoint, evictable: false);
+
+    verify(
+      () => localStorage.write<Map<String, dynamic>>(
+        _endpoint,
+        _networkPayload,
+        evictable: false,
+      ),
+    ).called(1);
   });
 
   group('forceRefresh', () {

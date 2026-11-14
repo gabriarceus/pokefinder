@@ -347,6 +347,15 @@ void main() {
         ),
         'Rotom (Lavaggio)',
       );
+      expect(
+        PokemonFormClassifier.formatDisplayName(
+          name: 'giratina-origin',
+          parentSpeciesName: 'giratina',
+          category: PokemonFormCategory.battleMode,
+          languageCode: 'it',
+        ),
+        'Giratina (Originale)',
+      );
 
       // Special species display name formatting
       expect(
@@ -358,6 +367,16 @@ void main() {
         ),
         'Mr. Mime',
       );
+    });
+
+    test('a species id above 1025 is canonical, not an alternate form', () {
+      final entry = PokemonFormClassifier.enrichEntries(const [
+        PokemonIndexEntry(id: 1026, name: 'newmon', detailUrl: ''),
+      ]).single;
+
+      expect(entry.formCategory, PokemonFormCategory.canonical);
+      expect(entry.isAlternateForm, isFalse);
+      expect(entry.effectiveParentSpeciesId, 1026);
     });
 
     test('verifies dual generation bounds mapping', () {

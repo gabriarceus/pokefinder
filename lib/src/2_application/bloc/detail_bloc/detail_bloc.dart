@@ -81,15 +81,7 @@ class PokemonDetailBloc extends Bloc<PokemonDetailEvent, PokemonDetailState> {
           prefix: _prefix,
         );
 
-        final defaultFormDetails = PokemonFormDetails.fromPokemon(pokemon);
-
-        emit(
-          PokemonDetailSuccess(
-            pokemon: pokemon,
-            selectedFormDetails: defaultFormDetails,
-            isLoadingEncounters: true,
-          ),
-        );
+        emit(PokemonDetailSuccess(pokemon: pokemon, isLoadingEncounters: true));
 
         add(RetryPokemonEncountersEvent());
       },
@@ -154,12 +146,8 @@ class PokemonDetailBloc extends Bloc<PokemonDetailEvent, PokemonDetailState> {
     final generation = ++_detailGeneration;
 
     if (event.form.name == currentState.pokemon.name) {
-      final defaultFormDetails = PokemonFormDetails.fromPokemon(
-        currentState.pokemon,
-      );
       emit(
         currentState.copyWith(
-          selectedFormDetails: defaultFormDetails,
           isLoadingForm: false,
           formFailure: null,
           failedForm: null,
@@ -198,7 +186,6 @@ class PokemonDetailBloc extends Bloc<PokemonDetailEvent, PokemonDetailState> {
         emit(
           updatedState.copyWith(
             pokemon: pokemon,
-            selectedFormDetails: PokemonFormDetails.fromPokemon(pokemon),
             encounters: const [],
             isLoadingEncounters: true,
             encountersFailure: null,

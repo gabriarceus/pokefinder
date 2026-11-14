@@ -81,7 +81,7 @@ class _TeamNameDialogState extends State<_TeamNameDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(t.cancel),
         ),
-        ElevatedButton(onPressed: _submit, child: Text(widget.confirmLabel)),
+        FilledButton(onPressed: _submit, child: Text(widget.confirmLabel)),
       ],
     );
   }

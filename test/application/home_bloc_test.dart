@@ -34,9 +34,9 @@ void main() {
     ];
 
     test('successfully fetches the index and clears indexFailure', () async {
-      when(
-        () => pokemonRepository.getPokemonIndex(),
-      ).thenAnswer((_) async => const Right(entries));
+      when(() => pokemonRepository.getPokemonIndex()).thenAnswer(
+        (_) async => const Right((entries: entries, isStale: false)),
+      );
 
       bloc.add(LoadIndex());
       await pumpEventQueue();
@@ -47,9 +47,9 @@ void main() {
     });
 
     test('raises isIndexLoading before the entries arrive', () async {
-      when(
-        () => pokemonRepository.getPokemonIndex(),
-      ).thenAnswer((_) async => const Right(entries));
+      when(() => pokemonRepository.getPokemonIndex()).thenAnswer(
+        (_) async => const Right((entries: entries, isStale: false)),
+      );
 
       final seen = <bool>[];
       final sub = bloc.stream.map((s) => s.isIndexLoading).listen(seen.add);

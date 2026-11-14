@@ -17,35 +17,41 @@ class PokemonListCubit extends Cubit<List<PokemonLoad>> {
   final IPokemonRepository _repository;
   List<String> _names = const [];
 
-  /// Replaces the list with [names] and loads every entry.
+  /// Replaces the list with [names], keeping the entry of every name already
+  /// in the list and loading only the new names.
   void load(List<String> names) {
+    final previous = {
+      for (var i = 0; i < _names.length; i++) _names[i]: state[i],
+    };
     _names = List.unmodifiable(names);
-    emit([for (final _ in names) const PokemonLoading()]);
-    for (var i = 0; i < names.length; i++) {
-      _loadAt(i);
+    emit([for (final name in names) previous[name] ?? const PokemonLoading()]);
+    for (final name in names.toSet()) {
+      if (!previous.containsKey(name)) _load(name);
     }
   }
 
   /// Loads the entry at [index] again, replacing a previous failure.
   void retry(int index) {
     if (index < 0 || index >= _names.length) return;
-    _setAt(index, const PokemonLoading());
-    _loadAt(index);
+    final name = _names[index];
+    _setAll(name, const PokemonLoading());
+    _load(name);
   }
 
-  Future<void> _loadAt(int index) async {
-    final names = _names;
-    final name = names[index];
+  Future<void> _load(String name) async {
     final result = await _repository.getPokemon(PokemonName(name));
-    // A newer load() replaced the list meanwhile: this result is stale.
-    if (isClosed || !identical(names, _names)) return;
+    if (isClosed) return;
     result.fold((failure) {
       _logger.error('Failed to load $name: $failure', prefix: _prefix);
-      _setAt(index, PokemonLoadFailed(failure));
-    }, (pokemon) => _setAt(index, PokemonLoaded(pokemon)));
+      _setAll(name, PokemonLoadFailed(failure));
+    }, (pokemon) => _setAll(name, PokemonLoaded(pokemon)));
   }
 
-  void _setAt(int index, PokemonLoad load) {
-    emit([...state]..[index] = load);
+  /// Sets [load] on every entry of [name]; a name no longer listed is ignored.
+  void _setAll(String name, PokemonLoad load) {
+    emit([
+      for (var i = 0; i < _names.length; i++)
+        _names[i] == name ? load : state[i],
+    ]);
   }
 }

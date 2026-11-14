@@ -27,7 +27,6 @@ export 'helpers/measurement_formatter.dart';
 export 'helpers/canonical_species_data.dart';
 export 'helpers/mega_evolution_data.dart';
 export 'helpers/pokemon_form_classifier.dart';
-export 'helpers/prefix_suggestions_filter.dart';
 export 'helpers/pokemon_index_filter_helper.dart';
 export 'helpers/index_suggestions_filter.dart';
 export 'helpers/text_normalizer.dart';

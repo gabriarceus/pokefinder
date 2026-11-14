@@ -5,6 +5,7 @@ import 'package:pokefinder/src/1_presentation/extensions/language_ext.dart';
 import 'package:pokefinder/src/1_presentation/extensions/pokemon_failure_ext.dart';
 import 'package:pokefinder/src/1_presentation/pages/detail/widgets/detail_tab_scroll_view.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/detail_widgets.dart';
+import 'package:pokefinder/src/1_presentation/widgets/failure_retry_card.dart';
 import 'package:pokefinder/src/1_presentation/widgets/section_title.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
@@ -223,7 +224,7 @@ class _SpeciesSection extends StatelessWidget {
     final selectedVersion = context.select<DetailGameVersionCubit, String>(
       (cubit) => cubit.state.selectedVersion,
     );
-    final speciesState = context.watch<SpeciesCubit>().state;
+    final speciesState = context.watch<LoadCubit<PokemonSpecies>>().state;
 
     final baseExp = pokemon.baseExperience;
     final aboutRows = <LabelValueRow>[
@@ -231,7 +232,7 @@ class _SpeciesSection extends StatelessWidget {
         label: t.baseExp,
         value: baseExp != null ? t.baseExpValue(value: baseExp) : '-',
       ),
-      if (speciesState case SpeciesLoaded(:final species)) ...[
+      if (speciesState case LoadSuccess(value: final species)) ...[
         if (species.generation != null)
           LabelValueRow(
             label: t.generation,
@@ -275,20 +276,18 @@ class _SpeciesSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         switch (speciesState) {
-          SpeciesInitial() => const SizedBox.shrink(),
-          SpeciesLoading() => const Padding(
+          LoadInProgress() => const Padding(
             padding: EdgeInsets.all(16),
             child: Center(child: CircularProgressIndicator()),
           ),
-          SpeciesError(:final failure, :final message) => Padding(
+          LoadFailure(:final failure) => Padding(
             padding: const EdgeInsets.only(bottom: 24),
-            child: _SpeciesErrorCard(
-              message: failure?.localizedMessage(context) ?? message,
-              onRetry: () =>
-                  context.read<SpeciesCubit>().fetchSpecies(pokemon.speciesUrl),
+            child: FailureRetryCard(
+              message: failure.localizedMessage(context),
+              onRetry: () => context.read<LoadCubit<PokemonSpecies>>().load(),
             ),
           ),
-          SpeciesLoaded(:final species) => _FlavorTextSection(
+          LoadSuccess(value: final species) => _FlavorTextSection(
             genus: species.genusFor(locale),
             flavorText: species.flavorTextFor(
               languageCode: locale,
@@ -299,12 +298,12 @@ class _SpeciesSection extends StatelessWidget {
         SectionTitle(t.about),
         aboutCard,
         const SizedBox(height: 24),
-        if (speciesState case SpeciesLoaded(
-          species: PokemonSpecies(:final evolutionChainUrl?),
+        if (speciesState case LoadSuccess(
+          value: PokemonSpecies(:final evolutionChainUrl?),
         )) ...[
           EvolutionChainWidget(
             evolutionChainUrl: evolutionChainUrl,
-            currentPokemonName: pokemon.name,
+            currentSpeciesName: pokemon.speciesName,
             typeColor: theme.colorScheme.primary,
             textColor: theme.colorScheme.onSurface,
           ),
@@ -369,43 +368,6 @@ class _FlavorTextSection extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _SpeciesErrorCard extends StatelessWidget {
-  const _SpeciesErrorCard({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final error = Theme.of(context).colorScheme.error;
-    return SurfaceCard(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(Icons.error_outline_rounded, color: error),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: error),
-              ),
-            ),
-            TextButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh_rounded, size: 16),
-              label: Text(context.t().retryButton),
-            ),
-          ],
-        ),
       ),
     );
   }

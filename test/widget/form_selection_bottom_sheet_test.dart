@@ -45,7 +45,6 @@ void main() {
 
       final successState = PokemonDetailSuccess(
         pokemon: pokemon,
-        selectedFormDetails: PokemonFormDetails.fromPokemon(pokemon),
         formFailure: const NetworkUnavailableFailure(),
         failedForm: failedForm,
       );
@@ -110,10 +109,7 @@ void main() {
         ],
       );
 
-      final successState = PokemonDetailSuccess(
-        pokemon: pokemon,
-        selectedFormDetails: PokemonFormDetails.fromPokemon(pokemon),
-      );
+      final successState = PokemonDetailSuccess(pokemon: pokemon);
 
       when(() => bloc.state).thenReturn(successState);
 

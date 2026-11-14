@@ -3,7 +3,7 @@ import 'package:pokefinder/src/4_repository/models/raw_pokemon/attributes/named_
 
 part 'raw_game_index.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class RawGameIndex {
   const RawGameIndex({required this.gameIndex, required this.version});
 
@@ -14,6 +14,4 @@ class RawGameIndex {
 
   factory RawGameIndex.fromJson(Map<String, dynamic> json) =>
       _$RawGameIndexFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RawGameIndexToJson(this);
 }

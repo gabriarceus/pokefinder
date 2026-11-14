@@ -108,12 +108,6 @@ class FavoritesCubit extends HydratedCubit<FavoritesState> {
     emit(state.copyWith(sortOrder: order));
   }
 
-  /// Removes all favorited Pokémon entries.
-  void clearFavorites() {
-    _logger.info('Clearing all favorites', prefix: _prefix);
-    emit(state.copyWith(favorites: const []));
-  }
-
   /// Convenience check for whether [id] is favorited.
   bool isFavorite(int id) => state.isFavorite(id);
 

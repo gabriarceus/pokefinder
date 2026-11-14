@@ -136,9 +136,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get order => 'Order';
-
-  @override
   String get defaultForm => 'Default Form';
 
   @override
@@ -291,6 +288,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsMax => 'Max';
 
   @override
+  String statRangeSemantics({
+    required String stat,
+    required String base,
+    required String min,
+    required String max,
+  }) {
+    return '$stat: $base, min $min, max $max';
+  }
+
+  @override
+  String teamStatSumAverageSemantics({
+    required String stat,
+    required String sum,
+    required String average,
+  }) {
+    return '$stat: sum $sum, average $average';
+  }
+
+  @override
   String get noData => 'No data available';
 
   @override
@@ -307,11 +323,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get formSelectorForms => 'Available Forms';
-
-  @override
-  String formTypeModifier({required String type}) {
-    return '$type';
-  }
 
   @override
   String get typeNormal => 'Normal';
@@ -500,6 +511,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gameXd => 'XD';
 
   @override
+  String get gameTheIsleOfArmorSword => 'The Isle of Armor (Sword)';
+
+  @override
+  String get gameTheIsleOfArmorShield => 'The Isle of Armor (Shield)';
+
+  @override
+  String get gameTheCrownTundraSword => 'The Crown Tundra (Sword)';
+
+  @override
+  String get gameTheCrownTundraShield => 'The Crown Tundra (Shield)';
+
+  @override
+  String get gameBrilliantDiamond => 'Brilliant Diamond';
+
+  @override
+  String get gameShiningPearl => 'Shining Pearl';
+
+  @override
+  String get gameTheTealMaskScarlet => 'The Teal Mask (Scarlet)';
+
+  @override
+  String get gameTheTealMaskViolet => 'The Teal Mask (Violet)';
+
+  @override
+  String get gameTheIndigoDiskScarlet => 'The Indigo Disk (Scarlet)';
+
+  @override
+  String get gameTheIndigoDiskViolet => 'The Indigo Disk (Violet)';
+
+  @override
+  String get gameLegendsZa => 'Legends: Z-A';
+
+  @override
+  String get gameMegaDimension => 'Mega Dimension';
+
+  @override
+  String get gameChampions => 'Champions';
+
+  @override
+  String get gameRedJapan => 'Red (Japan)';
+
+  @override
+  String get gameGreenJapan => 'Green (Japan)';
+
+  @override
+  String get gameBlueJapan => 'Blue (Japan)';
+
+  @override
+  String get gameGroupRedGreenJapan => 'Red/Green (Japan)';
+
+  @override
+  String get gameGroupBrilliantDiamondShiningPearl =>
+      'Brilliant Diamond/Shining Pearl';
+
+  @override
   String get gameGroupRedBlue => 'Red/Blue';
 
   @override
@@ -603,9 +669,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pokedexTitle => 'Pokédex';
 
   @override
-  String get filter => 'Filter';
-
-  @override
   String get filters => 'Filters';
 
   @override
@@ -645,9 +708,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearFilters => 'Clear Filters';
-
-  @override
-  String get apply => 'Apply';
 
   @override
   String get reset => 'Reset';

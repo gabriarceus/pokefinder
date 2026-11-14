@@ -126,6 +126,42 @@ void main() {
       });
     });
 
+    testWidgets('shows the offline banner for a stale index', (tester) async {
+      await mockNetworkImagesFor(() async {
+        when(() => bloc.state).thenReturn(
+          const PokedexState().copyWith(
+            status: PokedexStatus.success,
+            allEntries: sampleEntries,
+            filteredEntries: sampleEntries,
+            isStale: true,
+          ),
+        );
+
+        await pumpPage(tester, const Size(400, 800));
+        await tester.pump();
+
+        expect(find.byIcon(Icons.wifi_off_rounded), findsOneWidget);
+      });
+    });
+
+    testWidgets('the search clear button has a tooltip', (tester) async {
+      await mockNetworkImagesFor(() async {
+        when(() => bloc.state).thenReturn(
+          const PokedexState().copyWith(
+            status: PokedexStatus.success,
+            allEntries: sampleEntries,
+            filteredEntries: sampleEntries,
+            filters: PokedexFilters(query: 'bulba'),
+          ),
+        );
+
+        await pumpPage(tester, const Size(400, 800));
+        await tester.pump();
+
+        expect(find.byTooltip('Clear'), findsOneWidget);
+      });
+    });
+
     testWidgets('renders empty search state with clear filters button', (
       tester,
     ) async {

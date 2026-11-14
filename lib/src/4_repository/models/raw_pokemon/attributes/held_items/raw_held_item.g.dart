@@ -13,19 +13,9 @@ RawHeldItem _$RawHeldItemFromJson(Map<String, dynamic> json) => RawHeldItem(
       .toList(),
 );
 
-Map<String, dynamic> _$RawHeldItemToJson(RawHeldItem instance) =>
-    <String, dynamic>{
-      'item': instance.item,
-      'version_details': instance.versionDetails,
-    };
-
 RawHeldItemVersionDetail _$RawHeldItemVersionDetailFromJson(
   Map<String, dynamic> json,
 ) => RawHeldItemVersionDetail(
   rarity: (json['rarity'] as num).toInt(),
   version: NamedAPIResource.fromJson(json['version'] as Map<String, dynamic>),
 );
-
-Map<String, dynamic> _$RawHeldItemVersionDetailToJson(
-  RawHeldItemVersionDetail instance,
-) => <String, dynamic>{'rarity': instance.rarity, 'version': instance.version};

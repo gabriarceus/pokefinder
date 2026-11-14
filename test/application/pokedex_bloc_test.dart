@@ -63,7 +63,9 @@ void main() {
         () => repository.getPokemonIndex(
           forceRefresh: any(named: 'forceRefresh'),
         ),
-      ).thenAnswer((_) async => Right(sampleEntries));
+      ).thenAnswer(
+        (_) async => Right((entries: sampleEntries, isStale: false)),
+      );
 
       bloc.add(const PokedexFetchIndexEvent());
       await pumpEventQueue();
@@ -90,7 +92,9 @@ void main() {
           () => repository.getPokemonIndex(
             forceRefresh: any(named: 'forceRefresh'),
           ),
-        ).thenAnswer((_) async => Right(manyEntries));
+        ).thenAnswer(
+          (_) async => Right((entries: manyEntries, isStale: false)),
+        );
 
         bloc.add(const PokedexFetchIndexEvent());
         await pumpEventQueue();
@@ -117,9 +121,9 @@ void main() {
     });
 
     test('failure during pull-to-refresh preserves existing entries', () async {
-      when(
-        () => repository.getPokemonIndex(forceRefresh: false),
-      ).thenAnswer((_) async => Right(sampleEntries));
+      when(() => repository.getPokemonIndex(forceRefresh: false)).thenAnswer(
+        (_) async => Right((entries: sampleEntries, isStale: false)),
+      );
 
       bloc.add(const PokedexFetchIndexEvent(forceRefresh: false));
       await pumpEventQueue();
@@ -142,13 +146,37 @@ void main() {
     });
   });
 
+  test(
+    'a refresh served from the offline copy marks the state stale',
+    () async {
+      when(() => repository.getPokemonIndex(forceRefresh: false)).thenAnswer(
+        (_) async => Right((entries: sampleEntries, isStale: false)),
+      );
+      when(
+        () => repository.getPokemonIndex(forceRefresh: true),
+      ).thenAnswer((_) async => Right((entries: sampleEntries, isStale: true)));
+
+      bloc.add(const PokedexFetchIndexEvent());
+      await pumpEventQueue();
+      expect(bloc.state.isStale, isFalse);
+
+      bloc.add(const PokedexFetchIndexEvent(forceRefresh: true));
+      await pumpEventQueue();
+
+      expect(bloc.state.isStale, isTrue);
+      expect(bloc.state.isRefreshing, isFalse);
+    },
+  );
+
   group('Filtering and Search', () {
     setUp(() async {
       when(
         () => repository.getPokemonIndex(
           forceRefresh: any(named: 'forceRefresh'),
         ),
-      ).thenAnswer((_) async => Right(sampleEntries));
+      ).thenAnswer(
+        (_) async => Right((entries: sampleEntries, isStale: false)),
+      );
 
       bloc.add(const PokedexFetchIndexEvent());
       await pumpEventQueue();
@@ -308,7 +336,9 @@ void main() {
         () => repository.getPokemonIndex(
           forceRefresh: any(named: 'forceRefresh'),
         ),
-      ).thenAnswer((_) async => Right(sampleEntries));
+      ).thenAnswer(
+        (_) async => Right((entries: sampleEntries, isStale: false)),
+      );
 
       debouncedBloc.add(const PokedexFetchIndexEvent());
       await pumpEventQueue();
@@ -389,7 +419,9 @@ void main() {
         () => repository.getPokemonIndex(
           forceRefresh: any(named: 'forceRefresh'),
         ),
-      ).thenAnswer((_) async => Right(sampleEntries));
+      ).thenAnswer(
+        (_) async => Right((entries: sampleEntries, isStale: false)),
+      );
       debouncedBloc.add(const PokedexFetchIndexEvent());
       await pumpEventQueue();
 
@@ -457,7 +489,9 @@ void main() {
           () => repository.getPokemonIndex(
             forceRefresh: any(named: 'forceRefresh'),
           ),
-        ).thenAnswer((_) async => Right(sampleEntries));
+        ).thenAnswer(
+          (_) async => Right((entries: sampleEntries, isStale: false)),
+        );
 
         bloc.add(const PokedexFetchIndexEvent());
         await pumpEventQueue();
@@ -512,7 +546,9 @@ void main() {
             () => repository.getPokemonIndex(
               forceRefresh: any(named: 'forceRefresh'),
             ),
-          ).thenAnswer((_) async => Right(mixedEntries));
+          ).thenAnswer(
+            (_) async => Right((entries: mixedEntries, isStale: false)),
+          );
 
           bloc.add(const PokedexFetchIndexEvent());
           await pumpEventQueue();
