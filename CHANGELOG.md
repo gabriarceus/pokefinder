@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file, following the “Keep a Changelog” standard.
 
-## [Unreleased]
+## [1.0.0-rc2] - 2026-11-14
 
 ### Added
 

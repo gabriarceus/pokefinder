@@ -9,7 +9,7 @@ searching, browsing, and exploring Pokémon. Data comes from the public
 ## Features
 
 - Search a Pokémon by name or Pokédex ID, with prefix, contains, and numeric-ID autocomplete
-- Browsable Pokédex with pagination, pull-to-refresh, type (18) / generation (1-9) / sort filters, and Random Pokémon
+- Browsable Pokédex with pull-to-refresh, type (18) / generation (1-9) / sort filters, and Random Pokémon
 - Alternate forms: Mega, Primal, Regional (Alola, Galar, Hisui, Paldea), G-Max and battle modes, with badges, localized titles, and keyword search
 - Detail screen with tabs (info, stats, moves, items & games), species flavor text, branching evolution chain, ability sheets, unified game-version selector, and inline forms gallery
 - Selecting a form updates its complete detail and encounters. Form cards load their own types through the API cache; failed switches keep the last valid detail with retry.
@@ -39,11 +39,7 @@ searching, browsing, and exploring Pokémon. Data comes from the public
 
 Invalid parameters fall back to a route error page.
 
-The detail screen offers a copy-link action that copies the canonical path
-(`/pokemon/:nameOrId`) to the clipboard; the same path is reachable as a
-cold-start deep link (`pokefinder:///pokemon/:nameOrId`, declared via an
-Android intent filter and an iOS URL type). Copy uses the platform clipboard
-only — no share-sheet plugin, no new permissions on either OS.
+The detail and comparison screens offer a copy-link action that copies the deep link (`pokefinder:///pokemon/:nameOrId`, declared via an Android intent filter and an iOS URL type) to the clipboard, resolving to the canonical `/pokemon/:nameOrId` route. Copy uses the platform clipboard only — no share-sheet plugin, no new permissions on either OS.
 
 ## Tools used
 
