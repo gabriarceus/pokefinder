@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A square network image of a Pokémon sprite, with a progress indicator
 /// while it loads and an icon when it fails.

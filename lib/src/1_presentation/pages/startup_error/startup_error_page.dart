@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
+import 'package:pokefinder/src/1_presentation/helpers/localization_delegates.dart';
 
 /// Standalone fallback application shown when storage or dependency bootstrap fails.
 class StartupErrorApp extends StatelessWidget {
@@ -12,7 +13,7 @@ class StartupErrorApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: StartupErrorPage(onRetry: onRetry, errorMessage: errorMessage),
     );

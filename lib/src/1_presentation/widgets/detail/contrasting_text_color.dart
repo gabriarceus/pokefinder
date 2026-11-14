@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Relative luminance where black and white text have the same WCAG contrast.
 const _kEqualContrastLuminance = 0.179;

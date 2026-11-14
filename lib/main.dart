@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart' show appFlavor;
 import 'package:injectable/injectable.dart';
 import 'package:pokefinder/bootstrap.dart';
@@ -80,7 +80,7 @@ class MyApp extends StatelessWidget {
                 themeMode: prefState.themeMode,
                 theme: AppPalette.lightTheme,
                 darkTheme: AppPalette.darkTheme,
-                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                localizationsDelegates: appLocalizationsDelegates,
                 supportedLocales: AppLocalizations.supportedLocales,
                 locale: langState.locale,
                 debugShowCheckedModeBanner: false,

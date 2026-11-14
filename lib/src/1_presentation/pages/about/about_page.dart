@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:pokefinder/src/1_presentation/widgets/section_title.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';

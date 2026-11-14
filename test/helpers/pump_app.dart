@@ -1,11 +1,12 @@
 import 'package:dartz/dartz.dart';
 import 'package:en_logger/en_logger.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pokefinder/l10n/app_localizations.dart';
+import 'package:pokefinder/src/1_presentation/helpers/localization_delegates.dart';
 import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 import 'package:pokefinder/src/2_application/application.dart';
 import 'package:pokefinder/src/3_domain/domain.dart';
@@ -111,7 +112,7 @@ extension PumpApp on WidgetTester {
     final appCubits = cubits ?? TestAppCubits();
     if (cubits == null) addTearDown(appCubits.close);
 
-    const delegates = AppLocalizations.localizationsDelegates;
+    const delegates = appLocalizationsDelegates;
     const locales = AppLocalizations.supportedLocales;
     final app = router != null
         ? MaterialApp.router(

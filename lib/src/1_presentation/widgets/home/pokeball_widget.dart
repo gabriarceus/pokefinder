@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A decorative Poké Ball drawn with the theme colors: a primary top half,
 /// a light bottom half and a dark band with a center button.

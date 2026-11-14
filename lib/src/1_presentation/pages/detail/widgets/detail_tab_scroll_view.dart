@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Scroll view of one detail tab inside the page's [NestedScrollView].
 ///

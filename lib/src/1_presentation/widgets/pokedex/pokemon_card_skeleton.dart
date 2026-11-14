@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Skeleton loading placeholder matching [PokemonCard] dimensions.
 class PokemonCardSkeleton extends StatelessWidget {

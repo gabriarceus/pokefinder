@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 extension ReadableColor on Color {
   /// Returns this color adjusted to stay visible as text or an accent on a

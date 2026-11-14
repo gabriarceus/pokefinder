@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:pokefinder/l10n/translation_helper.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/contrasting_text_color.dart';
 import 'package:pokefinder/src/1_presentation/widgets/detail/type_color_scheme.dart';

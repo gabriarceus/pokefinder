@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:pokefinder/src/1_presentation/theme/app_palette.dart';
 
 /// Base-stat value above which a stat bar is considered "high".

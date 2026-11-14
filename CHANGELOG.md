@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file, following t
 
 - Replaced four duplicate load cubits with one generic load cubit and one shared inline error card; shared headings, empty states and link and comparison actions.
 - Simplified application and repository architecture, shared data models and UI components; improved caching, localization, theming and navigation.
+- Upgraded the Flutter SDK to 3.50.0 (migrating Material imports and localization delegates to `material_ui`), Gradle to 9.9.1, Android Gradle Plugin to 9.5.1, and Kotlin to 2.4.21.
 
 ### Fixed
 

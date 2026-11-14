@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A bold section heading in the `titleMedium` style, followed by 8 dp.
 class SectionTitle extends StatelessWidget {
